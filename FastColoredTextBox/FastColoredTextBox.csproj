@@ -1,0 +1,66 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net6.0-windows</TargetFramework>
+    <OutputType>Library</OutputType>
+    <RootNamespace>FastColoredTextBoxNS</RootNamespace>
+    <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
+    <UseWindowsForms>true</UseWindowsForms>
+    <ImportWindowsDesktopTargets>true</ImportWindowsDesktopTargets>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DocumentationFile>bin\Debug\FastColoredTextBox.xml</DocumentationFile>
+  </PropertyGroup>
+  <PropertyGroup>
+    <SignAssembly>true</SignAssembly>
+  </PropertyGroup>
+  <PropertyGroup>
+    <AssemblyOriginatorKeyFile>FCTB_key.snk</AssemblyOriginatorKeyFile>
+    <RepositoryUrl>https://github.com/Daxanius/FastColoredTextBox/</RepositoryUrl>
+    <PackageReleaseNotes>Migrated to .NET 6.0</PackageReleaseNotes>
+    <NeutralLanguage>en</NeutralLanguage>
+    <Authors>Pavel Torgashov, Daxanius</Authors>
+    <Version>2.16.26.120</Version>
+    <PackageId>Dax-FCTB</PackageId>
+    <PackageProjectUrl>https://github.com/Daxanius/FastColoredTextBox/</PackageProjectUrl>
+    <Copyright>GNU License</Copyright>
+    <Description>A fork of FastColoredTextBox by Pavel Torgashov by Daxanius.</Description>
+    <RepositoryType>git</RepositoryType>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+    <PackageLicenseFile>license.txt</PackageLicenseFile>
+    <PackageIcon>icon.png</PackageIcon>
+  </PropertyGroup>
+  <ItemGroup>
+    <None Include="$(SolutionDir)icon.png">
+      <Pack>True</Pack>
+      <PackagePath>\</PackagePath>
+    </None>
+    <None Include="$(SolutionDir)README.md">
+      <Pack>True</Pack>
+      <PackagePath>\</PackagePath>
+    </None>
+		<None Include="$(SolutionDir)license.txt">
+			<Pack>True</Pack>
+			<PackagePath>\</PackagePath>
+		</None>
+  </ItemGroup>
+  <ItemGroup>
+    <Reference Include="System.Design" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Update="AutocompleteMenu.cs">
+      <SubType>Component</SubType>
+    </Compile>
+    <Compile Update="DocumentMap.cs">
+      <SubType>Component</SubType>
+    </Compile>
+    <Compile Update="Ruler.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Update="FastColoredTextBox.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Update="UnfocusablePanel.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+  </ItemGroup>
+</Project>
