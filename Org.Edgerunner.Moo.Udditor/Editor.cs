@@ -1,10 +1,8 @@
 ﻿using FastColoredTextBoxNS.Types;
 using Org.Edgerunner.ANTLR4.Tools.Common;
-using Org.Edgerunner.ANTLR4.Tools.Common.Grammar.Errors;
 using Org.Edgerunner.Moo.Editor.Controls;
-using Org.Edgerunner.MooSharp.Language.Grammar;
 
-namespace Org.Edgerunner.Moo.Cowhand;
+namespace Org.Edgerunner.Moo.Udditor;
 
 public partial class Editor : Form
 {

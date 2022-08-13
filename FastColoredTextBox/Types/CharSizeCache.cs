@@ -2,7 +2,7 @@
 using System.Drawing;
 using System.Windows.Forms;
 
-namespace FastColoredTextBoxNS {
+namespace FastColoredTextBoxNS.Types {
 	/// <summary>
 	/// Calling MeasureText on each char is extremly slow
 	/// Thankfully the size of the char does not change for the same font

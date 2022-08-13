@@ -1,4 +1,4 @@
-﻿namespace Org.Edgerunner.Moo.Cowhand;
+﻿namespace Org.Edgerunner.Moo.Udditor;
 
 internal static class Program
 {

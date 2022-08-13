@@ -1,6 +1,6 @@
 ﻿using Org.Edgerunner.Moo.Editor.Controls;
 
-namespace Org.Edgerunner.Moo.Cowhand
+namespace Org.Edgerunner.Moo.Udditor
 {
    partial class Editor
    {

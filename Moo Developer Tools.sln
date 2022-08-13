@@ -2,7 +2,7 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.2.32630.192
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Org.Edgerunner.Moo.Cowhand", "Cowhand\Org.Edgerunner.Moo.Cowhand.csproj", "{7ED1F958-260C-445E-946B-6F957160E309}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Org.Edgerunner.Moo.Udditor", "Org.Edgerunner.Moo.Udditor\Org.Edgerunner.Moo.Udditor.csproj", "{7ED1F958-260C-445E-946B-6F957160E309}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Org.Edgerunner.Moo.Editor", "Org.Edgerunner.Moo.Editor\Org.Edgerunner.Moo.Editor.csproj", "{3CE5B1DA-8ABC-424B-B9B1-E3EA65943F8A}"
 EndProject

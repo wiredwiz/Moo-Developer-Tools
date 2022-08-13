@@ -6,7 +6,10 @@
     <Nullable>disable</Nullable>
     <UseWindowsForms>true</UseWindowsForms>
     <ImplicitUsings>enable</ImplicitUsings>
-    <StartupObject>Org.Edgerunner.Moo.Cowhand.Program</StartupObject>
+    <StartupObject>Org.Edgerunner.Moo.Udditor.Program</StartupObject>
+    <Authors>wiredwiz</Authors>
+    <Description>A rapid IDE for the Moo programming language.</Description>
+    <Copyright>Thaddeus Ryker 2022</Copyright>
   </PropertyGroup>
 
   <ItemGroup>
