@@ -15,19 +15,20 @@
   </PropertyGroup>
   <PropertyGroup>
     <AssemblyOriginatorKeyFile>FCTB_key.snk</AssemblyOriginatorKeyFile>
-    <RepositoryUrl>https://github.com/Daxanius/FastColoredTextBox/</RepositoryUrl>
-    <PackageReleaseNotes>Migrated to .NET 6.0</PackageReleaseNotes>
+    <RepositoryUrl>https://github.com/wiredwiz/FastColoredTextBox</RepositoryUrl>
+    <PackageReleaseNotes>Migrated to .NET 6.0.  Added a third set of matching brackets.</PackageReleaseNotes>
     <NeutralLanguage>en</NeutralLanguage>
-    <Authors>Pavel Torgashov, Daxanius</Authors>
+    <Authors>Pavel Torgashov, Daxanius, Wiredwiz</Authors>
     <Version>2.16.26.120</Version>
-    <PackageId>Dax-FCTB</PackageId>
-    <PackageProjectUrl>https://github.com/Daxanius/FastColoredTextBox/</PackageProjectUrl>
+    <PackageId>FCTB-wired</PackageId>
+    <PackageProjectUrl>https://github.com/wiredwiz/FastColoredTextBox</PackageProjectUrl>
     <Copyright>GNU License</Copyright>
-    <Description>A fork of FastColoredTextBox by Pavel Torgashov by Daxanius.</Description>
+    <Description>A fork of FastColoredTextBox by Pavel Torgashov by Daxanius by Wiredwizard.</Description>
     <RepositoryType>git</RepositoryType>
     <PackageReadmeFile>README.md</PackageReadmeFile>
     <PackageLicenseFile>license.txt</PackageLicenseFile>
     <PackageIcon>icon.png</PackageIcon>
+    <PackageTags>FCTB</PackageTags>
   </PropertyGroup>
   <ItemGroup>
     <None Include="$(SolutionDir)icon.png">

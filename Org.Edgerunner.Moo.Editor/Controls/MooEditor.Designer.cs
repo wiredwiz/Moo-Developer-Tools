@@ -1,4 +1,4 @@
-﻿namespace Moo_Editor_Control
+﻿namespace Org.Edgerunner.Moo.Editor.Controls
 {
    partial class MooEditor
    {

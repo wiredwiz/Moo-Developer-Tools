@@ -1,0 +1,25 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net6.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>disable</Nullable>
+    <Copyright>Copyright ©  2020</Copyright>
+    <FileVersion>1.2.22221.0</FileVersion>
+    <AssemblyVersion>1.2.22221.0</AssemblyVersion>
+    <Authors>wiredwiz</Authors>
+    <Description>A library of common tools for use with the ANTLR4 runtime.</Description>
+    <PackageTags>ANTLR</PackageTags>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Antlr4.Runtime" Version="4.6.6" />
+    <PackageReference Include="JetBrains.Annotations" Version="2022.1.0" />
+    <PackageReference Include="System.Drawing.Common" Version="6.0.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="Grammar\Errors\" />
+  </ItemGroup>
+
+</Project>

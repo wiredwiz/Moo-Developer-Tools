@@ -1,0 +1,32 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net6.0-windows</TargetFramework>
+    <RootNamespace>$(MSBuildProjectName.Replace(" ", "_"))</RootNamespace>
+    <Nullable>disable</Nullable>
+    <UseWindowsForms>true</UseWindowsForms>
+    <ImplicitUsings>enable</ImplicitUsings>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Antlr4.Runtime" Version="4.6.6" />
+    <PackageReference Include="ObjectListView.imasm" Version="2.9.1" />
+    <PackageReference Include="System.Threading" Version="4.3.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\FastColoredTextBox\FastColoredTextBox.csproj" />
+    <ProjectReference Include="..\Org.Edgerunner.ANTLR4.Tools.Common\Org.Edgerunner.ANTLR4.Tools.Common.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Reference Include="Org.Edgerunner.MooSharp.Language.Grammar">
+      <HintPath>..\References\Moo Grammar\Org.Edgerunner.MooSharp.Language.Grammar.dll</HintPath>
+    </Reference>
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="SyntaxHighlighting\" />
+  </ItemGroup>
+
+</Project>
