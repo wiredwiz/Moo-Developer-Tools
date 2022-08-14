@@ -13,6 +13,8 @@ public partial class Editor : Form
     public Editor()
     {
         InitializeComponent();
+        GrammarDialect = Settings.Instance.DefaultGrammarDialect;
+        UpdateDialectMenu(Settings.Instance.DefaultGrammarDialect);
         CurrentEditor = mooCodeEditor;
         ConfigureEditorSettings(CurrentEditor);
         ConfigureMessageDisplay(errorDisplay1);
@@ -26,7 +28,7 @@ public partial class Editor : Form
 
     public MooEditor CurrentEditor { get; set; }
 
-    private MooGrammar MooGrammar { get; set; }
+    private GrammarDialect GrammarDialect { get; set; }
 
     private void mnuItemExit_Click(object sender, EventArgs e)
     {
@@ -51,10 +53,10 @@ public partial class Editor : Form
         BuildAutocompleteMenu(editor);
     }
 
-    private void SetGrammar(MooGrammar mooGrammar)
+    private void SetGrammar(GrammarDialect grammarDialect)
     {
-        MooGrammar = mooGrammar;
-        CurrentEditor.MooGrammar = mooGrammar;
+        GrammarDialect = grammarDialect;
+        CurrentEditor.GrammarDialect = grammarDialect;
     }
 
     private void BuildAutocompleteMenu(MooEditor editor)
@@ -90,6 +92,28 @@ public partial class Editor : Form
         display.Font = font;
         display.ForeColor = Settings.Instance.EditorTextColor;
         display.BackColor = Settings.Instance.EditorBackgroundColor;
+    }
+
+    private void UpdateDialectMenu(GrammarDialect dialect)
+    {
+        if (dialect == GrammarDialect.Edgerunner)
+        {
+            tlMnuLanguageMoo.Checked = false;
+            tlMnuLanguageTsMoo.Checked = false;
+            tlMnuLanguageEdgeMoo.Checked = true;
+        }
+        else if (dialect == GrammarDialect.ToastStunt)
+        {
+            tlMnuLanguageMoo.Checked = false;
+            tlMnuLanguageTsMoo.Checked = true;
+            tlMnuLanguageEdgeMoo.Checked = false;
+        }
+        else
+        {
+            tlMnuLanguageMoo.Checked = true;
+            tlMnuLanguageTsMoo.Checked = false;
+            tlMnuLanguageEdgeMoo.Checked = false;
+        }
     }
 
     private void mnuItemOpenFile_Click(object sender, EventArgs e)
@@ -172,7 +196,7 @@ public partial class Editor : Form
         tlMnuLanguageMoo.Checked = true;
         tlMnuLanguageTsMoo.Checked = false;
         tlMnuLanguageEdgeMoo.Checked = false;
-        SetGrammar(MooGrammar.LambdaMoo);
+        SetGrammar(GrammarDialect.LambdaMoo);
     }
 
     private void tlMnuLanguageTsMoo_Click(object sender, EventArgs e)
@@ -180,7 +204,7 @@ public partial class Editor : Form
         tlMnuLanguageMoo.Checked = false;
         tlMnuLanguageTsMoo.Checked = true;
         tlMnuLanguageEdgeMoo.Checked = false;
-        SetGrammar(MooGrammar.ToastStunt);
+        SetGrammar(GrammarDialect.ToastStunt);
     }
 
     private void tlMnuLanguageEdgeMoo_Click(object sender, EventArgs e)
@@ -188,6 +212,6 @@ public partial class Editor : Form
         tlMnuLanguageMoo.Checked = false;
         tlMnuLanguageTsMoo.Checked = false;
         tlMnuLanguageEdgeMoo.Checked = true;
-        SetGrammar(MooGrammar.Edgerunner);
+        SetGrammar(GrammarDialect.Edgerunner);
     }
 }

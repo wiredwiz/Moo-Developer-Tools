@@ -20,10 +20,10 @@ namespace Org.Edgerunner.Moo.Editor.Controls
    public partial class MooEditor : FastColoredTextBox
    {
       public MooEditor()
-        :this(MooGrammar.Edgerunner)
+        :this(GrammarDialect.Edgerunner)
       {}
 
-      public MooEditor(MooGrammar mooGrammar)
+      public MooEditor(GrammarDialect grammarDialect)
       {
          InitializeComponent();
          Tokens = new List<DetailedToken>();
@@ -46,12 +46,12 @@ namespace Org.Edgerunner.Moo.Editor.Controls
          AutoIndentNeeded += MooEditor_AutoIndentNeeded;
          TextChangedDelayed += MooEditor_TextChangedDelayed;
          KeyDown += MooEditor_KeyDown;
-         MooGrammar = mooGrammar;
+         GrammarDialect = grammarDialect;
       }
 
       protected Document _Document;
 
-      protected MooGrammar _MooGrammar;
+      protected GrammarDialect _GrammarDialect;
 
       protected ParserErrorListener ParserErrorListener { get; set; }
 
@@ -69,12 +69,12 @@ namespace Org.Edgerunner.Moo.Editor.Controls
 
       public AutocompleteMenu AutocompleteMenu { get; set; }
 
-      public MooGrammar MooGrammar
+      public GrammarDialect GrammarDialect
       {
-         get => _MooGrammar;
+         get => _GrammarDialect;
          set
          {
-            _MooGrammar = value;
+            _GrammarDialect = value;
             ParseSourceCode();
             ColorizeTokens(null);
          }
@@ -232,9 +232,9 @@ namespace Org.Edgerunner.Moo.Editor.Controls
          // Generate our lexer
          var inputStream = new AntlrInputStream(this.Text);
          Lexer lexer = null;
-         if (MooGrammar == MooGrammar.ToastStunt)
+         if (GrammarDialect == GrammarDialect.ToastStunt)
             lexer = new ToastStuntMooLexer(inputStream);
-         else if (MooGrammar == MooGrammar.Edgerunner)
+         else if (GrammarDialect == GrammarDialect.Edgerunner)
             lexer = new EdgerunnerMooLexer(inputStream);
          else
             lexer = new MooLexer(inputStream);
@@ -256,9 +256,9 @@ namespace Org.Edgerunner.Moo.Editor.Controls
 
          // Create our parser and attach our error listener
          Parser parser = null;
-         if (MooGrammar == MooGrammar.ToastStunt)
+         if (GrammarDialect == GrammarDialect.ToastStunt)
             parser = new ToastStuntMooParser(commonTokenStream);
-         else if (MooGrammar == MooGrammar.Edgerunner)
+         else if (GrammarDialect == GrammarDialect.Edgerunner)
             parser = new EdgerunnerMooParser(commonTokenStream);
          else
             parser = new MooParser(commonTokenStream);
@@ -271,9 +271,9 @@ namespace Org.Edgerunner.Moo.Editor.Controls
 
          // Let's parse!
          ParserRuleContext context;
-         if (MooGrammar == MooGrammar.ToastStunt)
+         if (GrammarDialect == GrammarDialect.ToastStunt)
             context = ((ToastStuntMooParser)parser).code();
-         else if (MooGrammar == MooGrammar.Edgerunner)
+         else if (GrammarDialect == GrammarDialect.Edgerunner)
             context = ((EdgerunnerMooParser)parser).code();
          else
             context = ((MooParser)parser).code();

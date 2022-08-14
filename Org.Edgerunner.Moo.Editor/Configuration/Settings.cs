@@ -450,6 +450,12 @@ namespace Org.Edgerunner.Moo.Editor.Configuration
       public float ParserMessageFontSize { get; set; }
 
       /// <summary>
+      /// Gets or sets the default Moo grammar dialect.
+      /// </summary>
+      /// <value>The default Moo grammar dialect.</value>
+      public GrammarDialect DefaultGrammarDialect { get; set; }
+
+      /// <summary>
       /// Loads the editor settings from the specified file.
       /// </summary>
       /// <param name="filePath">The file path.</param>
@@ -637,6 +643,7 @@ namespace Org.Edgerunner.Moo.Editor.Configuration
          var defWordWrapIndent = 2;
          var defTabLength = 2;
          var defAutocompleteDelay = 50;
+         var defGrammarDialect = GrammarDialect.Edgerunner;
 
          if (appSettings == null)
          {
@@ -647,6 +654,7 @@ namespace Org.Edgerunner.Moo.Editor.Configuration
             EditorWordWrapAutoIndent = defWordWrapAutoIndent;
             EditorTabLength = defTabLength;
             EditorAutocompleteDelay = defAutocompleteDelay;
+            DefaultGrammarDialect = defGrammarDialect;
             return;
          }
 
@@ -677,6 +685,10 @@ namespace Org.Edgerunner.Moo.Editor.Configuration
          // Fetch EditorAutocompleteDelay setting
          result = appSettings["EditorAutocompleteDelay"]?.Value ?? string.Empty;
          EditorAutocompleteDelay = !int.TryParse(result, out settingValueInt) ? defAutocompleteDelay : settingValueInt;
+
+         // Fetch DefaultGrammarDialect setting
+         result = appSettings["DefaultGrammarDialect"]?.Value ?? string.Empty;
+         DefaultGrammarDialect = !Enum.TryParse(typeof(GrammarDialect), result, out var settingValueObj) ? defGrammarDialect : (GrammarDialect)settingValueObj;
       }
 
       private void LoadParserMessageFontSettings(KeyValueConfigurationCollection appSettings)

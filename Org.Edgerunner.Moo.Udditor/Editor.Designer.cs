@@ -192,8 +192,8 @@ namespace Org.Edgerunner.Moo.Udditor
             this.tlMnuLanguageTsMoo,
             this.tlMnuLanguageEdgeMoo});
          this.grammarToolStripMenuItem.Name = "grammarToolStripMenuItem";
-         this.grammarToolStripMenuItem.Size = new System.Drawing.Size(105, 24);
-         this.grammarToolStripMenuItem.Text = "Moo Dialect";
+         this.grammarToolStripMenuItem.Size = new System.Drawing.Size(136, 24);
+         this.grammarToolStripMenuItem.Text = "Grammar Dialect";
          // 
          // tlMnuLanguageMoo
          // 
@@ -301,15 +301,14 @@ namespace Org.Edgerunner.Moo.Udditor
          this.mooCodeEditor.Dock = System.Windows.Forms.DockStyle.Fill;
          this.mooCodeEditor.Document = null;
          this.mooCodeEditor.FindForm = null;
-         this.mooCodeEditor.Font = new System.Drawing.Font("Courier New", 9.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
          this.mooCodeEditor.GoToForm = null;
-         this.mooCodeEditor.MooGrammar = Org.Edgerunner.Moo.Editor.MooGrammar.Edgerunner;
          this.mooCodeEditor.Hotkeys = resources.GetString("mooCodeEditor.Hotkeys");
          this.mooCodeEditor.IsReplaceMode = false;
          this.mooCodeEditor.LeftBracket = '(';
          this.mooCodeEditor.LeftBracket2 = '{';
          this.mooCodeEditor.LeftBracket3 = '[';
          this.mooCodeEditor.Location = new System.Drawing.Point(0, 0);
+         this.mooCodeEditor.GrammarDialect = Org.Edgerunner.Moo.Editor.GrammarDialect.Edgerunner;
          this.mooCodeEditor.Name = "mooCodeEditor";
          this.mooCodeEditor.Paddings = new System.Windows.Forms.Padding(0);
          this.mooCodeEditor.ReplaceForm = null;
