@@ -47,6 +47,9 @@ namespace Org.Edgerunner.Moo.Udditor
          this.toolStripSeparator3 = new System.Windows.Forms.ToolStripSeparator();
          this.mnuItemFind = new System.Windows.Forms.ToolStripMenuItem();
          this.grammarToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+         this.tlMnuLanguageMoo = new System.Windows.Forms.ToolStripMenuItem();
+         this.tlMnuLanguageTsMoo = new System.Windows.Forms.ToolStripMenuItem();
+         this.tlMnuLanguageEdgeMoo = new System.Windows.Forms.ToolStripMenuItem();
          this.helpToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
          this.tlMnuHelp = new System.Windows.Forms.ToolStripMenuItem();
          this.statusStrip1 = new System.Windows.Forms.StatusStrip();
@@ -59,9 +62,6 @@ namespace Org.Edgerunner.Moo.Udditor
          this.openFileDialog = new System.Windows.Forms.OpenFileDialog();
          this.saveFileDialog = new System.Windows.Forms.SaveFileDialog();
          this.splitContainer1 = new System.Windows.Forms.SplitContainer();
-         this.tlMnuLanguageMoo = new System.Windows.Forms.ToolStripMenuItem();
-         this.tlMnuLanguageTsMoo = new System.Windows.Forms.ToolStripMenuItem();
-         this.tlMnuLanguageEdgeMoo = new System.Windows.Forms.ToolStripMenuItem();
          this.menuStrip1.SuspendLayout();
          this.statusStrip1.SuspendLayout();
          ((System.ComponentModel.ISupportInitialize)(this.mooCodeEditor)).BeginInit();
@@ -192,8 +192,31 @@ namespace Org.Edgerunner.Moo.Udditor
             this.tlMnuLanguageTsMoo,
             this.tlMnuLanguageEdgeMoo});
          this.grammarToolStripMenuItem.Name = "grammarToolStripMenuItem";
-         this.grammarToolStripMenuItem.Size = new System.Drawing.Size(85, 24);
-         this.grammarToolStripMenuItem.Text = "Grammar";
+         this.grammarToolStripMenuItem.Size = new System.Drawing.Size(105, 24);
+         this.grammarToolStripMenuItem.Text = "Moo Dialect";
+         // 
+         // tlMnuLanguageMoo
+         // 
+         this.tlMnuLanguageMoo.Name = "tlMnuLanguageMoo";
+         this.tlMnuLanguageMoo.Size = new System.Drawing.Size(224, 26);
+         this.tlMnuLanguageMoo.Text = "LambdaMoo";
+         this.tlMnuLanguageMoo.Click += new System.EventHandler(this.tlMnuLanguageMoo_Click);
+         // 
+         // tlMnuLanguageTsMoo
+         // 
+         this.tlMnuLanguageTsMoo.Name = "tlMnuLanguageTsMoo";
+         this.tlMnuLanguageTsMoo.Size = new System.Drawing.Size(224, 26);
+         this.tlMnuLanguageTsMoo.Text = "ToastStunt";
+         this.tlMnuLanguageTsMoo.Click += new System.EventHandler(this.tlMnuLanguageTsMoo_Click);
+         // 
+         // tlMnuLanguageEdgeMoo
+         // 
+         this.tlMnuLanguageEdgeMoo.Checked = true;
+         this.tlMnuLanguageEdgeMoo.CheckState = System.Windows.Forms.CheckState.Checked;
+         this.tlMnuLanguageEdgeMoo.Name = "tlMnuLanguageEdgeMoo";
+         this.tlMnuLanguageEdgeMoo.Size = new System.Drawing.Size(224, 26);
+         this.tlMnuLanguageEdgeMoo.Text = "Edgerunner";
+         this.tlMnuLanguageEdgeMoo.Click += new System.EventHandler(this.tlMnuLanguageEdgeMoo_Click);
          // 
          // helpToolStripMenuItem
          // 
@@ -278,7 +301,9 @@ namespace Org.Edgerunner.Moo.Udditor
          this.mooCodeEditor.Dock = System.Windows.Forms.DockStyle.Fill;
          this.mooCodeEditor.Document = null;
          this.mooCodeEditor.FindForm = null;
+         this.mooCodeEditor.Font = new System.Drawing.Font("Courier New", 9.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
          this.mooCodeEditor.GoToForm = null;
+         this.mooCodeEditor.MooGrammar = Org.Edgerunner.Moo.Editor.MooGrammar.Edgerunner;
          this.mooCodeEditor.Hotkeys = resources.GetString("mooCodeEditor.Hotkeys");
          this.mooCodeEditor.IsReplaceMode = false;
          this.mooCodeEditor.LeftBracket = '(';
@@ -333,29 +358,6 @@ namespace Org.Edgerunner.Moo.Udditor
          this.splitContainer1.Size = new System.Drawing.Size(957, 713);
          this.splitContainer1.SplitterDistance = 520;
          this.splitContainer1.TabIndex = 5;
-         // 
-         // tlMnuLanguageMoo
-         // 
-         this.tlMnuLanguageMoo.Name = "tlMnuLanguageMoo";
-         this.tlMnuLanguageMoo.Size = new System.Drawing.Size(224, 26);
-         this.tlMnuLanguageMoo.Text = "Moo";
-         this.tlMnuLanguageMoo.Click += new System.EventHandler(this.tlMnuLanguageMoo_Click);
-         // 
-         // tlMnuLanguageTsMoo
-         // 
-         this.tlMnuLanguageTsMoo.Name = "tlMnuLanguageTsMoo";
-         this.tlMnuLanguageTsMoo.Size = new System.Drawing.Size(224, 26);
-         this.tlMnuLanguageTsMoo.Text = "ToastStunt Moo";
-         this.tlMnuLanguageTsMoo.Click += new System.EventHandler(this.tlMnuLanguageTsMoo_Click);
-         // 
-         // tlMnuLanguageEdgeMoo
-         // 
-         this.tlMnuLanguageEdgeMoo.Checked = true;
-         this.tlMnuLanguageEdgeMoo.CheckState = System.Windows.Forms.CheckState.Checked;
-         this.tlMnuLanguageEdgeMoo.Name = "tlMnuLanguageEdgeMoo";
-         this.tlMnuLanguageEdgeMoo.Size = new System.Drawing.Size(224, 26);
-         this.tlMnuLanguageEdgeMoo.Text = "Edge Moo";
-         this.tlMnuLanguageEdgeMoo.Click += new System.EventHandler(this.tlMnuLanguageEdgeMoo_Click);
          // 
          // Editor
          // 

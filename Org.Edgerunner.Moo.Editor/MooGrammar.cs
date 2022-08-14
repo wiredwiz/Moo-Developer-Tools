@@ -1,8 +1,8 @@
 ﻿namespace Org.Edgerunner.Moo.Editor;
 
-public enum Grammar
+public enum MooGrammar
 {
-   Moo,
+   LambdaMoo,
    ToastStunt,
    Edgerunner
 }

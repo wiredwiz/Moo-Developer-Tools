@@ -26,7 +26,7 @@ public partial class Editor : Form
 
     public MooEditor CurrentEditor { get; set; }
 
-    private Grammar Grammar { get; set; }
+    private MooGrammar MooGrammar { get; set; }
 
     private void mnuItemExit_Click(object sender, EventArgs e)
     {
@@ -51,10 +51,10 @@ public partial class Editor : Form
         BuildAutocompleteMenu(editor);
     }
 
-    private void SetGrammar(Grammar grammar)
+    private void SetGrammar(MooGrammar mooGrammar)
     {
-        Grammar = grammar;
-        CurrentEditor.Grammar = grammar;
+        MooGrammar = mooGrammar;
+        CurrentEditor.MooGrammar = mooGrammar;
     }
 
     private void BuildAutocompleteMenu(MooEditor editor)
@@ -172,7 +172,7 @@ public partial class Editor : Form
         tlMnuLanguageMoo.Checked = true;
         tlMnuLanguageTsMoo.Checked = false;
         tlMnuLanguageEdgeMoo.Checked = false;
-        SetGrammar(Grammar.Moo);
+        SetGrammar(MooGrammar.LambdaMoo);
     }
 
     private void tlMnuLanguageTsMoo_Click(object sender, EventArgs e)
@@ -180,7 +180,7 @@ public partial class Editor : Form
         tlMnuLanguageMoo.Checked = false;
         tlMnuLanguageTsMoo.Checked = true;
         tlMnuLanguageEdgeMoo.Checked = false;
-        SetGrammar(Grammar.ToastStunt);
+        SetGrammar(MooGrammar.ToastStunt);
     }
 
     private void tlMnuLanguageEdgeMoo_Click(object sender, EventArgs e)
@@ -188,6 +188,6 @@ public partial class Editor : Form
         tlMnuLanguageMoo.Checked = false;
         tlMnuLanguageTsMoo.Checked = false;
         tlMnuLanguageEdgeMoo.Checked = true;
-        SetGrammar(Grammar.Edgerunner);
+        SetGrammar(MooGrammar.Edgerunner);
     }
 }
