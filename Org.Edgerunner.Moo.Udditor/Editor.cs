@@ -1,6 +1,7 @@
 ﻿using FastColoredTextBoxNS;
 using FastColoredTextBoxNS.Types;
 using Org.Edgerunner.ANTLR4.Tools.Common;
+using Org.Edgerunner.Moo.Editor;
 using Org.Edgerunner.Moo.Editor.Autocomplete;
 using Org.Edgerunner.Moo.Editor.Configuration;
 using Org.Edgerunner.Moo.Editor.Controls;
@@ -25,6 +26,8 @@ public partial class Editor : Form
 
     public MooEditor CurrentEditor { get; set; }
 
+    private Grammar Grammar { get; set; }
+
     private void mnuItemExit_Click(object sender, EventArgs e)
     {
         Application.Exit();
@@ -46,6 +49,12 @@ public partial class Editor : Form
         editor.LineNumberColor = Settings.Instance.EditorLineNumberColor;
         editor.SelectionColor = Settings.Instance.EditorTextSelectionColor;
         BuildAutocompleteMenu(editor);
+    }
+
+    private void SetGrammar(Grammar grammar)
+    {
+        Grammar = grammar;
+        CurrentEditor.Grammar = grammar;
     }
 
     private void BuildAutocompleteMenu(MooEditor editor)
@@ -156,5 +165,29 @@ public partial class Editor : Form
     private void tlMnuHelp_Click(object sender, EventArgs e)
     {
         AboutBox.Instance.ShowDialog();
+    }
+
+    private void tlMnuLanguageMoo_Click(object sender, EventArgs e)
+    {
+        tlMnuLanguageMoo.Checked = true;
+        tlMnuLanguageTsMoo.Checked = false;
+        tlMnuLanguageEdgeMoo.Checked = false;
+        SetGrammar(Grammar.Moo);
+    }
+
+    private void tlMnuLanguageTsMoo_Click(object sender, EventArgs e)
+    {
+        tlMnuLanguageMoo.Checked = false;
+        tlMnuLanguageTsMoo.Checked = true;
+        tlMnuLanguageEdgeMoo.Checked = false;
+        SetGrammar(Grammar.ToastStunt);
+    }
+
+    private void tlMnuLanguageEdgeMoo_Click(object sender, EventArgs e)
+    {
+        tlMnuLanguageMoo.Checked = false;
+        tlMnuLanguageTsMoo.Checked = false;
+        tlMnuLanguageEdgeMoo.Checked = true;
+        SetGrammar(Grammar.Edgerunner);
     }
 }

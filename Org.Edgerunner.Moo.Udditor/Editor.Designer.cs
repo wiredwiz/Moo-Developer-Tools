@@ -46,6 +46,7 @@ namespace Org.Edgerunner.Moo.Udditor
          this.mnuItemCutPaste = new System.Windows.Forms.ToolStripMenuItem();
          this.toolStripSeparator3 = new System.Windows.Forms.ToolStripSeparator();
          this.mnuItemFind = new System.Windows.Forms.ToolStripMenuItem();
+         this.grammarToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
          this.helpToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
          this.tlMnuHelp = new System.Windows.Forms.ToolStripMenuItem();
          this.statusStrip1 = new System.Windows.Forms.StatusStrip();
@@ -58,6 +59,9 @@ namespace Org.Edgerunner.Moo.Udditor
          this.openFileDialog = new System.Windows.Forms.OpenFileDialog();
          this.saveFileDialog = new System.Windows.Forms.SaveFileDialog();
          this.splitContainer1 = new System.Windows.Forms.SplitContainer();
+         this.tlMnuLanguageMoo = new System.Windows.Forms.ToolStripMenuItem();
+         this.tlMnuLanguageTsMoo = new System.Windows.Forms.ToolStripMenuItem();
+         this.tlMnuLanguageEdgeMoo = new System.Windows.Forms.ToolStripMenuItem();
          this.menuStrip1.SuspendLayout();
          this.statusStrip1.SuspendLayout();
          ((System.ComponentModel.ISupportInitialize)(this.mooCodeEditor)).BeginInit();
@@ -73,6 +77,7 @@ namespace Org.Edgerunner.Moo.Udditor
          this.menuStrip1.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.fileToolStripMenuItem,
             this.editToolStripMenuItem,
+            this.grammarToolStripMenuItem,
             this.helpToolStripMenuItem});
          this.menuStrip1.Location = new System.Drawing.Point(0, 0);
          this.menuStrip1.Name = "menuStrip1";
@@ -180,6 +185,16 @@ namespace Org.Edgerunner.Moo.Udditor
          this.mnuItemFind.Text = "Find";
          this.mnuItemFind.Click += new System.EventHandler(this.mnuItemFind_Click);
          // 
+         // grammarToolStripMenuItem
+         // 
+         this.grammarToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.tlMnuLanguageMoo,
+            this.tlMnuLanguageTsMoo,
+            this.tlMnuLanguageEdgeMoo});
+         this.grammarToolStripMenuItem.Name = "grammarToolStripMenuItem";
+         this.grammarToolStripMenuItem.Size = new System.Drawing.Size(85, 24);
+         this.grammarToolStripMenuItem.Text = "Grammar";
+         // 
          // helpToolStripMenuItem
          // 
          this.helpToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
@@ -191,7 +206,7 @@ namespace Org.Edgerunner.Moo.Udditor
          // tlMnuHelp
          // 
          this.tlMnuHelp.Name = "tlMnuHelp";
-         this.tlMnuHelp.Size = new System.Drawing.Size(224, 26);
+         this.tlMnuHelp.Size = new System.Drawing.Size(133, 26);
          this.tlMnuHelp.Text = "About";
          this.tlMnuHelp.Click += new System.EventHandler(this.tlMnuHelp_Click);
          // 
@@ -249,6 +264,7 @@ namespace Org.Edgerunner.Moo.Udditor
         '\"',
         '\'',
         '\''};
+         this.mooCodeEditor.AutocompleteMenu = null;
          this.mooCodeEditor.AutoIndentChars = false;
          this.mooCodeEditor.AutoIndentCharsPatterns = "^\\s*[\\w\\.]+(\\s\\w+)?\\s*(?<range>=)\\s*(?<range>[^;=]+);\r\n^\\s*(case|default)\\s*[^:]*" +
     "(?<range>:)\\s*(?<range>[^;]+);";
@@ -318,6 +334,29 @@ namespace Org.Edgerunner.Moo.Udditor
          this.splitContainer1.SplitterDistance = 520;
          this.splitContainer1.TabIndex = 5;
          // 
+         // tlMnuLanguageMoo
+         // 
+         this.tlMnuLanguageMoo.Name = "tlMnuLanguageMoo";
+         this.tlMnuLanguageMoo.Size = new System.Drawing.Size(224, 26);
+         this.tlMnuLanguageMoo.Text = "Moo";
+         this.tlMnuLanguageMoo.Click += new System.EventHandler(this.tlMnuLanguageMoo_Click);
+         // 
+         // tlMnuLanguageTsMoo
+         // 
+         this.tlMnuLanguageTsMoo.Name = "tlMnuLanguageTsMoo";
+         this.tlMnuLanguageTsMoo.Size = new System.Drawing.Size(224, 26);
+         this.tlMnuLanguageTsMoo.Text = "ToastStunt Moo";
+         this.tlMnuLanguageTsMoo.Click += new System.EventHandler(this.tlMnuLanguageTsMoo_Click);
+         // 
+         // tlMnuLanguageEdgeMoo
+         // 
+         this.tlMnuLanguageEdgeMoo.Checked = true;
+         this.tlMnuLanguageEdgeMoo.CheckState = System.Windows.Forms.CheckState.Checked;
+         this.tlMnuLanguageEdgeMoo.Name = "tlMnuLanguageEdgeMoo";
+         this.tlMnuLanguageEdgeMoo.Size = new System.Drawing.Size(224, 26);
+         this.tlMnuLanguageEdgeMoo.Text = "Edge Moo";
+         this.tlMnuLanguageEdgeMoo.Click += new System.EventHandler(this.tlMnuLanguageEdgeMoo_Click);
+         // 
          // Editor
          // 
          this.ClientSize = new System.Drawing.Size(957, 767);
@@ -370,5 +409,9 @@ namespace Org.Edgerunner.Moo.Udditor
         private SplitContainer splitContainer1;
         private ToolStripMenuItem helpToolStripMenuItem;
         private ToolStripMenuItem tlMnuHelp;
+        private ToolStripMenuItem grammarToolStripMenuItem;
+        private ToolStripMenuItem tlMnuLanguageMoo;
+        private ToolStripMenuItem tlMnuLanguageTsMoo;
+        private ToolStripMenuItem tlMnuLanguageEdgeMoo;
     }
 }
