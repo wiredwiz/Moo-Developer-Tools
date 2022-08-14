@@ -1,27 +1,27 @@
 ﻿#region BSD 3-Clause License
 // <copyright file="DetailedToken.cs" company="Edgerunner.org">
-// Copyright 2020 
+// Copyright 2020
 // </copyright>
-// 
+//
 // BSD 3-Clause License
-// 
-// Copyright (c) 2020, 
+//
+// Copyright (c) 2020,
 // All rights reserved.
-// 
+//
 // Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are met:
-// 
+//
 // 1. Redistributions of source code must retain the above copyright notice, this
 //    list of conditions and the following disclaimer.
-// 
+//
 // 2. Redistributions in binary form must reproduce the above copyright notice,
 //    this list of conditions and the following disclaimer in the documentation
 //    and/or other materials provided with the distribution.
-// 
+//
 // 3. Neither the name of the copyright holder nor the names of its
 //    contributors may be used to endorse or promote products derived from
 //    this software without specific prior written permission.
-// 
+//
 // THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
 // AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
 // IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
@@ -50,8 +50,8 @@ namespace Org.Edgerunner.ANTLR4.Tools.Common.Grammar
    public class DetailedToken : CommonToken
    {
       private string _TypeNameUpperCase;
-      private int? _EndingLineNumber;
-      private int? _EndingColumnPosition;
+      private int? _EndingLine;
+      private int? _EndingColumn;
       private Place? _EndPlace;
 
       private string _TypeName;
@@ -166,37 +166,44 @@ namespace Org.Edgerunner.ANTLR4.Tools.Common.Grammar
       /// Gets the line number for the end of token.
       /// </summary>
       /// <value>The ending line number.</value>
-      public int EndingLineNumber
+      public int EndingLine
       {
          get
          {
-            if (!_EndingLineNumber.HasValue)
+            if (!_EndingLine.HasValue)
             {
                if (!_EndPlace.HasValue)
                   _EndPlace = this.GetEndPlace();
-               _EndingLineNumber = _EndPlace.Value.Line;
+               _EndingLine = _EndPlace.Value.Line;
             }
 
-            return _EndingLineNumber.Value;
+            return _EndingLine.Value;
          }
       }
 
       /// <summary>
-      /// Gets the column position for the end of the token.
+      /// Gets the column for the start of the token.
       /// </summary>
-      /// <value>The ending column position.</value>
-      public int EndingColumnPosition
+      /// <value>The starting column.</value>
+      /// <remarks>This index is 1 based rather than 0</remarks>
+      public int StartingColumn => Column + 1;
+
+      /// <summary>
+      /// Gets the column for the end of the token.
+      /// </summary>
+      /// <value>The ending column.</value>
+      public int EndingColumn
       {
          get
          {
-            if (!_EndingColumnPosition.HasValue)
+            if (!_EndingColumn.HasValue)
             {
                if (!_EndPlace.HasValue)
                   _EndPlace = this.GetEndPlace();
-               _EndingColumnPosition = _EndPlace.Value.Position + 1;
+               _EndingColumn = _EndPlace.Value.Position + 1;
             }
 
-            return _EndingColumnPosition.Value;
+            return _EndingColumn.Value;
          }
       }
 
