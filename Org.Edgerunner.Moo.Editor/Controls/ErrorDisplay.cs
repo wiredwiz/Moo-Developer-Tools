@@ -9,6 +9,7 @@ using System.Threading.Tasks;
 using System.Windows.Forms;
 using Org.Edgerunner.ANTLR4.Tools.Common;
 using Org.Edgerunner.ANTLR4.Tools.Common.Grammar.Errors;
+using Org.Edgerunner.Moo.Editor.Configuration;
 
 namespace Org.Edgerunner.Moo.Editor.Controls
 {
@@ -27,6 +28,7 @@ namespace Org.Edgerunner.Moo.Editor.Controls
          Columns.Add("colLineNumber", "Line", 60, HorizontalAlignment.Right, 0);
          Columns.Add("colColumn", "Column", 80, HorizontalAlignment.Right, 0);
          Columns.Add("colMessage", "Message", 600, HorizontalAlignment.Left, 0);
+         //ConfigureDisplay();
       }
 
       public void PopulateErrors(List<ParseMessage> errorMessages)
@@ -44,6 +46,12 @@ namespace Org.Edgerunner.Moo.Editor.Controls
             Items.Add(error);
          }
          Refresh();
+      }
+
+      private void ConfigureDisplay()
+      {
+         var font = new Font(Settings.Instance.EditorFontFamily, Settings.Instance.EditorFontSize);
+         Font = font;
       }
    }
 }

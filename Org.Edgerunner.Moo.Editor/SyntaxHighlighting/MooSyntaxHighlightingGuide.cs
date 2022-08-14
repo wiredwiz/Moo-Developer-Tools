@@ -1,5 +1,6 @@
 ﻿using Org.Edgerunner.ANTLR4.Tools.Common.Grammar;
 using Org.Edgerunner.ANTLR4.Tools.Common.Syntax;
+using Org.Edgerunner.Moo.Editor.Configuration;
 using Org.Edgerunner.MooSharp.Language.Grammar;
 
 namespace Org.Edgerunner.Moo.Editor.SyntaxHighlighting;
@@ -13,7 +14,7 @@ public class MooSyntaxHighlightingGuide : ISyntaxHighlightingGuide
 
       public Color GetErrorIndicatorColor()
       {
-         return Color.Red;
+         return Settings.Instance.ErrorIndicatorColor;
       }
 
       public Color GetTokenForegroundColor(DetailedToken token, DetailedToken previousToken, DetailedToken nextToken)
@@ -39,17 +40,18 @@ public class MooSyntaxHighlightingGuide : ISyntaxHighlightingGuide
             case "ELSEIF":
             case "ENDIF":
             case "ANY":
-               return Color.Blue;
+               return Settings.Instance.KeywordColor;
             case "OBJECT":
+               return Settings.Instance.ObjectColor;
             case "CORE_REFERENCE":
-               return Color.DarkGoldenrod;
+               return Settings.Instance.CoreReferenceColor;
             case "STRING":
-               return Color.Red;
+               return Settings.Instance.StringColor;
             case "NUMBER":
             case "FLOAT":
             case "ERROR":
             case "BOOLEAN":
-               return Color.BlueViolet;
+               return Settings.Instance.LiteralColor;
             case "IDENTIFIER":
                switch (token.DisplayText)
                {
@@ -75,25 +77,17 @@ public class MooSyntaxHighlightingGuide : ISyntaxHighlightingGuide
                   case "MAP":
                   case "WAIF":
                   case "ANON":
-                     return Color.DeepPink;
+                     return Settings.Instance.BuiltinVariableColor;
                   default:
                      if (Moo.Builtins.ContainsKey(token.DisplayText) &&
                          previousToken?.DisplayText != ":" &&
                          nextToken?.DisplayText == "(")
-                        return Color.DeepPink;
+                        return Settings.Instance.BuiltinFunctionColor;
                      else
-                        return Color.Black;
+                        return Settings.Instance.DefaultWordColor;
                }
+            case "'->'":
             case "'$'":
-            case "'='":
-            case "'+'":
-            case "'-'":
-            case "'*'":
-            case "'/'":
-            case "'^'":
-            case "'%'":
-            case "'<'":
-            case "'>'":
             case "'`'":
             case "'''":
             case "'=>'":
@@ -104,8 +98,16 @@ public class MooSyntaxHighlightingGuide : ISyntaxHighlightingGuide
             case "':'":
             case "'.'":
             case "','":
-            case "'('":
-            case "')'":
+               return Settings.Instance.SymbolColor;
+            case "'='":
+            case "'+'":
+            case "'-'":
+            case "'*'":
+            case "'/'":
+            case "'^'":
+            case "'%'":
+            case "'<'":
+            case "'>'":
             case "'=='":
             case "'!='":
             case "'!'":
@@ -115,7 +117,6 @@ public class MooSyntaxHighlightingGuide : ISyntaxHighlightingGuide
             case "'&.'":
             case "'|.'":
             case "'^.'":
-            case "'->'":
             case "'>>'":
             case "'<<'":
             case "'+='":
@@ -131,17 +132,21 @@ public class MooSyntaxHighlightingGuide : ISyntaxHighlightingGuide
             case "'||'":
             case "'&&'":
             case "IN":
-               return  Color.DarkCyan;
+               return Settings.Instance.OperatorColor;
+            case "'('":
+            case "')'":
+               return Settings.Instance.ParenthesisColor;
             case "'['":
             case "']'":
+               return Settings.Instance.BracketColor;
             case "'{'":
             case "'}'":
-               return Color.Tomato;
+               return Settings.Instance.CurlyBraceColor;
             case "SINGLE_LINE_COMMENT":
             case "DELIMITED_COMMENT":
-               return Color.Green;
+               return Settings.Instance.CommentColor;
             default:
-               return Color.Black;
+               return Settings.Instance.DefaultWordColor;
          }
       }
 

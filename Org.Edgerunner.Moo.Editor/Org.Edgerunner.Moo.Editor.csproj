@@ -29,4 +29,10 @@
     <Folder Include="SyntaxHighlighting\" />
   </ItemGroup>
 
+  <ItemGroup>
+    <None Update="Moo.Editor.config">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+
 </Project>

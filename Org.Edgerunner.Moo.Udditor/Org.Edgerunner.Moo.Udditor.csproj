@@ -10,6 +10,7 @@
     <Authors>wiredwiz</Authors>
     <Description>A rapid IDE for the Moo programming language.</Description>
     <Copyright>Thaddeus Ryker 2022</Copyright>
+    <AssemblyName>Udditor</AssemblyName>
   </PropertyGroup>
 
   <ItemGroup>

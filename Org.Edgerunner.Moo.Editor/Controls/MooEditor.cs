@@ -9,6 +9,7 @@ using Org.Edgerunner.ANTLR4.Tools.Common;
 using Org.Edgerunner.ANTLR4.Tools.Common.Grammar;
 using Org.Edgerunner.ANTLR4.Tools.Common.Grammar.Errors;
 using Org.Edgerunner.ANTLR4.Tools.Common.Syntax;
+using Org.Edgerunner.Moo.Editor.Configuration;
 using Org.Edgerunner.Moo.Editor.SyntaxHighlighting;
 using Org.Edgerunner.MooSharp.Language.Grammar;
 using Place = FastColoredTextBoxNS.Types.Place;
@@ -52,11 +53,9 @@ namespace Org.Edgerunner.Moo.Editor.Controls
          RightBracket3 = ']';
          AutoCompleteBrackets = true;
          AutoCompleteBracketsList = new[] { '(', ')', '{', '}', '[', ']', '"', '"' };
-         WordWrap = true;
          AutoIndentChars = false;
          WordWrapAutoIndent = true;
-         WordWrapIndent = 2;
-         TabLength = 2;
+         //ConfigureEditorSettings();
          AutoIndentNeeded += MooEditor_AutoIndentNeeded;
          TextChangedDelayed += MooEditor_TextChangedDelayed;
          KeyDown += MooEditor_KeyDown;
@@ -365,6 +364,23 @@ namespace Org.Edgerunner.Moo.Editor.Controls
             e.ShiftNextLines = -e.TabLength;
          }
       }
+
+      private void ConfigureEditorSettings()
+      {
+         Font = new Font(Settings.Instance.EditorFontFamily, Settings.Instance.EditorFontSize);
+         ForeColor = Settings.Instance.EditorTextColor;
+         CaretColor = Settings.Instance.EditorCaretColor;
+         BackColor = Settings.Instance.EditorBackgroundColor;
+         CurrentLineColor = Settings.Instance.EditorCurrentLineColor;
+         AutoIndent = Settings.Instance.EditorAutoIndent;
+         WordWrapIndent = Settings.Instance.EditorWordWrapIndent;
+         WordWrapAutoIndent = Settings.Instance.EditorWordWrapAutoIndent;
+         WordWrap = Settings.Instance.EditorWordWrap;
+         AutoCompleteBrackets = Settings.Instance.EditorAutoBrackets;
+         TabLength = Settings.Instance.EditorTabLength;
+         LineNumberColor = Settings.Instance.EditorLineNumberColor;
+      }
+
       private void BuildAutocompleteMenu()
       {
          List<AutocompleteItem> items = new List<AutocompleteItem>();
@@ -386,6 +402,7 @@ namespace Org.Edgerunner.Moo.Editor.Controls
 
          //set as autocomplete source
          popupMenu.Items.SetAutocompleteItems(items);
+         popupMenu.AppearInterval = Settings.Instance.EditorAutocompleteDelay;
       }
 
       /// <summary>

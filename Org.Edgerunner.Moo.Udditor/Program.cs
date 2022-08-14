@@ -1,4 +1,6 @@
-﻿namespace Org.Edgerunner.Moo.Udditor;
+﻿using Org.Edgerunner.Moo.Editor.Configuration;
+
+namespace Org.Edgerunner.Moo.Udditor;
 
 internal static class Program
 {
@@ -11,6 +13,7 @@ internal static class Program
         // To customize application configuration such as set high DPI settings or default font,
         // see https://aka.ms/applicationconfiguration.
         ApplicationConfiguration.Initialize();
+        Settings.Instance.LoadFrom(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Moo.Editor.config"));
         Application.Run(new Editor());
     }
 }
