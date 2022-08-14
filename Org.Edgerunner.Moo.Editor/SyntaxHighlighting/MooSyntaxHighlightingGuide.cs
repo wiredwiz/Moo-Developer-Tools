@@ -1,5 +1,6 @@
 ﻿using Org.Edgerunner.ANTLR4.Tools.Common.Grammar;
 using Org.Edgerunner.ANTLR4.Tools.Common.Syntax;
+using Org.Edgerunner.MooSharp.Language.Grammar;
 
 namespace Org.Edgerunner.Moo.Editor.SyntaxHighlighting;
 
@@ -15,10 +16,10 @@ public class MooSyntaxHighlightingGuide : ISyntaxHighlightingGuide
          return Color.Red;
       }
 
-      public Color GetTokenForegroundColor(DetailedToken token)
+      public Color GetTokenForegroundColor(DetailedToken token, DetailedToken previousToken, DetailedToken nextToken)
       {
          var tokenTypeName = token.TypeNameUpperCase;
-         switch (tokenTypeName.ToUpperInvariant())
+         switch (tokenTypeName)
          {
             case "WHILE":
             case "ENDWHILE":
@@ -41,7 +42,7 @@ public class MooSyntaxHighlightingGuide : ISyntaxHighlightingGuide
                return Color.Blue;
             case "OBJECT":
             case "CORE_REFERENCE":
-               return Color.DeepPink;
+               return Color.DarkGoldenrod;
             case "STRING":
                return Color.Red;
             case "NUMBER":
@@ -49,6 +50,40 @@ public class MooSyntaxHighlightingGuide : ISyntaxHighlightingGuide
             case "ERROR":
             case "BOOLEAN":
                return Color.BlueViolet;
+            case "IDENTIFIER":
+               switch (token.DisplayText)
+               {
+                  case "player":
+                  case "caller":
+                  case "this":
+                  case "verb":
+                  case "args":
+                  case "argstr":
+                  case "dobj":
+                  case "dobjstr":
+                  case "prepstr":
+                  case "iobj":
+                  case "iobjstr":
+                  case "ERR":
+                  case "STR":
+                  case "BOOL":
+                  case "INT":
+                  case "NUM":
+                  case "FLOAT":
+                  case "LIST":
+                  case "OBJ":
+                  case "MAP":
+                  case "WAIF":
+                  case "ANON":
+                     return Color.DeepPink;
+                  default:
+                     if (Moo.Builtins.ContainsKey(token.DisplayText) &&
+                         previousToken?.DisplayText != ":" &&
+                         nextToken?.DisplayText == "(")
+                        return Color.DeepPink;
+                     else
+                        return Color.Black;
+               }
             case "'$'":
             case "'='":
             case "'+'":
@@ -110,12 +145,12 @@ public class MooSyntaxHighlightingGuide : ISyntaxHighlightingGuide
          }
       }
 
-      public Color GetTokenBackgroundColor(DetailedToken token)
+      public Color GetTokenBackgroundColor(DetailedToken token, DetailedToken previousToken, DetailedToken nextToken)
       {
          return Color.Transparent;
       }
 
-      public FontStyle GetTokenFontStyle(DetailedToken token)
+      public FontStyle GetTokenFontStyle(DetailedToken token, DetailedToken previousToken, DetailedToken nextToken)
       {
          return FontStyle.Regular;
       }

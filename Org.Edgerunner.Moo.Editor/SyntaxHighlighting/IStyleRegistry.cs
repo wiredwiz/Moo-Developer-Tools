@@ -48,7 +48,7 @@ namespace Org.Edgerunner.Moo.Editor.SyntaxHighlighting
       /// </summary>
       /// <param name="token">The token.</param>
       /// <returns>A <see cref="Style"/> instance.</returns>
-      Style GetTokenStyle(DetailedToken token);
+      Style GetTokenStyle(DetailedToken token, DetailedToken previousToken, DetailedToken nextToken);
 
       /// <summary>
       /// Gets the style for a parse error .

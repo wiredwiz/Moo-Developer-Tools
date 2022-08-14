@@ -66,14 +66,14 @@ namespace Org.Edgerunner.Moo.Editor.SyntaxHighlighting
       /// </summary>
       /// <param name="token">The token.</param>
       /// <returns>A <see cref="Style"/> instance.</returns>
-      public Style GetTokenStyle(DetailedToken token)
+      public Style GetTokenStyle(DetailedToken token, DetailedToken previousToken, DetailedToken nextToken)
       {
-         if (_TokenStyles.TryGetValue(token.TypeName, out var style))
+         if (token.TypeName != "IDENTIFIER" && _TokenStyles.TryGetValue(token.TypeName, out var style))
             return style;
 
-         var foregroundColor = _SyntaxGuide.GetTokenForegroundColor(token);
-         var backgroundColor = _SyntaxGuide.GetTokenBackgroundColor(token);
-         var fontStyle = _SyntaxGuide.GetTokenFontStyle(token);
+         var foregroundColor = _SyntaxGuide.GetTokenForegroundColor(token, previousToken, nextToken);
+         var backgroundColor = _SyntaxGuide.GetTokenBackgroundColor(token, previousToken, nextToken);
+         var fontStyle = _SyntaxGuide.GetTokenFontStyle(token, previousToken, nextToken);
          var key = GetKey(foregroundColor, backgroundColor, fontStyle);
          if (_UniqueStyles.TryGetValue(key, out style))
          {

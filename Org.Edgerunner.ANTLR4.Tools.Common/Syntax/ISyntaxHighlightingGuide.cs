@@ -68,20 +68,20 @@ namespace Org.Edgerunner.ANTLR4.Tools.Common.Syntax
       /// </summary>
       /// <param name="token">The token.</param>
       /// <returns>The <see cref="Color"/> to use.</returns>
-      Color GetTokenForegroundColor(DetailedToken token);
+      Color GetTokenForegroundColor(DetailedToken token, DetailedToken previousToken, DetailedToken nextToken);
 
       /// <summary>
       /// Gets the background color to use for the token.
       /// </summary>
       /// <param name="token">The token.</param>
       /// <returns>The <see cref="Color"/> to use.</returns>
-      Color GetTokenBackgroundColor(DetailedToken token);
+      Color GetTokenBackgroundColor(DetailedToken token, DetailedToken previousToken, DetailedToken nextToken);
 
       /// <summary>
       /// Gets the FontStyle to use for the token.
       /// </summary>
       /// <param name="token">The token.</param>
       /// <returns>The <see cref="FontStyle"/> to use.</returns>
-      FontStyle GetTokenFontStyle(DetailedToken token);
+      FontStyle GetTokenFontStyle(DetailedToken token, DetailedToken previousToken, DetailedToken nextToken);
    }
 }

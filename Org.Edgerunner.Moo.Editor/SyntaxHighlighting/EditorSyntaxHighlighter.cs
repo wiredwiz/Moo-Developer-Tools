@@ -1,28 +1,28 @@
 ﻿#region BSD 3-Clause License
 
 // <copyright file="EditorSyntaxHighlighter.cs" company="Edgerunner.org">
-// Copyright 2020 
+// Copyright 2020
 // </copyright>
-// 
+//
 // BSD 3-Clause License
-// 
-// Copyright (c) 2020, 
+//
+// Copyright (c) 2020,
 // All rights reserved.
-// 
+//
 // Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are met:
-// 
+//
 // 1. Redistributions of source code must retain the above copyright notice, this
 //    list of conditions and the following disclaimer.
-// 
+//
 // 2. Redistributions in binary form must reproduce the above copyright notice,
 //    this list of conditions and the following disclaimer in the documentation
 //    and/or other materials provided with the distribution.
-// 
+//
 // 3. Neither the name of the copyright holder nor the names of its
 //    contributors may be used to endorse or promote products derived from
 //    this software without specific prior written permission.
-// 
+//
 // THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
 // AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
 // IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
@@ -71,13 +71,16 @@ namespace Org.Edgerunner.Moo.Editor.SyntaxHighlighting
 
                    try
                    {
-                      foreach (var token in tokens)
+                      for (int i = 0; i < tokens.Count; i++)
                       {
+                         var token = tokens[i];
+                         var prev = (i == 0) ? null : tokens[i - 1];
+                         var next = (i == tokens.Count - 1) ? null : tokens[i + 1];
                          var startingPlace = new Place(token.Column, token.Line - 1);
-                         var stoppingPlace = new Place(token.EndingColumnPosition, token.EndingLineNumber - 1);
+                         var stoppingPlace = new Place(token.EndingColumn, token.EndingLine - 1);
                          var tokenRange = editor.GetRange(startingPlace, stoppingPlace);
                          tokenRange.ClearStyle(StyleIndex.All);
-                         var style = registry.GetTokenStyle(token);
+                         var style = registry.GetTokenStyle(token, prev, next);
                          tokenRange.SetStyle(style);
                       }
                       foreach (var token in errorTokens)
