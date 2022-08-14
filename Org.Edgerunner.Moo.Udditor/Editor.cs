@@ -30,11 +30,6 @@ public partial class Editor : Form
 
     private GrammarDialect GrammarDialect { get; set; }
 
-    private void mnuItemExit_Click(object sender, EventArgs e)
-    {
-        Application.Exit();
-    }
-
     private void ConfigureEditorSettings(MooEditor editor)
     {
         editor.Font = new Font(Settings.Instance.EditorFontFamily, Settings.Instance.EditorFontSize);
@@ -114,6 +109,11 @@ public partial class Editor : Form
             tlMnuLanguageTsMoo.Checked = false;
             tlMnuLanguageEdgeMoo.Checked = false;
         }
+    }
+
+    private void mnuItemExit_Click(object sender, EventArgs e)
+    {
+        Application.Exit();
     }
 
     private void mnuItemOpenFile_Click(object sender, EventArgs e)
