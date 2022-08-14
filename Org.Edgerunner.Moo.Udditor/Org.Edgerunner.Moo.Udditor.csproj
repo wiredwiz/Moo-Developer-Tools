@@ -10,7 +10,8 @@
     <Authors>wiredwiz</Authors>
     <Description>A rapid IDE for the Moo programming language.</Description>
     <Copyright>Thaddeus Ryker 2022</Copyright>
-    <AssemblyName>Udditor</AssemblyName>
+    <AssemblyName>Moo Udditor</AssemblyName>
+    <ApplicationIcon>UdditorLogo.ico</ApplicationIcon>
   </PropertyGroup>
 
   <ItemGroup>
@@ -20,6 +21,10 @@
 
   <ItemGroup>
     <EditorConfigFiles Remove="S:\Moo Developer Tools\Cowhand\.editorconfig" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Include="UdditorLogo.ico" />
   </ItemGroup>
 
   <ItemGroup>

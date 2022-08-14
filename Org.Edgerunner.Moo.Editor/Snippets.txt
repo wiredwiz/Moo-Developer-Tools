@@ -1,0 +1,6 @@
+﻿if (^)\nendif
+if (^)\nelse\nendif
+for x in (^)\nendfor
+while (^)\nendwhile
+fork (^)\nendfork;
+try\n^\nexcept ex (ANY)\nendtry

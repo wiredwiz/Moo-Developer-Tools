@@ -97,6 +97,7 @@ public class MooSyntaxHighlightingGuide : ISyntaxHighlightingGuide
             case "';'":
             case "':'":
             case "'.'":
+            case "'..'":
             case "','":
                return Settings.Instance.SymbolColor;
             case "'='":

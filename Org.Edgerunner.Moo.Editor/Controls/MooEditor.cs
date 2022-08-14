@@ -9,6 +9,7 @@ using Org.Edgerunner.ANTLR4.Tools.Common;
 using Org.Edgerunner.ANTLR4.Tools.Common.Grammar;
 using Org.Edgerunner.ANTLR4.Tools.Common.Grammar.Errors;
 using Org.Edgerunner.ANTLR4.Tools.Common.Syntax;
+using Org.Edgerunner.Moo.Editor.Autocomplete;
 using Org.Edgerunner.Moo.Editor.Configuration;
 using Org.Edgerunner.Moo.Editor.SyntaxHighlighting;
 using Org.Edgerunner.MooSharp.Language.Grammar;
@@ -18,23 +19,6 @@ namespace Org.Edgerunner.Moo.Editor.Controls
 {
    public partial class MooEditor : FastColoredTextBox
    {
-      AutocompleteMenu popupMenu;
-      string[] keywords = { "if", "elseif", "else", "endif", "return", "while", "endwhile", "for", "endfor", "fork", "endfork", "try", "except", "finally", "endtry",
-         "in", "player", "caller", "verb", "dobj", "dobjstr", "prepstr", "iobj", "iobjstr", "this", "args", "argstr", "E_NONE", "E_TYPE", "E_DIV", "E_PERM", "E_PROPNF",
-         "E_VERBNF", "E_VARNF", "E_INVIND", "E_RECMOVE", "E_MAXREC", "E_RANGE", "E_ARGS", "E_NACC", "E_INVARG", "E_QUOTA", "E_FLOAT", "E_FILE", "E_EXEC", "E_INTRPT",
-         "STR", "LIST", "OBJ", "MAP", "INT", "FLOAT", "ERR", "BOOL", "WAIF", "ANON", "NUM", "true", "false"
-      };
-      //string[] methods = { "Equals()", "GetHashCode()", "GetType()", "ToString()"};
-      string[] snippets =
-      {
-         "if (^)\nendif", "if (^)\nelse\nendif", "for x in (^)\nendfor", "while (^)\nendwhile", "fork (^)\nendfork;", "try\n^\nexcept ex (ANY)\nendtry"
-      };
-      //string[] declarationSnippets = {
-      //   "public class ^\n{\n}", "private class ^\n{\n}", "internal class ^\n{\n}",
-      //   "public struct ^\n{\n;\n}", "private struct ^\n{\n;\n}", "internal struct ^\n{\n;\n}",
-      //   "public void ^()\n{\n;\n}", "private void ^()\n{\n;\n}", "internal void ^()\n{\n;\n}", "protected void ^()\n{\n;\n}",
-      //   "public ^{ get; set; }", "private ^{ get; set; }", "internal ^{ get; set; }", "protected ^{ get; set; }"
-      //};
       public MooEditor()
       {
          InitializeComponent();
@@ -55,19 +39,9 @@ namespace Org.Edgerunner.Moo.Editor.Controls
          AutoCompleteBracketsList = new[] { '(', ')', '{', '}', '[', ']', '"', '"' };
          AutoIndentChars = false;
          WordWrapAutoIndent = true;
-         //ConfigureEditorSettings();
          AutoIndentNeeded += MooEditor_AutoIndentNeeded;
          TextChangedDelayed += MooEditor_TextChangedDelayed;
          KeyDown += MooEditor_KeyDown;
-
-         //create autocomplete popup menu
-         popupMenu = new AutocompleteMenu(this);
-         //popupMenu.Items.ImageList = imageList1;
-         popupMenu.SearchPattern = @"[\w\.:=!<>+-/*%&|^]";
-         popupMenu.AllowTabKey = true;
-         popupMenu.MinFragmentLength = 1;
-         //
-         BuildAutocompleteMenu();
       }
 
       protected Document _Document;
@@ -86,6 +60,8 @@ namespace Org.Edgerunner.Moo.Editor.Controls
 
       public List<ParseMessage> ParseErrors { get; private set; }
 
+      public AutocompleteMenu AutocompleteMenu { get; set; }
+
       public Document Document
       {
          get => _Document;
@@ -101,9 +77,7 @@ namespace Org.Edgerunner.Moo.Editor.Controls
       public event EventHandler<ParsingCompleteEventArgs> ParsingComplete;
       private void MooEditor_KeyDown(object sender, KeyEventArgs e)
       {
-         if ((e.KeyCode == Keys.OemSemicolon && e.Modifiers == 0) &&
-             ((Selection.Start.iLine == Selection.End.iLine) &&
-              (Selection.Start.iChar == Selection.End.iChar)))
+         if ((e.KeyCode == Keys.OemSemicolon && e.Modifiers == 0) && NoTextSelection())
 
          {
             // We add 1 to each because the selection values start at 0 rather than the human reference 1
@@ -116,13 +90,26 @@ namespace Org.Edgerunner.Moo.Editor.Controls
                while (Selection.CharAfterStart != '\r' && Selection.CharAfterStart != '\n')
                   Selection.GoRight();
                if (Selection.CharBeforeStart == ';')
-               {
                   e.Handled = true;
-                  DoCaretVisible();
-                  Invalidate();
-               }
+               DoCaretVisible();
+               Invalidate();
             }
          }
+         else if (e.KeyCode == Keys.Back && NoTextSelection() && Selection.Start.iChar != 0)
+         {
+            if ((Selection.CharBeforeStart == '(' && Selection.CharAfterStart == ')') ||
+                (Selection.CharBeforeStart == '{' && Selection.CharAfterStart == '}') ||
+                (Selection.CharBeforeStart == '[' && Selection.CharAfterStart == ']'))
+               Selection = new TextSelectionRange(this,
+                  new Place(Selection.Start.iChar - 1, Selection.Start.iLine),
+                  new Place(Selection.End.iChar + 1, Selection.End.iLine));
+         }
+      }
+
+      private bool NoTextSelection()
+      {
+         return Selection.Start.iLine == Selection.End.iLine &&
+                Selection.Start.iChar == Selection.End.iChar;
       }
 
       private void MooEditor_TextChangedDelayed(object? sender, TextChangedEventArgs e)
@@ -364,165 +351,5 @@ namespace Org.Edgerunner.Moo.Editor.Controls
             e.ShiftNextLines = -e.TabLength;
          }
       }
-
-      private void ConfigureEditorSettings()
-      {
-         Font = new Font(Settings.Instance.EditorFontFamily, Settings.Instance.EditorFontSize);
-         ForeColor = Settings.Instance.EditorTextColor;
-         CaretColor = Settings.Instance.EditorCaretColor;
-         BackColor = Settings.Instance.EditorBackgroundColor;
-         CurrentLineColor = Settings.Instance.EditorCurrentLineColor;
-         AutoIndent = Settings.Instance.EditorAutoIndent;
-         WordWrapIndent = Settings.Instance.EditorWordWrapIndent;
-         WordWrapAutoIndent = Settings.Instance.EditorWordWrapAutoIndent;
-         WordWrap = Settings.Instance.EditorWordWrap;
-         AutoCompleteBrackets = Settings.Instance.EditorAutoBrackets;
-         TabLength = Settings.Instance.EditorTabLength;
-         LineNumberColor = Settings.Instance.EditorLineNumberColor;
-      }
-
-      private void BuildAutocompleteMenu()
-      {
-         List<AutocompleteItem> items = new List<AutocompleteItem>();
-
-         foreach (var item in snippets)
-            items.Add(new SnippetAutocompleteItem(item) { ImageIndex = 1 });
-         //foreach (var item in declarationSnippets)
-         //   items.Add(new DeclarationSnippet(item) { ImageIndex = 0 });
-         //foreach (var item in methods)
-         //   items.Add(new MethodAutocompleteItem(item) { ImageIndex = 2 });
-         foreach (var item in keywords)
-            items.Add(new AutocompleteItem(item));
-         foreach (var builtin in Moo.Builtins.Values)
-            items.Add(new SnippetAutocompleteItem(builtin));
-
-         items.Add(new InsertSpaceSnippet());
-         items.Add(new InsertSpaceSnippet(@"^(\w+)([=<>!&|%-+*/]+)(\w+)$"));
-         items.Add(new InsertEnterSnippet());
-
-         //set as autocomplete source
-         popupMenu.Items.SetAutocompleteItems(items);
-         popupMenu.AppearInterval = Settings.Instance.EditorAutocompleteDelay;
-      }
-
-      /// <summary>
-        /// This item appears when any part of snippet text is typed
-        /// </summary>
-        class DeclarationSnippet : SnippetAutocompleteItem
-        {
-            public DeclarationSnippet(string snippet)
-                : base(snippet)
-            {
-            }
-
-            public override CompareResult Compare(string fragmentText)
-            {
-                var pattern = Regex.Escape(fragmentText);
-                if (Regex.IsMatch(Text, "\\b" + pattern, RegexOptions.IgnoreCase))
-                    return CompareResult.Visible;
-                return CompareResult.Hidden;
-            }
-        }
-
-        /// <summary>
-        /// Divides numbers and words: "123AND456" -> "123 AND 456"
-        /// Or "i=2" -> "i = 2"
-        /// </summary>
-        class InsertSpaceSnippet : AutocompleteItem
-        {
-            string pattern;
-
-            public InsertSpaceSnippet(string pattern):base("")
-            {
-                this.pattern = pattern;
-            }
-
-            public InsertSpaceSnippet()
-                : this(@"^(\d+)([a-zA-Z_]+)(\d*)$")
-            {
-            }
-
-            public override CompareResult Compare(string fragmentText)
-            {
-                if (Regex.IsMatch(fragmentText, pattern))
-                {
-                    Text = InsertSpaces(fragmentText);
-                    if(Text != fragmentText)
-                        return CompareResult.Visible;
-                }
-                return CompareResult.Hidden;
-            }
-
-            public string InsertSpaces(string fragment)
-            {
-                var m = Regex.Match(fragment, pattern);
-                if (m == null)
-                    return fragment;
-                if (m.Groups[1].Value == "" && m.Groups[3].Value == "")
-                    return fragment;
-                return (m.Groups[1].Value + " " + m.Groups[2].Value + " " + m.Groups[3].Value).Trim();
-            }
-
-            public override string ToolTipTitle
-            {
-                get
-                {
-                    return Text;
-                }
-            }
-        }
-
-        /// <summary>
-        /// Inerts line break after '}'
-        /// </summary>
-        class InsertEnterSnippet : AutocompleteItem
-        {
-           Place enterPlace = Place.Empty;
-
-           public InsertEnterSnippet()
-              : base("[Line break]")
-           {
-           }
-
-           public override CompareResult Compare(string fragmentText)
-           {
-              var r = Parent.Fragment.Clone();
-              while (r.Start.iChar > 0)
-              {
-                 if (r.CharBeforeStart == '}')
-                 {
-                    enterPlace = r.Start;
-                    return CompareResult.Visible;
-                 }
-
-                 r.GoLeftThroughFolded();
-              }
-
-              return CompareResult.Hidden;
-           }
-
-           public override string GetTextForReplace()
-           {
-              //extend range
-              TextSelectionRange r = Parent.Fragment;
-              Place end = r.End;
-              r.Start = enterPlace;
-              r.End = r.End;
-              //insert line break
-              return Environment.NewLine + r.Text;
-           }
-
-           public override void OnSelected(AutocompleteMenu popupMenu, SelectedEventArgs e)
-           {
-              base.OnSelected(popupMenu, e);
-              if (Parent.Fragment.tb.AutoIndent)
-                 Parent.Fragment.tb.DoAutoIndent();
-           }
-
-           public override string ToolTipTitle
-           {
-              get { return "Insert line break after '}'"; }
-           }
-        }
    }
 }

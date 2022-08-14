@@ -384,6 +384,12 @@ namespace Org.Edgerunner.Moo.Editor.Configuration
       public Color EditorCurrentLineColor { get; set; }
 
       /// <summary>
+      /// Gets or sets the editor text selection color.
+      /// </summary>
+      /// <value>The editor text selection color.</value>
+      public Color EditorTextSelectionColor { get; set; }
+
+      /// <summary>
       /// Gets or sets a value indicating whether word wrap is enabled for the editor.
       /// </summary>
       /// <value><c>true</c> if word wrap enabled; otherwise, <c>false</c>.</value>
@@ -529,6 +535,7 @@ namespace Org.Edgerunner.Moo.Editor.Configuration
          var defBackgroundColor = Color.White;
          var defCurrentLineColor = Color.Transparent;
          var defErrorIndicatorColor = Color.Red;
+         var defTextSelectionColor = Color.MediumPurple;
 
          if (appSettings == null)
          {
@@ -538,6 +545,7 @@ namespace Org.Edgerunner.Moo.Editor.Configuration
             EditorCurrentLineColor = defCurrentLineColor;
             EditorLineNumberColor = defLineNumberColor;
             ErrorIndicatorColor = defErrorIndicatorColor;
+            EditorTextSelectionColor = defTextSelectionColor;
             return;
          }
 
@@ -605,6 +613,17 @@ namespace Org.Edgerunner.Moo.Editor.Configuration
          catch (Exception)
          {
             EditorLineNumberColor = defLineNumberColor;
+         }
+
+         // Fetch EditorTextSelectionColor setting
+         result = appSettings["EditorTextSelectionColor"]?.Value ?? string.Empty;
+         try
+         {
+            EditorTextSelectionColor = !string.IsNullOrEmpty(result) ? ColorTranslator.FromHtml(result) : defTextSelectionColor;
+         }
+         catch (Exception)
+         {
+            EditorTextSelectionColor = defTextSelectionColor;
          }
       }
 

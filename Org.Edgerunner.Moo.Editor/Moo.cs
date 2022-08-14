@@ -12,6 +12,14 @@ public static class Moo
 
    public static Dictionary<string, string> Builtins = new(200);
 
+   public static IList<string> Keywords = new List<string>
+   {
+      "if", "elseif", "else", "endif", "return", "while", "endwhile", "for", "endfor", "fork", "endfork", "try", "except", "finally",
+      "endtry", "in", "player", "caller", "verb", "dobj", "dobjstr", "prepstr", "iobj", "iobjstr", "this", "args", "argstr",
+      "E_NONE", "E_TYPE", "E_DIV", "E_PERM", "E_PROPNF", "E_VERBNF", "E_VARNF", "E_INVIND", "E_RECMOVE", "E_MAXREC", "E_RANGE", "E_ARGS", "E_NACC", "E_INVARG", "E_QUOTA",
+      "E_FLOAT", "E_FILE", "E_EXEC", "E_INTRPT", "STR", "LIST", "OBJ", "MAP", "INT", "FLOAT", "ERR", "BOOL", "WAIF", "ANON", "NUM", "true", "false"
+   };
+
    private static readonly List<string> BuiltinsWithArgs = new()
    {
       "typeof", "tostr", "toint", "tofloat", "toobj", "toliteral", "typeof", "equal", "string_hash", "binary_hash", "value_bytes", "value_hash", "value_hmac",

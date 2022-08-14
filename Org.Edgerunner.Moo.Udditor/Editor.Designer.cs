@@ -44,6 +44,10 @@ namespace Org.Edgerunner.Moo.Udditor
          this.mnuItemCut = new System.Windows.Forms.ToolStripMenuItem();
          this.mnuItemCopy = new System.Windows.Forms.ToolStripMenuItem();
          this.mnuItemCutPaste = new System.Windows.Forms.ToolStripMenuItem();
+         this.toolStripSeparator3 = new System.Windows.Forms.ToolStripSeparator();
+         this.mnuItemFind = new System.Windows.Forms.ToolStripMenuItem();
+         this.helpToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+         this.tlMnuHelp = new System.Windows.Forms.ToolStripMenuItem();
          this.statusStrip1 = new System.Windows.Forms.StatusStrip();
          this.tlLblLine = new System.Windows.Forms.ToolStripStatusLabel();
          this.tlStatusLine = new System.Windows.Forms.ToolStripStatusLabel();
@@ -53,11 +57,14 @@ namespace Org.Edgerunner.Moo.Udditor
          this.errorDisplay1 = new Org.Edgerunner.Moo.Editor.Controls.ErrorDisplay();
          this.openFileDialog = new System.Windows.Forms.OpenFileDialog();
          this.saveFileDialog = new System.Windows.Forms.SaveFileDialog();
-         this.toolStripSeparator3 = new System.Windows.Forms.ToolStripSeparator();
-         this.mnuItemFind = new System.Windows.Forms.ToolStripMenuItem();
+         this.splitContainer1 = new System.Windows.Forms.SplitContainer();
          this.menuStrip1.SuspendLayout();
          this.statusStrip1.SuspendLayout();
          ((System.ComponentModel.ISupportInitialize)(this.mooCodeEditor)).BeginInit();
+         ((System.ComponentModel.ISupportInitialize)(this.splitContainer1)).BeginInit();
+         this.splitContainer1.Panel1.SuspendLayout();
+         this.splitContainer1.Panel2.SuspendLayout();
+         this.splitContainer1.SuspendLayout();
          this.SuspendLayout();
          // 
          // menuStrip1
@@ -65,7 +72,8 @@ namespace Org.Edgerunner.Moo.Udditor
          this.menuStrip1.ImageScalingSize = new System.Drawing.Size(20, 20);
          this.menuStrip1.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.fileToolStripMenuItem,
-            this.editToolStripMenuItem});
+            this.editToolStripMenuItem,
+            this.helpToolStripMenuItem});
          this.menuStrip1.Location = new System.Drawing.Point(0, 0);
          this.menuStrip1.Name = "menuStrip1";
          this.menuStrip1.Size = new System.Drawing.Size(957, 28);
@@ -126,20 +134,20 @@ namespace Org.Edgerunner.Moo.Udditor
          // mnuItemFormat
          // 
          this.mnuItemFormat.Name = "mnuItemFormat";
-         this.mnuItemFormat.Size = new System.Drawing.Size(224, 26);
+         this.mnuItemFormat.Size = new System.Drawing.Size(177, 26);
          this.mnuItemFormat.Text = "Format";
          this.mnuItemFormat.Click += new System.EventHandler(this.mnuItemFormat_Click);
          // 
          // toolStripSeparator2
          // 
          this.toolStripSeparator2.Name = "toolStripSeparator2";
-         this.toolStripSeparator2.Size = new System.Drawing.Size(221, 6);
+         this.toolStripSeparator2.Size = new System.Drawing.Size(174, 6);
          // 
          // mnuItemCut
          // 
          this.mnuItemCut.Name = "mnuItemCut";
          this.mnuItemCut.ShortcutKeys = ((System.Windows.Forms.Keys)((System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.X)));
-         this.mnuItemCut.Size = new System.Drawing.Size(224, 26);
+         this.mnuItemCut.Size = new System.Drawing.Size(177, 26);
          this.mnuItemCut.Text = "Cut";
          this.mnuItemCut.Click += new System.EventHandler(this.mnuItemCut_Click);
          // 
@@ -147,7 +155,7 @@ namespace Org.Edgerunner.Moo.Udditor
          // 
          this.mnuItemCopy.Name = "mnuItemCopy";
          this.mnuItemCopy.ShortcutKeys = ((System.Windows.Forms.Keys)((System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.C)));
-         this.mnuItemCopy.Size = new System.Drawing.Size(224, 26);
+         this.mnuItemCopy.Size = new System.Drawing.Size(177, 26);
          this.mnuItemCopy.Text = "Copy";
          this.mnuItemCopy.Click += new System.EventHandler(this.mnuItemCopy_Click);
          // 
@@ -155,9 +163,37 @@ namespace Org.Edgerunner.Moo.Udditor
          // 
          this.mnuItemCutPaste.Name = "mnuItemCutPaste";
          this.mnuItemCutPaste.ShortcutKeys = ((System.Windows.Forms.Keys)((System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.V)));
-         this.mnuItemCutPaste.Size = new System.Drawing.Size(224, 26);
+         this.mnuItemCutPaste.Size = new System.Drawing.Size(177, 26);
          this.mnuItemCutPaste.Text = "Paste";
          this.mnuItemCutPaste.Click += new System.EventHandler(this.mnuItemCutPaste_Click);
+         // 
+         // toolStripSeparator3
+         // 
+         this.toolStripSeparator3.Name = "toolStripSeparator3";
+         this.toolStripSeparator3.Size = new System.Drawing.Size(174, 6);
+         // 
+         // mnuItemFind
+         // 
+         this.mnuItemFind.Name = "mnuItemFind";
+         this.mnuItemFind.ShortcutKeys = ((System.Windows.Forms.Keys)((System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.F)));
+         this.mnuItemFind.Size = new System.Drawing.Size(177, 26);
+         this.mnuItemFind.Text = "Find";
+         this.mnuItemFind.Click += new System.EventHandler(this.mnuItemFind_Click);
+         // 
+         // helpToolStripMenuItem
+         // 
+         this.helpToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.tlMnuHelp});
+         this.helpToolStripMenuItem.Name = "helpToolStripMenuItem";
+         this.helpToolStripMenuItem.Size = new System.Drawing.Size(55, 24);
+         this.helpToolStripMenuItem.Text = "Help";
+         // 
+         // tlMnuHelp
+         // 
+         this.tlMnuHelp.Name = "tlMnuHelp";
+         this.tlMnuHelp.Size = new System.Drawing.Size(224, 26);
+         this.tlMnuHelp.Text = "About";
+         this.tlMnuHelp.Click += new System.EventHandler(this.tlMnuHelp_Click);
          // 
          // statusStrip1
          // 
@@ -201,6 +237,7 @@ namespace Org.Edgerunner.Moo.Udditor
          // 
          // mooCodeEditor
          // 
+         this.mooCodeEditor.AutoCompleteBrackets = true;
          this.mooCodeEditor.AutoCompleteBracketsList = new char[] {
         '(',
         ')',
@@ -231,7 +268,7 @@ namespace Org.Edgerunner.Moo.Udditor
          this.mooCodeEditor.LeftBracket = '(';
          this.mooCodeEditor.LeftBracket2 = '{';
          this.mooCodeEditor.LeftBracket3 = '[';
-         this.mooCodeEditor.Location = new System.Drawing.Point(0, 28);
+         this.mooCodeEditor.Location = new System.Drawing.Point(0, 0);
          this.mooCodeEditor.Name = "mooCodeEditor";
          this.mooCodeEditor.Paddings = new System.Windows.Forms.Padding(0);
          this.mooCodeEditor.ReplaceForm = null;
@@ -240,7 +277,7 @@ namespace Org.Edgerunner.Moo.Udditor
          this.mooCodeEditor.RightBracket3 = ']';
          this.mooCodeEditor.SelectionColor = System.Drawing.Color.FromArgb(((int)(((byte)(60)))), ((int)(((byte)(0)))), ((int)(((byte)(0)))), ((int)(((byte)(255)))));
          this.mooCodeEditor.ServiceColors = ((FastColoredTextBoxNS.ServiceColors)(resources.GetObject("mooCodeEditor.ServiceColors")));
-         this.mooCodeEditor.Size = new System.Drawing.Size(957, 555);
+         this.mooCodeEditor.Size = new System.Drawing.Size(957, 520);
          this.mooCodeEditor.TabIndex = 3;
          this.mooCodeEditor.TabLength = 2;
          this.mooCodeEditor.WordWrap = true;
@@ -250,39 +287,44 @@ namespace Org.Edgerunner.Moo.Udditor
          // 
          // errorDisplay1
          // 
-         this.errorDisplay1.Dock = System.Windows.Forms.DockStyle.Bottom;
+         this.errorDisplay1.Dock = System.Windows.Forms.DockStyle.Fill;
          this.errorDisplay1.FullRowSelect = true;
          this.errorDisplay1.GridLines = true;
          this.errorDisplay1.HeaderStyle = System.Windows.Forms.ColumnHeaderStyle.Nonclickable;
-         this.errorDisplay1.Location = new System.Drawing.Point(0, 583);
+         this.errorDisplay1.Location = new System.Drawing.Point(0, 0);
          this.errorDisplay1.MultiSelect = false;
          this.errorDisplay1.Name = "errorDisplay1";
-         this.errorDisplay1.Size = new System.Drawing.Size(957, 158);
+         this.errorDisplay1.Size = new System.Drawing.Size(957, 189);
          this.errorDisplay1.Sorting = System.Windows.Forms.SortOrder.Ascending;
          this.errorDisplay1.TabIndex = 4;
          this.errorDisplay1.UseCompatibleStateImageBehavior = false;
          this.errorDisplay1.View = System.Windows.Forms.View.Details;
          // 
-         // toolStripSeparator3
+         // splitContainer1
          // 
-         this.toolStripSeparator3.Name = "toolStripSeparator3";
-         this.toolStripSeparator3.Size = new System.Drawing.Size(221, 6);
+         this.splitContainer1.Dock = System.Windows.Forms.DockStyle.Fill;
+         this.splitContainer1.Location = new System.Drawing.Point(0, 28);
+         this.splitContainer1.Name = "splitContainer1";
+         this.splitContainer1.Orientation = System.Windows.Forms.Orientation.Horizontal;
          // 
-         // mnuItemFind
+         // splitContainer1.Panel1
          // 
-         this.mnuItemFind.Name = "mnuItemFind";
-         this.mnuItemFind.ShortcutKeys = ((System.Windows.Forms.Keys)((System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.F)));
-         this.mnuItemFind.Size = new System.Drawing.Size(224, 26);
-         this.mnuItemFind.Text = "Find";
-         this.mnuItemFind.Click += new System.EventHandler(this.mnuItemFind_Click);
+         this.splitContainer1.Panel1.Controls.Add(this.mooCodeEditor);
+         // 
+         // splitContainer1.Panel2
+         // 
+         this.splitContainer1.Panel2.Controls.Add(this.errorDisplay1);
+         this.splitContainer1.Size = new System.Drawing.Size(957, 713);
+         this.splitContainer1.SplitterDistance = 520;
+         this.splitContainer1.TabIndex = 5;
          // 
          // Editor
          // 
          this.ClientSize = new System.Drawing.Size(957, 767);
-         this.Controls.Add(this.mooCodeEditor);
+         this.Controls.Add(this.splitContainer1);
          this.Controls.Add(this.menuStrip1);
-         this.Controls.Add(this.errorDisplay1);
          this.Controls.Add(this.statusStrip1);
+         this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
          this.MainMenuStrip = this.menuStrip1;
          this.Name = "Editor";
          this.Text = "Moo Udditor - A Moo IDE";
@@ -291,6 +333,10 @@ namespace Org.Edgerunner.Moo.Udditor
          this.statusStrip1.ResumeLayout(false);
          this.statusStrip1.PerformLayout();
          ((System.ComponentModel.ISupportInitialize)(this.mooCodeEditor)).EndInit();
+         this.splitContainer1.Panel1.ResumeLayout(false);
+         this.splitContainer1.Panel2.ResumeLayout(false);
+         ((System.ComponentModel.ISupportInitialize)(this.splitContainer1)).EndInit();
+         this.splitContainer1.ResumeLayout(false);
          this.ResumeLayout(false);
          this.PerformLayout();
 
@@ -321,5 +367,8 @@ namespace Org.Edgerunner.Moo.Udditor
         private ToolStripMenuItem mnuItemCutPaste;
         private ToolStripSeparator toolStripSeparator3;
         private ToolStripMenuItem mnuItemFind;
+        private SplitContainer splitContainer1;
+        private ToolStripMenuItem helpToolStripMenuItem;
+        private ToolStripMenuItem tlMnuHelp;
     }
 }
