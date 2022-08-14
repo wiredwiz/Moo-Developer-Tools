@@ -117,6 +117,7 @@ namespace Org.Edgerunner.Moo.Editor.Controls
          {
             if ((Selection.CharBeforeStart == '(' && Selection.CharAfterStart == ')') ||
                 (Selection.CharBeforeStart == '{' && Selection.CharAfterStart == '}') ||
+                (Selection.CharBeforeStart == '"' && Selection.CharAfterStart == '"') ||
                 (Selection.CharBeforeStart == '[' && Selection.CharAfterStart == ']'))
                Selection = new TextSelectionRange(this,
                   new Place(Selection.Start.iChar - 1, Selection.Start.iLine),
