@@ -33,6 +33,7 @@
 
   <ItemGroup>
     <PackageReference Include="Antlr4.Runtime" Version="4.6.6" />
+    <PackageReference Include="Krypton.Docking" Version="65.22.6.152" />
   </ItemGroup>
 
   <ItemGroup>

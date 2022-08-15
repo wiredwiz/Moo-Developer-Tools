@@ -1,5 +1,9 @@
-﻿using FastColoredTextBoxNS;
+﻿using System.Diagnostics;
+using FastColoredTextBoxNS;
 using FastColoredTextBoxNS.Types;
+using Krypton.Docking;
+using Krypton.Navigator;
+using Krypton.Toolkit;
 using Org.Edgerunner.ANTLR4.Tools.Common;
 using Org.Edgerunner.Moo.Editor;
 using Org.Edgerunner.Moo.Editor.Autocomplete;
@@ -13,22 +17,25 @@ public partial class Editor : Form
     public Editor()
     {
         InitializeComponent();
+        Pages = new Dictionary<string, KryptonPage>();
         GrammarDialect = Settings.Instance.DefaultGrammarDialect;
         UpdateDialectMenu(Settings.Instance.DefaultGrammarDialect);
-        CurrentEditor = mooCodeEditor;
-        ConfigureEditorSettings(CurrentEditor);
-        ConfigureMessageDisplay(errorDisplay1);
-        mooCodeEditor.ParsingComplete += MooCodeEditor_ParsingComplete;
     }
 
     private void MooCodeEditor_ParsingComplete(object? sender, Moo.Editor.ParsingCompleteEventArgs e)
     {
-        errorDisplay1.PopulateErrors(e.ErrorMessages);
+        ErrorDisplay.PopulateErrors(e.ErrorMessages);
     }
 
     public MooEditor CurrentEditor { get; set; }
 
+    private ErrorDisplay ErrorDisplay { get; set; }
+
     private GrammarDialect GrammarDialect { get; set; }
+
+    private KryptonDockingWorkspace Workspace { get; set; }
+
+    private Dictionary<string, KryptonPage> Pages { get; set; }
 
     private void ConfigureEditorSettings(MooEditor editor)
     {
@@ -111,6 +118,93 @@ public partial class Editor : Form
         }
     }
 
+    private void Editor_Load(object sender, EventArgs e)
+    {
+        // Setup docking functionality
+        Workspace = kryptonDockingManager.ManageWorkspace(kryptonDockableWorkspace);
+        kryptonDockingManager.ManageControl("Control1", kryptonPanel);
+        kryptonDockingManager.ManageFloating(this);
+
+        kryptonDockingManager.AddDockspace("Control1", DockingEdge.Bottom, new KryptonPage[] { NewErrorDisplay() });
+    }
+
+    private KryptonPage NewPage(string name, string title, string description, int image, Control content)
+    {
+        // Create new page with title and image
+        KryptonPage page = new KryptonPage();
+        page.Text = name;
+        page.TextTitle = title;
+        page.TextDescription = description;
+        //p.ImageSmall = imageListSmall.Images[image];
+
+        // Add the control for display inside the page
+        content.Dock = DockStyle.Fill;
+        page.Controls.Add(content);
+
+        return page;
+    }
+
+    private KryptonPage NewEditorPage(string filePath)
+    {
+        var name = Path.GetFileName(filePath);
+        var source = File.ReadAllText(filePath);
+        var editor = NewEditor(source, GrammarDialect);
+        editor.Document = new Document(filePath, name);
+        editor.Text = source;
+        var page = NewPage(name, filePath, filePath, 0, editor);
+        return page;
+    }
+
+    private void Page_Enter(object sender, EventArgs e)
+    {
+        KryptonPage page = (KryptonPage)sender;
+        Debug.WriteLine(page.Text);
+    }
+
+    private KryptonPage NewEditorPage(string verbName, string hostName, GrammarDialect dialect, string source)
+    {
+        var editor = NewEditor(source, dialect);
+        var key = $"{hostName}/{verbName}";
+        editor.Document = new Document(key, verbName);
+        editor.Text = source;
+        var page = NewPage(verbName, key, key, 0, editor);
+        return page;
+    }
+
+    private MooEditor NewEditor(string source, GrammarDialect dialect)
+    {
+        var editor = new MooEditor();
+        editor.BorderStyle = BorderStyle.Fixed3D;
+        editor.GrammarDialect = dialect;
+        ConfigureEditorSettings(editor);
+        editor.ParsingComplete += MooCodeEditor_ParsingComplete;
+        editor.Enter += Editor_Enter;
+        CurrentEditor = editor;
+        return editor;
+    }
+
+    private void Editor_Enter(object sender, EventArgs e)
+    {
+        var editor = (MooEditor)sender;
+        CurrentEditor = editor;
+    }
+
+    private KryptonPage NewErrorDisplay()
+    {
+        var display = new ErrorDisplay();
+        ConfigureMessageDisplay(display);
+        ErrorDisplay = display;
+        display.DoubleClick += Display_DoubleClick;
+        var page = NewPage("Errors", "Error Messages", "A list of parser errors", 0, display);
+        page.ClearFlags(KryptonPageFlags.DockingAllowClose);
+        return page;
+    }
+
+    private void Display_DoubleClick(object sender, EventArgs e)
+    {
+        // #TODO add code
+    }
+
     private void mnuItemExit_Click(object sender, EventArgs e)
     {
         Application.Exit();
@@ -125,12 +219,8 @@ public partial class Editor : Form
         if (openFileDialog.ShowDialog() == DialogResult.OK)
         {
             var path = openFileDialog.FileName;
-            var name = Path.GetFileName(path);
-            var stream = openFileDialog.OpenFile();
-            using StreamReader reader = new StreamReader(stream);
-            CurrentEditor.Text = reader.ReadToEnd();
-            CurrentEditor.Document = new Document(path, name); // #TODO: fix for multi-window support later
-            CurrentEditor.Selection = new TextSelectionRange(mooCodeEditor,0, 0, 0, 0);
+            kryptonDockingManager.AddToWorkspace("Workspace", new KryptonPage[] { NewEditorPage(path) });
+            CurrentEditor.Selection = new TextSelectionRange(CurrentEditor, 0, 0, 0, 0);
         }
     }
 
@@ -153,7 +243,7 @@ public partial class Editor : Form
     private void mnuItemFormat_Click(object sender, EventArgs e)
     {
         CurrentEditor.SuspendLayout();
-        var current = mooCodeEditor.Selection.Clone();
+        var current = CurrentEditor.Selection.Clone();
         CurrentEditor.SelectAll();
         CurrentEditor.DoAutoIndent();
         CurrentEditor.Selection = current;
@@ -183,7 +273,7 @@ public partial class Editor : Form
 
     private void mnuItemFind_Click(object sender, EventArgs e)
     {
-       CurrentEditor.ShowFindDialog();
+        CurrentEditor.ShowFindDialog();
     }
 
     private void tlMnuHelp_Click(object sender, EventArgs e)
@@ -213,5 +303,16 @@ public partial class Editor : Form
         tlMnuLanguageTsMoo.Checked = false;
         tlMnuLanguageEdgeMoo.Checked = true;
         SetGrammar(GrammarDialect.Edgerunner);
+    }
+
+    private void kryptonDockingManager_PageCloseRequest(object sender, CloseRequestEventArgs e)
+    {
+
+    }
+
+    private void kryptonDockingManager_PageLoading(object sender, DockPageLoadingEventArgs e)
+    {
+        KryptonPage page = (KryptonPage)sender;
+        Debug.WriteLine(page.Text);
     }
 }

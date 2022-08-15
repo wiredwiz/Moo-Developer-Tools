@@ -57,22 +57,22 @@ namespace Org.Edgerunner.Moo.Udditor
          this.tlStatusLine = new System.Windows.Forms.ToolStripStatusLabel();
          this.tlLblColumn = new System.Windows.Forms.ToolStripStatusLabel();
          this.tlStatusColumn = new System.Windows.Forms.ToolStripStatusLabel();
-         this.mooCodeEditor = new Org.Edgerunner.Moo.Editor.Controls.MooEditor();
-         this.errorDisplay1 = new Org.Edgerunner.Moo.Editor.Controls.ErrorDisplay();
          this.openFileDialog = new System.Windows.Forms.OpenFileDialog();
          this.saveFileDialog = new System.Windows.Forms.SaveFileDialog();
-         this.splitContainer1 = new System.Windows.Forms.SplitContainer();
+         this.kryptonDockingManager = new Krypton.Docking.KryptonDockingManager();
+         this.kryptonManager = new Krypton.Toolkit.KryptonManager(this.components);
+         this.kryptonPanel = new Krypton.Toolkit.KryptonPanel();
+         this.kryptonDockableWorkspace = new Krypton.Docking.KryptonDockableWorkspace();
          this.menuStrip1.SuspendLayout();
          this.statusStrip1.SuspendLayout();
-         ((System.ComponentModel.ISupportInitialize)(this.mooCodeEditor)).BeginInit();
-         ((System.ComponentModel.ISupportInitialize)(this.splitContainer1)).BeginInit();
-         this.splitContainer1.Panel1.SuspendLayout();
-         this.splitContainer1.Panel2.SuspendLayout();
-         this.splitContainer1.SuspendLayout();
+         ((System.ComponentModel.ISupportInitialize)(this.kryptonPanel)).BeginInit();
+         this.kryptonPanel.SuspendLayout();
+         ((System.ComponentModel.ISupportInitialize)(this.kryptonDockableWorkspace)).BeginInit();
          this.SuspendLayout();
          // 
          // menuStrip1
          // 
+         this.menuStrip1.Font = new System.Drawing.Font("Segoe UI", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
          this.menuStrip1.ImageScalingSize = new System.Drawing.Size(20, 20);
          this.menuStrip1.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.fileToolStripMenuItem,
@@ -198,14 +198,14 @@ namespace Org.Edgerunner.Moo.Udditor
          // tlMnuLanguageMoo
          // 
          this.tlMnuLanguageMoo.Name = "tlMnuLanguageMoo";
-         this.tlMnuLanguageMoo.Size = new System.Drawing.Size(224, 26);
+         this.tlMnuLanguageMoo.Size = new System.Drawing.Size(177, 26);
          this.tlMnuLanguageMoo.Text = "LambdaMoo";
          this.tlMnuLanguageMoo.Click += new System.EventHandler(this.tlMnuLanguageMoo_Click);
          // 
          // tlMnuLanguageTsMoo
          // 
          this.tlMnuLanguageTsMoo.Name = "tlMnuLanguageTsMoo";
-         this.tlMnuLanguageTsMoo.Size = new System.Drawing.Size(224, 26);
+         this.tlMnuLanguageTsMoo.Size = new System.Drawing.Size(177, 26);
          this.tlMnuLanguageTsMoo.Text = "ToastStunt";
          this.tlMnuLanguageTsMoo.Click += new System.EventHandler(this.tlMnuLanguageTsMoo_Click);
          // 
@@ -214,7 +214,7 @@ namespace Org.Edgerunner.Moo.Udditor
          this.tlMnuLanguageEdgeMoo.Checked = true;
          this.tlMnuLanguageEdgeMoo.CheckState = System.Windows.Forms.CheckState.Checked;
          this.tlMnuLanguageEdgeMoo.Name = "tlMnuLanguageEdgeMoo";
-         this.tlMnuLanguageEdgeMoo.Size = new System.Drawing.Size(224, 26);
+         this.tlMnuLanguageEdgeMoo.Size = new System.Drawing.Size(177, 26);
          this.tlMnuLanguageEdgeMoo.Text = "Edgerunner";
          this.tlMnuLanguageEdgeMoo.Click += new System.EventHandler(this.tlMnuLanguageEdgeMoo_Click);
          // 
@@ -273,110 +273,59 @@ namespace Org.Edgerunner.Moo.Udditor
          this.tlStatusColumn.Size = new System.Drawing.Size(17, 20);
          this.tlStatusColumn.Text = "1";
          // 
-         // mooCodeEditor
+         // kryptonDockingManager
          // 
-         this.mooCodeEditor.AutoCompleteBrackets = true;
-         this.mooCodeEditor.AutoCompleteBracketsList = new char[] {
-        '(',
-        ')',
-        '{',
-        '}',
-        '[',
-        ']',
-        '\"',
-        '\"',
-        '\'',
-        '\''};
-         this.mooCodeEditor.AutocompleteMenu = null;
-         this.mooCodeEditor.AutoIndentChars = false;
-         this.mooCodeEditor.AutoIndentCharsPatterns = "^\\s*[\\w\\.]+(\\s\\w+)?\\s*(?<range>=)\\s*(?<range>[^;=]+);\r\n^\\s*(case|default)\\s*[^:]*" +
-    "(?<range>:)\\s*(?<range>[^;]+);";
-         this.mooCodeEditor.AutoScrollMinSize = new System.Drawing.Size(0, 18);
-         this.mooCodeEditor.BackBrush = null;
-         this.mooCodeEditor.BorderStyle = System.Windows.Forms.BorderStyle.Fixed3D;
-         this.mooCodeEditor.CharHeight = 18;
-         this.mooCodeEditor.CharWidth = 10;
-         this.mooCodeEditor.DefaultMarkerSize = 8;
-         this.mooCodeEditor.DisabledColor = System.Drawing.Color.FromArgb(((int)(((byte)(100)))), ((int)(((byte)(180)))), ((int)(((byte)(180)))), ((int)(((byte)(180)))));
-         this.mooCodeEditor.Dock = System.Windows.Forms.DockStyle.Fill;
-         this.mooCodeEditor.Document = null;
-         this.mooCodeEditor.FindForm = null;
-         this.mooCodeEditor.GoToForm = null;
-         this.mooCodeEditor.Hotkeys = resources.GetString("mooCodeEditor.Hotkeys");
-         this.mooCodeEditor.IsReplaceMode = false;
-         this.mooCodeEditor.LeftBracket = '(';
-         this.mooCodeEditor.LeftBracket2 = '{';
-         this.mooCodeEditor.LeftBracket3 = '[';
-         this.mooCodeEditor.Location = new System.Drawing.Point(0, 0);
-         this.mooCodeEditor.GrammarDialect = Org.Edgerunner.Moo.Editor.GrammarDialect.Edgerunner;
-         this.mooCodeEditor.Name = "mooCodeEditor";
-         this.mooCodeEditor.Paddings = new System.Windows.Forms.Padding(0);
-         this.mooCodeEditor.ReplaceForm = null;
-         this.mooCodeEditor.RightBracket = ')';
-         this.mooCodeEditor.RightBracket2 = '}';
-         this.mooCodeEditor.RightBracket3 = ']';
-         this.mooCodeEditor.SelectionColor = System.Drawing.Color.FromArgb(((int)(((byte)(60)))), ((int)(((byte)(0)))), ((int)(((byte)(0)))), ((int)(((byte)(255)))));
-         this.mooCodeEditor.ServiceColors = ((FastColoredTextBoxNS.ServiceColors)(resources.GetObject("mooCodeEditor.ServiceColors")));
-         this.mooCodeEditor.Size = new System.Drawing.Size(957, 520);
-         this.mooCodeEditor.TabIndex = 3;
-         this.mooCodeEditor.TabLength = 2;
-         this.mooCodeEditor.WordWrap = true;
-         this.mooCodeEditor.WordWrapIndent = 2;
-         this.mooCodeEditor.Zoom = 100;
-         this.mooCodeEditor.SelectionChanged += new System.EventHandler(this.MooEditor_SelectionChanged);
+         this.kryptonDockingManager.PageCloseRequest += new System.EventHandler<Krypton.Docking.CloseRequestEventArgs>(this.kryptonDockingManager_PageCloseRequest);
          // 
-         // errorDisplay1
+         // kryptonPanel
          // 
-         this.errorDisplay1.Dock = System.Windows.Forms.DockStyle.Fill;
-         this.errorDisplay1.FullRowSelect = true;
-         this.errorDisplay1.GridLines = true;
-         this.errorDisplay1.HeaderStyle = System.Windows.Forms.ColumnHeaderStyle.Nonclickable;
-         this.errorDisplay1.Location = new System.Drawing.Point(0, 0);
-         this.errorDisplay1.MultiSelect = false;
-         this.errorDisplay1.Name = "errorDisplay1";
-         this.errorDisplay1.Size = new System.Drawing.Size(957, 189);
-         this.errorDisplay1.Sorting = System.Windows.Forms.SortOrder.Ascending;
-         this.errorDisplay1.TabIndex = 4;
-         this.errorDisplay1.UseCompatibleStateImageBehavior = false;
-         this.errorDisplay1.View = System.Windows.Forms.View.Details;
+         this.kryptonPanel.Controls.Add(this.kryptonDockableWorkspace);
+         this.kryptonPanel.Dock = System.Windows.Forms.DockStyle.Fill;
+         this.kryptonPanel.Location = new System.Drawing.Point(0, 28);
+         this.kryptonPanel.Name = "kryptonPanel";
+         this.kryptonPanel.Size = new System.Drawing.Size(957, 713);
+         this.kryptonPanel.TabIndex = 5;
          // 
-         // splitContainer1
+         // kryptonDockableWorkspace
          // 
-         this.splitContainer1.Dock = System.Windows.Forms.DockStyle.Fill;
-         this.splitContainer1.Location = new System.Drawing.Point(0, 28);
-         this.splitContainer1.Name = "splitContainer1";
-         this.splitContainer1.Orientation = System.Windows.Forms.Orientation.Horizontal;
+         this.kryptonDockableWorkspace.ActivePage = null;
+         this.kryptonDockableWorkspace.AutoHiddenHost = false;
+         this.kryptonDockableWorkspace.CompactFlags = ((Krypton.Workspace.CompactFlags)(((Krypton.Workspace.CompactFlags.RemoveEmptyCells | Krypton.Workspace.CompactFlags.RemoveEmptySequences) 
+            | Krypton.Workspace.CompactFlags.PromoteLeafs)));
+         this.kryptonDockableWorkspace.ContainerBackStyle = Krypton.Toolkit.PaletteBackStyle.PanelClient;
+         this.kryptonDockableWorkspace.Dock = System.Windows.Forms.DockStyle.Fill;
+         this.kryptonDockableWorkspace.Location = new System.Drawing.Point(0, 0);
+         this.kryptonDockableWorkspace.Name = "kryptonDockableWorkspace";
          // 
-         // splitContainer1.Panel1
          // 
-         this.splitContainer1.Panel1.Controls.Add(this.mooCodeEditor);
          // 
-         // splitContainer1.Panel2
-         // 
-         this.splitContainer1.Panel2.Controls.Add(this.errorDisplay1);
-         this.splitContainer1.Size = new System.Drawing.Size(957, 713);
-         this.splitContainer1.SplitterDistance = 520;
-         this.splitContainer1.TabIndex = 5;
+         this.kryptonDockableWorkspace.Root.UniqueName = "1ca2dbc169f14bf7b554571d33e1fb83";
+         this.kryptonDockableWorkspace.Root.WorkspaceControl = this.kryptonDockableWorkspace;
+         this.kryptonDockableWorkspace.SeparatorStyle = Krypton.Toolkit.SeparatorStyle.LowProfile;
+         this.kryptonDockableWorkspace.ShowMaximizeButton = false;
+         this.kryptonDockableWorkspace.Size = new System.Drawing.Size(957, 713);
+         this.kryptonDockableWorkspace.SplitterWidth = 5;
+         this.kryptonDockableWorkspace.TabIndex = 0;
+         this.kryptonDockableWorkspace.TabStop = true;
          // 
          // Editor
          // 
          this.ClientSize = new System.Drawing.Size(957, 767);
-         this.Controls.Add(this.splitContainer1);
+         this.Controls.Add(this.kryptonPanel);
          this.Controls.Add(this.menuStrip1);
          this.Controls.Add(this.statusStrip1);
          this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
          this.MainMenuStrip = this.menuStrip1;
          this.Name = "Editor";
          this.Text = "Moo Udditor - A Moo IDE";
+         this.Load += new System.EventHandler(this.Editor_Load);
          this.menuStrip1.ResumeLayout(false);
          this.menuStrip1.PerformLayout();
          this.statusStrip1.ResumeLayout(false);
          this.statusStrip1.PerformLayout();
-         ((System.ComponentModel.ISupportInitialize)(this.mooCodeEditor)).EndInit();
-         this.splitContainer1.Panel1.ResumeLayout(false);
-         this.splitContainer1.Panel2.ResumeLayout(false);
-         ((System.ComponentModel.ISupportInitialize)(this.splitContainer1)).EndInit();
-         this.splitContainer1.ResumeLayout(false);
+         ((System.ComponentModel.ISupportInitialize)(this.kryptonPanel)).EndInit();
+         this.kryptonPanel.ResumeLayout(false);
+         ((System.ComponentModel.ISupportInitialize)(this.kryptonDockableWorkspace)).EndInit();
          this.ResumeLayout(false);
          this.PerformLayout();
 
@@ -391,8 +340,6 @@ namespace Org.Edgerunner.Moo.Udditor
         private ToolStripSeparator toolStripSeparator1;
         private ToolStripMenuItem mnuItemExit;
         private StatusStrip statusStrip1;
-        private MooEditor mooCodeEditor;
-        private ErrorDisplay errorDisplay1;
         private ToolStripStatusLabel tlLblLine;
         private ToolStripStatusLabel tlStatusLine;
         private ToolStripStatusLabel tlLblColumn;
@@ -407,12 +354,15 @@ namespace Org.Edgerunner.Moo.Udditor
         private ToolStripMenuItem mnuItemCutPaste;
         private ToolStripSeparator toolStripSeparator3;
         private ToolStripMenuItem mnuItemFind;
-        private SplitContainer splitContainer1;
         private ToolStripMenuItem helpToolStripMenuItem;
         private ToolStripMenuItem tlMnuHelp;
         private ToolStripMenuItem grammarToolStripMenuItem;
         private ToolStripMenuItem tlMnuLanguageMoo;
         private ToolStripMenuItem tlMnuLanguageTsMoo;
         private ToolStripMenuItem tlMnuLanguageEdgeMoo;
+        private Krypton.Docking.KryptonDockingManager kryptonDockingManager;
+        private Krypton.Toolkit.KryptonManager kryptonManager;
+        private Krypton.Toolkit.KryptonPanel kryptonPanel;
+        private Krypton.Docking.KryptonDockableWorkspace kryptonDockableWorkspace;
     }
 }
