@@ -63,6 +63,7 @@ namespace Org.Edgerunner.Moo.Udditor
          this.kryptonManager = new Krypton.Toolkit.KryptonManager(this.components);
          this.kryptonPanel = new Krypton.Toolkit.KryptonPanel();
          this.kryptonDockableWorkspace = new Krypton.Docking.KryptonDockableWorkspace();
+         this.tlMnuNew = new System.Windows.Forms.ToolStripMenuItem();
          this.menuStrip1.SuspendLayout();
          this.statusStrip1.SuspendLayout();
          ((System.ComponentModel.ISupportInitialize)(this.kryptonPanel)).BeginInit();
@@ -88,6 +89,7 @@ namespace Org.Edgerunner.Moo.Udditor
          // fileToolStripMenuItem
          // 
          this.fileToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.tlMnuNew,
             this.mnuItemOpenFile,
             this.mnuItemSaveFile,
             this.toolStripSeparator1,
@@ -99,26 +101,26 @@ namespace Org.Edgerunner.Moo.Udditor
          // mnuItemOpenFile
          // 
          this.mnuItemOpenFile.Name = "mnuItemOpenFile";
-         this.mnuItemOpenFile.Size = new System.Drawing.Size(128, 26);
+         this.mnuItemOpenFile.Size = new System.Drawing.Size(224, 26);
          this.mnuItemOpenFile.Text = "&Open";
          this.mnuItemOpenFile.Click += new System.EventHandler(this.mnuItemOpenFile_Click);
          // 
          // mnuItemSaveFile
          // 
          this.mnuItemSaveFile.Name = "mnuItemSaveFile";
-         this.mnuItemSaveFile.Size = new System.Drawing.Size(128, 26);
+         this.mnuItemSaveFile.Size = new System.Drawing.Size(224, 26);
          this.mnuItemSaveFile.Text = "&Save";
          this.mnuItemSaveFile.Click += new System.EventHandler(this.mnuItemSaveFile_Click);
          // 
          // toolStripSeparator1
          // 
          this.toolStripSeparator1.Name = "toolStripSeparator1";
-         this.toolStripSeparator1.Size = new System.Drawing.Size(125, 6);
+         this.toolStripSeparator1.Size = new System.Drawing.Size(221, 6);
          // 
          // mnuItemExit
          // 
          this.mnuItemExit.Name = "mnuItemExit";
-         this.mnuItemExit.Size = new System.Drawing.Size(128, 26);
+         this.mnuItemExit.Size = new System.Drawing.Size(224, 26);
          this.mnuItemExit.Text = "E&xit";
          this.mnuItemExit.Click += new System.EventHandler(this.mnuItemExit_Click);
          // 
@@ -308,6 +310,13 @@ namespace Org.Edgerunner.Moo.Udditor
          this.kryptonDockableWorkspace.TabIndex = 0;
          this.kryptonDockableWorkspace.TabStop = true;
          // 
+         // tlMnuNew
+         // 
+         this.tlMnuNew.Name = "tlMnuNew";
+         this.tlMnuNew.Size = new System.Drawing.Size(224, 26);
+         this.tlMnuNew.Text = "&New";
+         this.tlMnuNew.Click += new System.EventHandler(this.tlMnuNew_Click);
+         // 
          // Editor
          // 
          this.ClientSize = new System.Drawing.Size(957, 767);
@@ -364,5 +373,6 @@ namespace Org.Edgerunner.Moo.Udditor
         private Krypton.Toolkit.KryptonManager kryptonManager;
         private Krypton.Toolkit.KryptonPanel kryptonPanel;
         private Krypton.Docking.KryptonDockableWorkspace kryptonDockableWorkspace;
+        private ToolStripMenuItem tlMnuNew;
     }
 }
