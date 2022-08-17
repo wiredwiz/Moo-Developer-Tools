@@ -12,6 +12,7 @@ using Org.Edgerunner.Moo.Editor;
 using Org.Edgerunner.Moo.Editor.Autocomplete;
 using Org.Edgerunner.Moo.Editor.Configuration;
 using Org.Edgerunner.Moo.Editor.Controls;
+using static System.Windows.Forms.VisualStyles.VisualStyleElement;
 
 namespace Org.Edgerunner.Moo.Udditor;
 
@@ -21,27 +22,35 @@ public partial class Editor : Form
     {
         InitializeComponent();
         Pages = new Dictionary<string, KryptonPage>();
-        Errors = new Dictionary<string, List<ParseMessage>>();
-        GrammarDialect = Settings.Instance.DefaultGrammarDialect;
+        Errors = new SortedDictionary<string, List<ParseMessage>>();
+        DefaultGrammarDialect = Settings.Instance.DefaultGrammarDialect;
         UpdateDialectMenu(Settings.Instance.DefaultGrammarDialect);
     }
 
-    private void MooCodeEditor_ParsingComplete(object? sender, Moo.Editor.ParsingCompleteEventArgs e)
+    private void MooCodeEditor_ParsingComplete(object sender, Moo.Editor.ParsingCompleteEventArgs e)
     {
-        ErrorDisplay.PopulateErrors(e.ErrorMessages);
+        var key = e.Document.Id;
+        if (e.ErrorMessages.Count == 0)
+            Errors.Remove(key);
+        else
+            Errors[key] = e.ErrorMessages;
+        var allErrors = new List<ParseMessage>();
+        foreach (var eKey in Errors.Keys)
+            allErrors.AddRange(Errors[eKey]);
+        ErrorDisplay.PopulateErrors(allErrors);
     }
 
     public MooEditor CurrentEditor { get; set; }
 
     private ErrorDisplay ErrorDisplay { get; set; }
 
-    private GrammarDialect GrammarDialect { get; set; }
+    private GrammarDialect DefaultGrammarDialect { get; set; }
 
     private KryptonDockingWorkspace Workspace { get; set; }
 
     private Dictionary<string, KryptonPage> Pages { get; set; }
 
-    private Dictionary<string, List<ParseMessage>> Errors { get; set; }
+    private SortedDictionary<string, List<ParseMessage>> Errors { get; set; }
 
     private void ConfigureEditorSettings(MooEditor editor)
     {
@@ -61,10 +70,10 @@ public partial class Editor : Form
         BuildAutocompleteMenu(editor);
     }
 
-    private void SetGrammar(GrammarDialect grammarDialect)
+    private void SetDocumentGrammar(GrammarDialect grammarDialect)
     {
-        GrammarDialect = grammarDialect;
-        CurrentEditor.GrammarDialect = grammarDialect;
+        if (CurrentEditor != null)
+            CurrentEditor.GrammarDialect = grammarDialect;
     }
 
     private void BuildAutocompleteMenu(MooEditor editor)
@@ -151,11 +160,11 @@ public partial class Editor : Form
         return page;
     }
 
-    private KryptonPage NewEditorPage(string filePath)
+    private KryptonPage NewEditorPage(string filePath, GrammarDialect dialect)
     {
         var name = Path.GetFileName(filePath);
         var source = File.ReadAllText(filePath);
-        var editor = NewEditor(source, GrammarDialect);
+        var editor = NewEditor(source, dialect);
         var key = $"{name}-{Guid.NewGuid().ToString()}";
         editor.Document = new Document(key, name);
         editor.Text = source;
@@ -216,8 +225,9 @@ public partial class Editor : Form
     {
         var editor = (MooEditor)sender;
         CurrentEditor = editor;
-        tlStatusLine.Text = (editor.Selection.Start.iLine + 1).ToString();
-        tlStatusColumn.Text = (editor.Selection.Start.iChar + 1).ToString();
+        tlStatusLine.Text = ((CurrentEditor?.Selection.Start.iLine + 1) ?? 1).ToString();
+        tlStatusColumn.Text = ((CurrentEditor?.Selection.Start.iChar + 1) ?? 1).ToString();
+        UpdateDialectMenu(CurrentEditor.GrammarDialect);
     }
 
     private KryptonPage NewErrorDisplay()
@@ -231,6 +241,14 @@ public partial class Editor : Form
         return page;
     }
 
+    public void SwitchToPage(string id)
+    {
+        var page = Pages[id];
+        Workspace.SelectPage(page.UniqueName);
+        var editor = (MooEditor)page.Controls[0];
+        editor.Focus();
+    }
+
     private void Display_DoubleClick(object sender, EventArgs e)
     {
         var errDisplay = (ErrorDisplay)sender;
@@ -238,10 +256,9 @@ public partial class Editor : Form
         var line = int.Parse(errDisplay.SelectedItems[0].SubItems[2].Text);
         var column = int.Parse(errDisplay.SelectedItems[0].SubItems[3].Text);
         var page = Pages[key];
-        Workspace.SelectPage(key);
         var editor = (MooEditor)page.Controls[0];
         editor.Selection = new TextSelectionRange(editor, column - 1, line - 1, column - 1, line - 1);
-        editor.Focus();
+        SwitchToPage(page.UniqueName);
     }
 
     private void mnuItemExit_Click(object sender, EventArgs e)
@@ -251,7 +268,9 @@ public partial class Editor : Form
 
     private void tlMnuNew_Click(object sender, EventArgs e)
     {
-        kryptonDockingManager.AddToWorkspace("Workspace", new KryptonPage[] { NewEditorPage(GrammarDialect) });
+        var page = NewEditorPage(DefaultGrammarDialect);
+        kryptonDockingManager.AddToWorkspace("Workspace", new KryptonPage[] { page });
+        SwitchToPage(page.UniqueName);
     }
 
     private void mnuItemOpenFile_Click(object sender, EventArgs e)
@@ -263,9 +282,9 @@ public partial class Editor : Form
         if (openFileDialog.ShowDialog() == DialogResult.OK)
         {
             var path = openFileDialog.FileName;
-            var page = NewEditorPage(path);
+            var page = NewEditorPage(path, DefaultGrammarDialect);
             kryptonDockingManager.AddToWorkspace("Workspace", new KryptonPage[] { page });
-            Workspace.SelectPage(page.UniqueName);
+            SwitchToPage(page.UniqueName);
         }
     }
 
@@ -331,7 +350,7 @@ public partial class Editor : Form
         tlMnuLanguageMoo.Checked = true;
         tlMnuLanguageTsMoo.Checked = false;
         tlMnuLanguageEdgeMoo.Checked = false;
-        SetGrammar(GrammarDialect.LambdaMoo);
+        SetDocumentGrammar(GrammarDialect.LambdaMoo);
     }
 
     private void tlMnuLanguageTsMoo_Click(object sender, EventArgs e)
@@ -339,7 +358,7 @@ public partial class Editor : Form
         tlMnuLanguageMoo.Checked = false;
         tlMnuLanguageTsMoo.Checked = true;
         tlMnuLanguageEdgeMoo.Checked = false;
-        SetGrammar(GrammarDialect.ToastStunt);
+        SetDocumentGrammar(GrammarDialect.ToastStunt);
     }
 
     private void tlMnuLanguageEdgeMoo_Click(object sender, EventArgs e)
@@ -347,7 +366,7 @@ public partial class Editor : Form
         tlMnuLanguageMoo.Checked = false;
         tlMnuLanguageTsMoo.Checked = false;
         tlMnuLanguageEdgeMoo.Checked = true;
-        SetGrammar(GrammarDialect.Edgerunner);
+        SetDocumentGrammar(GrammarDialect.Edgerunner);
     }
 
     private void kryptonDockingManager_PageCloseRequest(object sender, CloseRequestEventArgs e)

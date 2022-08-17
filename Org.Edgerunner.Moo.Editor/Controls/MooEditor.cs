@@ -290,7 +290,7 @@ namespace Org.Edgerunner.Moo.Editor.Controls
          ConfigureCodeFolding(context, ToastStuntMooParser.ruleNames);
 
          // Raise our event
-         OnParsingComplete(this, new ParsingCompleteEventArgs(ParseErrors, Tokens, context));
+         OnParsingComplete(this, new ParsingCompleteEventArgs(Document, ParseErrors, Tokens, context));
       }
 
       private void ConfigureCodeFolding(IParseTree tree, IList<string> parserRules)

@@ -12,6 +12,9 @@
     <Copyright>Thaddeus Ryker 2022</Copyright>
     <AssemblyName>Moo Udditor</AssemblyName>
     <ApplicationIcon>UdditorLogo.ico</ApplicationIcon>
+    <AssemblyVersion>1.0.22228.2</AssemblyVersion>
+    <FileVersion>1.0.22228.2</FileVersion>
+    <Version>1.0.22228.2-alpha</Version>
   </PropertyGroup>
 
   <ItemGroup>
@@ -40,6 +43,21 @@
     <Reference Include="Org.Edgerunner.MooSharp.Language.Grammar">
       <HintPath>..\References\Moo Grammar\Org.Edgerunner.MooSharp.Language.Grammar.dll</HintPath>
     </Reference>
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Update="Properties\Settings.Designer.cs">
+      <DesignTimeSharedInput>True</DesignTimeSharedInput>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>Settings.settings</DependentUpon>
+    </Compile>
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Update="Properties\Settings.settings">
+      <Generator>SettingsSingleFileGenerator</Generator>
+      <LastGenOutput>Settings.Designer.cs</LastGenOutput>
+    </None>
   </ItemGroup>
 
 </Project>

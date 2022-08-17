@@ -10,7 +10,6 @@
 
   <ItemGroup>
     <PackageReference Include="Antlr4.Runtime" Version="4.6.6" />
-    <PackageReference Include="ObjectListView.imasm" Version="2.9.1" />
     <PackageReference Include="System.Threading" Version="4.3.0" />
   </ItemGroup>
 
