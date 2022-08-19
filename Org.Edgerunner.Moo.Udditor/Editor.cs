@@ -1,5 +1,6 @@
 ﻿using System.Diagnostics;
 using System.IO;
+using System.Text;
 using System.Xml.Linq;
 using FastColoredTextBoxNS;
 using FastColoredTextBoxNS.Types;
@@ -164,9 +165,10 @@ public partial class Editor : Form
     {
         var name = Path.GetFileName(filePath);
         var source = File.ReadAllText(filePath);
-        var editor = NewEditor(source, dialect);
-        var key = $"{name}-{Guid.NewGuid().ToString()}";
-        editor.Document = new Document(key, name);
+        var editor = NewEditor(dialect);
+        editor.OpenFile(filePath);
+        var key = $"{name}-{Guid.NewGuid()}";
+        editor.Document = new Document(key, filePath, name);
         editor.Text = source;
         editor.Selection = new TextSelectionRange(editor, 0, 0, 0, 0);
         var page = NewPage(key, name, filePath, filePath, 0, editor);
@@ -176,11 +178,12 @@ public partial class Editor : Form
 
     private KryptonPage NewEditorPage(string verbName, string hostName, GrammarDialect dialect, string source)
     {
-        var editor = NewEditor(source, dialect);
+        var editor = NewEditor(dialect);
         var title = $"{hostName}/{verbName}";
         var key = $"{verbName}-{Guid.NewGuid().ToString()}";
-        editor.Document = new Document(key, verbName);
+        editor.Document = new Document(key, string.Empty, verbName);
         editor.Text = source;
+        editor.IsChanged = false;
         editor.Selection = new TextSelectionRange(editor, 0, 0, 0, 0);
         var page = NewPage(key, verbName, title, title, 0, editor);
         Pages[key] = page;
@@ -189,16 +192,16 @@ public partial class Editor : Form
 
     private KryptonPage NewEditorPage(GrammarDialect dialect)
     {
-        var editor = NewEditor(string.Empty, dialect);
+        var editor = NewEditor(dialect);
         var key = $"<New>-{Guid.NewGuid().ToString()}";
         var name = "<New>";
-        editor.Document = new Document(key, name);
+        editor.Document = new Document(key, string.Empty, name);
         var page = NewPage(key, name, name, name, 0, editor);
         Pages[key] = page;
         return page;
     }
 
-    private MooEditor NewEditor(string source, GrammarDialect dialect)
+    private MooEditor NewEditor(GrammarDialect dialect)
     {
         var editor = new MooEditor();
         editor.BorderStyle = BorderStyle.Fixed3D;
@@ -287,8 +290,29 @@ public partial class Editor : Form
             SwitchToPage(page.UniqueName);
         }
     }
+    private void tlMnuItemFileSave_Click(object sender, EventArgs e)
+    {
+        if (!string.IsNullOrEmpty(CurrentEditor.Document.Path))
+            CurrentEditor.SaveToFile(CurrentEditor.Document.Path, Encoding.Default);
+        else
+        {
+            saveFileDialog.DefaultExt = "moo";
+            saveFileDialog.Filter = @"Moo files (*.moo)|*.moo|Text files (*.txt)|*.txt|All files (*.*)|*.*";
+            saveFileDialog.Title = "Please select a file name to save as";
+            if (saveFileDialog.ShowDialog() == DialogResult.OK)
+            {
+                var path = saveFileDialog.FileName;
+                var name = Path.GetFileName(path);
+                CurrentEditor.SaveToFile(path, Encoding.Default);
+                CurrentEditor.Document.Path = path;
+                CurrentEditor.Document.Name = name;
+                CurrentEditor.ParseSourceCode(false);
+            }
+        }
+        CurrentEditor.Invalidate();
+    }
 
-    private void mnuItemSaveFile_Click(object sender, EventArgs e)
+    private void mnuItemSaveAsFile_Click(object sender, EventArgs e)
     {
         saveFileDialog.DefaultExt = "moo";
         saveFileDialog.Filter = @"Moo files (*.moo)|*.moo|Text files (*.txt)|*.txt|All files (*.*)|*.*";
@@ -297,11 +321,17 @@ public partial class Editor : Form
         {
             var path = saveFileDialog.FileName;
             var name = Path.GetFileName(path);
-            File.WriteAllText(path, CurrentEditor.Text);
-            // #TODO fix for multi-window support later
-            CurrentEditor.Document = new Document(path, name); // #TODO fix for multi-window support later
-            CurrentEditor.ParseSourceCode();
+            CurrentEditor.SaveToFile(path, Encoding.Default);
+            CurrentEditor.Document.Path = path;
+            CurrentEditor.Document.Name = name;
+            CurrentEditor.ParseSourceCode(false);
         }
+    }
+
+    private void tlMnuItemClose_Click(object sender, EventArgs e)
+    {
+        var page = kryptonDockingManager.PageForUniqueName(CurrentEditor.Document.Id);
+        kryptonDockingManager.RemovePage(page, true);
     }
 
     private void mnuItemFormat_Click(object sender, EventArgs e)
@@ -371,12 +401,27 @@ public partial class Editor : Form
 
     private void kryptonDockingManager_PageCloseRequest(object sender, CloseRequestEventArgs e)
     {
-
-    }
-
-    private void kryptonDockingManager_PageLoading(object sender, DockPageLoadingEventArgs e)
-    {
-        KryptonPage page = (KryptonPage)sender;
-        Debug.WriteLine(page.Text);
+        var key = e.UniqueName;
+        var page = Pages[key];
+        var editor = (MooEditor)page.Controls[0];
+        if (editor == null && editor.IsChanged)
+        {
+            var name = editor.Document.Name;
+            DialogResult dialogResult = MessageBox.Show($"\"{name}\" has been modified but has not been saved.  Would you like to save this file?", "Modified File", MessageBoxButtons.YesNo);
+            if(dialogResult == DialogResult.Yes)
+            {
+                saveFileDialog.DefaultExt = "moo";
+                saveFileDialog.Filter = @"Moo files (*.moo)|*.moo|Text files (*.txt)|*.txt|All files (*.*)|*.*";
+                saveFileDialog.Title = "Please select a file name to save as";
+                saveFileDialog.FileName = name;
+                if (saveFileDialog.ShowDialog() == DialogResult.OK)
+                {
+                    var path = saveFileDialog.FileName;
+                    editor.SaveToFile(path, Encoding.Default);
+                }
+                else
+                    e.CloseRequest = DockingCloseRequest.None;
+            }
+        }
     }
 }

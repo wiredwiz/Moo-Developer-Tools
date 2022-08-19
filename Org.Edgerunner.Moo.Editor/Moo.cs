@@ -1,4 +1,8 @@
-﻿namespace Org.Edgerunner.Moo.Editor;
+﻿using Antlr4.Runtime;
+using Org.Edgerunner.Moo.Editor.Language.Navigation;
+using Org.Edgerunner.MooSharp.Language.Grammar;
+
+namespace Org.Edgerunner.Moo.Editor;
 
 public static class Moo
 {
@@ -47,4 +51,49 @@ public static class Moo
       "caller_perms", "max_object", "waif_stats", "players", "file_version", "file_handles", "sqlite_handles", "listeners", "time", "task_local", "threads", "ticks_left",
       "seconds_left", "task_id", "finished_tasks", "reset_max_object", "memory_usage", "usage", "dump_database", "db_disk_size", "log_cache_stats"
    };
+
+   public static Lexer GetLexer(GrammarDialect dialect, AntlrInputStream inputStream)
+   {
+      Lexer lexer = null;
+      if (dialect == GrammarDialect.ToastStunt)
+         lexer = new ToastStuntMooLexer(inputStream);
+      else if (dialect == GrammarDialect.Edgerunner)
+         lexer = new EdgerunnerMooLexer(inputStream);
+      else if (dialect == GrammarDialect.LambdaMoo)
+         lexer = new MooLexer(inputStream);
+      else
+         throw new ArgumentException("Unknown grammar dialect, unable to create lexer");
+
+      return lexer;
+   }
+
+   public static Parser GetParser(GrammarDialect dialect, CommonTokenStream stream)
+   {
+      Parser parser = null;
+      if (dialect == GrammarDialect.ToastStunt)
+         parser = new ToastStuntMooParser(stream);
+      else if (dialect == GrammarDialect.Edgerunner)
+         parser = new EdgerunnerMooParser(stream);
+      else if (dialect == GrammarDialect.LambdaMoo)
+         parser = new MooParser(stream);
+      else
+         throw new ArgumentException("Unknown grammar dialect, unable to create parser");
+
+      return parser;
+   }
+
+   public static IMooIndentationGuide GetIndentationGuide(GrammarDialect dialect, int indentSpaces)
+   {
+      IMooIndentationGuide guide = null;
+      if (dialect == GrammarDialect.ToastStunt)
+         guide = new ToastStuntMooIndentationGuide(indentSpaces);
+      else if (dialect == GrammarDialect.Edgerunner)
+         guide = new EdgerunnerMooIndentationGuide(indentSpaces);
+      else if (dialect == GrammarDialect.LambdaMoo)
+         guide = new LambdaMooIndentationGuide(indentSpaces);
+      else
+         throw new ArgumentException("Unknown grammar dialect, unable to create indentation guide");
+
+      return guide;
+   }
 }

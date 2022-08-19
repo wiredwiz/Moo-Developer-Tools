@@ -52,6 +52,14 @@ namespace Org.Edgerunner.Moo.Editor.SyntaxHighlighting
       private int _TokenColoringInProgress;
 
       /// <summary>
+      /// Gets a value indicating whether this instance is busy coloring.
+      /// </summary>
+      /// <value>
+      ///   <c>true</c> if this instance is busy coloring; otherwise, <c>false</c>.
+      /// </value>
+      public bool IsBusy => _TokenColoringInProgress == 1;
+
+      /// <summary>
       /// Colorizes the tokens.
       /// </summary>
       /// <param name="editor">The editor.</param>
@@ -103,9 +111,8 @@ namespace Org.Edgerunner.Moo.Editor.SyntaxHighlighting
                    finally
                    {
                       editor.EndUpdate();
+                      _TokenColoringInProgress = 0;
                    }
-
-                   _TokenColoringInProgress = 0;
                 }));
       }
    }

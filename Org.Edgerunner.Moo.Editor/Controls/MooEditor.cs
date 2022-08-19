@@ -1,4 +1,40 @@
-﻿using System.Diagnostics;
+﻿#region BSD 3-Clause License
+// <copyright file="Settings.cs" company="Edgerunner.org">
+// Copyright 2020
+// </copyright>
+//
+// BSD 3-Clause License
+//
+// Copyright (c) 2022,
+// All rights reserved.
+//
+// Redistribution and use in source and binary forms, with or without
+// modification, are permitted provided that the following conditions are met:
+//
+// 1. Redistributions of source code must retain the above copyright notice, this
+//    list of conditions and the following disclaimer.
+//
+// 2. Redistributions in binary form must reproduce the above copyright notice,
+//    this list of conditions and the following disclaimer in the documentation
+//    and/or other materials provided with the distribution.
+//
+// 3. Neither the name of the copyright holder nor the names of its
+//    contributors may be used to endorse or promote products derived from
+//    this software without specific prior written permission.
+//
+// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+// DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE
+// FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+// DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
+// SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+// CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
+// OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+// OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+#endregion
+
+using System.Diagnostics;
 using System.Security.Authentication.ExtendedProtection;
 using System.Text.RegularExpressions;
 using Antlr4.Runtime;
@@ -11,6 +47,7 @@ using Org.Edgerunner.ANTLR4.Tools.Common.Grammar.Errors;
 using Org.Edgerunner.ANTLR4.Tools.Common.Syntax;
 using Org.Edgerunner.Moo.Editor.Autocomplete;
 using Org.Edgerunner.Moo.Editor.Configuration;
+using Org.Edgerunner.Moo.Editor.Language.Navigation;
 using Org.Edgerunner.Moo.Editor.SyntaxHighlighting;
 using Org.Edgerunner.MooSharp.Language.Grammar;
 using Place = FastColoredTextBoxNS.Types.Place;
@@ -33,6 +70,7 @@ namespace Org.Edgerunner.Moo.Editor.Controls
          SyntaxHighlightingGuide = new MooSyntaxHighlightingGuide();
          StyleRegistry = new StyleRegistry(SyntaxHighlightingGuide);
          Highlighter = new EditorSyntaxHighlighter();
+         IndentationGuide = Moo.GetIndentationGuide(GrammarDialect, TabLength);
          LeftBracket = '(';
          LeftBracket2 = '{';
          LeftBracket3 = '[';
@@ -43,7 +81,9 @@ namespace Org.Edgerunner.Moo.Editor.Controls
          AutoCompleteBracketsList = new[] { '(', ')', '{', '}', '[', ']', '"', '"' };
          AutoIndentChars = false;
          WordWrapAutoIndent = true;
+         ChangedLineColor = Color.Yellow;
          AutoIndentNeeded += MooEditor_AutoIndentNeeded;
+         TextChanged += MooEditor_TextChanged;
          TextChangedDelayed += MooEditor_TextChangedDelayed;
          KeyDown += MooEditor_KeyDown;
          GrammarDialect = grammarDialect;
@@ -61,7 +101,9 @@ namespace Org.Edgerunner.Moo.Editor.Controls
 
       protected IStyleRegistry StyleRegistry { get; }
 
-      protected EditorSyntaxHighlighter Highlighter { get; set; }
+      public EditorSyntaxHighlighter Highlighter { get; private set; }
+
+      protected IMooIndentationGuide IndentationGuide { get; set; }
 
       public List<DetailedToken> Tokens { get; private set; }
 
@@ -75,6 +117,7 @@ namespace Org.Edgerunner.Moo.Editor.Controls
          set
          {
             _GrammarDialect = value;
+            IndentationGuide = Moo.GetIndentationGuide(value, TabLength);
             ParseSourceCode();
             ColorizeTokens(null);
          }
@@ -131,7 +174,17 @@ namespace Org.Edgerunner.Moo.Editor.Controls
                 Selection.Start.iChar == Selection.End.iChar;
       }
 
-      private void MooEditor_TextChangedDelayed(object? sender, TextChangedEventArgs e)
+      private void MooEditor_TextChanged(object? sender, TextChangedEventArgs e)
+      {
+         if (AutoIndent)
+         {
+            ParseSourceCode(false);
+            DoAutoIndentIfNeed();
+         }
+      }
+
+
+      private void MooEditor_TextChangedDelayed(object sender, TextChangedEventArgs e)
       {
          ParseSourceCode();
 
@@ -219,7 +272,7 @@ namespace Org.Edgerunner.Moo.Editor.Controls
          return result;
       }
 
-      private void ColorizeTokens(TextSelectionRange range)
+      public void ColorizeTokens(TextSelectionRange range)
       {
          if (Handle == IntPtr.Zero)
             return;
@@ -228,27 +281,22 @@ namespace Org.Edgerunner.Moo.Editor.Controls
          Highlighter.ColorizeTokens(this, StyleRegistry, tokensToColor, GetErrorTokens());
       }
 
-      public void ParseSourceCode()
+      public void ParseSourceCode(bool updateGui = true)
       {
          // Generate our lexer
          var inputStream = new AntlrInputStream(this.Text);
-         Lexer lexer = null;
-         if (GrammarDialect == GrammarDialect.ToastStunt)
-            lexer = new ToastStuntMooLexer(inputStream);
-         else if (GrammarDialect == GrammarDialect.Edgerunner)
-            lexer = new EdgerunnerMooLexer(inputStream);
-         else
-            lexer = new MooLexer(inputStream);
+         var lexer = Moo.GetLexer(GrammarDialect, inputStream);
 
          lexer.TokenFactory = DetailedTokenFactory.Instance;
 
          // Attach our error listener
-         if (LexerErrorListener != null)
-         {
-            LexerErrorListener.Errors.Clear();
-            lexer.RemoveErrorListeners();
-            lexer.AddErrorListener(LexerErrorListener);
-         }
+         if (updateGui)
+            if (LexerErrorListener != null)
+            {
+               LexerErrorListener.Errors.Clear();
+               lexer.RemoveErrorListeners();
+               lexer.AddErrorListener(LexerErrorListener);
+            }
 
          // Fetch our tokens
          var commonTokenStream = new CommonTokenStream(lexer);
@@ -256,19 +304,18 @@ namespace Org.Edgerunner.Moo.Editor.Controls
          Tokens = commonTokenStream.GetTokens().Cast<DetailedToken>().ToList();
 
          // Create our parser and attach our error listener
-         Parser parser = null;
-         if (GrammarDialect == GrammarDialect.ToastStunt)
-            parser = new ToastStuntMooParser(commonTokenStream);
-         else if (GrammarDialect == GrammarDialect.Edgerunner)
-            parser = new EdgerunnerMooParser(commonTokenStream);
-         else
-            parser = new MooParser(commonTokenStream);
-         if (ParserErrorListener != null)
-         {
-            ParserErrorListener.Errors.Clear();
-            parser.RemoveErrorListeners();
-            parser.AddErrorListener(ParserErrorListener);
-         }
+         var parser = Moo.GetParser(GrammarDialect, commonTokenStream);
+
+         if (IndentationGuide != null)
+            parser.AddParseListener(IndentationGuide);
+
+         if (updateGui)
+            if (ParserErrorListener != null)
+            {
+               ParserErrorListener.Errors.Clear();
+               parser.RemoveErrorListeners();
+               parser.AddErrorListener(ParserErrorListener);
+            }
 
          // Let's parse!
          ParserRuleContext context;
@@ -279,18 +326,21 @@ namespace Org.Edgerunner.Moo.Editor.Controls
          else
             context = ((MooParser)parser).code();
 
-         // Publish our errors
-         ParseErrors.Clear();
-         if (LexerErrorListener?.Errors != null)
-            ParseErrors.AddRange(LexerErrorListener.Errors);
-         if (ParserErrorListener?.Errors != null)
-            ParseErrors.AddRange(ParserErrorListener.Errors);
+         if (updateGui)
+         {
+            // Publish our errors
+            ParseErrors.Clear();
+            if (LexerErrorListener?.Errors != null)
+               ParseErrors.AddRange(LexerErrorListener.Errors);
+            if (ParserErrorListener?.Errors != null)
+               ParseErrors.AddRange(ParserErrorListener.Errors);
 
-         // Configure code folding markers
-         ConfigureCodeFolding(context, ToastStuntMooParser.ruleNames);
+            // Configure code folding markers
+            ConfigureCodeFolding(context, ToastStuntMooParser.ruleNames);
 
-         // Raise our event
-         OnParsingComplete(this, new ParsingCompleteEventArgs(Document, ParseErrors, Tokens, context));
+            // Raise our event
+            OnParsingComplete(this, new ParsingCompleteEventArgs(Document, ParseErrors, Tokens, context));
+         }
       }
 
       private void ConfigureCodeFolding(IParseTree tree, IList<string> parserRules)
@@ -306,10 +356,13 @@ namespace Org.Edgerunner.Moo.Editor.Controls
             switch (nodeName)
             {
                case "ifStatement":
+               case "elseifStatement":
+               case "elseStatement":
                case "forStatement":
                case "forkStatement":
                case "whileStatement":
-               case "tryStatement":
+               case "tryExceptStatement":
+               case "tryFinallyStatement":
                   if (node is ParserRuleContext rule)
                   {
                      var marker = Guid.NewGuid().ToString("N");
@@ -336,6 +389,14 @@ namespace Org.Edgerunner.Moo.Editor.Controls
 
       private void MooEditor_AutoIndentNeeded(object? sender, AutoIndentEventArgs e)
       {
+         //if (IndentationGuide != null)
+         //{
+         //   var indentShift = IndentationGuide.GetIndentShift(e.ILine + 1);
+         //   e.Shift = indentShift;
+         //   e.ShiftNextLines = indentShift;
+         //   return;
+         //}
+
          bool indent = Regex.IsMatch(e.PrevLineText, @"\b(if|while|fork|for|try|elseif|else|except|finally)\b");
          bool previousTerminates = Regex.IsMatch(e.PrevLineText, @"\b(endif|endfork|endfor|endwhile|endtry)\b");
          bool currentIndents = Regex.IsMatch(e.LineText, @"\b(if|fork|for|while|try)\b");
