@@ -10,6 +10,12 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FastColoredTextBox", "FastC
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Org.Edgerunner.ANTLR4.Tools.Common", "Org.Edgerunner.ANTLR4.Tools.Common\Org.Edgerunner.ANTLR4.Tools.Common.csproj", "{6CC0D81F-7082-4E46-BBE8-37A43C4DEA79}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Configuration", "Solution Configuration", "{E39D283A-EFFD-4807-BC13-E64647099244}"
+	ProjectSection(SolutionItems) = preProject
+		Moo Developer Tools.sln.DotSettings = Moo Developer Tools.sln.DotSettings
+		Settings.StyleCop = Settings.StyleCop
+	EndProjectSection
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -38,16 +44,5 @@ Global
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {234756AB-3920-4F3F-8533-14D3D30CDCD6}
-	EndGlobalSection
-	GlobalSection(AutomaticVersions) = postSolution
-		UpdateAssemblyVersion.Release|Any CPU = True
-		UpdateAssemblyFileVersion.Release|Any CPU = True
-		UpdateAssemblyInfoVersion.Release|Any CPU = True
-		AssemblyVersionSettings.Release|Any CPU = None.None.DateStamp.IncrementWithResetOnIncrease
-		AssemblyFileVersionSettings.Release|Any CPU = None.None.DateStamp.IncrementWithResetOnIncrease
-		AssemblyInfoVersionSettings.Release|Any CPU = None.None.DateStamp.IncrementWithResetOnIncrease
-		UpdatePackageVersion.Release|Any CPU = False
-		AssemblyInfoVersionType.Release|Any CPU = SettingsVersion
-		InheritWinAppVersionFrom.Release|Any CPU = None
 	EndGlobalSection
 EndGlobal
