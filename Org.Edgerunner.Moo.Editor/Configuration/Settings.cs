@@ -455,6 +455,22 @@ namespace Org.Edgerunner.Moo.Editor.Configuration
       /// <value>The default Moo grammar dialect.</value>
       public GrammarDialect DefaultGrammarDialect { get; set; }
 
+      public FontStyle ParseFontStyles(string styles, FontStyle defaultStyle)
+      {
+         if (string.IsNullOrEmpty(styles))
+            return defaultStyle;
+
+         var styleGroup = styles.Split(';').ToList();
+         FontStyle result = 0;
+         foreach (var word in styleGroup)
+            if (Enum.TryParse(word, out FontStyle style))
+               result |= style;
+            else
+               return defaultStyle;
+
+         return result;
+      }
+
       /// <summary>
       /// Loads the editor settings from the specified file.
       /// </summary>
@@ -778,7 +794,7 @@ namespace Org.Edgerunner.Moo.Editor.Configuration
 
          // Fetch CommentFontStyle setting
          result = appSettings["CommentFontStyle"]?.Value ?? string.Empty;
-         CommentFontStyle = !Enum.TryParse(result, out FontStyle style) ? defStyle : style;
+         CommentFontStyle = ParseFontStyles(result, defStyle);
       }
 
       private void LoadLiteralHighlightSettings(KeyValueConfigurationCollection appSettings)
@@ -820,7 +836,7 @@ namespace Org.Edgerunner.Moo.Editor.Configuration
 
          // Fetch LiteralFontStyle setting
          result = appSettings["LiteralFontStyle"]?.Value ?? string.Empty;
-         LiteralFontStyle = !Enum.TryParse(result, out FontStyle style) ? defStyle : style;
+         LiteralFontStyle = ParseFontStyles(result, defStyle);
       }
 
       private void LoadStringHighlightSettings(KeyValueConfigurationCollection appSettings)
@@ -862,7 +878,7 @@ namespace Org.Edgerunner.Moo.Editor.Configuration
 
           // Fetch StringFontStyle setting
           result = appSettings["StringFontStyle"]?.Value ?? string.Empty;
-          StringFontStyle = !Enum.TryParse(result, out FontStyle style) ? defStyle : style;
+          StringFontStyle = ParseFontStyles(result, defStyle);
       }
 
       private void LoadObjectHighlightSettings(KeyValueConfigurationCollection appSettings)
@@ -904,7 +920,7 @@ namespace Org.Edgerunner.Moo.Editor.Configuration
 
           // Fetch ObjectFontStyle setting
           result = appSettings["ObjectFontStyle"]?.Value ?? string.Empty;
-          ObjectFontStyle = !Enum.TryParse(result, out FontStyle style) ? defStyle : style;
+          ObjectFontStyle = ParseFontStyles(result, defStyle);
       }
 
       private void LoadCoreReferenceHighlightSettings(KeyValueConfigurationCollection appSettings)
@@ -946,7 +962,7 @@ namespace Org.Edgerunner.Moo.Editor.Configuration
 
           // Fetch CoreReferenceFontStyle setting
           result = appSettings["CoreReferenceFontStyle"]?.Value ?? string.Empty;
-          CoreReferenceFontStyle = !Enum.TryParse(result, out FontStyle style) ? defStyle : style;
+          CoreReferenceFontStyle = ParseFontStyles(result, defStyle);
       }
 
       private void LoadPropertyHighlightSettings(KeyValueConfigurationCollection appSettings)
@@ -988,7 +1004,7 @@ namespace Org.Edgerunner.Moo.Editor.Configuration
 
           // Fetch PropertyFontStyle setting
           result = appSettings["PropertyFontStyle"]?.Value ?? string.Empty;
-          PropertyFontStyle = !Enum.TryParse(result, out FontStyle style) ? defStyle : style;
+          PropertyFontStyle = ParseFontStyles(result, defStyle);
       }
 
       private void LoadVerbHighlightSettings(KeyValueConfigurationCollection appSettings)
@@ -1030,7 +1046,7 @@ namespace Org.Edgerunner.Moo.Editor.Configuration
 
           // Fetch VerbFontStyle setting
           result = appSettings["VerbFontStyle"]?.Value ?? string.Empty;
-          VerbFontStyle = !Enum.TryParse(result, out FontStyle style) ? defStyle : style;
+          VerbFontStyle = ParseFontStyles(result, defStyle);
       }
 
       private void LoadSymbolHighlightSettings(KeyValueConfigurationCollection appSettings)
@@ -1072,7 +1088,7 @@ namespace Org.Edgerunner.Moo.Editor.Configuration
 
           // Fetch SymbolFontStyle setting
           result = appSettings["SymbolFontStyle"]?.Value ?? string.Empty;
-          SymbolFontStyle = !Enum.TryParse(result, out FontStyle style) ? defStyle : style;
+          SymbolFontStyle = ParseFontStyles(result, defStyle);
       }
 
       private void LoadOperatorHighlightSettings(KeyValueConfigurationCollection appSettings)
@@ -1114,7 +1130,7 @@ namespace Org.Edgerunner.Moo.Editor.Configuration
 
           // Fetch OperatorFontStyle setting
           result = appSettings["OperatorFontStyle"]?.Value ?? string.Empty;
-          OperatorFontStyle = !Enum.TryParse(result, out FontStyle style) ? defStyle : style;
+          OperatorFontStyle = ParseFontStyles(result, defStyle);
       }
 
       private void LoadParenthesisHighlightSettings(KeyValueConfigurationCollection appSettings)
@@ -1156,7 +1172,7 @@ namespace Org.Edgerunner.Moo.Editor.Configuration
 
           // Fetch ParenthesisFontStyle setting
           result = appSettings["ParenthesisFontStyle"]?.Value ?? string.Empty;
-          ParenthesisFontStyle = !Enum.TryParse(result, out FontStyle style) ? defStyle : style;
+          ParenthesisFontStyle = ParseFontStyles(result, defStyle);
       }
 
       private void LoadBracketHighlightSettings(KeyValueConfigurationCollection appSettings)
@@ -1198,7 +1214,7 @@ namespace Org.Edgerunner.Moo.Editor.Configuration
 
           // Fetch BracketFontStyle setting
           result = appSettings["BracketFontStyle"]?.Value ?? string.Empty;
-          BracketFontStyle = !Enum.TryParse(result, out FontStyle style) ? defStyle : style;
+          BracketFontStyle = ParseFontStyles(result, defStyle);
       }
 
       private void LoadCurlyBraceHighlightSettings(KeyValueConfigurationCollection appSettings)
@@ -1240,7 +1256,7 @@ namespace Org.Edgerunner.Moo.Editor.Configuration
 
           // Fetch CurlyBraceFontStyle setting
           result = appSettings["CurlyBraceFontStyle"]?.Value ?? string.Empty;
-          CurlyBraceFontStyle = !Enum.TryParse(result, out FontStyle style) ? defStyle : style;
+          CurlyBraceFontStyle = ParseFontStyles(result, defStyle);
       }
 
       private void LoadBuiltinVariableHighlightSettings(KeyValueConfigurationCollection appSettings)
@@ -1282,7 +1298,7 @@ namespace Org.Edgerunner.Moo.Editor.Configuration
 
           // Fetch BuiltinVariableFontStyle setting
           result = appSettings["BuiltinVariableFontStyle"]?.Value ?? string.Empty;
-          BuiltinVariableFontStyle = !Enum.TryParse(result, out FontStyle style) ? defStyle : style;
+          BuiltinVariableFontStyle = ParseFontStyles(result, defStyle);
       }
 
       private void LoadBuiltinFunctionHighlightSettings(KeyValueConfigurationCollection appSettings)
@@ -1324,7 +1340,7 @@ namespace Org.Edgerunner.Moo.Editor.Configuration
 
           // Fetch BuiltinFunctionFontStyle setting
           result = appSettings["BuiltinFunctionFontStyle"]?.Value ?? string.Empty;
-          BuiltinFunctionFontStyle = !Enum.TryParse(result, out FontStyle style) ? defStyle : style;
+          BuiltinFunctionFontStyle = ParseFontStyles(result, defStyle);
       }
 
       private void LoadKeywordHighlightSettings(KeyValueConfigurationCollection appSettings)
@@ -1366,7 +1382,7 @@ namespace Org.Edgerunner.Moo.Editor.Configuration
 
          // Fetch KeywordFontStyle setting
          result = appSettings["KeywordFontStyle"]?.Value ?? string.Empty;
-         KeywordFontStyle = !Enum.TryParse(result, out FontStyle style) ? defStyle : style;
+         KeywordFontStyle = ParseFontStyles(result, defStyle);
       }
 
       private void LoadDefaultWordHighlightSettings(KeyValueConfigurationCollection appSettings)
@@ -1408,7 +1424,7 @@ namespace Org.Edgerunner.Moo.Editor.Configuration
 
          // Fetch DefaultWordFontStyle setting
          result = appSettings["DefaultWordFontStyle"]?.Value ?? string.Empty;
-         DefaultWordFontStyle = !Enum.TryParse(result, out FontStyle style) ? defStyle : style;
+         DefaultWordFontStyle = ParseFontStyles(result, defStyle);
       }
    }
 }
