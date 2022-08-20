@@ -390,6 +390,38 @@ namespace Org.Edgerunner.Moo.Editor.Configuration
       public Color EditorTextSelectionColor { get; set; }
 
       /// <summary>
+      /// Gets or sets the color of the editor folding indicator.
+      /// </summary>
+      /// <value>
+      /// The color of the editor folding indicator.
+      /// </value>
+      public Color EditorFoldingIndicatorColor { get; set; }
+
+      /// <summary>
+      /// Gets or sets the color of changed lines in the editor.
+      /// </summary>
+      /// <value>
+      /// The color of changed lines in the editor.
+      /// </value>
+      public Color EditorChangedLineColor { get; set; }
+
+      /// <summary>
+      /// Gets or sets the back color of indents in the editor.
+      /// </summary>
+      /// <value>
+      /// The back color of indents in the editor.
+      /// </value>
+      public Color EditorIndentBackColor { get; set; }
+
+      /// <summary>
+      /// Gets or sets the color of bookmarks in the editor.
+      /// </summary>
+      /// <value>
+      /// The color of bookmarks in the editor.
+      /// </value>
+      public Color EditorBookmarkColor { get; set; }
+
+      /// <summary>
       /// Gets or sets a value indicating whether word wrap is enabled for the editor.
       /// </summary>
       /// <value><c>true</c> if word wrap enabled; otherwise, <c>false</c>.</value>
@@ -558,6 +590,10 @@ namespace Org.Edgerunner.Moo.Editor.Configuration
          var defCurrentLineColor = Color.Transparent;
          var defErrorIndicatorColor = Color.Red;
          var defTextSelectionColor = Color.MediumPurple;
+         var defFoldingIndicatorColor = Color.Green;
+         var defChangedLineColor = Color.Yellow;
+         var defIndentBackColor = Color.WhiteSmoke;
+         var defBookmarkColor = Color.PowderBlue;
 
          if (appSettings == null)
          {
@@ -568,6 +604,10 @@ namespace Org.Edgerunner.Moo.Editor.Configuration
             EditorLineNumberColor = defLineNumberColor;
             ErrorIndicatorColor = defErrorIndicatorColor;
             EditorTextSelectionColor = defTextSelectionColor;
+            EditorFoldingIndicatorColor = defFoldingIndicatorColor;
+            EditorChangedLineColor = defChangedLineColor;
+            EditorIndentBackColor = defIndentBackColor;
+            EditorBookmarkColor = defBookmarkColor;
             return;
          }
 
@@ -646,6 +686,50 @@ namespace Org.Edgerunner.Moo.Editor.Configuration
          catch (Exception)
          {
             EditorTextSelectionColor = defTextSelectionColor;
+         }
+
+         // Fetch FoldingIndicatorColor setting
+         result = appSettings["EditorFoldingIndicatorColor"]?.Value ?? string.Empty;
+         try
+         {
+            EditorFoldingIndicatorColor = !string.IsNullOrEmpty(result) ? ColorTranslator.FromHtml(result) : defFoldingIndicatorColor;
+         }
+         catch (Exception)
+         {
+            EditorFoldingIndicatorColor = defFoldingIndicatorColor;
+         }
+
+         // Fetch ChangedLineColor setting
+         result = appSettings["EditorChangedLineColor"]?.Value ?? string.Empty;
+         try
+         {
+            EditorChangedLineColor = !string.IsNullOrEmpty(result) ? ColorTranslator.FromHtml(result) : defChangedLineColor;
+         }
+         catch (Exception)
+         {
+            EditorChangedLineColor = defChangedLineColor;
+         }
+
+         // Fetch IndentBackColor setting
+         result = appSettings["EditorIndentBackColor"]?.Value ?? string.Empty;
+         try
+         {
+            EditorIndentBackColor = !string.IsNullOrEmpty(result) ? ColorTranslator.FromHtml(result) : defIndentBackColor;
+         }
+         catch (Exception)
+         {
+            EditorIndentBackColor = defIndentBackColor;
+         }
+
+         // Fetch BookmarkColor setting
+         result = appSettings["EditorBookmarkColor"]?.Value ?? string.Empty;
+         try
+         {
+            EditorBookmarkColor = !string.IsNullOrEmpty(result) ? ColorTranslator.FromHtml(result) : defBookmarkColor;
+         }
+         catch (Exception)
+         {
+            EditorBookmarkColor = defBookmarkColor;
          }
       }
 

@@ -49,6 +49,15 @@ namespace Org.Edgerunner.Moo.Udditor
          this.mnuItemCutPaste = new System.Windows.Forms.ToolStripMenuItem();
          this.toolStripSeparator3 = new System.Windows.Forms.ToolStripSeparator();
          this.mnuItemFind = new System.Windows.Forms.ToolStripMenuItem();
+         this.toolStripSeparator4 = new System.Windows.Forms.ToolStripSeparator();
+         this.tlMnuItemBookmarks = new System.Windows.Forms.ToolStripMenuItem();
+         this.tlMnuItemToggleBookmark = new System.Windows.Forms.ToolStripMenuItem();
+         this.tlMnuItemNextBookmark = new System.Windows.Forms.ToolStripMenuItem();
+         this.tlMnuItemPrevBookmark = new System.Windows.Forms.ToolStripMenuItem();
+         this.tlMnuItemFolding = new System.Windows.Forms.ToolStripMenuItem();
+         this.tlMnuItemToggleFolding = new System.Windows.Forms.ToolStripMenuItem();
+         this.tlMnuItemExpandAll = new System.Windows.Forms.ToolStripMenuItem();
+         this.tlMnuItemCollapseAll = new System.Windows.Forms.ToolStripMenuItem();
          this.grammarToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
          this.tlMnuLanguageMoo = new System.Windows.Forms.ToolStripMenuItem();
          this.tlMnuLanguageTsMoo = new System.Windows.Forms.ToolStripMenuItem();
@@ -161,7 +170,10 @@ namespace Org.Edgerunner.Moo.Udditor
             this.mnuItemCopy,
             this.mnuItemCutPaste,
             this.toolStripSeparator3,
-            this.mnuItemFind});
+            this.mnuItemFind,
+            this.toolStripSeparator4,
+            this.tlMnuItemBookmarks,
+            this.tlMnuItemFolding});
          this.editToolStripMenuItem.Name = "editToolStripMenuItem";
          this.editToolStripMenuItem.Size = new System.Drawing.Size(49, 24);
          this.editToolStripMenuItem.Text = "&Edit";
@@ -169,20 +181,20 @@ namespace Org.Edgerunner.Moo.Udditor
          // mnuItemFormat
          // 
          this.mnuItemFormat.Name = "mnuItemFormat";
-         this.mnuItemFormat.Size = new System.Drawing.Size(177, 26);
+         this.mnuItemFormat.Size = new System.Drawing.Size(224, 26);
          this.mnuItemFormat.Text = "Format";
          this.mnuItemFormat.Click += new System.EventHandler(this.mnuItemFormat_Click);
          // 
          // toolStripSeparator2
          // 
          this.toolStripSeparator2.Name = "toolStripSeparator2";
-         this.toolStripSeparator2.Size = new System.Drawing.Size(174, 6);
+         this.toolStripSeparator2.Size = new System.Drawing.Size(221, 6);
          // 
          // mnuItemCut
          // 
          this.mnuItemCut.Name = "mnuItemCut";
          this.mnuItemCut.ShortcutKeys = ((System.Windows.Forms.Keys)((System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.X)));
-         this.mnuItemCut.Size = new System.Drawing.Size(177, 26);
+         this.mnuItemCut.Size = new System.Drawing.Size(224, 26);
          this.mnuItemCut.Text = "Cut";
          this.mnuItemCut.Click += new System.EventHandler(this.mnuItemCut_Click);
          // 
@@ -190,7 +202,7 @@ namespace Org.Edgerunner.Moo.Udditor
          // 
          this.mnuItemCopy.Name = "mnuItemCopy";
          this.mnuItemCopy.ShortcutKeys = ((System.Windows.Forms.Keys)((System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.C)));
-         this.mnuItemCopy.Size = new System.Drawing.Size(177, 26);
+         this.mnuItemCopy.Size = new System.Drawing.Size(224, 26);
          this.mnuItemCopy.Text = "Copy";
          this.mnuItemCopy.Click += new System.EventHandler(this.mnuItemCopy_Click);
          // 
@@ -198,22 +210,96 @@ namespace Org.Edgerunner.Moo.Udditor
          // 
          this.mnuItemCutPaste.Name = "mnuItemCutPaste";
          this.mnuItemCutPaste.ShortcutKeys = ((System.Windows.Forms.Keys)((System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.V)));
-         this.mnuItemCutPaste.Size = new System.Drawing.Size(177, 26);
+         this.mnuItemCutPaste.Size = new System.Drawing.Size(224, 26);
          this.mnuItemCutPaste.Text = "Paste";
          this.mnuItemCutPaste.Click += new System.EventHandler(this.mnuItemCutPaste_Click);
          // 
          // toolStripSeparator3
          // 
          this.toolStripSeparator3.Name = "toolStripSeparator3";
-         this.toolStripSeparator3.Size = new System.Drawing.Size(174, 6);
+         this.toolStripSeparator3.Size = new System.Drawing.Size(221, 6);
          // 
          // mnuItemFind
          // 
          this.mnuItemFind.Name = "mnuItemFind";
          this.mnuItemFind.ShortcutKeys = ((System.Windows.Forms.Keys)((System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.F)));
-         this.mnuItemFind.Size = new System.Drawing.Size(177, 26);
+         this.mnuItemFind.Size = new System.Drawing.Size(224, 26);
          this.mnuItemFind.Text = "Find";
          this.mnuItemFind.Click += new System.EventHandler(this.mnuItemFind_Click);
+         // 
+         // toolStripSeparator4
+         // 
+         this.toolStripSeparator4.Name = "toolStripSeparator4";
+         this.toolStripSeparator4.Size = new System.Drawing.Size(221, 6);
+         // 
+         // tlMnuItemBookmarks
+         // 
+         this.tlMnuItemBookmarks.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.tlMnuItemToggleBookmark,
+            this.tlMnuItemNextBookmark,
+            this.tlMnuItemPrevBookmark});
+         this.tlMnuItemBookmarks.Name = "tlMnuItemBookmarks";
+         this.tlMnuItemBookmarks.Size = new System.Drawing.Size(224, 26);
+         this.tlMnuItemBookmarks.Text = "Bookmarks";
+         // 
+         // tlMnuItemToggleBookmark
+         // 
+         this.tlMnuItemToggleBookmark.Name = "tlMnuItemToggleBookmark";
+         this.tlMnuItemToggleBookmark.ShortcutKeys = ((System.Windows.Forms.Keys)((System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.K)));
+         this.tlMnuItemToggleBookmark.Size = new System.Drawing.Size(319, 26);
+         this.tlMnuItemToggleBookmark.Text = "Toggle Bookmark";
+         this.tlMnuItemToggleBookmark.Click += new System.EventHandler(this.tlMnuItemToggleBookmark_Click);
+         // 
+         // tlMnuItemNextBookmark
+         // 
+         this.tlMnuItemNextBookmark.Name = "tlMnuItemNextBookmark";
+         this.tlMnuItemNextBookmark.ShortcutKeys = ((System.Windows.Forms.Keys)(((System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.Shift) 
+            | System.Windows.Forms.Keys.Down)));
+         this.tlMnuItemNextBookmark.Size = new System.Drawing.Size(319, 26);
+         this.tlMnuItemNextBookmark.Text = "Next Bookmark";
+         this.tlMnuItemNextBookmark.Click += new System.EventHandler(this.tlMnuItemNextBookmark_Click);
+         // 
+         // tlMnuItemPrevBookmark
+         // 
+         this.tlMnuItemPrevBookmark.Name = "tlMnuItemPrevBookmark";
+         this.tlMnuItemPrevBookmark.ShortcutKeys = ((System.Windows.Forms.Keys)(((System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.Shift) 
+            | System.Windows.Forms.Keys.Up)));
+         this.tlMnuItemPrevBookmark.Size = new System.Drawing.Size(319, 26);
+         this.tlMnuItemPrevBookmark.Text = "Previous Bookmark";
+         this.tlMnuItemPrevBookmark.Click += new System.EventHandler(this.tlMnuItemPrevBookmark_Click);
+         // 
+         // tlMnuItemFolding
+         // 
+         this.tlMnuItemFolding.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.tlMnuItemToggleFolding,
+            this.tlMnuItemExpandAll,
+            this.tlMnuItemCollapseAll});
+         this.tlMnuItemFolding.Name = "tlMnuItemFolding";
+         this.tlMnuItemFolding.Size = new System.Drawing.Size(224, 26);
+         this.tlMnuItemFolding.Text = "Folding";
+         // 
+         // tlMnuItemToggleFolding
+         // 
+         this.tlMnuItemToggleFolding.Name = "tlMnuItemToggleFolding";
+         this.tlMnuItemToggleFolding.ShortcutKeys = ((System.Windows.Forms.Keys)(((System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.Shift) 
+            | System.Windows.Forms.Keys.Space)));
+         this.tlMnuItemToggleFolding.Size = new System.Drawing.Size(326, 26);
+         this.tlMnuItemToggleFolding.Text = "Expand/Collapse";
+         this.tlMnuItemToggleFolding.Click += new System.EventHandler(this.tlMnuItemToggleFolding_Click);
+         // 
+         // tlMnuItemExpandAll
+         // 
+         this.tlMnuItemExpandAll.Name = "tlMnuItemExpandAll";
+         this.tlMnuItemExpandAll.Size = new System.Drawing.Size(326, 26);
+         this.tlMnuItemExpandAll.Text = "Expand all Blocks";
+         this.tlMnuItemExpandAll.Click += new System.EventHandler(this.tlMnuItemExpandAll_Click);
+         // 
+         // tlMnuItemCollapseAll
+         // 
+         this.tlMnuItemCollapseAll.Name = "tlMnuItemCollapseAll";
+         this.tlMnuItemCollapseAll.Size = new System.Drawing.Size(326, 26);
+         this.tlMnuItemCollapseAll.Text = "Collapse All Blocks";
+         this.tlMnuItemCollapseAll.Click += new System.EventHandler(this.tlMnuItemCollapseAll_Click);
          // 
          // grammarToolStripMenuItem
          // 
@@ -398,5 +484,14 @@ namespace Org.Edgerunner.Moo.Udditor
         private ToolStripMenuItem tlMnuNew;
         private ToolStripMenuItem tlMnuItemFileSave;
         private ToolStripMenuItem tlMnuItemClose;
+        private ToolStripSeparator toolStripSeparator4;
+        private ToolStripMenuItem tlMnuItemBookmarks;
+        private ToolStripMenuItem tlMnuItemToggleBookmark;
+        private ToolStripMenuItem tlMnuItemNextBookmark;
+        private ToolStripMenuItem tlMnuItemPrevBookmark;
+        private ToolStripMenuItem tlMnuItemFolding;
+        private ToolStripMenuItem tlMnuItemToggleFolding;
+        private ToolStripMenuItem tlMnuItemExpandAll;
+        private ToolStripMenuItem tlMnuItemCollapseAll;
     }
 }

@@ -4795,7 +4795,7 @@ namespace FastColoredTextBoxNS {
 											 (LineInfos[endFoldingLine].WordWrapStringsCount - 1) * CharHeight
 										   : TextHeight + CharHeight) - VerticalScroll.Value + CharHeight;
 
-					using var indicatorPen = new Pen(Color.FromArgb(100, FoldingIndicatorColor), 4);
+					using var indicatorPen = new Pen(Color.FromArgb(255, FoldingIndicatorColor), 4);
 					e.Graphics.DrawLine(indicatorPen, LeftIndent - 5, startFoldingY, LeftIndent - 5, endFoldingY);
 				}
 			//draw hint's brackets

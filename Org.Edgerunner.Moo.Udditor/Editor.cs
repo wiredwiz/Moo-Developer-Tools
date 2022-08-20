@@ -68,6 +68,10 @@ public partial class Editor : Form
         editor.TabLength = Settings.Instance.EditorTabLength;
         editor.LineNumberColor = Settings.Instance.EditorLineNumberColor;
         editor.SelectionColor = Settings.Instance.EditorTextSelectionColor;
+        editor.ChangedLineColor = Settings.Instance.EditorChangedLineColor;
+        editor.FoldingIndicatorColor = Settings.Instance.EditorFoldingIndicatorColor;
+        editor.IndentBackColor = Settings.Instance.EditorIndentBackColor;
+        editor.BookmarkColor = Settings.Instance.EditorBookmarkColor;
         BuildAutocompleteMenu(editor);
     }
 
@@ -423,5 +427,41 @@ public partial class Editor : Form
                     e.CloseRequest = DockingCloseRequest.None;
             }
         }
+    }
+
+    private void tlMnuItemToggleBookmark_Click(object sender, EventArgs e)
+    {
+       if (CurrentEditor != null)
+         CurrentEditor.BookmarkLine(CurrentEditor.Selection.Start.iLine);
+    }
+
+    private void tlMnuItemNextBookmark_Click(object sender, EventArgs e)
+    {
+        if (CurrentEditor != null)
+            CurrentEditor.GotoNextBookmark(CurrentEditor.Selection.Start.iLine);
+    }
+
+    private void tlMnuItemPrevBookmark_Click(object sender, EventArgs e)
+    {
+        if (CurrentEditor != null)
+            CurrentEditor.GotoPrevBookmark(CurrentEditor.Selection.Start.iLine);
+    }
+
+    private void tlMnuItemToggleFolding_Click(object sender, EventArgs e)
+    {
+        if (CurrentEditor != null)
+            CurrentEditor.ToggleFoldingBlock(CurrentEditor.Selection.Start.iLine);
+    }
+
+    private void tlMnuItemExpandAll_Click(object sender, EventArgs e)
+    {
+        if (CurrentEditor != null)
+            CurrentEditor.ExpandAllFoldingBlocks();
+    }
+
+    private void tlMnuItemCollapseAll_Click(object sender, EventArgs e)
+    {
+        if (CurrentEditor != null)
+            CurrentEditor.CollapseAllFoldingBlocks();
     }
 }

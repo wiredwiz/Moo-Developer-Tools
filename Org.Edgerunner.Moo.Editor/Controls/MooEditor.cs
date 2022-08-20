@@ -57,8 +57,8 @@ namespace Org.Edgerunner.Moo.Editor.Controls
    public partial class MooEditor : FastColoredTextBox
    {
       public MooEditor()
-        :this(GrammarDialect.Edgerunner)
-      {}
+        : this(GrammarDialect.Edgerunner)
+      { }
 
       public MooEditor(GrammarDialect grammarDialect)
       {
@@ -81,7 +81,6 @@ namespace Org.Edgerunner.Moo.Editor.Controls
          AutoCompleteBracketsList = new[] { '(', ')', '{', '}', '[', ']', '"', '"' };
          AutoIndentChars = false;
          WordWrapAutoIndent = true;
-         ChangedLineColor = Color.Yellow;
          AutoIndentNeeded += MooEditor_AutoIndentNeeded;
          TextChanged += MooEditor_TextChanged;
          TextChangedDelayed += MooEditor_TextChangedDelayed;
@@ -237,7 +236,7 @@ namespace Org.Edgerunner.Moo.Editor.Controls
          foreach (var token in Tokens)
          {
             if (IsWithinTokenBounds(token, line, position))
-                  return token;
+               return token;
          }
 
          return null;
@@ -385,6 +384,29 @@ namespace Org.Edgerunner.Moo.Editor.Controls
       private void OnParsingComplete(MooEditor mooEditor, ParsingCompleteEventArgs parsingCompleteEventArgs)
       {
          ParsingComplete?.Invoke(mooEditor, parsingCompleteEventArgs);
+      }
+
+      public void ToggleFoldingBlock(int iLine)
+      {
+         var fLine = -1;
+         for (int i = iLine; i >= 0; i--)
+         {
+            var line = TextSource[i];
+            if (!string.IsNullOrEmpty(line.FoldingStartMarker) && string.IsNullOrEmpty(line.FoldingEndMarker))
+            {
+               fLine = i;
+               break;
+            }
+         }
+
+         if (fLine == -1)
+            return;
+
+         LineInfo lineInfo = LineInfos[fLine];
+         if (lineInfo.VisibleState == VisibleState.Visible)
+            CollapseFoldingBlock(fLine);
+         else
+            ExpandFoldedBlock(fLine);
       }
 
       private void MooEditor_AutoIndentNeeded(object? sender, AutoIndentEventArgs e)
