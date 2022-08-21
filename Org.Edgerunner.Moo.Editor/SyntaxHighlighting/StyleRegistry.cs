@@ -95,7 +95,7 @@ namespace Org.Edgerunner.Moo.Editor.SyntaxHighlighting
       /// <returns>A <see cref="Style"/> instance.</returns>
       public Style GetParseErrorStyle()
       {
-         return _ErrorStyle ?? (_ErrorStyle = new WavyLineStyle(240, _SyntaxGuide.GetErrorIndicatorColor()));
+         return _ErrorStyle ??= new WavyLineStyle(240, _SyntaxGuide.GetErrorIndicatorColor());
       }
 
       private int GetKey(Color foreground, Color background, FontStyle style)
