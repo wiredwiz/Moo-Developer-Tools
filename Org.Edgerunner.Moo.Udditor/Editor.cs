@@ -1,6 +1,7 @@
 ﻿using System.Diagnostics;
 using System.IO;
 using System.Text;
+using System.Windows.Forms;
 using System.Xml.Linq;
 using FastColoredTextBoxNS;
 using FastColoredTextBoxNS.Types;
@@ -184,7 +185,7 @@ public partial class Editor : Form
     {
         var editor = NewEditor(dialect);
         var title = $"{hostName}/{verbName}";
-        var key = $"{verbName}-{Guid.NewGuid().ToString()}";
+        var key = $"{verbName}-{Guid.NewGuid()}";
         editor.Document = new Document(key, string.Empty, verbName);
         editor.Text = source;
         editor.IsChanged = false;
@@ -248,11 +249,26 @@ public partial class Editor : Form
         return page;
     }
 
+    private MooClient NewTerminalClient()
+    {
+        var client = new MooClient();
+        return client;
+    }
+
+    private KryptonPage NewTerminalClientPage(string host, int port, string name = null)
+    {
+        var client = NewTerminalClient();
+        var key = Guid.NewGuid().ToString();
+        var page = NewPage(key, name, name, name, 0, client);
+        Pages[key] = page;
+        return page;
+    }
+
     public void SwitchToPage(string id)
     {
         var page = Pages[id];
         Workspace.SelectPage(page.UniqueName);
-        var editor = (MooEditor)page.Controls[0];
+        var editor = (Control)page.Controls[0];
         editor.Focus();
     }
 
@@ -407,8 +423,7 @@ public partial class Editor : Form
     {
         var key = e.UniqueName;
         var page = Pages[key];
-        var editor = (MooEditor)page.Controls[0];
-        if (editor == null && editor.IsChanged)
+        if (page.Controls[0] is MooEditor { IsChanged: true } editor)
         {
             var name = editor.Document.Name;
             DialogResult dialogResult = MessageBox.Show($"\"{name}\" has been modified but has not been saved.  Would you like to save this file?", "Modified File", MessageBoxButtons.YesNo);
@@ -463,5 +478,20 @@ public partial class Editor : Form
     {
         if (CurrentEditor != null)
             CurrentEditor.CollapseAllFoldingBlocks();
+    }
+
+    private void tlMnuItemOpenConnection_Click(object sender, EventArgs e)
+    {
+        var host = "moo.edgerunner.org";
+        var port = 8888;
+        var page = NewTerminalClientPage(host, port, "Edgerunner");
+        kryptonDockingManager.AddToWorkspace("Workspace", new KryptonPage[] { page });
+        SwitchToPage(page.UniqueName);
+        ((MooClient)page.Controls[0]).Connect(host, port);
+    }
+
+    private void tlMnuItemCloseConnection_Click(object sender, EventArgs e)
+    {
+
     }
 }

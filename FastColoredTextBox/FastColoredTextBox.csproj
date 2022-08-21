@@ -9,6 +9,7 @@
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DocumentationFile>bin\Debug\FastColoredTextBox.xml</DocumentationFile>
+    <DefineConstants>$(DefineConstants)TRACE;Styles32</DefineConstants>
   </PropertyGroup>
   <PropertyGroup>
     <SignAssembly>true</SignAssembly>
@@ -29,6 +30,9 @@
     <PackageLicenseFile>license.txt</PackageLicenseFile>
     <PackageIcon>icon.png</PackageIcon>
     <PackageTags>FCTB</PackageTags>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
+    <DefineConstants>$(DefineConstants)TRACE;Styles32</DefineConstants>
   </PropertyGroup>
   <ItemGroup>
     <None Include="$(SolutionDir)icon.png">
