@@ -17,6 +17,14 @@ namespace Org.Edgerunner.Moo.Editor.Controls
       private TcpClient _Client;
       private NetworkStream _Stream;
 
+      public event EventHandler<string> OutOfBandCommandReceived;
+
+      public string Host { get; set; }
+
+      public int Port { get; set; }
+
+      public string World { get; set; }
+
       public MooClient()
       {
          InitializeComponent();
@@ -29,6 +37,11 @@ namespace Org.Edgerunner.Moo.Editor.Controls
       {
          Close();
          base.OnHandleDestroyed(e);
+      }
+
+      protected virtual void OnOutOfBandCommandReceived(string command)
+      {
+         OutOfBandCommandReceived?.Invoke(this, command);
       }
 
       public Color ConsoleForeColor
@@ -64,64 +77,86 @@ namespace Org.Edgerunner.Moo.Editor.Controls
          }
       }
 
-      public void Connect(string host, int port)
+      public void Connect()
       {
-                 this.BeginInvoke(
-                               new MethodInvoker(() =>
-                               {
-                                   _Client = new TcpClient();
-                                   _Client.Connect(host, port);
-                                   _Stream = _Client.GetStream();
-                                   byte[] buffer = new byte[2048];
-                                   StringBuilder messageData = new StringBuilder();
-                                   bool terminated = false;
-                                   while (_Client is { Connected: true })
+         this.BeginInvoke(
+                       new MethodInvoker(() =>
+                       {
+                          _Client = new TcpClient();
+                          _Client.Connect(Host, Port);
+                          _Stream = _Client.GetStream();
+                          byte[] buffer = new byte[2048];
+                          StringBuilder messageData = new StringBuilder();
+                          bool terminated = false;
+                          while (_Client is { Connected: true })
+                          {
+                             Application.DoEvents();
+                             Thread.Sleep(5);
+                             messageData.Clear();
+                             try
+                             {
+                                while (_Stream is { DataAvailable: true })
+                                {
+                                   var bytes = _Stream.Read(buffer, 0, buffer.Length);
+
+                                   Decoder decoder = Encoding.UTF8.GetDecoder();
+                                   char[] chars = new char[decoder.GetCharCount(buffer, 0, bytes)];
+                                   decoder.GetChars(buffer, 0, bytes, chars, 0);
+                                   messageData.Append(chars);
+                                }
+                             }
+                             catch (ObjectDisposedException)
+                             {
+                                _Stream = null;
+                                if (terminated)
+                                   consoleSim.Write("\n");
+                                consoleSim.WriteLine("** Connection Closed by client **");
+                                consoleSim.GoEnd();
+                                Debug.WriteLine("Stream disposed");
+                             }
+
+                             if (messageData.Length != 0)
+                             {
+                                messageData.Replace("\r\n", "\n");
+                                var lines = messageData.ToString().Split('\n', StringSplitOptions.TrimEntries).ToList();
+                                string line;
+                                if (lines[^1] == string.Empty)
+                                   lines.RemoveAt(lines.Count - 1);
+                                if (terminated)
+                                   consoleSim.Write("\n");
+                                if (lines.Count > 1)
+                                   for (int i = 0; i < lines.Count - 1; i++)
                                    {
-                                       Application.DoEvents();
-                                       Thread.Sleep(5);
-                                       messageData.Clear();
-                                       try
-                                       {
-                                           while (_Stream is { DataAvailable: true })
-                                           {
-                                               var bytes = _Stream.Read(buffer, 0, buffer.Length);
-
-                                               Decoder decoder = Encoding.UTF8.GetDecoder();
-                                               char[] chars = new char[decoder.GetCharCount(buffer, 0, bytes)];
-                                               decoder.GetChars(buffer, 0, bytes, chars, 0);
-                                               messageData.Append(chars);
-                                           }
-                                       }
-                                       catch (ObjectDisposedException)
-                                       {
-                                           _Stream = null;
-                                           if (terminated)
-                                               consoleSim.Write("\n");
-                                           consoleSim.WriteLine("** Connection Closed by client **");
-                                           consoleSim.GoEnd();
-                                           Debug.WriteLine("Stream disposed");
-                                       }
-
-                                       if (messageData.Length != 0)
-                                       {
-                                           messageData.Replace("\r\n", "\n");
-                                           var lines = messageData.ToString().Split('\n', StringSplitOptions.TrimEntries).ToList();
-                                           if (lines[^1] == string.Empty)
-                                               lines.RemoveAt(lines.Count - 1);
-                                           if (terminated)
-                                               consoleSim.Write("\n");
-                                           if (lines.Count > 1)
-                                               for (int i = 0; i < lines.Count - 1; i++)
-                                               {
-                                                   consoleSim.WriteAnsiLine(lines[i]);
-                                                   consoleSim.GoEnd();
-                                               }
-                                           consoleSim.WriteAnsi(lines[^1]);
-                                           consoleSim.GoEnd();
-                                           terminated = messageData[^1] == '\n';
-                                       }
+                                      line = lines[i];
+                                      if (line.StartsWith("#$#"))
+                                         OnOutOfBandCommandReceived(line.Length > 3 ? line[3..^1] : string.Empty);
+                                      else
+                                      {
+                                         consoleSim.WriteAnsiLine(lines[i]);
+                                         consoleSim.GoEnd();
+                                      }
                                    }
-                               }));
+
+                                line = lines[^1];
+                                if (line.StartsWith("#$#"))
+                                   OnOutOfBandCommandReceived(line.Length > 3 ? line[3..^1] : string.Empty);
+                                else
+                                {
+                                   consoleSim.WriteAnsi(lines[^1]);
+                                   consoleSim.GoEnd();
+                                }
+                                terminated = messageData[^1] == '\n';
+                             }
+                          }
+                       }));
+      }
+
+      public void Connect(string host, int port, string world = "")
+      {
+         Host = host;
+         Port = port;
+         World = world;
+         Connect();
       }
 
       public void Close()
