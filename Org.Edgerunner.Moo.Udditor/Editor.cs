@@ -1,13 +1,12 @@
-﻿using System.Diagnostics;
+﻿using Krypton.Docking;
+using System.Diagnostics;
 using System.IO;
 using System.Text;
 using System.Windows.Forms;
 using System.Xml.Linq;
+using Krypton.Navigator;
 using FastColoredTextBoxNS;
 using FastColoredTextBoxNS.Types;
-using Krypton.Docking;
-using Krypton.Navigator;
-using Krypton.Toolkit;
 using Org.Edgerunner.ANTLR4.Tools.Common;
 using Org.Edgerunner.ANTLR4.Tools.Common.Grammar.Errors;
 using Org.Edgerunner.Moo.Editor;
@@ -258,10 +257,16 @@ public partial class Editor : Form
     private KryptonPage NewTerminalClientPage(string host, int port, string name = null)
     {
         var client = NewTerminalClient();
+        client.OutOfBandCommandReceived += Client_OutOfBandCommandReceived;
         var key = Guid.NewGuid().ToString();
         var page = NewPage(key, name, name, name, 0, client);
         Pages[key] = page;
         return page;
+    }
+
+    private void Client_OutOfBandCommandReceived(object sender, string e)
+    {
+        Debug.WriteLine(e);
     }
 
     public void SwitchToPage(string id)
@@ -493,5 +498,25 @@ public partial class Editor : Form
     private void tlMnuItemCloseConnection_Click(object sender, EventArgs e)
     {
 
+    }
+
+    private void kryptonDockingManager_FloatspaceRemoved(object sender, FloatspaceEventArgs e)
+    {
+        int f = 1;
+    }
+
+    private void kryptonDockingManager_DockspaceCellRemoved(object sender, DockspaceCellEventArgs e)
+    {
+        int f = 1;
+    }
+
+    private void kryptonDockingManager_PageAutoHiddenRequest(object sender, CancelUniqueNameEventArgs e)
+    {
+        int f = 1;
+    }
+
+    private void kryptonDockingManager_PageNavigatorRequest(object sender, CancelUniqueNameEventArgs e)
+    {
+        int f = 1;
     }
 }

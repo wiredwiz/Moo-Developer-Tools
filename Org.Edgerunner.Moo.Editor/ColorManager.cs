@@ -49,6 +49,12 @@ public class ColorManager
       DefaultFontTextStyle = FontStyle.Regular;
       FontStyle = FontStyle.Regular;
       CurrentStyle = GetStyle(defaultTextColor, defaultTextBackgroundColor, FontStyle.Regular);
+      IsReset = true;
+   }
+
+   static ColorManager()
+   {
+      StyleCache = new Dictionary<string, TextStyle>();
    }
 
    public Color DefaultTextColor { get; set; }
@@ -65,14 +71,22 @@ public class ColorManager
 
    protected bool Bright { get; set; }
 
+   protected bool IsReset { get; set; }
+
+   protected static Dictionary<string, TextStyle> StyleCache { get; set; }
+
    protected static TextStyle GetStyle(Color foregroundColor, Color backgroundColor, FontStyle fontStyle)
    {
+      string key = $"{foregroundColor}-{backgroundColor}-{fontStyle}";
+      if (StyleCache.TryGetValue(key, out var style))
+         return style;
+
       var foreBrush = new SolidBrush(foregroundColor);
       var backBrush = new SolidBrush(backgroundColor);
-      return new TextStyle(foreBrush, backBrush, fontStyle);
+      return StyleCache[key] = new TextStyle(foreBrush, backBrush, fontStyle);
    }
 
-   public  TextStyle ProcessColors(List<int> codes)
+   public TextStyle ProcessColors(List<int> codes)
    {
       if (codes.Count > 2 && (codes[0] == 38 || codes[0] == 48))
       {
@@ -100,63 +114,70 @@ public class ColorManager
 
       foreach (var code in codes)
       {
-         switch (code)
+         if (code == 0)
          {
-            case 0:
-               // Reset colors
-               Bright = false;
-               ForeColor = DefaultTextColor;
-               BackgroundColor = DefaultTextBackgroundColor;
-               FontStyle = DefaultFontTextStyle;
-               break;
-            case 30:
-               ForeColor = Bright ? Color.DarkGray : Color.Black;
-               break;
-            case 31:
-               ForeColor = Bright ? Color.Red : Color.Maroon;
-               break;
-            case 32:
-               ForeColor = Bright ? Color.LawnGreen : Color.Green;
-               break;
-            case 33:
-               ForeColor = Bright ? Color.Yellow : Color.Gold;
-               break;
-            case 34:
-               ForeColor = Bright ? Color.Blue : Color.DarkBlue;
-               break;
-            case 35:
-               ForeColor = Bright ? Color.Magenta : Color.DarkMagenta;
-               break;
-            case 36:
-               ForeColor = Bright ? Color.Cyan : Color.DarkCyan;
-               break;
-            case 37:
-               ForeColor = Bright ? Color.White : Color.WhiteSmoke;
-               break;
-            case 40:
-               BackgroundColor = Color.Black;
-               break;
-            case 41:
-               BackgroundColor = Color.Maroon;
-               break;
-            case 42:
-               BackgroundColor = Color.Green;
-               break;
-            case 43:
-               BackgroundColor = Color.Gold;
-               break;
-            case 44:
-               BackgroundColor = Color.DarkBlue;
-               break;
-            case 45:
-               BackgroundColor = Color.DarkMagenta;
-               break;
-            case 46:
-               BackgroundColor = Color.DarkCyan;
-               break;
-            case 47:
-               BackgroundColor = Color.LightGray;
-               break;
+            // Reset colors
+            Bright = false;
+            IsReset = true;
+            ForeColor = DefaultTextColor;
+            BackgroundColor = DefaultTextBackgroundColor;
+            FontStyle = DefaultFontTextStyle;
+         }
+         else
+         {
+            switch (code)
+            {
+               case 30:
+                  ForeColor = Bright ? Color.DarkGray : Color.Black;
+                  break;
+               case 31:
+                  ForeColor = Bright ? Color.Red : Color.Maroon;
+                  break;
+               case 32:
+                  ForeColor = Bright ? Color.LawnGreen : Color.Green;
+                  break;
+               case 33:
+                  ForeColor = Bright ? Color.Yellow : Color.Gold;
+                  break;
+               case 34:
+                  ForeColor = Bright ? Color.Blue : Color.DarkBlue;
+                  break;
+               case 35:
+                  ForeColor = Bright ? Color.Magenta : Color.DarkMagenta;
+                  break;
+               case 36:
+                  ForeColor = Bright ? Color.Cyan : Color.DarkCyan;
+                  break;
+               case 37:
+                  ForeColor = Bright ? Color.White : Color.WhiteSmoke;
+                  break;
+               case 40:
+                  BackgroundColor = Color.Black;
+                  break;
+               case 41:
+                  BackgroundColor = Color.Maroon;
+                  break;
+               case 42:
+                  BackgroundColor = Color.Green;
+                  break;
+               case 43:
+                  BackgroundColor = Color.Gold;
+                  break;
+               case 44:
+                  BackgroundColor = Color.DarkBlue;
+                  break;
+               case 45:
+                  BackgroundColor = Color.DarkMagenta;
+                  break;
+               case 46:
+                  BackgroundColor = Color.DarkCyan;
+                  break;
+               case 47:
+                  BackgroundColor = Color.LightGray;
+                  break;
+            }
+
+            IsReset = false;
          }
       }
 
@@ -167,6 +188,7 @@ public class ColorManager
    {
       Color color;
       int colorNum = codes[2];
+      IsReset = false;
       if (colorNum == 0)
          color = Color.Black;
       else if (colorNum == 1)
@@ -228,6 +250,7 @@ public class ColorManager
 
    protected TextStyle ProcessTrueColorColors(List<int> codes)
    {
+      IsReset = false;
       if (codes[0] == 38)
          ForeColor = Color.FromArgb(codes[2], codes[3], codes[4]);
       else if (codes[0] == 48)
