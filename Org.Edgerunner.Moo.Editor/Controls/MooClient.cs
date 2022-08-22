@@ -10,6 +10,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 using static System.Net.Mime.MediaTypeNames;
+using Application = System.Windows.Forms.Application;
 
 namespace Org.Edgerunner.Moo.Editor.Controls
 {
