@@ -9,6 +9,7 @@ using System.Net.Sockets;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
+using static System.Net.Mime.MediaTypeNames;
 
 namespace Org.Edgerunner.Moo.Editor.Controls
 {
@@ -64,17 +65,46 @@ namespace Org.Edgerunner.Moo.Editor.Controls
       {
          if (e.KeyCode == Keys.Enter && !e.Control)
          {
-            var lines = txtInput.Text.Split('\n');
-            foreach (var line in lines)
-               if (_Stream != null)
-               {
-                  Byte[] data = System.Text.Encoding.ASCII.GetBytes(line + '\n');
-                  _Stream.Write(data, 0, data.Length);
-               }
+            SendTextLines(txtInput.Text.Split('\n'));
 
             txtInput.Clear();
             e.SuppressKeyPress = true;
          }
+      }
+
+      public void SendTextLines(IEnumerable<string> text)
+      {
+         foreach (var line in text)
+            SendTextLine(line);
+      }
+
+      public void SendTextLine(string text)
+      {
+         if (_Stream != null)
+         {
+            Byte[] data = System.Text.Encoding.ASCII.GetBytes(text + '\n');
+            _Stream.Write(data, 0, data.Length);
+         }
+      }
+
+      public void SendText(string text)
+      {
+         if (_Stream != null)
+         {
+            Byte[] data = System.Text.Encoding.ASCII.GetBytes(text);
+            _Stream.Write(data, 0, data.Length);
+         }
+      }
+
+      public void SendOutOfBandCommands(IEnumerable<string> commands)
+      {
+         foreach (var command in commands)
+            SendOutOfBandCommand(command);
+      }
+
+      public void SendOutOfBandCommand(string command)
+      {
+         SendTextLine($"#$#{command}");
       }
 
       public void Connect()
@@ -129,7 +159,7 @@ namespace Org.Edgerunner.Moo.Editor.Controls
                                    {
                                       line = lines[i];
                                       if (line.StartsWith("#$#"))
-                                         OnOutOfBandCommandReceived(line.Length > 3 ? line[3..^1] : string.Empty);
+                                         OnOutOfBandCommandReceived(line.Length > 3 ? line[3..] : string.Empty);
                                       else
                                       {
                                          consoleSim.WriteAnsiLine(lines[i]);
@@ -139,7 +169,7 @@ namespace Org.Edgerunner.Moo.Editor.Controls
 
                                 line = lines[^1];
                                 if (line.StartsWith("#$#"))
-                                   OnOutOfBandCommandReceived(line.Length > 3 ? line[3..^1] : string.Empty);
+                                   OnOutOfBandCommandReceived(line.Length > 3 ? line[3..] : string.Empty);
                                 else
                                 {
                                    consoleSim.WriteAnsi(lines[^1]);
