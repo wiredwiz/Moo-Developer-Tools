@@ -796,7 +796,7 @@ namespace FastColoredTextBoxNS {
 
 		/// <summary>
 		/// Default text style
-		/// This style is using when no one other TextStyle is not defined in Char.style
+		/// This style is used when no one other TextStyle is defined in Char.style
 		/// </summary>
 		[Browsable(false)]
 		[DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
@@ -805,7 +805,14 @@ namespace FastColoredTextBoxNS {
 			set { lines.DefaultStyle = value; }
 		}
 
-		/// <summary>
+        /// <summary>
+        /// Default read only style
+        /// </summary>
+        [Browsable(false)]
+        [DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
+        public ReadOnlyStyle DefaultReadOnlyStyle => lines.DefaultReadOnlyStyle;
+
+        /// <summary>
 		/// Style for rendering Selection area
 		/// </summary>
 		[Browsable(false)]

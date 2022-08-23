@@ -77,6 +77,12 @@ namespace FastColoredTextBoxNS.Text {
 		/// </summary>
 		public TextStyle DefaultStyle { get; set; }
 
+		/// <summary>
+		/// Gets the default read only style.
+		/// </summary>
+		/// <value>The default read only style.</value>
+		public ReadOnlyStyle DefaultReadOnlyStyle { get; } = new ReadOnlyStyle();
+
 		public TextSource(FastColoredTextBox currentTB) {
 			CurrentTB = currentTB;
 			linesAccessor = new LinesAccessor(this);

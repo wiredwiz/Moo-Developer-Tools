@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Linq;
+using System.Windows.Forms;
 // ReSharper disable ExceptionNotDocumented
 
 namespace FastColoredTextBoxNS.Types
@@ -30,6 +31,14 @@ namespace FastColoredTextBoxNS.Types
         /// <remarks>Returns -1 if there are no styles</remarks>
         public int LastStyle;
 
+        private bool _ReadOnly;
+
+        /// <summary>
+        /// Gets a value indicating whether the character has a read only style.
+        /// </summary>
+        /// <value><c>true</c> if [read only]; otherwise, <c>false</c>.</value>
+        public bool ReadOnly => _ReadOnly;
+
         /// <summary>
         /// Initializes a new instance of the <see cref="StyledChar"/> struct.
         /// </summary>
@@ -39,6 +48,7 @@ namespace FastColoredTextBoxNS.Types
             this.C = c;
             Style = StyleIndex.None;
             Styles = null;
+            _ReadOnly = false;
             LastStyle = -1;
         }
 
@@ -46,16 +56,19 @@ namespace FastColoredTextBoxNS.Types
         /// Adds the specified style to the character.
         /// </summary>
         /// <param name="style">The style.</param>
-        /// <exception cref="InvalidOperationException">An attempt was made to add more than <see cref="int.MaxValue" /> style elements.</exception>
-        public void AddStyle(Style style)
+        /// <returns>The added Style.</returns>
+        /// <exception cref="System.InvalidOperationException">You cannot add more than {LastStyle} styles to a character</exception>
+        public Style AddStyle(Style style)
         {
             ++LastStyle;
+            if (style is ReadOnlyStyle)
+                _ReadOnly = true;
             if (Styles == null)
                 Styles = new Style[2];
             else
             {
                 if (Styles.Contains(style))
-                    return;
+                    return style;
                 if (LastStyle == Styles.Length)
                     if (LastStyle == int.MaxValue)
                         throw new InvalidOperationException($"You cannot add more than {LastStyle} styles to a character");
@@ -64,7 +77,7 @@ namespace FastColoredTextBoxNS.Types
 
             }
 
-            Styles[LastStyle] = style;
+            return Styles[LastStyle] = style;
         }
 
         /// <summary>
@@ -93,6 +106,11 @@ namespace FastColoredTextBoxNS.Types
             for (int i = index; i < Styles.Length - 1; i++)
                 Styles[i] = Styles[i + 1];
             Styles[^1] = null;
+            _ReadOnly = false;
+            for (int i = 0; i < LastStyle; i++)
+                if (style is ReadOnlyStyle)
+                    _ReadOnly = true;
+            LastStyle--;
         }
 
         /// <summary>
@@ -101,6 +119,7 @@ namespace FastColoredTextBoxNS.Types
         public void ClearStyles()
         {
             Styles = null;
+            _ReadOnly = false;
             LastStyle = -1;
         }
     }
