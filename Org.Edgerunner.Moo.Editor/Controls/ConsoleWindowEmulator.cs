@@ -126,7 +126,10 @@ namespace Org.Edgerunner.Moo.Editor.Controls
          {
             var codes = match.Groups["codes"].Value;
             if (match.Index != 0)
+            {
                Write(text[..(match.Index)], CurrentStyle);
+               Application.DoEvents();
+            }
             CurrentStyle = _ColorManager.ProcessColors(codes.Split(';').ToList().Select(int.Parse).ToList());
             text = match.Index + match.Length < text.Length ? text[(match.Index + match.Length)..] : string.Empty;
             match = Regex.Match(text, @"\e\[(?<codes>(\d+;)*\d+);*m");
