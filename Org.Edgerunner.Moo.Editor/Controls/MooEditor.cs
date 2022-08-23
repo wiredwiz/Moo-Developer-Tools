@@ -189,7 +189,7 @@ namespace Org.Edgerunner.Moo.Editor.Controls
          ParseSourceCode();
 
          if (string.IsNullOrEmpty(Text))
-            ClearStyle(StyleIndex.All);
+            ClearAllStyles();
          else
          {
             // Perhaps we will find a range in the future rather than passing null to colorize all of it

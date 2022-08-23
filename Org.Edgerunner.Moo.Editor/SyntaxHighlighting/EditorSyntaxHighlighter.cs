@@ -87,7 +87,7 @@ namespace Org.Edgerunner.Moo.Editor.SyntaxHighlighting
                          var startingPlace = new Place(token.Column, token.Line - 1);
                          var stoppingPlace = new Place(token.EndingColumn, token.EndingLine - 1);
                          var tokenRange = editor.GetRange(startingPlace, stoppingPlace);
-                         tokenRange.ClearStyle(StyleIndex.All);
+                         tokenRange.ClearAllStyles();
                          var style = registry.GetTokenStyle(token, prev, next);
                          tokenRange.SetStyle(style);
                       }

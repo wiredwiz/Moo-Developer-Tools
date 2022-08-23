@@ -2771,10 +2771,10 @@ namespace FastColoredTextBoxNS
         /// <summary>
         /// Clear style of all text
         /// </summary>
-        public void ClearStyle(StyleIndex styleIndex)
+        public void ClearStyle(Style style)
         {
             foreach (Line line in lines)
-                line.ClearStyle(styleIndex);
+                line.ClearStyle(style);
 
             for (int i = 0; i < LineInfos.Count; i++)
                 SetVisibleState(i, VisibleState.Visible);
@@ -2782,6 +2782,19 @@ namespace FastColoredTextBoxNS
             Invalidate();
         }
 
+        /// <summary>
+        /// Clear all styles of all text
+        /// </summary>
+        public void ClearAllStyles()
+        {
+           foreach (Line line in lines)
+              line.ClearAllStyles();
+
+           for (int i = 0; i < LineInfos.Count; i++)
+              SetVisibleState(i, VisibleState.Visible);
+
+           Invalidate();
+        }
 
         /// <summary>
         /// Clears undo and redo stacks
@@ -7418,7 +7431,7 @@ window.status = ""#print"";
         {
             Language = language;
             ClearStylesBuffer();
-            Range.ClearStyle(StyleIndex.All);
+            Range.ClearAllStyles();
             OnSyntaxHighlight(new TextChangedEventArgs(Range));
         }
 

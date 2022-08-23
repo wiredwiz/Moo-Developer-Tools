@@ -55,6 +55,19 @@ namespace FastColoredTextBoxNS.Types {
 			}
 		}
 
+      /// <summary>
+      /// Clears all styles from chars, delete folding markers
+      /// </summary>
+      public void ClearAllStyles() {
+         FoldingStartMarker = null;
+         FoldingEndMarker = null;
+         for (int i = 0; i < Count; i++) {
+            StyledChar c = this[i];
+				c.ClearStyles();
+            this[i] = c;
+         }
+      }
+
 		/// <summary>
 		/// Text of the line
 		/// </summary>

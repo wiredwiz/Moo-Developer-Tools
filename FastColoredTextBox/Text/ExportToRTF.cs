@@ -1,6 +1,7 @@
 ﻿using FastColoredTextBoxNS.Types;
 using System.Collections.Generic;
 using System.Drawing;
+using System.Linq;
 using System.Text;
 
 namespace FastColoredTextBoxNS.Text {
@@ -32,13 +33,11 @@ namespace FastColoredTextBoxNS.Text {
 
 		public string GetRtf(TextSelectionRange r) {
 			tb = r.tb;
-			var styles = new Dictionary<StyleIndex, object>();
 			var sb = new StringBuilder();
 			var tempSB = new StringBuilder();
-			var currentStyleId = StyleIndex.None;
+			var currentStyles = new Style[]{};
 			r.Normalize();
 			int currentLine = r.Start.iLine;
-			styles[currentStyleId] = null;
 			colorTable.Clear();
 			//
 			var lineNumberColor = GetColorTableNumber(r.tb.LineNumberColor);
@@ -48,10 +47,9 @@ namespace FastColoredTextBoxNS.Text {
 			//
 			foreach (Place p in r) {
 				StyledChar c = r.tb[p.iLine][p.iChar];
-				if (c.Style != currentStyleId) {
-					Flush(sb, tempSB, currentStyleId);
-					currentStyleId = c.Style;
-					styles[currentStyleId] = null;
+				if (!currentStyles.SequenceEqual(c.Styles)) {
+					Flush(sb, tempSB, currentStyles);
+					currentStyles = c.Styles;
 				}
 
 				if (p.iLine != currentLine) {
@@ -82,7 +80,7 @@ namespace FastColoredTextBoxNS.Text {
 						break;
 				}
 			}
-			Flush(sb, tempSB, currentStyleId);
+			Flush(sb, tempSB, currentStyles);
 
 			//build color table
 			var list = new SortedList<int, Color>();
@@ -111,38 +109,52 @@ namespace FastColoredTextBoxNS.Text {
 			return sb.ToString();
 		}
 
-		private RTFStyleDescriptor GetRtfDescriptor(StyleIndex styleIndex) {
-			List<Style> styles = new();
+		private RTFStyleDescriptor GetRtfDescriptor(IEnumerable<Style> styles) {
 			//find text renderer
 			TextStyle textStyle = null;
-			int mask = 1;
-			bool hasTextStyle = false;
-			for (int i = 0; i < tb.StyleManager.Length; i++) {
-				if (tb.StyleManager[i] != null && ((int)styleIndex & mask) != 0)
-					if (tb.StyleManager[i].IsExportable) {
-						var style = tb.StyleManager[i];
-						styles.Add(style);
+			var hasTextStyle = false;
 
-						bool isTextStyle = style is TextStyle;
+         var intersect = tb.StyleManager.GetStyles().Intersect(styles);
+         foreach (var style in intersect)
+         {
+            var isTextStyle = style is TextStyle;
 						if (isTextStyle)
 							if (!hasTextStyle || tb.AllowSeveralTextStyleDrawing) {
 								hasTextStyle = true;
 								textStyle = style as TextStyle;
 							}
-					}
-				mask <<= 1;
-			}
+         }
+
 			//add TextStyle css
-			RTFStyleDescriptor result;
-			if (!hasTextStyle) {
-				//draw by default renderer
-				result = tb.DefaultStyle.GetRTF();
-			} else {
-				result = textStyle.GetRTF();
-			}
+         var result =
+            //draw by default renderer if rtf style is not found
+            !hasTextStyle ? tb.DefaultStyle.GetRTF() : textStyle.GetRTF();
 
 			return result;
 		}
+
+      private RTFStyleDescriptor GetRtfDescriptor(Style style) {
+         //find text renderer
+         TextStyle textStyle = null;
+         var hasTextStyle = false;
+
+         if (tb.StyleManager.IsManaged(style))
+         {
+            var isTextStyle = style is TextStyle;
+            if (isTextStyle)
+            {
+               hasTextStyle = true;
+               textStyle = (TextStyle)style;
+            }
+         }
+
+         //add TextStyle css
+         var result =
+            //draw by default renderer if rtf style is not found
+            !hasTextStyle ? tb.DefaultStyle.GetRTF() : textStyle.GetRTF();
+
+         return result;
+      }
 
 		public static string GetColorAsString(Color color) {
 			if (color == Color.Transparent)
@@ -150,12 +162,12 @@ namespace FastColoredTextBoxNS.Text {
 			return string.Format(@"\red{0}\green{1}\blue{2}", color.R, color.G, color.B);
 		}
 
-		private void Flush(StringBuilder sb, StringBuilder tempSB, StyleIndex currentStyle) {
+		private void Flush(StringBuilder sb, StringBuilder tempSB, IEnumerable<Style> currentStyles) {
 			//find textRenderer
 			if (tempSB.Length == 0)
 				return;
 
-			var desc = GetRtfDescriptor(currentStyle);
+			var desc = GetRtfDescriptor(currentStyles);
 			var cf = GetColorTableNumber(desc.ForeColor);
 			var cb = GetColorTableNumber(desc.BackColor);
 			var tags = new StringBuilder();

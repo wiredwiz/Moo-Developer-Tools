@@ -367,7 +367,6 @@ namespace FastColoredTextBoxNS.Text {
 		/// <param name="style">Style to add</param>
 		public virtual void AddResilientStyle(Style style) {
 			if (resilientStyles.Contains(style)) return;
-			currentTb.CheckStylesBufferSize(); // Prevent buffer overflow
 			resilientStyles.Add(style);
 		}
 
@@ -490,13 +489,15 @@ namespace FastColoredTextBoxNS.Text {
 		public void HighlightSyntax(SyntaxDescriptor desc, TextSelectionRange range) {
 			//set style order
 			range.tb.ClearStylesBuffer();
-			for (int i = 0; i < desc.styles.Count; i++)
-				range.tb.StyleManager[i] = desc.styles[i];
-			// add resilient styles
+         foreach (var t in desc.styles)
+            range.tb.StyleManager.AddStyle(t);
+
+         // add resilient styles
 			int l = desc.styles.Count;
-			for (int i = 0; i < resilientStyles.Count; i++)
-				range.tb.StyleManager[l + i] = resilientStyles[i];
-			//brackets
+         foreach (var t in resilientStyles)
+            range.tb.StyleManager.AddStyle(t);
+
+         //brackets
 			char[] oldBrackets = RememberBrackets(range.tb);
 			range.tb.LeftBracket = desc.leftBracket;
 			range.tb.RightBracket = desc.rightBracket;
@@ -699,7 +700,7 @@ namespace FastColoredTextBoxNS.Text {
 			//find document comments
 			foreach (TextSelectionRange r in range.GetRanges(@"^\s*///.*$", RegexOptions.Multiline)) {
 				//remove C# highlighting from this fragment
-				r.ClearStyle(StyleIndex.All);
+				r.ClearAllStyles();
 				//do XML highlighting
 				if (HTMLTagRegex == null)
 					InitHTMLRegex();
@@ -707,12 +708,12 @@ namespace FastColoredTextBoxNS.Text {
 				r.SetStyle(CommentStyle);
 				//tags
 				foreach (TextSelectionRange rr in r.GetRanges(HTMLTagContentRegex)) {
-					rr.ClearStyle(StyleIndex.All);
+					rr.ClearAllStyles();
 					rr.SetStyle(CommentTagStyle);
 				}
 				//prefix '///'
 				foreach (TextSelectionRange rr in r.GetRanges(@"^\s*///", RegexOptions.Multiline)) {
-					rr.ClearStyle(StyleIndex.All);
+					rr.ClearAllStyles();
 					rr.SetStyle(CommentTagStyle);
 				}
 			}
