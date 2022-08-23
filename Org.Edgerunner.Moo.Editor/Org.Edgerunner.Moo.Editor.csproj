@@ -25,6 +25,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Folder Include="Language\Parsing\" />
     <Folder Include="SyntaxHighlighting\" />
   </ItemGroup>
 

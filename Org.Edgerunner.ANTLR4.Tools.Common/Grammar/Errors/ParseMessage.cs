@@ -53,7 +53,7 @@ namespace Org.Edgerunner.ANTLR4.Tools.Common.Grammar.Errors
       /// <param name="message">The message.</param>
       /// <param name="token">The token.</param>
       // ReSharper disable once TooManyDependencies
-      public ParseMessage(Document document, int lineNumber, int column, string type, string message, IToken token)
+      public ParseMessage(Document document, int lineNumber, int column, string type, string message, DetailedToken token)
       {
          DocumentId = document?.Id ?? string.Empty;
          DocumentName = document?.Name ?? string.Empty;
@@ -108,6 +108,6 @@ namespace Org.Edgerunner.ANTLR4.Tools.Common.Grammar.Errors
       /// Gets or sets the related token.
       /// </summary>
       /// <value>The related token.</value>
-      public IToken Token { get; set; }
+      public DetailedToken Token { get; set; }
    }
 }
