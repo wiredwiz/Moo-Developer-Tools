@@ -5467,14 +5467,17 @@ namespace FastColoredTextBoxNS
             {
                 int mask = 1;
                 bool hasTextStyle = false;
-                foreach (var style in styles)
-                {
-                    bool isTextStyle = style is TextStyle;
-                    if (!hasTextStyle || !isTextStyle || AllowSeveralTextStyleDrawing)
-                        //cancelling secondary rendering by TextStyle
-                        style.Draw(gr, pos, range); //rendering
-                    hasTextStyle |= isTextStyle;
-                }
+                if (styles != null)
+                   foreach (var style in styles)
+                   {
+                      if (style == null)
+                         break;
+                      bool isTextStyle = style is TextStyle;
+                       if (!hasTextStyle || !isTextStyle || AllowSeveralTextStyleDrawing)
+                           //cancelling secondary rendering by TextStyle
+                           style.Draw(gr, pos, range); //rendering
+                       hasTextStyle |= isTextStyle;
+                   }
 
                 //draw by default renderer
                 if (!hasTextStyle)
