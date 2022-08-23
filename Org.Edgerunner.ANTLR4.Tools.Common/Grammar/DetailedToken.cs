@@ -49,12 +49,12 @@ namespace Org.Edgerunner.ANTLR4.Tools.Common.Grammar
    /// <seealso cref="Antlr4.Runtime.IToken"/>
    public class DetailedToken : CommonToken
    {
-      private string _TypeNameUpperCase;
-      private int? _EndingLine;
-      private int? _EndingColumn;
-      private Place? _EndPlace;
+      protected string _TypeNameUpperCase;
+      protected int? _EndingLine;
+      protected int? _EndingColumn;
+      protected Place? _EndPlace;
 
-      private string _TypeName;
+      protected string _TypeName;
 
       /// <summary>
       /// Initializes a new instance of the <see cref="DetailedToken"/> class.
@@ -148,25 +148,25 @@ namespace Org.Edgerunner.ANTLR4.Tools.Common.Grammar
       /// </summary>
       /// <value>The upper case type name.</value>
       /// <remarks>Exists solely to avoid repeated upper casing of the TypeName property.</remarks>
-      public string TypeNameUpperCase => _TypeNameUpperCase ?? (_TypeNameUpperCase = TypeName.ToUpperInvariant());
+      public virtual string TypeNameUpperCase => _TypeNameUpperCase ?? (_TypeNameUpperCase = TypeName.ToUpperInvariant());
 
       /// <summary>
       /// Gets the column position of the token within the source line.
       /// </summary>
       /// <value>The column position.</value>
-      public int ColumnPosition { get; }
+      public virtual int ColumnPosition { get; }
 
       /// <summary>
       /// Gets the token length.
       /// </summary>
       /// <value>The token length.</value>
-      public int Length { get; }
+      public virtual int Length { get; }
 
       /// <summary>
       /// Gets the line number for the end of token.
       /// </summary>
       /// <value>The ending line number.</value>
-      public int EndingLine
+      public virtual int EndingLine
       {
          get
          {
@@ -186,13 +186,13 @@ namespace Org.Edgerunner.ANTLR4.Tools.Common.Grammar
       /// </summary>
       /// <value>The starting column.</value>
       /// <remarks>This index is 1 based rather than 0</remarks>
-      public int StartingColumn => Column + 1;
+      public virtual int StartingColumn => Column + 1;
 
       /// <summary>
       /// Gets the column for the end of the token.
       /// </summary>
       /// <value>The ending column.</value>
-      public int EndingColumn
+      public virtual int EndingColumn
       {
          get
          {

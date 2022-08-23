@@ -66,7 +66,7 @@ namespace Org.Edgerunner.Moo.Editor.SyntaxHighlighting
       /// <param name="registry">The registry.</param>
       /// <param name="tokens">The tokens.</param>
       /// <param name="errorTokens">The error tokens.</param>
-      public void ColorizeTokens(FastColoredTextBox editor, IStyleRegistry registry, IList<DetailedToken> tokens, IList<IToken> errorTokens)
+      public void ColorizeTokens(FastColoredTextBox editor, IStyleRegistry registry, IList<DetailedToken> tokens, IList<DetailedToken> errorTokens)
       {
          int coloring = Interlocked.Exchange(ref _TokenColoringInProgress, 1);
          if (coloring != 0)
@@ -94,10 +94,7 @@ namespace Org.Edgerunner.Moo.Editor.SyntaxHighlighting
                       foreach (var token in errorTokens)
                       {
                          var startingPlace = new Place(token.Column, token.Line - 1);
-                         var endPlace = token.GetEndPlace();
-
-                         // We shift the end position one forward so that the range colors correctly.
-                         var stoppingPlace = new Place(endPlace.Position + 1, endPlace.Line - 1);
+                         var stoppingPlace = new Place(token.EndingColumn, token.EndingLine - 1);
 
                          var tokenRange = editor.GetRange(startingPlace, stoppingPlace);
                          tokenRange.SetStyle(registry.GetParseErrorStyle());

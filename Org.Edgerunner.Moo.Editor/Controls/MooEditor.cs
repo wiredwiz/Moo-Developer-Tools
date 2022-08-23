@@ -48,6 +48,7 @@ using Org.Edgerunner.ANTLR4.Tools.Common.Syntax;
 using Org.Edgerunner.Moo.Editor.Autocomplete;
 using Org.Edgerunner.Moo.Editor.Configuration;
 using Org.Edgerunner.Moo.Editor.Language.Navigation;
+using Org.Edgerunner.Moo.Editor.Language.Parsing;
 using Org.Edgerunner.Moo.Editor.SyntaxHighlighting;
 using Org.Edgerunner.MooSharp.Language.Grammar;
 using Place = FastColoredTextBoxNS.Types.Place;
@@ -257,9 +258,9 @@ namespace Org.Edgerunner.Moo.Editor.Controls
          return false;
       }
 
-      private List<IToken> GetErrorTokens()
+      private List<DetailedToken> GetErrorTokens()
       {
-         var result = new List<IToken>();
+         var result = new List<DetailedToken>();
 
          if (ParseErrors == null)
             return result;
@@ -333,6 +334,14 @@ namespace Org.Edgerunner.Moo.Editor.Controls
                ParseErrors.AddRange(LexerErrorListener.Errors);
             if (ParserErrorListener?.Errors != null)
                ParseErrors.AddRange(ParserErrorListener.Errors);
+
+            if (GrammarDialect == GrammarDialect.Edgerunner)
+            {
+               var validator = new EdgerunnerMooValidator();
+               validator.Document = Document;
+               ParseTreeWalker.Default.Walk(validator, context);
+               ParseErrors.AddRange(validator.Errors);
+            }
 
             // Configure code folding markers
             ConfigureCodeFolding(context, ToastStuntMooParser.ruleNames);
