@@ -48,9 +48,9 @@ namespace FastColoredTextBoxNS.Text {
 			//
 			foreach (Place p in r) {
 				StyledChar c = r.tb[p.iLine][p.iChar];
-				if (c.style != currentStyleId) {
+				if (c.Style != currentStyleId) {
 					Flush(sb, tempSB, currentStyleId);
-					currentStyleId = c.style;
+					currentStyleId = c.Style;
 					styles[currentStyleId] = null;
 				}
 
@@ -62,7 +62,7 @@ namespace FastColoredTextBoxNS.Text {
 					}
 					currentLine = p.iLine;
 				}
-				switch (c.c) {
+				switch (c.C) {
 					case '\\':
 						tempSB.Append(@"\\");
 						break;
@@ -73,10 +73,10 @@ namespace FastColoredTextBoxNS.Text {
 						tempSB.Append(@"\}");
 						break;
 					default:
-						var ch = c.c;
+						var ch = c.C;
 						var code = (int)ch;
 						if (code < 128)
-							tempSB.Append(c.c);
+							tempSB.Append(c.C);
 						else
 							tempSB.AppendFormat(@"{{\u{0}}}", code);
 						break;
@@ -117,10 +117,10 @@ namespace FastColoredTextBoxNS.Text {
 			TextStyle textStyle = null;
 			int mask = 1;
 			bool hasTextStyle = false;
-			for (int i = 0; i < tb.Styles.Length; i++) {
-				if (tb.Styles[i] != null && ((int)styleIndex & mask) != 0)
-					if (tb.Styles[i].IsExportable) {
-						var style = tb.Styles[i];
+			for (int i = 0; i < tb.StyleManager.Length; i++) {
+				if (tb.StyleManager[i] != null && ((int)styleIndex & mask) != 0)
+					if (tb.StyleManager[i].IsExportable) {
+						var style = tb.StyleManager[i];
 						styles.Add(style);
 
 						bool isTextStyle = style is TextStyle;

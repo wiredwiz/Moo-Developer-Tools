@@ -17,13 +17,7 @@ namespace FastColoredTextBoxNS.Types
         public char C;
 
         /// <summary>
-        /// Style bit mask
-        /// </summary>
-        /// <remarks>Bit 1 in position n means that this char will rendering by FastColoredTextBox.Styles[n]</remarks>
-        public StyleIndex Style;
-
-        /// <summary>
-        /// An array of for this styled char
+        /// An array of the styles for this char
         /// </summary>
         public Style[] Styles;
 
@@ -46,7 +40,6 @@ namespace FastColoredTextBoxNS.Types
         public StyledChar(char c)
         {
             this.C = c;
-            Style = StyleIndex.None;
             Styles = null;
             _ReadOnly = false;
             LastStyle = -1;

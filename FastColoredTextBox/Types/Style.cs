@@ -109,13 +109,13 @@ namespace FastColoredTextBoxNS.Types {
 			if (range.tb.ImeAllowed) {
 				//IME mode
 				for (int i = range.Start.iChar; i < range.End.iChar; i++) {
-					SizeF size = FastColoredTextBox.GetCharSize(f, line[i].c);
+					SizeF size = FastColoredTextBox.GetCharSize(f, line[i].C);
 
 					var gs = gr.Save();
 					float k = size.Width > range.tb.CharWidth + 1 ? range.tb.CharWidth / size.Width : 1;
 					gr.TranslateTransform(x, y + (1 - k) * range.tb.CharHeight / 2);
 					gr.ScaleTransform(k, (float)Math.Sqrt(k));
-					gr.DrawString(line[i].c.ToString(), f, ForeBrush, 0, 0, stringFormat);
+					gr.DrawString(line[i].C.ToString(), f, ForeBrush, 0, 0, stringFormat);
 					gr.Restore(gs);
 					x += dx;
 				}
@@ -123,7 +123,7 @@ namespace FastColoredTextBoxNS.Types {
 				//classic mode 
 				for (int i = range.Start.iChar; i < range.End.iChar; i++) {
 					//draw char
-					gr.DrawString(line[i].c.ToString(), f, ForeBrush, x, y, stringFormat);
+					gr.DrawString(line[i].C.ToString(), f, ForeBrush, x, y, stringFormat);
 					x += dx;
 				}
 			}
@@ -192,7 +192,7 @@ namespace FastColoredTextBoxNS.Types {
 
 				//find first non space symbol
 				for (int i = range.Start.iChar; i < range.End.iChar; i++)
-					if (range.tb[range.Start.iLine][i].c != ' ')
+					if (range.tb[range.Start.iLine][i].C != ' ')
 						break;
 					else
 						firstNonSpaceSymbolX += range.tb.CharWidth;

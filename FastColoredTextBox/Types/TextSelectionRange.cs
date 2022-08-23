@@ -195,7 +195,7 @@ namespace FastColoredTextBoxNS.Types {
 					int fromX = y == fromLine ? fromChar : 0;
 					int toX = y == toLine ? Math.Min(tb[y].Count - 1, toChar - 1) : tb[y].Count - 1;
 					for (int x = fromX; x <= toX; x++)
-						sb.Append(tb[y][x].c);
+						sb.Append(tb[y][x].C);
 					if (y != toLine && fromLine != toLine)
 						sb.AppendLine();
 				}
@@ -256,7 +256,7 @@ namespace FastColoredTextBoxNS.Types {
 					int fromX = y == fromLine ? fromChar : 0;
 					int toX = y == toLine ? Math.Min(toChar - 1, tb[y].Count - 1) : tb[y].Count - 1;
 					for (int x = fromX; x <= toX; x++) {
-						sb.Append(tb[y][x].c);
+						sb.Append(tb[y][x].C);
 						charIndexToPlace.Add(new Place(x, y));
 					}
 					if (y != toLine && fromLine != toLine)
@@ -281,7 +281,7 @@ namespace FastColoredTextBoxNS.Types {
 			get {
 				if (Start.iChar >= tb[Start.iLine].Count)
 					return '\n';
-				return tb[Start.iLine][Start.iChar].c;
+				return tb[Start.iLine][Start.iChar].C;
 			}
 		}
 
@@ -294,7 +294,7 @@ namespace FastColoredTextBoxNS.Types {
 					return '\n';
 				if (Start.iChar <= 0)
 					return '\n';
-				return tb[Start.iLine][Start.iChar - 1].c;
+				return tb[Start.iLine][Start.iChar - 1].C;
 			}
 		}
 
@@ -729,7 +729,7 @@ namespace FastColoredTextBoxNS.Types {
 				int toX = y == toLine ? Math.Min(toChar - 1, tb[y].Count - 1) : tb[y].Count - 1;
 				for (int x = fromX; x <= toX; x++) {
 					StyledChar c = tb[y][x];
-					c.style |= styleIndex;
+					c.Style |= styleIndex;
 					tb[y][x] = c;
 				}
 			}
@@ -938,7 +938,7 @@ namespace FastColoredTextBoxNS.Types {
 				int toX = y == toLine ? Math.Min(toChar - 1, tb[y].Count - 1) : tb[y].Count - 1;
 				for (int x = fromX; x <= toX; x++) {
 					StyledChar c = tb[y][x];
-					c.style &= ~styleIndex;
+					c.Style &= ~styleIndex;
 					tb[y][x] = c;
 				}
 			}
@@ -1093,7 +1093,7 @@ namespace FastColoredTextBoxNS.Types {
 				if (!allowLineBreaks && r.CharAfterStart == '\n')
 					break;
 				if (r.Start.iChar < tb.GetLineLength(r.Start.iLine))
-					if ((tb[r.Start].style & mask) == 0) {
+					if ((tb[r.Start].Style & mask) == 0) {
 						r.GoRightThroughFolded();
 						break;
 					}
@@ -1106,7 +1106,7 @@ namespace FastColoredTextBoxNS.Types {
 				if (!allowLineBreaks && r.CharAfterStart == '\n')
 					break;
 				if (r.Start.iChar < tb.GetLineLength(r.Start.iLine))
-					if ((tb[r.Start].style & mask) == 0)
+					if ((tb[r.Start].Style & mask) == 0)
 						break;
 			} while (r.GoRightThroughFolded());
 			Place endFragment = r.Start;
@@ -1293,7 +1293,7 @@ namespace FastColoredTextBoxNS.Types {
 				if (tb.ReadOnly) return true;
 
 				ReadOnlyStyle readonlyStyle = null;
-				foreach (var style in tb.Styles)
+				foreach (var style in tb.StyleManager)
 					if (style is ReadOnlyStyle style1) {
 						readonlyStyle = style1;
 						break;
@@ -1311,20 +1311,20 @@ namespace FastColoredTextBoxNS.Types {
 								if (sr.start.iChar < line.Count && sr.start.iChar > 0) {
 									var left = line[sr.start.iChar - 1];
 									var right = line[sr.start.iChar];
-									if ((left.style & si) != 0 &&
-										(right.style & si) != 0) return true;//we are between readonly chars
+									if ((left.Style & si) != 0 &&
+										(right.Style & si) != 0) return true;//we are between readonly chars
 								}
 							}
 						} else
 						if (start.iChar < line.Count && start.iChar > 0) {
 							var left = line[start.iChar - 1];
 							var right = line[start.iChar];
-							if ((left.style & si) != 0 &&
-								(right.style & si) != 0) return true;//we are between readonly chars
+							if ((left.Style & si) != 0 &&
+								(right.Style & si) != 0) return true;//we are between readonly chars
 						}
 					} else
 						foreach (StyledChar c in Chars)
-							if ((c.style & si) != 0)//found char with ReadonlyStyle
+							if ((c.Style & si) != 0)//found char with ReadonlyStyle
 								return true;
 				}
 
@@ -1334,7 +1334,7 @@ namespace FastColoredTextBoxNS.Types {
 			set {
 				//find exists ReadOnlyStyle of style buffer
 				ReadOnlyStyle readonlyStyle = null;
-				foreach (var style in tb.Styles)
+				foreach (var style in tb.StyleManager)
 					if (style is ReadOnlyStyle style1) {
 						readonlyStyle = style1;
 						break;
@@ -1477,7 +1477,7 @@ namespace FastColoredTextBoxNS.Types {
 				for (int y = bounds.iStartLine; y <= bounds.iEndLine; y++) {
 					for (int x = bounds.iStartChar; x < bounds.iEndChar; x++) {
 						if (x < tb[y].Count)
-							sb.Append(tb[y][x].c);
+							sb.Append(tb[y][x].C);
 					}
 					if (bounds.iEndLine != bounds.iStartLine && y != bounds.iEndLine)
 						sb.AppendLine();

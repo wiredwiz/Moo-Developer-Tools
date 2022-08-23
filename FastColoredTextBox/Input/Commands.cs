@@ -98,7 +98,7 @@ namespace FastColoredTextBoxNS.Input {
 						deletedChar = '\n';
 						MergeLines(tb.Selection.Start.iLine - 1, ts);
 					} else {
-						deletedChar = ts[tb.Selection.Start.iLine][tb.Selection.Start.iChar - 1].c;
+						deletedChar = ts[tb.Selection.Start.iLine][tb.Selection.Start.iChar - 1].C;
 						ts[tb.Selection.Start.iLine].RemoveAt(tb.Selection.Start.iChar - 1);
 						tb.Selection.SetStartAndEnd(new Place(tb.Selection.Start.iChar - 1, tb.Selection.Start.iLine));
 					}

@@ -21,7 +21,7 @@ namespace FastColoredTextBoxNS.Text {
 		/// <summary>
 		/// Styles
 		/// </summary>
-		public readonly Style[] Styles;
+		public readonly StyleManager Styles;
 		/// <summary>
 		/// Occurs when line was inserted/added
 		/// </summary>
@@ -87,11 +87,7 @@ namespace FastColoredTextBoxNS.Text {
 			CurrentTB = currentTB;
 			linesAccessor = new LinesAccessor(this);
 			Manager = new CommandManager(this);
-
-			if (Enum.GetUnderlyingType(typeof(StyleIndex)) == typeof(uint))
-				Styles = new Style[32];
-			else
-				Styles = new Style[16];
+            Styles = new StyleManager();
 
 			InitDefaultStyle();
 		}

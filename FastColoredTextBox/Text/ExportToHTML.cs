@@ -73,9 +73,9 @@ namespace FastColoredTextBoxNS.Text {
 			bool hasNonSpace = false;
 			foreach (Place p in r) {
 				StyledChar c = r.tb[p.iLine][p.iChar];
-				if (c.style != currentStyleId) {
+				if (c.Style != currentStyleId) {
 					Flush(sb, tempSB, currentStyleId);
-					currentStyleId = c.style;
+					currentStyleId = c.Style;
 					styles[currentStyleId] = null;
 				}
 
@@ -88,7 +88,7 @@ namespace FastColoredTextBoxNS.Text {
 					currentLine = p.iLine;
 					hasNonSpace = false;
 				}
-				switch (c.c) {
+				switch (c.C) {
 					case ' ':
 						if ((hasNonSpace || !UseForwardNbsp) && !UseNbsp)
 							goto default;
@@ -106,7 +106,7 @@ namespace FastColoredTextBoxNS.Text {
 						break;
 					default:
 						hasNonSpace = true;
-						tempSB.Append(c.c);
+						tempSB.Append(c.C);
 						break;
 				}
 			}
@@ -138,10 +138,10 @@ namespace FastColoredTextBoxNS.Text {
 			TextStyle textStyle = null;
 			int mask = 1;
 			bool hasTextStyle = false;
-			for (int i = 0; i < tb.Styles.Length; i++) {
-				if (tb.Styles[i] != null && ((int)styleIndex & mask) != 0)
-					if (tb.Styles[i].IsExportable) {
-						var style = tb.Styles[i];
+			for (int i = 0; i < tb.StyleManager.Length; i++) {
+				if (tb.StyleManager[i] != null && ((int)styleIndex & mask) != 0)
+					if (tb.StyleManager[i].IsExportable) {
+						var style = tb.StyleManager[i];
 						styles.Add(style);
 
 						bool isTextStyle = style is TextStyle;

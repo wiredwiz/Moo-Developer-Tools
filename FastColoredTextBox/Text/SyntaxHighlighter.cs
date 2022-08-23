@@ -491,11 +491,11 @@ namespace FastColoredTextBoxNS.Text {
 			//set style order
 			range.tb.ClearStylesBuffer();
 			for (int i = 0; i < desc.styles.Count; i++)
-				range.tb.Styles[i] = desc.styles[i];
+				range.tb.StyleManager[i] = desc.styles[i];
 			// add resilient styles
 			int l = desc.styles.Count;
 			for (int i = 0; i < resilientStyles.Count; i++)
-				range.tb.Styles[l + i] = resilientStyles[i];
+				range.tb.StyleManager[l + i] = resilientStyles[i];
 			//brackets
 			char[] oldBrackets = RememberBrackets(range.tb);
 			range.tb.LeftBracket = desc.leftBracket;
