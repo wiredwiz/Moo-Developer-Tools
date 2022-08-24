@@ -40,6 +40,7 @@ using Antlr4.Runtime;
 using FastColoredTextBoxNS;
 using Org.Edgerunner.ANTLR4.Tools.Common.Extensions;
 using Org.Edgerunner.ANTLR4.Tools.Common.Grammar;
+using Org.Edgerunner.ANTLR4.Tools.Common.Grammar.Errors;
 using Place = FastColoredTextBoxNS.Types.Place;
 
 namespace Org.Edgerunner.Moo.Editor.SyntaxHighlighting
@@ -65,8 +66,8 @@ namespace Org.Edgerunner.Moo.Editor.SyntaxHighlighting
       /// <param name="editor">The editor.</param>
       /// <param name="registry">The registry.</param>
       /// <param name="tokens">The tokens.</param>
-      /// <param name="errorTokens">The error tokens.</param>
-      public void ColorizeTokens(FastColoredTextBox editor, IStyleRegistry registry, IList<DetailedToken> tokens, IList<DetailedToken> errorTokens)
+      /// <param name="errorGuides">The error guides.</param>
+      public void ColorizeTokens(FastColoredTextBox editor, IStyleRegistry registry, IList<DetailedToken> tokens, IList<ISyntaxErrorGuide> errorGuides)
       {
          int coloring = Interlocked.Exchange(ref _TokenColoringInProgress, 1);
          if (coloring != 0)
@@ -91,10 +92,10 @@ namespace Org.Edgerunner.Moo.Editor.SyntaxHighlighting
                          var style = registry.GetTokenStyle(token, prev, next);
                          tokenRange.SetStyle(style);
                       }
-                      foreach (var token in errorTokens)
+                      foreach (var error in errorGuides)
                       {
-                         var startingPlace = new Place(token.Column, token.Line - 1);
-                         var stoppingPlace = new Place(token.EndingColumn, token.EndingLine - 1);
+                         var startingPlace = new Place(error.Column, error.Line - 1);
+                         var stoppingPlace = new Place(error.EndingColumn, error.EndingLine - 1);
 
                          var tokenRange = editor.GetRange(startingPlace, stoppingPlace);
                          tokenRange.SetStyle(registry.GetParseErrorStyle());

@@ -40,17 +40,21 @@ using Antlr4.Runtime;
 namespace Org.Edgerunner.ANTLR4.Tools.Common.Grammar.Errors;
 
 /// <summary>
-/// A bogus syntax token only used for painting errors
+/// A syntax guide for painting errors
 /// </summary>
-/// <seealso cref="Org.Edgerunner.ANTLR4.Tools.Common.Grammar.DetailedToken" />
-public class ErrorToken : DetailedToken
+/// <seealso cref="DetailedToken" />
+public class ErrorGuide : ISyntaxErrorGuide
 {
-   public ErrorToken(int startLine, int startColumn, int endLine, int endColumn)
-      : base(0)
+   public ErrorGuide(int startLine, int startColumn, int endLine, int endColumn)
    {
-      _EndingColumn = endColumn;
-      _EndingLine = endLine;
+      EndingColumn = endColumn;
+      EndingLine = endLine;
       Line = startLine;
       Column = startColumn;
    }
+
+   public int Line { get; }
+   public int EndingLine { get; }
+   public int Column { get; }
+   public int EndingColumn { get; }
 }

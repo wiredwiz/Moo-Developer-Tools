@@ -281,11 +281,27 @@ public partial class Editor : Form
     {
         var errDisplay = (ErrorDisplay)sender;
         var key = errDisplay.SelectedItems[0].SubItems[0].Text;
-        var line = int.Parse(errDisplay.SelectedItems[0].SubItems[2].Text);
-        var column = int.Parse(errDisplay.SelectedItems[0].SubItems[3].Text);
+        int startLine;
+        int startColumn;
+        int endLine;
+        int endColumn;
+        //if (errDisplay.SelectedItems[0].Tag is ISyntaxErrorGuide guide)
+        //{
+        //    startLine = guide.Line - 1;
+        //    endLine = guide.EndingLine - 1;
+        //    startColumn = guide.Column;
+        //    endColumn = guide.EndingColumn;
+        //}
+        //else
+        //{
+            startLine = int.Parse(errDisplay.SelectedItems[0].SubItems[2].Text);
+            startColumn = int.Parse(errDisplay.SelectedItems[0].SubItems[3].Text);
+            endLine = startLine;
+            endColumn = startColumn;
+        //}
         var page = Pages[key];
         var editor = (MooEditor)page.Controls[0];
-        editor.Selection = new TextSelectionRange(editor, column - 1, line - 1, column - 1, line - 1);
+        editor.Selection = new TextSelectionRange(editor, startColumn, startLine, endColumn, endLine);
         SwitchToPage(page.UniqueName);
     }
 

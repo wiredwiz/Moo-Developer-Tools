@@ -119,7 +119,7 @@ namespace Org.Edgerunner.ANTLR4.Tools.Common.Grammar.Errors
          RecognitionException e)
       {
          // TODO: add multi-lingual support for source literal
-         Errors.Add(new ParseMessage(Document, line, charPositionInLine + 1, "Parser", msg, offendingSymbol as DetailedToken));
+         Errors.Add(new ParseMessage(Document, line, charPositionInLine + 1, "Parser", msg, offendingSymbol as Grammar.DetailedToken));
       }
    }
 }

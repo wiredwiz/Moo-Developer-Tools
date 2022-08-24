@@ -51,9 +51,9 @@ namespace Org.Edgerunner.ANTLR4.Tools.Common.Grammar.Errors
       /// <param name="column">The column.</param>
       /// <param name="type">The message type (Lexer or Parser).</param>
       /// <param name="message">The message.</param>
-      /// <param name="token">The token.</param>
+      /// <param name="guide">The syntax error guide.</param>
       // ReSharper disable once TooManyDependencies
-      public ParseMessage(Document document, int lineNumber, int column, string type, string message, DetailedToken token)
+      public ParseMessage(Document document, int lineNumber, int column, string type, string message, ISyntaxErrorGuide guide)
       {
          DocumentId = document?.Id ?? string.Empty;
          DocumentName = document?.Name ?? string.Empty;
@@ -61,7 +61,7 @@ namespace Org.Edgerunner.ANTLR4.Tools.Common.Grammar.Errors
          Column = column;
          Type = type;
          Message = message;
-         Token = token;
+         Guide = guide;
       }
 
       /// <summary>
@@ -105,9 +105,9 @@ namespace Org.Edgerunner.ANTLR4.Tools.Common.Grammar.Errors
       public string Type { get; set; }
 
       /// <summary>
-      /// Gets or sets the related token.
+      /// Gets or sets the related syntax error guide.
       /// </summary>
-      /// <value>The related token.</value>
-      public DetailedToken Token { get; set; }
+      /// <value>The related syntax error guide.</value>
+      public ISyntaxErrorGuide Guide { get; set; }
    }
 }

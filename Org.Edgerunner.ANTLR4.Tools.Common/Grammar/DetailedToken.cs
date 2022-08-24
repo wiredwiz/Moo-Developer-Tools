@@ -40,6 +40,7 @@ using Antlr4.Runtime;
 using Antlr4.Runtime.Misc;
 
 using Org.Edgerunner.ANTLR4.Tools.Common.Extensions;
+using Org.Edgerunner.ANTLR4.Tools.Common.Grammar.Errors;
 
 namespace Org.Edgerunner.ANTLR4.Tools.Common.Grammar
 {
@@ -47,7 +48,7 @@ namespace Org.Edgerunner.ANTLR4.Tools.Common.Grammar
    /// A more detailed implementation of IToken.
    /// </summary>
    /// <seealso cref="Antlr4.Runtime.IToken"/>
-   public class DetailedToken : CommonToken
+   public class DetailedToken : CommonToken, ISyntaxErrorGuide
    {
       protected string _TypeNameUpperCase;
       protected int? _EndingLine;
@@ -148,7 +149,7 @@ namespace Org.Edgerunner.ANTLR4.Tools.Common.Grammar
       /// </summary>
       /// <value>The upper case type name.</value>
       /// <remarks>Exists solely to avoid repeated upper casing of the TypeName property.</remarks>
-      public virtual string TypeNameUpperCase => _TypeNameUpperCase ?? (_TypeNameUpperCase = TypeName.ToUpperInvariant());
+      public virtual string TypeNameUpperCase => _TypeNameUpperCase ??= TypeName.ToUpperInvariant();
 
       /// <summary>
       /// Gets the column position of the token within the source line.

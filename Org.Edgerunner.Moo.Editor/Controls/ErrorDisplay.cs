@@ -42,7 +42,10 @@ namespace Org.Edgerunner.Moo.Editor.Controls
             data[2] = msg.LineNumber.ToString();
             data[3] = msg.Column.ToString();
             data[4] = msg.Message;
-            var error = new ListViewItem(data);
+            var error = new ListViewItem(data)
+                        {
+                           Tag = msg.Guide
+                        };
             Items.Add(error);
          }
          Refresh();

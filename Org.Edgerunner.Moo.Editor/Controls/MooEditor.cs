@@ -258,16 +258,16 @@ namespace Org.Edgerunner.Moo.Editor.Controls
          return false;
       }
 
-      private List<DetailedToken> GetErrorTokens()
+      private List<ISyntaxErrorGuide> GetErrorGuides()
       {
-         var result = new List<DetailedToken>();
+         var result = new List<ISyntaxErrorGuide>();
 
          if (ParseErrors == null)
             return result;
 
          foreach (var error in ParseErrors)
-            if (error.Token != null)
-               result.Add(error.Token);
+            if (error.Guide != null)
+               result.Add(error.Guide);
 
          return result;
       }
@@ -278,7 +278,7 @@ namespace Org.Edgerunner.Moo.Editor.Controls
             return;
 
          var tokensToColor = range == null ? Tokens : FindTokensInRange(Tokens, range);
-         Highlighter.ColorizeTokens(this, StyleRegistry, tokensToColor, GetErrorTokens());
+         Highlighter.ColorizeTokens(this, StyleRegistry, tokensToColor, GetErrorGuides());
       }
 
       public void ParseSourceCode(bool updateGui = true)

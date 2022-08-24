@@ -63,7 +63,7 @@ public class EdgerunnerMooValidator : EdgerunnerMooParserBaseListener
    {
       bool ok = true;
       ParserRuleContext lhs = context.lhs;
-      ErrorToken errToken = null;
+      ISyntaxErrorGuide errGuide = null;
 
       if (lhs != null)
          do
@@ -78,16 +78,16 @@ public class EdgerunnerMooValidator : EdgerunnerMooParserBaseListener
                var start = lhs.start;
                var stop = lhs.stop ?? start;
                if (start != null)
-                  errToken = new ErrorToken(start.Line, start.Column, stop.Line, stop.Column + 1);
+                  errGuide = new ErrorGuide(start.Line, start.Column, stop.Line, stop.Column + 1);
             }
          } while ((lhs = lhs.GetChild<ParserRuleContext>(0)) != null);
 
       if (!ok)
          Errors.Add(new ParseMessage(Document,
                                      context.lhs.Start.Line,
-                                     context.lhs.Start.Column,
+                                     context.lhs.Start.Column + 1,
                                      "Parser", "Invalid expression on left hand side of assignment operation",
-                                     errToken));
+                                     errGuide));
       base.ExitAssignmentExpression(context);
    }
 }
