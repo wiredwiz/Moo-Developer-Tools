@@ -48,7 +48,7 @@ public static class DelegateExtensions
    /// </summary>
    /// <param name="subject">The subject delegate.</param>
    /// <param name="args">The arguments to pass.</param>
-   public static void InvokeOnUI(this Delegate subject, object[] args)
+   public static void InvokeOnUI(this Delegate subject, object[]? args)
    {
       var invocations = subject.GetInvocationList();
       foreach (var registered in invocations)
