@@ -309,11 +309,11 @@ namespace Org.Edgerunner.Moo.Editor.Controls
          if (IndentationGuide != null)
             parser.AddParseListener(IndentationGuide);
 
+         parser.RemoveErrorListeners();
          if (updateGui)
             if (ParserErrorListener != null)
             {
                ParserErrorListener.Errors.Clear();
-               parser.RemoveErrorListeners();
                parser.AddErrorListener(ParserErrorListener);
             }
 
@@ -332,8 +332,32 @@ namespace Org.Edgerunner.Moo.Editor.Controls
             ParseErrors.Clear();
             if (LexerErrorListener?.Errors != null)
                ParseErrors.AddRange(LexerErrorListener.Errors);
+
             if (ParserErrorListener?.Errors != null)
-               ParseErrors.AddRange(ParserErrorListener.Errors);
+               foreach (var current in ParserErrorListener.Errors)
+               {
+                  var error = current;
+                  if (error.Guide is DetailedToken bad)
+                  {
+                     var tokenIndex = bad.TokenIndex;
+                     while (tokenIndex > 0)
+                     {
+                        tokenIndex--;
+                        bad = commonTokenStream.Get(tokenIndex) as DetailedToken;
+                        if (bad?.TypeNameUpperCase != "WS")
+                           break;
+                     }
+                     if (bad != null)
+                     {
+                        error.Guide = bad;
+                        error.LineNumber = bad.EndingLine;
+                        error.Column = bad.EndingColumn + 1;
+                     }
+                  }
+                  ParseErrors.Add(error);
+               }
+            //if (ParserErrorListener?.Errors != null)
+            //   ParseErrors.AddRange(ParserErrorListener.Errors);
 
             if (GrammarDialect == GrammarDialect.Edgerunner)
             {

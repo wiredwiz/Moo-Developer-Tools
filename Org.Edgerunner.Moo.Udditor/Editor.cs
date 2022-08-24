@@ -294,8 +294,8 @@ public partial class Editor : Form
         //}
         //else
         //{
-            startLine = int.Parse(errDisplay.SelectedItems[0].SubItems[2].Text);
-            startColumn = int.Parse(errDisplay.SelectedItems[0].SubItems[3].Text);
+            startLine = int.Parse(errDisplay.SelectedItems[0].SubItems[2].Text) - 1;
+            startColumn = int.Parse(errDisplay.SelectedItems[0].SubItems[3].Text) - 1;
             endLine = startLine;
             endColumn = startColumn;
         //}
