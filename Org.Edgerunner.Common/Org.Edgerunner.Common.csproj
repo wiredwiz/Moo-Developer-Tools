@@ -8,7 +8,6 @@
 
   <ItemGroup>
     <Folder Include="Extensions\" />
-    <Folder Include="Buffers\" />
   </ItemGroup>
 
 </Project>
