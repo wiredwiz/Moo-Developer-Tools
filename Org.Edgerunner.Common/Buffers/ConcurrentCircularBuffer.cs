@@ -167,39 +167,31 @@ public class ConcurrentCircularBuffer<T> : CircularBuffer<T?>
    }
 
    /// <inheritdoc />
-   public override void PopBack()
+   public override T? PopBack()
    {
       lock (SyncLock)
-      {
-         base.PopBack();
-      }
+         return base.PopBack();
    }
 
    /// <inheritdoc />
-   public override void PopFront()
+   public override T? PopFront()
    {
       lock (SyncLock)
-      {
-         base.PopFront();
-      }
+         return base.PopFront();
    }
 
    /// <inheritdoc />
-   public override void PushBack(T? item)
+   public override T? PushBack(T? item)
    {
       lock (SyncLock)
-      {
-         base.PushBack(item);
-      }
+         return base.PushBack(item);
    }
 
    /// <inheritdoc />
-   public override void PushFront(T? item)
+   public override T? PushFront(T? item)
    {
       lock (SyncLock)
-      {
-         base.PushFront(item);
-      }
+         return base.PushFront(item);
    }
 
    /// <inheritdoc />

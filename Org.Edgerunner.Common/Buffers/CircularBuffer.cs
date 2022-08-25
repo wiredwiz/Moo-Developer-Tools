@@ -247,37 +247,46 @@ public class CircularBuffer<T> : IEnumerable<T?>
    }
 
    /// <summary>
-   ///    Removes the element at the back of the buffer. Decreasing the
-   ///    Buffer size by 1.
+   /// Removes the element at the back of the buffer.
    /// </summary>
-   public virtual void PopBack()
+   /// <returns>The removed element value.</returns>
+   /// <remarks>Decreases the Buffer size by 1.</remarks>
+   public virtual T? PopBack()
    {
       ThrowIfEmpty("Cannot take elements from an empty buffer.");
       Decrement(ref _End);
+      var current = Buffer[_End];
       Buffer[_End] = default;
       --_Size;
+      return current;
    }
 
    /// <summary>
-   ///    Removes the element at the front of the buffer. Decreasing the
-   ///    Buffer size by 1.
+   /// Removes the element at the front of the buffer.
    /// </summary>
-   public virtual void PopFront()
+   /// <returns>The removed element value.</returns>
+   /// <remarks>Decreases the Buffer size by 1.</remarks>
+   public virtual T? PopFront()
    {
       ThrowIfEmpty("Cannot take elements from an empty buffer.");
+      var current = Buffer[_Start];
       Buffer[_Start] = default;
       Increment(ref _Start);
       --_Size;
+      return current;
    }
 
    /// <summary>
-   ///    Pushes a new element to the back of the buffer. Back()/this[Size-1]
-   ///    will now return this element.
-   ///    When the buffer is full, the element at Front()/this[0] will be
-   ///    popped to allow for this new element to fit.
+   /// Pushes a new element to the back of the buffer.
    /// </summary>
    /// <param name="item">Item to push to the back of the buffer</param>
-   public virtual void PushBack(T? item)
+   /// <returns>The pushed instance of <see cref="T"/>.</returns>
+   /// <remarks>
+   /// Back()/this[Size-1] will now return this element.
+   /// When the buffer is full, the element at Front()/this[0] will be
+   /// popped to allow for this new element to fit.
+   /// </remarks>
+   public virtual T? PushBack(T? item)
    {
       if (IsFull)
       {
@@ -291,16 +300,22 @@ public class CircularBuffer<T> : IEnumerable<T?>
          Increment(ref _End);
          ++_Size;
       }
+
+      return item;
    }
 
    /// <summary>
-   ///    Pushes a new element to the front of the buffer. Front()/this[0]
-   ///    will now return this element.
-   ///    When the buffer is full, the element at Back()/this[Size-1] will be
-   ///    popped to allow for this new element to fit.
+   /// Pushes a new element to the front of the buffer.
    /// </summary>
    /// <param name="item">Item to push to the front of the buffer</param>
-   public virtual void PushFront(T? item)
+   /// <returns>The pushed instance of <see cref="T"/>.</returns>
+   /// <remarks>
+   /// Front()/this[0]
+   /// will now return this element.
+   /// When the buffer is full, the element at Back()/this[Size-1] will be
+   /// popped to allow for this new element to fit.
+   /// </remarks>
+   public virtual T? PushFront(T? item)
    {
       if (IsFull)
       {
@@ -314,6 +329,8 @@ public class CircularBuffer<T> : IEnumerable<T?>
          Buffer[_Start] = item;
          ++_Size;
       }
+
+      return item;
    }
 
    /// <summary>
@@ -347,7 +364,7 @@ public class CircularBuffer<T> : IEnumerable<T?>
    // the next two methods allow easy access to those.
 
    /// <summary>
-   /// Gets the first array data chunk.
+   ///   Gets the first array data chunk.
    /// </summary>
    /// <returns>An <see cref="ArraySegment{T}"/> with the first data chunk.</returns>
    protected virtual ArraySegment<T?> ArrayOne()
