@@ -280,7 +280,7 @@ public class CircularBuffer<T> : IEnumerable<T?>
    /// Pushes a new element to the back of the buffer.
    /// </summary>
    /// <param name="item">Item to push to the back of the buffer</param>
-   /// <returns>The pushed instance of <see cref="T"/>.</returns>
+   /// <returns>The popped instance of <see cref="T"/> if the buffer is full; <c>null</c> otherwise.</returns>
    /// <remarks>
    /// Back()/this[Size-1] will now return this element.
    /// When the buffer is full, the element at Front()/this[0] will be
@@ -288,8 +288,10 @@ public class CircularBuffer<T> : IEnumerable<T?>
    /// </remarks>
    public virtual T? PushBack(T? item)
    {
+      T? popped = default;
       if (IsFull)
       {
+         popped = Buffer[_End];
          Buffer[_End] = item;
          Increment(ref _End);
          _Start = _End;
@@ -301,14 +303,14 @@ public class CircularBuffer<T> : IEnumerable<T?>
          ++_Size;
       }
 
-      return item;
+      return popped;
    }
 
    /// <summary>
    /// Pushes a new element to the front of the buffer.
    /// </summary>
    /// <param name="item">Item to push to the front of the buffer</param>
-   /// <returns>The pushed instance of <see cref="T"/>.</returns>
+   /// <returns>The popped instance of <see cref="T"/> if the buffer is full; <c>null</c> otherwise.</returns>
    /// <remarks>
    /// Front()/this[0]
    /// will now return this element.
@@ -317,10 +319,12 @@ public class CircularBuffer<T> : IEnumerable<T?>
    /// </remarks>
    public virtual T? PushFront(T? item)
    {
+      T? popped = default;
       if (IsFull)
       {
          Decrement(ref _Start);
          _End = _Start;
+         popped = Buffer[_Start];
          Buffer[_Start] = item;
       }
       else
@@ -330,7 +334,7 @@ public class CircularBuffer<T> : IEnumerable<T?>
          ++_Size;
       }
 
-      return item;
+      return popped;
    }
 
    /// <summary>
