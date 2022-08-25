@@ -5,115 +5,134 @@ using System.Windows.Forms;
 
 namespace FastColoredTextBoxNS.Types
 {
-    /// <summary>
-    /// Char and style
-    /// </summary>
-    public struct StyledChar
-    {
+   /// <summary>
+   /// Char and style
+   /// </summary>
+   public struct StyledChar
+   {
 
-        /// <summary>
-        /// Unicode character
-        /// </summary>
-        public char C;
+      /// <summary>
+      /// Unicode character
+      /// </summary>
+      public char C;
 
-        /// <summary>
-        /// An array of the styles for this char
-        /// </summary>
-        public Style[] Styles;
+      /// <summary>
+      /// An array of the styles for this char
+      /// </summary>
+      public Style[] Styles;
 
-        /// <summary>The index of the last style assigned</summary>
-        /// <remarks>Returns -1 if there are no styles</remarks>
-        public int LastStyle;
+      /// <summary>The index of the last style assigned</summary>
+      /// <remarks>Returns -1 if there are no styles</remarks>
+      public int LastStyleIndex;
 
-        private bool _ReadOnly;
+      private bool _ReadOnly;
 
-        /// <summary>
-        /// Gets a value indicating whether the character has a read only style.
-        /// </summary>
-        /// <value><c>true</c> if [read only]; otherwise, <c>false</c>.</value>
-        public bool ReadOnly => _ReadOnly;
+      /// <summary>
+      /// Gets a value indicating whether the character has a read only style.
+      /// </summary>
+      /// <value><c>true</c> if [read only]; otherwise, <c>false</c>.</value>
+      public bool ReadOnly => _ReadOnly;
 
-        /// <summary>
-        /// Initializes a new instance of the <see cref="StyledChar"/> struct.
-        /// </summary>
-        /// <param name="c">The c.</param>
-        public StyledChar(char c)
-        {
-            this.C = c;
-            Styles = null;
-            _ReadOnly = false;
-            LastStyle = -1;
-        }
+      /// <summary>
+      /// Initializes a new instance of the <see cref="StyledChar"/> struct.
+      /// </summary>
+      /// <param name="c">The c.</param>
+      public StyledChar(char c)
+      {
+         this.C = c;
+         Styles = null;
+         _ReadOnly = false;
+         LastStyleIndex = -1;
+      }
 
-        /// <summary>
-        /// Adds the specified style to the character.
-        /// </summary>
-        /// <param name="style">The style.</param>
-        /// <returns>The added Style.</returns>
-        /// <exception cref="System.InvalidOperationException">You cannot add more than {LastStyle} styles to a character</exception>
-        public Style AddStyle(Style style)
-        {
-            ++LastStyle;
-            if (style is ReadOnlyStyle)
-                _ReadOnly = true;
-            if (Styles == null)
-                Styles = new Style[2];
-            else
-            {
-                if (Styles.Contains(style))
-                    return style;
-                if (LastStyle == Styles.Length)
-                    if (LastStyle == int.MaxValue)
-                        throw new InvalidOperationException($"You cannot add more than {LastStyle} styles to a character");
-                    else
-                        Array.Resize(ref Styles, Styles.Length > int.MaxValue / 2 ? int.MaxValue : Styles.Length * 2);
+      /// <summary>
+      /// Adds the specified style to the character.
+      /// </summary>
+      /// <param name="style">The style.</param>
+      /// <returns>The added Style.</returns>
+      /// <exception cref="System.InvalidOperationException">You cannot add more than {LastStyleIndex} styles to a character</exception>
+      public Style AddStyle(Style style)
+      {
+         ++LastStyleIndex;
 
-            }
+         // Update Readonly status if needed
+         if (style is ReadOnlyStyle)
+            _ReadOnly = true;
 
-            return Styles[LastStyle] = style;
-        }
+         // Initialize storage, fetch existing style or expand the storage array if needed
+         if (Styles == null)
+            Styles = new Style[2];
+         else if (LastStyleIndex != 0)
+         {
+            if (Styles.Contains(style))
+               return style;
+            if (LastStyleIndex == Styles.Length)
+               if (LastStyleIndex == int.MaxValue)
+                  throw new InvalidOperationException($"You cannot add more than {LastStyleIndex} styles to a character");
+               else
+                  Array.Resize(ref Styles, Styles.Length > int.MaxValue / 2 ? int.MaxValue : Styles.Length * 2);
 
-        /// <summary>
-        /// Gets the index of the specified style.
-        /// </summary>
-        /// <param name="style">The style.</param>
-        /// <returns>The <see cref="int"/> index value.</returns>
-        public int GetStyleIndex(Style style)
-        {
-            if (Styles == null)
-                return -1;
+         }
 
-            return Array.IndexOf(Styles, style);
-        }
+         return Styles[LastStyleIndex] = style;
+      }
 
-        /// <summary>
-        /// Removes the specified style.
-        /// </summary>
-        /// <param name="style">The style.</param>
-        public void RemoveStyle(Style style)
-        {
-            var index = GetStyleIndex(style);
-            if (index == -1)
-                return;
+      /// <summary>
+      /// Gets the index of the specified style.
+      /// </summary>
+      /// <param name="style">The style.</param>
+      /// <returns>The <see cref="int"/> index value.</returns>
+      public int GetStyleIndex(Style style)
+      {
+         if (Styles == null)
+            return -1;
 
-            for (int i = index; i < Styles.Length - 1; i++)
-                Styles[i] = Styles[i + 1];
-            Styles[^1] = null;
-            _ReadOnly = false;
-            for (int i = 0; i < LastStyle; i++)
-                if (style is ReadOnlyStyle)
-                    _ReadOnly = true;
-            LastStyle--;
-        }
+         return Array.IndexOf(Styles, style);
+      }
 
-        /// <summary>
-        /// Clears all styles for the character.
-        /// </summary>
-        public void ClearStyles()
-        {
-            Styles = null;
-            _ReadOnly = false;
-            LastStyle = -1;
-        }
-    }
+      /// <summary>
+      /// Removes the specified style.
+      /// </summary>
+      /// <param name="style">The style.</param>
+      public void RemoveStyle(Style style)
+      {
+         _ReadOnly = false;
+         var index = GetStyleIndex(style);
+         if (index == -1)
+            return;
+
+         for (int i = index; i < Styles.Length - 1; i++)
+         {
+            Styles[i] = Styles[i + 1];
+
+            if (Styles[i] is ReadOnlyStyle)
+               _ReadOnly = true;
+
+            // If we have no more valid styles, no reason to keep clearing
+            if (Styles[i] == null)
+               break;
+         }
+
+         Styles[^1] = null;
+         if (!_ReadOnly)
+            for (var i = 0; i < LastStyleIndex; i++)
+               if (Styles[i] is ReadOnlyStyle)
+                  _ReadOnly = true;
+
+         LastStyleIndex--;
+      }
+
+      /// <summary>
+      /// Clears all styles for the character.
+      /// </summary>
+      public void ClearStyles()
+      {
+         // We clear the array rather than release it,
+         // because it is quite possible we will be using it again momentarily.
+         // Also it is unlikely to eat that much extra memory.
+         Array.Clear(Styles, 0, LastStyleIndex);
+         _ReadOnly = false;
+         LastStyleIndex = -1;
+      }
+   }
 }

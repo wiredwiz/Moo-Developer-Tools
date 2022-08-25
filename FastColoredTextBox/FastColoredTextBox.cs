@@ -5465,7 +5465,6 @@ namespace FastColoredTextBoxNS
         {
             if (range.End > range.Start)
             {
-                int mask = 1;
                 bool hasTextStyle = false;
                 if (styles != null)
                    foreach (var style in styles)
