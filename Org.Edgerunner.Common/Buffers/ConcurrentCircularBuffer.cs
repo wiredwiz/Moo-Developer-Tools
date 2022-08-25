@@ -1,4 +1,5 @@
 ﻿#region BSD 3-Clause License
+
 // <copyright company="Edgerunner.org" file="ConcurrentCircularBuffer.cs">
 // Copyright (c)  2022
 // </copyright>
@@ -32,12 +33,13 @@
 // CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
 // OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
 #endregion
 
 namespace Org.Edgerunner.Common.Buffers;
 
 /// <summary>
-/// A concurrent circular buffer class
+///    A concurrent circular buffer class
 /// </summary>
 /// <typeparam name="T">The type that the buffer will contain</typeparam>
 /// <seealso cref="Org.Edgerunner.Common.Buffers.CircularBuffer&lt;T&gt;" />
@@ -45,105 +47,114 @@ public class ConcurrentCircularBuffer<T> : CircularBuffer<T?>
 {
    protected readonly object SyncLock = new();
 
+   #region Constructors And Finalizers
+
+   /// <summary>
+   /// Initializes a new instance of the <see cref="ConcurrentCircularBuffer{T}"/> class.
+   /// </summary>
+   /// <param name="capacity">Buffer capacity. Must be positive.</param>
    public ConcurrentCircularBuffer(int capacity)
       : base(capacity)
    {
    }
 
+   /// <summary>
+   /// Initializes a new instance of the <see cref="ConcurrentCircularBuffer{T}"/> class.
+   /// </summary>
+   /// <param name="capacity">Buffer capacity. Must be positive.</param>
+   /// <param name="items">Items to fill buffer with. Items length must be less than capacity.
+   /// Suggestion: use Skip(x).Take(y).ToArray() to build this argument from
+   /// any enumerable.</param>
    public ConcurrentCircularBuffer(int capacity, T[] items)
       : base(capacity, items)
    {
    }
 
-   public override bool IsFull
-   {
-      get
-      {
-         lock (SyncLock)
-            return base.IsFull;
-      }
-   }
+   #endregion
 
+   /// <inheritdoc />
    public override bool IsEmpty
    {
       get
       {
          lock (SyncLock)
+         {
             return base.IsEmpty;
+         }
       }
    }
 
-   public override int Size
+   /// <inheritdoc />
+   public override bool IsFull
    {
       get
       {
          lock (SyncLock)
-            return base.Size;
+         {
+            return base.IsFull;
+         }
       }
    }
 
-   public override T? Front()
-   {
-      lock (SyncLock)
-         return base.Front();
-   }
-
-   public override T? Back()
-   {
-      lock (SyncLock)
-         return base.Back();
-   }
-
+   /// <inheritdoc />
    public override T? this[int index]
    {
       get
       {
          lock (SyncLock)
+         {
             return base[index];
+         }
       }
       set
       {
          lock (SyncLock)
+         {
             base[index] = value;
+         }
       }
    }
 
-   public override void PushBack(T? item)
+   /// <inheritdoc />
+   public override int Size
    {
-      lock (SyncLock)
-         base.PushBack(item);
+      get
+      {
+         lock (SyncLock)
+         {
+            return base.Size;
+         }
+      }
    }
 
-   public override void PushFront(T? item)
+   /// <inheritdoc />
+   public override T? Back()
    {
       lock (SyncLock)
-         base.PushFront(item);
+      {
+         return base.Back();
+      }
    }
 
-   public override void PopBack()
-   {
-      lock (SyncLock)
-         base.PopBack();
-   }
-
-   public override void PopFront()
-   {
-      lock (SyncLock)
-         base.PopFront();
-   }
-
+   /// <inheritdoc />
    public override void Clear()
    {
       lock (SyncLock)
+      {
          base.Clear();
+      }
    }
 
-   public override T?[] ToArray()
+   /// <inheritdoc />
+   public override T? Front()
    {
       lock (SyncLock)
-         return base.ToArray();
+      {
+         return base.Front();
+      }
    }
 
+   /// <inheritdoc />
    public override IEnumerator<T?> GetEnumerator()
    {
       lock (SyncLock)
@@ -152,6 +163,51 @@ public class ConcurrentCircularBuffer<T> : CircularBuffer<T?>
          foreach (var segment in segments)
             for (var i = 0; i < segment.Count; i++)
                yield return segment.Array![segment.Offset + i];
+      }
+   }
+
+   /// <inheritdoc />
+   public override void PopBack()
+   {
+      lock (SyncLock)
+      {
+         base.PopBack();
+      }
+   }
+
+   /// <inheritdoc />
+   public override void PopFront()
+   {
+      lock (SyncLock)
+      {
+         base.PopFront();
+      }
+   }
+
+   /// <inheritdoc />
+   public override void PushBack(T? item)
+   {
+      lock (SyncLock)
+      {
+         base.PushBack(item);
+      }
+   }
+
+   /// <inheritdoc />
+   public override void PushFront(T? item)
+   {
+      lock (SyncLock)
+      {
+         base.PushFront(item);
+      }
+   }
+
+   /// <inheritdoc />
+   public override T?[] ToArray()
+   {
+      lock (SyncLock)
+      {
+         return base.ToArray();
       }
    }
 }
