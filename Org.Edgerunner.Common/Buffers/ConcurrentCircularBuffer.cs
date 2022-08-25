@@ -78,9 +78,7 @@ public class ConcurrentCircularBuffer<T> : CircularBuffer<T?>
       get
       {
          lock (SyncLock)
-         {
             return base.IsEmpty;
-         }
       }
    }
 
@@ -90,9 +88,7 @@ public class ConcurrentCircularBuffer<T> : CircularBuffer<T?>
       get
       {
          lock (SyncLock)
-         {
             return base.IsFull;
-         }
       }
    }
 
@@ -102,16 +98,12 @@ public class ConcurrentCircularBuffer<T> : CircularBuffer<T?>
       get
       {
          lock (SyncLock)
-         {
             return base[index];
-         }
       }
       set
       {
          lock (SyncLock)
-         {
             base[index] = value;
-         }
       }
    }
 
@@ -121,9 +113,7 @@ public class ConcurrentCircularBuffer<T> : CircularBuffer<T?>
       get
       {
          lock (SyncLock)
-         {
             return base.Size;
-         }
       }
    }
 
@@ -131,27 +121,21 @@ public class ConcurrentCircularBuffer<T> : CircularBuffer<T?>
    public override T? Back()
    {
       lock (SyncLock)
-      {
          return base.Back();
-      }
    }
 
    /// <inheritdoc />
    public override void Clear()
    {
       lock (SyncLock)
-      {
          base.Clear();
-      }
    }
 
    /// <inheritdoc />
    public override T? Front()
    {
       lock (SyncLock)
-      {
          return base.Front();
-      }
    }
 
    /// <inheritdoc />
@@ -198,8 +182,6 @@ public class ConcurrentCircularBuffer<T> : CircularBuffer<T?>
    public override T?[] ToArray()
    {
       lock (SyncLock)
-      {
          return base.ToArray();
-      }
    }
 }
