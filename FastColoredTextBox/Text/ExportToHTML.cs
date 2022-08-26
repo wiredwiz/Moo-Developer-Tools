@@ -82,7 +82,11 @@ namespace FastColoredTextBoxNS.Text {
                currentStyles = c.Styles;
 					if (currentStyles != null)
                   foreach (var currentStyle in currentStyles)
+						{
+							if (currentStyle == null)
+								break;
                      styles.Add(currentStyle);
+						}
             }
 
 				if (p.iLine != currentLine) {

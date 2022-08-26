@@ -130,7 +130,7 @@ namespace FastColoredTextBoxNS.Types
          // because it is quite possible we will be using it again momentarily.
          // Also it is unlikely to eat that much extra memory.
          if (Styles != null)
-            Array.Clear(Styles, 0, LastStyleIndex);
+            Array.Clear(Styles, 0, Styles.Length);
          _ReadOnly = false;
          LastStyleIndex = -1;
       }
