@@ -129,12 +129,10 @@ namespace FastColoredTextBoxNS.Types
          // We clear the array rather than release it,
          // because it is quite possible we will be using it again momentarily.
          // Also it is unlikely to eat that much extra memory.
-         if (LastStyleIndex != -1)
-         {
+         if (Styles != null)
             Array.Clear(Styles, 0, LastStyleIndex);
-            _ReadOnly = false;
-            LastStyleIndex = -1;
-         }
+         _ReadOnly = false;
+         LastStyleIndex = -1;
       }
    }
 }
