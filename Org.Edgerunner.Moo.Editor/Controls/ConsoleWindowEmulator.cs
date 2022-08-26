@@ -76,13 +76,6 @@ namespace Org.Edgerunner.Moo.Editor.Controls
          ReadOnly = true;
       }
 
-      private static TextStyle GetStyle(Color foregroundColor, Color backgroundColor, FontStyle fontStyle)
-      {
-         var foreBrush = new SolidBrush(foregroundColor);
-         var backBrush = new SolidBrush(backgroundColor);
-         return new TextStyle(foreBrush, backBrush, fontStyle);
-      }
-
       /// <summary>
       /// Append line to end of text.
       /// </summary>

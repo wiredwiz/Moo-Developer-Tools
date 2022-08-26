@@ -16,6 +16,9 @@
   <ItemGroup>
     <ProjectReference Include="..\FastColoredTextBox\FastColoredTextBox.csproj" />
     <ProjectReference Include="..\Org.Edgerunner.ANTLR4.Tools.Common\Org.Edgerunner.ANTLR4.Tools.Common.csproj" />
+    <ProjectReference Include="..\Org.Edgerunner.Common\Org.Edgerunner.Common.csproj" />
+    <ProjectReference Include="..\Org.Edgerunner.Messaging\Org.Edgerunner.Messaging.csproj" />
+    <ProjectReference Include="..\Org.Edgerunner.Moo.Communication\Org.Edgerunner.Moo.Communication.csproj" />
   </ItemGroup>
 
   <ItemGroup>

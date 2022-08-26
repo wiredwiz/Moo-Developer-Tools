@@ -1,6 +1,6 @@
 ﻿namespace Org.Edgerunner.Moo.Editor.Controls
 {
-   partial class MooClient
+   partial class MooClientTerminal
    {
       /// <summary> 
       /// Required designer variable.
@@ -29,7 +29,7 @@
       private void InitializeComponent()
       {
          this.components = new System.ComponentModel.Container();
-         System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(MooClient));
+         System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(MooClientTerminal));
          this.splitContainer1 = new System.Windows.Forms.SplitContainer();
          this.txtInput = new System.Windows.Forms.TextBox();
          this.pnlSpacer = new System.Windows.Forms.Panel();

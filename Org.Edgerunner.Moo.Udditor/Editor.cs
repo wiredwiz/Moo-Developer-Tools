@@ -248,25 +248,19 @@ public partial class Editor : Form
         return page;
     }
 
-    private MooClient NewTerminalClient()
+    private MooClientTerminal NewTerminalClient()
     {
-        var client = new MooClient();
+        var client = new MooClientTerminal();
         return client;
     }
 
     private KryptonPage NewTerminalClientPage(string host, int port, string name = null)
     {
         var client = NewTerminalClient();
-        client.OutOfBandCommandReceived += Client_OutOfBandCommandReceived;
         var key = Guid.NewGuid().ToString();
         var page = NewPage(key, name, name, name, 0, client);
         Pages[key] = page;
         return page;
-    }
-
-    private void Client_OutOfBandCommandReceived(object sender, string e)
-    {
-        Debug.WriteLine(e);
     }
 
     public void SwitchToPage(string id)
@@ -508,7 +502,7 @@ public partial class Editor : Form
         var page = NewTerminalClientPage(host, port, "Edgerunner");
         kryptonDockingManager.AddToWorkspace("Workspace", new KryptonPage[] { page });
         SwitchToPage(page.UniqueName);
-        ((MooClient)page.Controls[0]).Connect(host, port);
+        ((MooClientTerminal)page.Controls[0]).Connect("Edgerunner", host, port);
     }
 
     private void tlMnuItemCloseConnection_Click(object sender, EventArgs e)

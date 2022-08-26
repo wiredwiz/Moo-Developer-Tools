@@ -86,7 +86,22 @@ namespace Org.Edgerunner.Moo.Editor.Controls
          TextChanged += MooEditor_TextChanged;
          TextChangedDelayed += MooEditor_TextChangedDelayed;
          KeyDown += MooEditor_KeyDown;
+         UndoRedoStateChanged += MooEditor_UndoRedoStateChanged;
          GrammarDialect = grammarDialect;
+      }
+
+      private void MooEditor_UndoRedoStateChanged(object sender, EventArgs e)
+      {
+         if (this.Document != null)
+         {
+            ParseSourceCode();
+            ClearAllStyles();
+            if (!string.IsNullOrEmpty(Text))
+            {
+               // Perhaps we will find a range in the future rather than passing null to colorize all of it
+               ColorizeTokens(null);
+            }
+         }
       }
 
       protected Document _Document;
@@ -187,10 +202,8 @@ namespace Org.Edgerunner.Moo.Editor.Controls
       private void MooEditor_TextChangedDelayed(object sender, TextChangedEventArgs e)
       {
          ParseSourceCode();
-
-         if (string.IsNullOrEmpty(Text))
-            ClearAllStyles();
-         else
+         ClearAllStyles();
+         if (!string.IsNullOrEmpty(Text))
          {
             // Perhaps we will find a range in the future rather than passing null to colorize all of it
             ColorizeTokens(null);
@@ -334,17 +347,39 @@ namespace Org.Edgerunner.Moo.Editor.Controls
                ParseErrors.AddRange(LexerErrorListener.Errors);
 
             if (ParserErrorListener?.Errors != null)
+            {
+               var whitespaceId = -1;
+               if (GrammarDialect == GrammarDialect.Edgerunner)
+                  whitespaceId = EdgerunnerMooLexer.WS;
+               else if (GrammarDialect == GrammarDialect.ToastStunt)
+                  whitespaceId = ToastStuntMooLexer.WS;
+               else if (GrammarDialect == GrammarDialect.LambdaMoo)
+                  whitespaceId = MooLexer.WS;
                foreach (var current in ParserErrorListener.Errors)
                {
                   var error = current;
                   if (error.Guide is DetailedToken bad)
                   {
                      var tokenIndex = bad.TokenIndex;
+                     // Keeping this in place, in case I modify FCTB for painting styles beyond the character region.
+                     //while (tokenIndex > 0)
+                     //{
+                     //   tokenIndex--;
+                     //   var previousToken = commonTokenStream.Get(tokenIndex) as DetailedToken;
+                     //   if (previousToken?.TypeNameUpperCase != "WS")
+                     //      break;
+                     //   bad = previousToken;
+                     //}
+
+                     //error.Guide = bad;
+                     //error.LineNumber = bad.Line;
+                     //error.Column = bad.StartingColumn;
+                     //error.Message = error.Message.Replace("' at '", "' before '");
                      while (tokenIndex > 0)
                      {
                         tokenIndex--;
                         bad = commonTokenStream.Get(tokenIndex) as DetailedToken;
-                        if (bad?.TypeNameUpperCase != "WS")
+                        if (bad?.Type != whitespaceId)
                            break;
                      }
                      if (bad != null)
@@ -352,17 +387,21 @@ namespace Org.Edgerunner.Moo.Editor.Controls
                         error.Guide = bad;
                         error.LineNumber = bad.EndingLine;
                         error.Column = bad.EndingColumn + 1;
+                        error.Message = error.Message.Replace("' at '", "' before '");
                      }
                   }
                   ParseErrors.Add(error);
                }
+            }
             //if (ParserErrorListener?.Errors != null)
             //   ParseErrors.AddRange(ParserErrorListener.Errors);
 
             if (GrammarDialect == GrammarDialect.Edgerunner)
             {
-               var validator = new EdgerunnerMooValidator();
-               validator.Document = Document;
+               var validator = new EdgerunnerMooValidator
+                               {
+                                  Document = Document
+                               };
                ParseTreeWalker.Default.Walk(validator, context);
                ParseErrors.AddRange(validator.Errors);
             }

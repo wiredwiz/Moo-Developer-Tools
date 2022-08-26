@@ -70,13 +70,13 @@ public class CommunicationBuffer : ConcurrentCircularBuffer<byte>
    {
       byte[] buffer;
       int position;
+      var endOfLine = -1;
 
       lock (SyncLock)
       {
          if (IsEmpty)
             return null;
 
-         var endOfLine = -1;
          for (int i = 0; i < Size; i++)
          {
             if (this[i] == '\n')
@@ -89,18 +89,20 @@ public class CommunicationBuffer : ConcurrentCircularBuffer<byte>
          if (endOfLine == -1)
             return null;
 
-         buffer = new byte[endOfLine + 1];
+         buffer = new byte[endOfLine];
          position = 0;
 
-         while (position < endOfLine + 1)
+         while (position < endOfLine)
          {
             buffer[position] = PopFront();
             position++;
          }
+
+         PopFront();
       }
 
       var chars = new char[decoder.GetCharCount(buffer, 0, position)];
-      decoder.GetChars(buffer, 0, buffer.Length, chars, 0);
+      decoder.GetChars(buffer, 0, endOfLine, chars, 0);
       return new string(chars);
    }
 }
