@@ -86,6 +86,7 @@ public class CircularBuffer<T> : IEnumerable<T?>
    ///    Initializes a new instance of the <see cref="CircularBuffer{T}" /> class.
    /// </summary>
    /// <param name="capacity">The capacity to use for the buffer.</param>
+   /// <exception cref="System.ArgumentOutOfRangeException">capacity is a non-positive number.</exception>
    public CircularBuffer(int capacity)
       : this(capacity, Array.Empty<T>())
    {
