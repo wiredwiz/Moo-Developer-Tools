@@ -1,5 +1,5 @@
 ﻿#region BSD 3-Clause License
-// <copyright company="Edgerunner.org" file="Client.cs">
+// <copyright company="Edgerunner.org" file="MooClient.cs">
 // Copyright (c)  2022
 // </copyright>
 //
@@ -39,24 +39,27 @@ using Org.Edgerunner.Moo.Communication.Interfaces;
 
 namespace Org.Edgerunner.Moo.Communication;
 
-public static class Client
+public static class MooClient
 {
    /// <summary>
-   /// Opens the specified Moo world.
+   /// Creates a session for the specified Moo world.
    /// </summary>
-   /// <typeparam name="T">The IClientSession type to use.</typeparam>
-   /// <param name="world">The world name.</param>
-   /// <param name="host">The host address.</param>
-   /// <param name="port">The port address.</param>
-   /// <returns>A new client session.</returns>
-   public static IClientSession? Open<T>(string world, string host, int port) where T : IClientSession
+   /// <typeparam name="T">The IMooClientSession type to use.</typeparam>
+   /// <param name="world">The Moo world name.</param>
+   /// <param name="host">The Moo host address.</param>
+   /// <param name="port">The Moo port address.</param>
+   /// <param name="outOfBandPrefix">The out of band prefix.</param>
+   /// <returns>
+   /// A new client session.
+   /// </returns>
+   /// <exception cref="System.ArgumentNullException">world or host are null; or port in a non-positive integer</exception>
+   /// <exception cref="System.ArgumentOutOfRangeException">port</exception>
+   public static IMooClientSession Create<T>(string world, string host, int port, string outOfBandPrefix = "#$#") where T : IMooClientSession
    {
       if (world == null) throw new ArgumentNullException(nameof(world));
       if (host == null) throw new ArgumentNullException(nameof(host));
       if (port <= 0) throw new ArgumentOutOfRangeException(nameof(port));
 
-      var client = new TcpClient();
-      client.Connect(host, port);
-      return Activator.CreateInstance(typeof(T), client, world, host, port) as IClientSession;
+      return (Activator.CreateInstance(typeof(T), world, host, port, outOfBandPrefix) as IMooClientSession)!;
    }
 }

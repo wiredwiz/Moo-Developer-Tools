@@ -6,4 +6,12 @@
     <Nullable>enable</Nullable>
   </PropertyGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\Org.Edgerunner.Common\Org.Edgerunner.Common.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="Buffers\" />
+  </ItemGroup>
+
 </Project>

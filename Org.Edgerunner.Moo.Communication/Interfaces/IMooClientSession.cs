@@ -1,5 +1,5 @@
 ﻿#region BSD 3-Clause License
-// <copyright company="Edgerunner.org" file="IClientSession.cs">
+// <copyright company="Edgerunner.org" file="IMooClientSession.cs">
 // Copyright (c)  2022
 // </copyright>
 //
@@ -36,10 +36,13 @@
 
 
 using System;
+using System.IO;
+using System.Text;
+using Org.Edgerunner.Moo.Communication.Buffers;
 
 namespace Org.Edgerunner.Moo.Communication.Interfaces;
 
-public interface IClientSession
+public interface IMooClientSession
 {
    /// <summary>
    /// Gets the world.
@@ -74,23 +77,85 @@ public interface IClientSession
    bool IsOpen { get; }
 
    /// <summary>
+   /// Gets the command buffer.
+   /// </summary>
+   /// <value>
+   /// The command buffer.
+   /// </value>
+   CommunicationBuffer CommandBuffer { get; }
+
+   /// <summary>
+   /// Gets the out of band command buffer.
+   /// </summary>
+   /// <value>
+   /// The out of band command buffer.
+   /// </value>
+   CommunicationBuffer OutOfBandCommandBuffer { get; }
+
+   /// <summary>
    /// Sends the contents of the data buffer over the session connection.
    /// </summary>
    /// <param name="buffer">The data buffer.</param>
    void Send(byte[] buffer);
 
    /// <summary>
+   /// Sends the text over the session connection.
+   /// </summary>
+   /// <param name="text">The text to send.</param>
+   void Send(string text);
+
+   /// <summary>
+   /// Sends the line of text over the session connection.
+   /// </summary>
+   /// <param name="text">The line of text to send.</param>
+   /// <remarks>This method appends a line feed for you.</remarks>
+   void SendLine(string text);
+
+   /// <summary>
+   /// Sends the contents of the data buffer over the session connection as an out of band command.
+   /// </summary>
+   /// <param name="buffer">The data buffer.</param>
+   void SendOutOfBand(byte[] buffer);
+
+   /// <summary>
+   /// Sends the text over the session connection as an out of band command.
+   /// </summary>
+   /// <param name="text">The text to send.</param>
+   void SendOutOfBand(string text);
+
+   /// <summary>
+   /// Sends the line of text over the session connection as an out of band command.
+   /// </summary>
+   /// <param name="text">The line of text to send.</param>
+   /// <remarks>This method appends a line feed for you.</remarks>
+   void SendOutOfBandLine(string text);
+
+   /// <summary>
    /// Occurs when data is received on the connection.
    /// </summary>
-   event EventHandler<byte[]> DataReceived;
+   /// <remarks>This could be normal command data or Out Of Band commands</remarks>
+   event EventHandler? DataReceived;
+
+   /// <summary>
+   /// Occurs when data is dropped because the buffer overflowed.
+   /// </summary>
+   public event EventHandler<int>? DataDropped;
 
    /// <summary>
    /// Occurs when session connection is closed.
    /// </summary>
-   event EventHandler Closed;
+   event EventHandler? Closed;
+
+   /// <summary>
+   /// Opens a connection to the specified host address.
+   /// </summary>
+   /// <param name="host">The host address.</param>
+   /// <param name="port">The port address.</param>
+   void Open(string host, int port);
 
    /// <summary>
    /// Closes the session connection.
    /// </summary>
-   void Close();
+   /// <returns>Returns <c>true</c> if closed normally; <c>false</c> if was already closed.</returns>
+   bool Close();
 }

@@ -42,7 +42,7 @@ namespace Org.Edgerunner.Moo.Communication.Buffers;
 /// <summary>
 /// A class that represents a moo communication byte buffer
 /// </summary>
-/// <seealso cref="Org.Edgerunner.Common.Buffers.ConcurrentCircularBuffer&lt;System.Byte&gt;" />
+/// <seealso cref="byte" />
 public class CommunicationBuffer : ConcurrentCircularBuffer<byte>
 {
    /// <summary>
@@ -92,13 +92,15 @@ public class CommunicationBuffer : ConcurrentCircularBuffer<byte>
          buffer = new byte[endOfLine + 1];
          position = 0;
 
-         while (!IsEmpty)
+         while (position < endOfLine + 1)
          {
             buffer[position] = PopFront();
             position++;
          }
       }
 
-      return new string(new char[decoder.GetCharCount(buffer, 0, position)]);
+      var chars = new char[decoder.GetCharCount(buffer, 0, position)];
+      decoder.GetChars(buffer, 0, buffer.Length, chars, 0);
+      return new string(chars);
    }
 }
