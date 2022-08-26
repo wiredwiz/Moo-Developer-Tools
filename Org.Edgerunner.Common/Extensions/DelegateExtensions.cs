@@ -35,6 +35,7 @@
 #endregion
 
 using System.ComponentModel;
+using System.Diagnostics;
 
 namespace Org.Edgerunner.Common.Extensions;
 
@@ -48,6 +49,8 @@ public static class DelegateExtensions
    /// </summary>
    /// <param name="subject">The subject delegate.</param>
    /// <param name="args">The arguments to pass.</param>
+   /// <remarks>If called on a GUI that is unloading, the event may fail to fire since
+   /// the window handle may have been disposed of.</remarks>
    public static void InvokeOnUI(this Delegate subject, object[]? args)
    {
       var invocations = subject.GetInvocationList();
@@ -56,7 +59,14 @@ public static class DelegateExtensions
          if (registered.Target is not ISynchronizeInvoke sync)
             registered.DynamicInvoke(args);
          else
-            sync.BeginInvoke(registered, args);
+            try
+            {
+               sync.BeginInvoke(registered, args);
+            }
+            catch (ObjectDisposedException)
+            {
+               Debug.WriteLine("Window is already disposed.");
+            }
       }
    }
 }
