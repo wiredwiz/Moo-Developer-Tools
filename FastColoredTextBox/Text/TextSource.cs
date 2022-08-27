@@ -83,6 +83,12 @@ namespace FastColoredTextBoxNS.Text {
 		/// <value>The default read only style.</value>
 		public ReadOnlyStyle DefaultReadOnlyStyle { get; } = new ReadOnlyStyle();
 
+      /// <summary>
+      /// Gets the default blinking style.
+      /// </summary>
+      /// <value>The default blinking style.</value>
+      public BlinkingStyle DefaultBlinkingStyle { get; } = new BlinkingStyle();
+
 		public TextSource(FastColoredTextBox currentTB) {
 			CurrentTB = currentTB;
 			linesAccessor = new LinesAccessor(this);

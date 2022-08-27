@@ -26,6 +26,7 @@ using FastColoredTextBoxNS.Text;
 using FastColoredTextBoxNS.Types;
 using Microsoft.Win32;
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Drawing;
@@ -37,6 +38,7 @@ using System.Runtime.InteropServices;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading;
+using System.Threading.Tasks;
 using System.Windows.Forms;
 using System.Windows.Forms.Design;
 using Timer = System.Windows.Forms.Timer;
@@ -63,6 +65,7 @@ namespace FastColoredTextBoxNS
       private readonly Timer timer = new();
       private readonly Timer timer2 = new();
       private readonly Timer timer3 = new();
+      private readonly Timer blinkTimer = new();
       private readonly List<VisualMarker> visibleMarkers = new();
       public int TextHeight;
       public bool AllowInsertRemoveLines = true;
@@ -169,6 +172,7 @@ namespace FastColoredTextBoxNS
          BracketsStyle = new MarkerStyle(new SolidBrush(Color.FromArgb(80, Color.Lime)));
          BracketsStyle2 = new MarkerStyle(new SolidBrush(Color.FromArgb(60, Color.Red)));
          BracketsStyle3 = new MarkerStyle(new SolidBrush(Color.FromArgb(60, Color.Blue)));
+         BlinkSet = new ConcurrentDictionary<StyledChar, byte>();
          DelayedEventsInterval = 100;
          DelayedTextChangedInterval = 100;
          AllowSeveralTextStyleDrawing = false;
@@ -204,7 +208,8 @@ namespace FastColoredTextBoxNS
          bookmarks = new Bookmarks(this);
          BookmarkColor = Color.PowderBlue;
          ToolTip = new ToolTip();
-         timer3.Interval = 500;
+         timer3.Interval = 100;
+         blinkTimer.Interval = 100;
          hints = new Hints(this);
          SelectionHighlightingForLineBreaksEnabled = true;
          textAreaBorder = TextAreaBorderType.None;
@@ -224,6 +229,7 @@ namespace FastColoredTextBoxNS
          timer.Tick += Timer_Tick;
          timer2.Tick += Timer2_Tick;
          timer3.Tick += Timer3_Tick;
+         blinkTimer.Tick += BlinkTimer_Tick;
          middleClickScrollingTimer.Tick += MiddleClickScrollingTimer_Tick;
       }
 
@@ -868,6 +874,13 @@ namespace FastColoredTextBoxNS
       [Browsable(false)]
       [DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
       public ReadOnlyStyle DefaultReadOnlyStyle => lines.DefaultReadOnlyStyle;
+
+      /// <summary>
+      /// Default blinking style
+      /// </summary>
+      [Browsable(false)]
+      [DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
+      public BlinkingStyle DefaultBlinkingStyle => lines.DefaultBlinkingStyle;
 
       /// <summary>
       /// Style for rendering Selection area
@@ -1584,6 +1597,13 @@ namespace FastColoredTextBoxNS
             SetFont(value);
          }
       }
+
+      /// <summary>
+      /// Set of blinking characters
+      /// </summary>
+      [Browsable(false)]
+      [DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
+      internal ConcurrentDictionary<StyledChar, byte> BlinkSet { get; }
 
 
       Font baseFont;
@@ -2794,6 +2814,10 @@ namespace FastColoredTextBoxNS
          foreach (Line line in lines)
             line.ClearAllStyles();
 
+         // Should already be clear, but why not be extra safe since the overhead
+         // will be near non-existent.
+         BlinkSet.Clear();
+
          for (int i = 0; i < LineInfos.Count; i++)
             SetVisibleState(i, VisibleState.Visible);
 
@@ -2930,6 +2954,49 @@ namespace FastColoredTextBoxNS
 
             if (style != null)
                new TextSelectionRange(this, last, Selection.Start).SetStyle(style);
+         }
+         finally
+         {
+            lines.Manager.EndAutoUndoCommands();
+            Selection.Start = oldStart;
+            Selection.End = oldEnd;
+            Selection.EndUpdate();
+         }
+         //
+         Invalidate();
+      }
+
+      /// <summary>
+      /// Append string to end of the Text
+      /// </summary>
+      public virtual void AppendTextWithStyles(string text, IEnumerable<Style> styles)
+      {
+         if (text == null)
+            return;
+
+         Selection.ColumnSelectionMode = false;
+
+         Place oldStart = Selection.Start;
+         Place oldEnd = Selection.End;
+
+         Selection.BeginUpdate();
+         lines.Manager.BeginAutoUndoCommands();
+         try
+         {
+            if (lines.Count > 0)
+               Selection.Start = new Place(lines[^1].Count, lines.Count - 1);
+            else
+               Selection.Start = new Place(0, 0);
+
+            //remember last caret position
+            Place last = Selection.Start;
+
+            lines.Manager.ExecuteCommand(new InsertTextCommand(TextSource, text));
+
+            if (styles != null)
+               foreach (var style in styles)
+                  if (style != null)
+                     new TextSelectionRange(this, last, Selection.Start).SetStyle(style);
          }
          finally
          {
@@ -7398,6 +7465,7 @@ window.status = ""#print"";
                SyntaxHighlighter.Dispose();
             timer.Dispose();
             timer2.Dispose();
+            blinkTimer.Dispose();
             middleClickScrollingTimer.Dispose();
 
             if (FindForm != null)
@@ -7604,6 +7672,26 @@ window.status = ""#print"";
             iLines.Add(r.Start.iLine);
 
          return iLines;
+      }
+
+      /// <summary>
+      /// Starts the render task for rendering blinking text.
+      /// </summary>
+      public void StartBlinkRenderTask()
+      {
+         ResetTimer(blinkTimer);
+      }
+
+      private void BlinkTimer_Tick(object sender, EventArgs e)
+      {
+         // Do our blink render check
+         if (BlinkSet.IsEmpty)
+         {
+            blinkTimer.Enabled = false;
+            return;
+         }
+
+         Invalidate();
       }
 
       /// <summary>

@@ -32,6 +32,16 @@ namespace FastColoredTextBoxNS.Types
       /// <value><c>true</c> if [read only]; otherwise, <c>false</c>.</value>
       public bool ReadOnly => _ReadOnly;
 
+      private bool _Blinking;
+
+      /// <summary>
+      /// Gets a value indicating whether this <see cref="StyledChar"/> is blinking.
+      /// </summary>
+      /// <value>
+      ///   <c>true</c> if blinking; otherwise, <c>false</c>.
+      /// </value>
+      public bool Blinking => _Blinking;
+
       /// <summary>
       /// Initializes a new instance of the <see cref="StyledChar"/> struct.
       /// </summary>
@@ -41,6 +51,7 @@ namespace FastColoredTextBoxNS.Types
          this.C = c;
          Styles = null;
          _ReadOnly = false;
+         _Blinking = false;
          LastStyleIndex = -1;
       }
 
@@ -57,6 +68,10 @@ namespace FastColoredTextBoxNS.Types
          // Update Readonly status if needed
          if (style is ReadOnlyStyle)
             _ReadOnly = true;
+
+         // Update Blinking status if needed
+         if (style is BlinkingStyle)
+            _Blinking = true;
 
          // Initialize storage, fetch existing style or expand the storage array if needed
          if (Styles == null)
@@ -96,6 +111,7 @@ namespace FastColoredTextBoxNS.Types
       public void RemoveStyle(Style style)
       {
          _ReadOnly = false;
+         _Blinking = false;
          var index = GetStyleIndex(style);
          if (index == -1)
             return;
@@ -107,16 +123,23 @@ namespace FastColoredTextBoxNS.Types
             if (Styles[i] is ReadOnlyStyle)
                _ReadOnly = true;
 
+            if (Styles[i] is BlinkingStyle)
+               _Blinking = true;
+
             // If we have no more valid styles, no reason to keep clearing
             if (Styles[i] == null)
                break;
          }
 
          Styles[^1] = null;
-         if (!_ReadOnly)
+         if (!_ReadOnly || !_Blinking)
             for (var i = 0; i < LastStyleIndex; i++)
+            {
                if (Styles[i] is ReadOnlyStyle)
                   _ReadOnly = true;
+               if (Styles[i] is BlinkingStyle)
+                  _Blinking = true;
+            }
 
          LastStyleIndex--;
       }
@@ -132,6 +155,7 @@ namespace FastColoredTextBoxNS.Types
          if (Styles != null)
             Array.Clear(Styles, 0, Styles.Length);
          _ReadOnly = false;
+         _Blinking = false;
          LastStyleIndex = -1;
       }
    }

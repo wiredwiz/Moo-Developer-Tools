@@ -774,9 +774,13 @@ namespace FastColoredTextBoxNS.Types
             {
                StyledChar c = tb[y][x];
                c.AddStyle(style);
+               if (c.Blinking)
+                  tb.BlinkSet.TryAdd(c, 0);
                tb[y][x] = c;
             }
          }
+         if (style is BlinkingStyle)
+            tb.StartBlinkRenderTask();
       }
 
       /// <summary>
@@ -1004,7 +1008,10 @@ namespace FastColoredTextBoxNS.Types
             for (int x = fromX; x <= toX; x++)
             {
                StyledChar c = tb[y][x];
+               var wasBlinking = c.Blinking;
                c.RemoveStyle(style);
+               if (wasBlinking && !c.Blinking)
+                  tb.BlinkSet.TryRemove(c, out var unused);
                tb[y][x] = c;
             }
          }
@@ -1031,7 +1038,10 @@ namespace FastColoredTextBoxNS.Types
             for (int x = fromX; x <= toX; x++)
             {
                StyledChar c = tb[y][x];
+               var wasBlinking = c.Blinking;
                c.ClearStyles();
+               if (wasBlinking && !c.Blinking)
+                  tb.BlinkSet.TryRemove(c, out var unused);
                tb[y][x] = c;
             }
          }
@@ -1432,14 +1442,6 @@ namespace FastColoredTextBoxNS.Types
          {
             if (tb.ReadOnly) return true;
 
-            ReadOnlyStyle readonlyStyle = null;
-            foreach (var style in tb.StyleManager.GetStyles())
-               if (style is ReadOnlyStyle style1)
-               {
-                  readonlyStyle = style1;
-                  break;
-               }
-
             if (IsEmpty)
             {
                //check previous and next chars
@@ -1526,6 +1528,38 @@ namespace FastColoredTextBoxNS.Types
             r.GoRight(true);
 
          return r.ReadOnly;
+      }
+
+      /// <summary>
+      /// Range is blinking?
+      /// This property return True if any char of the range contains BlinkingStyle.
+      /// Set this property to True/False to mark chars of the range as Blinking/Non-Blinking.
+      /// </summary>
+      public bool Blinking
+      {
+         get
+         {
+            if (IsEmpty)
+               return false;
+
+            foreach (StyledChar c in Chars)
+               if (c.Blinking) //found char with BlinkingStyle
+                  return true;
+
+            return false;
+         }
+
+         set
+         {
+            //find exists BlinkingStyle of style buffer
+            BlinkingStyle blinkingStyle = tb.DefaultBlinkingStyle;
+
+            //set/clear style
+            if (value)
+               SetStyle(blinkingStyle);
+            else
+               ClearStyle(blinkingStyle);
+         }
       }
 
       public IEnumerable<Place> GetPlacesCyclic(Place startPlace, bool backward = false)

@@ -16,7 +16,7 @@ namespace FastColoredTextBoxNS.Types {
 		/// </summary>
 		public virtual bool IsExportable { get; set; }
 		/// <summary>
-		/// Occurs when user click on StyleVisualMarker joined to this style 
+		/// Occurs when user click on StyleVisualMarker joined to this style
 		/// </summary>
 		public event EventHandler<VisualMarkerEventArgs> VisualMarkerClick;
 
@@ -34,7 +34,7 @@ namespace FastColoredTextBoxNS.Types {
 		public abstract void Draw(Graphics gr, Point position, TextSelectionRange range);
 
 		/// <summary>
-		/// Occurs when user click on StyleVisualMarker joined to this style 
+		/// Occurs when user click on StyleVisualMarker joined to this style
 		/// </summary>
 		public virtual void OnVisualMarkerClick(FastColoredTextBox tb, VisualMarkerEventArgs args) => VisualMarkerClick?.Invoke(tb, args);
 
@@ -102,29 +102,56 @@ namespace FastColoredTextBoxNS.Types {
 			float dx = range.tb.CharWidth;
 			float y = position.Y + range.tb.LineInterval / 2;
 			float x = position.X - range.tb.CharWidth / 3;
+			var renderText = true;
 
-			if (ForeBrush == null)
-				ForeBrush = new SolidBrush(range.tb.ForeColor);
+			ForeBrush ??= new SolidBrush(range.tb.ForeColor);
 
-			if (range.tb.ImeAllowed) {
+			if (range.tb.ImeAllowed)
+         {
 				//IME mode
-				for (int i = range.Start.iChar; i < range.End.iChar; i++) {
-					SizeF size = FastColoredTextBox.GetCharSize(f, line[i].C);
+				for (int i = range.Start.iChar; i < range.End.iChar; i++)
+            {
+					// Paint the text using the foreground brush for a half second
+					// and use the background the other half, to achieve a blink
+					// Our blink render task will handle the rest.
+               if (line[i].Blinking)
+                  renderText = DateTime.Now.Second % 2 == 0;
+               else
+                  renderText = true;
 
-					var gs = gr.Save();
-					float k = size.Width > range.tb.CharWidth + 1 ? range.tb.CharWidth / size.Width : 1;
-					gr.TranslateTransform(x, y + (1 - k) * range.tb.CharHeight / 2);
-					gr.ScaleTransform(k, (float)Math.Sqrt(k));
-					gr.DrawString(line[i].C.ToString(), f, ForeBrush, 0, 0, stringFormat);
-					gr.Restore(gs);
-					x += dx;
+					if (renderText)
+					{
+						SizeF size = FastColoredTextBox.GetCharSize(f, line[i].C);
+
+						var gs = gr.Save();
+						float k = size.Width > range.tb.CharWidth + 1 ? range.tb.CharWidth / size.Width : 1;
+						gr.TranslateTransform(x, y + (1 - k) * range.tb.CharHeight / 2);
+						gr.ScaleTransform(k, (float)Math.Sqrt(k));
+						gr.DrawString(line[i].C.ToString(), f, ForeBrush, 0, 0, stringFormat);
+						gr.Restore(gs);
+						x += dx;
+					}
 				}
-			} else {
-				//classic mode 
-				for (int i = range.Start.iChar; i < range.End.iChar; i++) {
-					//draw char
-					gr.DrawString(line[i].C.ToString(), f, ForeBrush, x, y, stringFormat);
-					x += dx;
+			}
+         else
+         {
+				//classic mode
+				for (int i = range.Start.iChar; i < range.End.iChar; i++)
+            {
+               // Paint the text using the foreground brush for a half second
+               // and use the background the other half, to achieve a blink
+               // Our blink render task will handle the rest.
+               if (line[i].Blinking)
+                  renderText = DateTime.Now.Second % 2 == 0;
+               else
+                  renderText = true;
+
+					if (renderText)
+					{
+						//draw char
+						gr.DrawString(line[i].C.ToString(), f, ForeBrush, x, y, stringFormat);
+						x += dx;
+					}
 				}
 			}
 		}
