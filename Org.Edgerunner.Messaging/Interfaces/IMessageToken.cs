@@ -1,5 +1,5 @@
 ﻿#region BSD 3-Clause License
-// <copyright company="Edgerunner.org" file="MessageToken.cs">
+// <copyright company="Edgerunner.org" file="IMessageToken.cs">
 // Copyright (c)  2022
 // </copyright>
 //
@@ -34,25 +34,16 @@
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #endregion
 
-namespace Org.Edgerunner.Messaging;
 
-/// <summary>
-/// A struct representing a single message token
-/// </summary>
-/// <typeparam name="T">The type of data stored in the token</typeparam>
-/// <seealso cref="Org.Edgerunner.Messaging.IMessageToken&lt;T&gt;" />
-public struct MessageToken<T> : IMessageToken<T>
+namespace Org.Edgerunner.Messaging.Interfaces;
+
+public interface IMessageToken<out T>
 {
-   public MessageToken(T data)
-   {
-      Data = data;
-   }
-
-   /// <summary>
-   /// Gets or sets the token data.
-   /// </summary>
-   /// <value>
-   /// The token data.
-   /// </value>
-   public T Data { get; }
+    /// <summary>
+    /// Gets or sets the token data.
+    /// </summary>
+    /// <value>
+    /// The token data.
+    /// </value>
+    T? Data { get; }
 }

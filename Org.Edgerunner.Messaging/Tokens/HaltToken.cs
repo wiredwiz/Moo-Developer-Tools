@@ -1,10 +1,7 @@
 ﻿#region BSD 3-Clause License
-// <copyright company="Edgerunner.org" file="ProducerConsumer.cs">
+// <copyright company="Edgerunner.org" file="HaltToken.cs">
 // Copyright (c)  2022
 // </copyright>
-//
-// This is a modified version of Jon Skeet's old ProducerConsumer.
-// He deserves most of the credit
 //
 // BSD 3-Clause License
 //
@@ -39,57 +36,28 @@
 
 using Org.Edgerunner.Messaging.Interfaces;
 
-namespace Org.Edgerunner.Messaging;
+namespace Org.Edgerunner.Messaging.Tokens;
 
 /// <summary>
-/// A thread safe producer/consumer queue
+/// A struct representing a single message token
 /// </summary>
-/// <typeparam name="T">The type of data to be stored in the queue.</typeparam>
-public class ProducerConsumer<T>
+/// <typeparam name="T">The type of data stored in the token</typeparam>
+/// <seealso cref="IMessageToken{T}" />
+public struct HaltToken<T> : IMessageToken<T>
 {
-   protected readonly object ListLock = new();
-
-   protected readonly Queue<IMessageToken<T>> Queue = new();
-
    /// <summary>
-   /// Adds the specified data token to the queue.
+   /// Initializes a new instance of the <see cref="HaltToken{T}"/> struct.
    /// </summary>
-   /// <param name="token">The data token.</param>
-   public void Produce(IMessageToken<T> token)
+   public HaltToken()
    {
-      lock (ListLock)
-      {
-         Queue.Enqueue(token);
-
-         // We always need to pulse, even if the queue wasn't
-         // empty before. Otherwise, if we add several items
-         // in quick succession, we may only pulse once, waking
-         // a single thread up, even if there are multiple threads
-         // waiting for items.
-         Monitor.Pulse(ListLock);
-      }
+      Data = default;
    }
 
    /// <summary>
-   /// Consumes the next queue token and returns it.
+   /// Gets or sets the token data.
    /// </summary>
-   /// <returns></returns>
-   public IMessageToken<T> Consume()
-   {
-      lock (ListLock)
-      {
-         // If the queue is empty, wait for an item to be added
-         // Note that this is a while loop, as we may be pulsed
-         // but not wake up before another thread has come in and
-         // consumed the newly added object. In that case, we'll
-         // have to wait for another pulse.
-         while (Queue.Count==0)
-         {
-            // This releases listLock, only reacquiring it
-            // after being woken up by a call to Pulse
-            Monitor.Wait(ListLock);
-         }
-         return Queue.Dequeue();
-      }
-   }
+   /// <value>
+   /// The token data.
+   /// </value>
+   public T? Data { get; }
 }
