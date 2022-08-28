@@ -497,12 +497,18 @@ public partial class Editor : Form
 
     private void tlMnuItemOpenConnection_Click(object sender, EventArgs e)
     {
-        var host = "moo.edgerunner.org";
-        var port = 8888;
-        var page = NewTerminalClientPage(host, port, "Edgerunner");
-        kryptonDockingManager.AddToWorkspace("Workspace", new KryptonPage[] { page });
-        SwitchToPage(page.UniqueName);
-        ((MooClientTerminal)page.Controls[0]).Connect("Edgerunner", host, port);
+        var prompt = new ConnectionInfoPrompt();
+        prompt.StartPosition = FormStartPosition.CenterParent;
+        var result = prompt.ShowDialog();
+        if (result == DialogResult.OK)
+        {
+            var host = prompt.HostAddress;
+            var port = prompt.HostPort;
+            var page = NewTerminalClientPage(host, port, host);
+            kryptonDockingManager.AddToWorkspace("Workspace", new KryptonPage[] { page });
+            SwitchToPage(page.UniqueName);
+            ((MooClientTerminal)page.Controls[0]).Connect(host, host, port);
+        }
     }
 
     private void tlMnuItemCloseConnection_Click(object sender, EventArgs e)
