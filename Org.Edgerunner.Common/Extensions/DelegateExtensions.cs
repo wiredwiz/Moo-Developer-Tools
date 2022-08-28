@@ -63,9 +63,10 @@ public static class DelegateExtensions
             {
                sync.BeginInvoke(registered, args);
             }
-            catch (ObjectDisposedException)
+            catch (Exception ex)
             {
-               Debug.WriteLine("Window is already disposed.");
+               if (ex is ObjectDisposedException or InvalidOperationException or Win32Exception)
+                  Debug.WriteLine("Window is already disposed.");
             }
       }
    }
