@@ -58,7 +58,7 @@ public class AnsiManager
       DefaultFontTextStyle = FontStyle.Regular;
       FontStyle = FontStyle.Regular;
       CurrentStyle = GetStyle(defaultTextColor, defaultTextBackgroundColor, FontStyle.Regular);
-      EchoStyle = GetStyle(Color.LightGray, BackgroundColor, FontStyle.Regular);
+      EchoStyle = GetStyle(Color.DarkGray, BackgroundColor, FontStyle.Regular);
       IsReset = true;
       Blinking = false;
       ReverseVideo = false;
