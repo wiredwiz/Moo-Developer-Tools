@@ -393,12 +393,29 @@ namespace Org.Edgerunner.Moo.Editor.Controls
                   ParseErrors.Add(error);
                }
             }
-            //if (ParserErrorListener?.Errors != null)
-            //   ParseErrors.AddRange(ParserErrorListener.Errors);
 
+            // Do extra syntax validation
             if (GrammarDialect == GrammarDialect.Edgerunner)
             {
                var validator = new EdgerunnerMooValidator
+                               {
+                                  Document = Document
+                               };
+               ParseTreeWalker.Default.Walk(validator, context);
+               ParseErrors.AddRange(validator.Errors);
+            }
+            else if (GrammarDialect == GrammarDialect.ToastStunt)
+            {
+               var validator = new ToastStuntMooValidator
+                               {
+                                  Document = Document
+                               };
+               ParseTreeWalker.Default.Walk(validator, context);
+               ParseErrors.AddRange(validator.Errors);
+            }
+            else if (GrammarDialect == GrammarDialect.LambdaMoo)
+            {
+               var validator = new LambdaMooValidator
                                {
                                   Document = Document
                                };
