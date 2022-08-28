@@ -31,10 +31,6 @@ namespace Org.Edgerunner.Moo.Editor.Controls
 
       private readonly CommandBuffer _InputCommandBuffer;
 
-      private int _InputRegionHeight;
-
-      private bool _UserIsMovingSplitter;
-
       private bool _UserInteraction;
 
       public string Host => _Session.Host;
@@ -54,8 +50,6 @@ namespace Org.Edgerunner.Moo.Editor.Controls
          _ReadingCommands = 0;
          _ReadingOOB = 0;
          _InputCommandBuffer = new CommandBuffer(15);
-         _InputRegionHeight = splitContainer1.Panel2.Height;
-         _UserIsMovingSplitter = false;
          _UserInteraction = false;
       }
 
@@ -276,23 +270,6 @@ namespace Org.Edgerunner.Moo.Editor.Controls
          {
             Debug.WriteLine(ex);
          }
-      }
-
-      private void MooClientTerminal_Resize(object sender, EventArgs e)
-      {
-         //if (!_UserIsMovingSplitter)
-         //   splitContainer1.SplitterDistance = splitContainer1.Height - _InputRegionHeight;
-      }
-
-      private void splitContainer1_SplitterMoved(object sender, SplitterEventArgs e)
-      {
-         //_UserIsMovingSplitter = false;
-         //_InputRegionHeight = splitContainer1.Panel2.Height;
-      }
-
-      private void splitContainer1_SplitterMoving(object sender, SplitterCancelEventArgs e)
-      {
-         //_UserIsMovingSplitter = true;
       }
    }
 }

@@ -415,15 +415,18 @@ public class MooClientSession : IMooClientSession, IDisposable
 
    private void FlushCommandBuffer()
    {
-      var dataBuffer = CommandBuffer.ToArray();
-      CommandBuffer.Clear();
-      var decoder = Encoding.UTF8.GetDecoder();
+      if (!CommandBuffer.IsEmpty)
+      {
+         var dataBuffer = CommandBuffer.ToArray();
+         CommandBuffer.Clear();
+         var decoder = Encoding.UTF8.GetDecoder();
 
-      var chars = new char[decoder.GetCharCount(dataBuffer, 0, dataBuffer.Length)];
-      decoder.GetChars(dataBuffer, 0, dataBuffer.Length, chars, 0);
-      var data = new string(chars);
-      CommandQueue.Enqueue(data);
-      OnDataReceived(data);
+         var chars = new char[decoder.GetCharCount(dataBuffer, 0, dataBuffer.Length)];
+         decoder.GetChars(dataBuffer, 0, dataBuffer.Length, chars, 0);
+         var data = new string(chars);
+         CommandQueue.Enqueue(data);
+         OnDataReceived(data);
+      }
    }
 
    private int BufferData(bool outOfBandMode, byte b)

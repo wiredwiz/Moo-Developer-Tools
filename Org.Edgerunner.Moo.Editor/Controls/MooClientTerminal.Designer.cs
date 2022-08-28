@@ -60,8 +60,6 @@
          this.splitContainer1.Size = new System.Drawing.Size(354, 267);
          this.splitContainer1.SplitterDistance = 238;
          this.splitContainer1.TabIndex = 0;
-         this.splitContainer1.SplitterMoving += new System.Windows.Forms.SplitterCancelEventHandler(this.splitContainer1_SplitterMoving);
-         this.splitContainer1.SplitterMoved += new System.Windows.Forms.SplitterEventHandler(this.splitContainer1_SplitterMoved);
          // 
          // consoleSim
          // 
@@ -92,7 +90,6 @@
          this.consoleSim.DisabledColor = System.Drawing.Color.FromArgb(((int)(((byte)(100)))), ((int)(((byte)(180)))), ((int)(((byte)(180)))), ((int)(((byte)(180)))));
          this.consoleSim.Dock = System.Windows.Forms.DockStyle.Fill;
          this.consoleSim.FindForm = null;
-         this.consoleSim.Font = new System.Drawing.Font("Courier New", 9.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
          this.consoleSim.ForeColor = System.Drawing.Color.WhiteSmoke;
          this.consoleSim.GoToForm = null;
          this.consoleSim.Hotkeys = resources.GetString("consoleSim.Hotkeys");
@@ -141,7 +138,6 @@
          this.Controls.Add(this.splitContainer1);
          this.Name = "MooClientTerminal";
          this.Size = new System.Drawing.Size(354, 267);
-         this.Resize += new System.EventHandler(this.MooClientTerminal_Resize);
          this.splitContainer1.Panel1.ResumeLayout(false);
          this.splitContainer1.Panel2.ResumeLayout(false);
          this.splitContainer1.Panel2.PerformLayout();
