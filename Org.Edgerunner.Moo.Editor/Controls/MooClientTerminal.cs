@@ -43,6 +43,8 @@ namespace Org.Edgerunner.Moo.Editor.Controls
 
       public string World => _Session.World;
 
+      public bool EchoEnabled { get; set; }
+
       public MooClientTerminal()
       {
          InitializeComponent();
@@ -83,9 +85,10 @@ namespace Org.Edgerunner.Moo.Editor.Controls
       {
          if (e.KeyCode == Keys.Enter && !e.Control)
          {
-            SendTextLines(txtInput.Text.Split('\n'));
             if (!_FreshConnection || !IsConnecting(txtInput.Text))
             {
+               SendTextLines(txtInput.Text.Split('\n'));
+
                if (!_InputCommandBuffer.IsEmpty && _InputCommandBuffer[0] != txtInput.Text)
                   _InputCommandBuffer.PushFront(txtInput.Text);
                else if (_InputCommandBuffer.IsEmpty)
@@ -95,6 +98,10 @@ namespace Org.Edgerunner.Moo.Editor.Controls
             }
             else
             {
+               var existing = consoleSim.AnsiManager.EchoEnabled;
+               consoleSim.AnsiManager.EchoEnabled = false;
+               SendTextLines(txtInput.Text.Split('\n'));
+               consoleSim.AnsiManager.EchoEnabled = existing;
                _UserInteraction = true;
                txtInput.Text = string.Empty;
                txtInput.UseSystemPasswordChar = true;
@@ -181,11 +188,13 @@ namespace Org.Edgerunner.Moo.Editor.Controls
       public void SendTextLine(string text)
       {
          _Session.SendLine(text);
+         consoleSim.EchoTextLine(text);
       }
 
       public void SendText(string text)
       {
          _Session.Send(text);
+         consoleSim.EchoText(text);
       }
 
       public void SendOutOfBandCommands(IEnumerable<string> commands)
@@ -271,19 +280,19 @@ namespace Org.Edgerunner.Moo.Editor.Controls
 
       private void MooClientTerminal_Resize(object sender, EventArgs e)
       {
-         if (!_UserIsMovingSplitter)
-            splitContainer1.SplitterDistance = splitContainer1.Height - _InputRegionHeight;
+         //if (!_UserIsMovingSplitter)
+         //   splitContainer1.SplitterDistance = splitContainer1.Height - _InputRegionHeight;
       }
 
       private void splitContainer1_SplitterMoved(object sender, SplitterEventArgs e)
       {
-         _UserIsMovingSplitter = false;
-         _InputRegionHeight = splitContainer1.Panel2.Height;
+         //_UserIsMovingSplitter = false;
+         //_InputRegionHeight = splitContainer1.Panel2.Height;
       }
 
       private void splitContainer1_SplitterMoving(object sender, SplitterCancelEventArgs e)
       {
-         _UserIsMovingSplitter = true;
+         //_UserIsMovingSplitter = true;
       }
    }
 }

@@ -16,7 +16,7 @@ namespace Org.Edgerunner.Moo.Editor.Controls
 {
    public partial class ConsoleWindowEmulator : FastColoredTextBox
    {
-      private readonly AnsiManager _AnsiManager;
+      public AnsiManager AnsiManager { get; }
       private Color _ConsoleForeColor;
       private Color _ConsoleBackgroundColor;
       private FontStyle _ConsoleFontStyle;
@@ -29,7 +29,7 @@ namespace Org.Edgerunner.Moo.Editor.Controls
          set
          {
             _ConsoleForeColor = value;
-            _AnsiManager.DefaultTextColor = _ConsoleForeColor;
+            AnsiManager.DefaultTextColor = _ConsoleForeColor;
          }
       }
 
@@ -39,7 +39,7 @@ namespace Org.Edgerunner.Moo.Editor.Controls
          set
          {
             _ConsoleBackgroundColor = value;
-            _AnsiManager.DefaultTextBackgroundColor = _ConsoleBackgroundColor;
+            AnsiManager.DefaultTextBackgroundColor = _ConsoleBackgroundColor;
          }
       }
 
@@ -49,18 +49,19 @@ namespace Org.Edgerunner.Moo.Editor.Controls
          set
          {
             _ConsoleFontStyle = value;
-            _AnsiManager.DefaultFontTextStyle = _ConsoleFontStyle;
+            AnsiManager.DefaultFontTextStyle = _ConsoleFontStyle;
          }
       }
 
       public ConsoleWindowEmulator()
       {
          InitializeComponent();
-         _AnsiManager = new AnsiManager(Color.White, Color.Black);
+         AnsiManager = new AnsiManager(Color.White, Color.Black);
+         AnsiManager.EchoEnabled = true;
          ConsoleForeColor = Color.WhiteSmoke;
          ConsoleBackgroundColor = Color.Black;
          ConsoleFontStyle = FontStyle.Regular;
-         CurrentStyle = _AnsiManager.CurrentStyle;
+         CurrentStyle = AnsiManager.CurrentStyle;
       }
 
       protected override void OnLoad(EventArgs e)
@@ -76,6 +77,26 @@ namespace Org.Edgerunner.Moo.Editor.Controls
          PreferredLineWidth = 0;
          ReadOnly = true;
          var testStyle = new TextStyle(new SolidBrush(Color.Red), null, FontStyle.Regular);
+      }
+
+      /// <summary>
+      /// Echoes the text.
+      /// </summary>
+      /// <param name="text">The text.</param>
+      public void EchoText(string text)
+      {
+         if (AnsiManager.EchoEnabled)
+            Write(text, AnsiManager.EchoStyle);
+      }
+
+      /// <summary>
+      /// Echoes the text line.
+      /// </summary>
+      /// <param name="text">The text.</param>
+      public void EchoTextLine(string text)
+      {
+         if (AnsiManager.EchoEnabled)
+            WriteLine(text, AnsiManager.EchoStyle);
       }
 
       /// <summary>
@@ -122,19 +143,19 @@ namespace Org.Edgerunner.Moo.Editor.Controls
             var codes = match.Groups["codes"].Value;
             if (match.Index != 0)
             {
-               if (_AnsiManager.Blinking)
+               if (AnsiManager.Blinking)
                   WriteWithStyles(text[..(match.Index)], new Style[] {CurrentStyle, DefaultBlinkingStyle });
                else
                   Write(text[..(match.Index)], CurrentStyle);
                Application.DoEvents();
             }
-            CurrentStyle = _AnsiManager.ProcessCodes(codes.Split(';').ToList().Select(int.Parse).ToList());
+            CurrentStyle = AnsiManager.ProcessCodes(codes.Split(';').ToList().Select(int.Parse).ToList());
             text = match.Index + match.Length < text.Length ? text[(match.Index + match.Length)..] : string.Empty;
             match = Regex.Match(text, @"\e\[(?<codes>(\d+;)*\d+);*m");
          }
 
          if (!string.IsNullOrEmpty(text))
-            if (_AnsiManager.Blinking)
+            if (AnsiManager.Blinking)
                WriteWithStyles(text, new Style[] {CurrentStyle, DefaultBlinkingStyle });
             else
                Write(text, CurrentStyle);

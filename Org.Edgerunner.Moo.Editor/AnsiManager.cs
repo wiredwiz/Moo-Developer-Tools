@@ -34,12 +34,21 @@
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #endregion
 
+using System.Net.Mime;
 using FastColoredTextBoxNS.Types;
 
 namespace Org.Edgerunner.Moo.Editor;
 
+/// <summary>
+/// A class to manage ANSI command interactions
+/// </summary>
 public class AnsiManager
 {
+   /// <summary>
+   /// Initializes a new instance of the <see cref="AnsiManager"/> class.
+   /// </summary>
+   /// <param name="defaultTextColor">Default color of the text.</param>
+   /// <param name="defaultTextBackgroundColor">Default color of the text background.</param>
    public AnsiManager(Color defaultTextColor, Color defaultTextBackgroundColor)
    {
       DefaultTextColor = defaultTextColor;
@@ -49,11 +58,15 @@ public class AnsiManager
       DefaultFontTextStyle = FontStyle.Regular;
       FontStyle = FontStyle.Regular;
       CurrentStyle = GetStyle(defaultTextColor, defaultTextBackgroundColor, FontStyle.Regular);
+      EchoStyle = GetStyle(Color.LightGray, BackgroundColor, FontStyle.Regular);
       IsReset = true;
       Blinking = false;
       ReverseVideo = false;
    }
 
+   /// <summary>
+   /// Initializes the <see cref="AnsiManager"/> class.
+   /// </summary>
    static AnsiManager()
    {
       StyleCache = new Dictionary<string, TextStyle>();
@@ -63,9 +76,25 @@ public class AnsiManager
    public Color DefaultTextBackgroundColor { get; set; }
    public FontStyle DefaultFontTextStyle { get; set; }
 
+   /// <summary>
+   /// Gets a value indicating whether blinking is currently on.
+   /// </summary>
+   /// <value>
+   ///   <c>true</c> if blinking; otherwise, <c>false</c>.
+   /// </value>
    public bool Blinking { get; private set; }
 
+   /// <summary>
+   /// Gets or sets a value indicating whether console echo is enabled.
+   /// </summary>
+   /// <value>
+   ///   <c>true</c> if [echo enabled]; otherwise, <c>false</c>.
+   /// </value>
+   public bool EchoEnabled { get; set; }
+
    public TextStyle CurrentStyle { get; private set; }
+
+   public TextStyle EchoStyle { get; private set; }
 
    protected Color ForeColor { get; set; }
 
@@ -96,7 +125,7 @@ public class AnsiManager
 
    public TextStyle ProcessCodes(List<int> codes)
    {
-      if (codes.Count == 1 && codes[0] is 2 or 4 or 5 or 7)
+      if (codes.Count == 1 && codes[0] is 2 or 4 or 5 or 7 or 8)
       {
          if (codes[0] == 2)
          {
@@ -116,6 +145,8 @@ public class AnsiManager
             FontStyle |= FontStyle.Bold;
             CurrentStyle = GetStyle(ForeColor, BackgroundColor, FontStyle);
          }
+         else if (codes[0] == 8)
+            EchoEnabled = true;
       }
       else if (codes.Count > 2 && (codes[0] == 38 || codes[0] == 48))
       {
