@@ -31,9 +31,9 @@
          this.components = new System.ComponentModel.Container();
          System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(MooClientTerminal));
          this.splitContainer1 = new System.Windows.Forms.SplitContainer();
-         this.txtInput = new System.Windows.Forms.TextBox();
-         this.pnlSpacer = new System.Windows.Forms.Panel();
          this.consoleSim = new Org.Edgerunner.Moo.Editor.Controls.ConsoleWindowEmulator();
+         this.pnlSpacer = new System.Windows.Forms.Panel();
+         this.txtInput = new System.Windows.Forms.TextBox();
          ((System.ComponentModel.ISupportInitialize)(this.splitContainer1)).BeginInit();
          this.splitContainer1.Panel1.SuspendLayout();
          this.splitContainer1.Panel2.SuspendLayout();
@@ -44,6 +44,7 @@
          // splitContainer1
          // 
          this.splitContainer1.Dock = System.Windows.Forms.DockStyle.Fill;
+         this.splitContainer1.FixedPanel = System.Windows.Forms.FixedPanel.Panel2;
          this.splitContainer1.Location = new System.Drawing.Point(0, 0);
          this.splitContainer1.Name = "splitContainer1";
          this.splitContainer1.Orientation = System.Windows.Forms.Orientation.Horizontal;
@@ -57,27 +58,10 @@
          // 
          this.splitContainer1.Panel2.Controls.Add(this.txtInput);
          this.splitContainer1.Size = new System.Drawing.Size(354, 267);
-         this.splitContainer1.SplitterDistance = 215;
+         this.splitContainer1.SplitterDistance = 238;
          this.splitContainer1.TabIndex = 0;
-         // 
-         // txtInput
-         // 
-         this.txtInput.Dock = System.Windows.Forms.DockStyle.Fill;
-         this.txtInput.Location = new System.Drawing.Point(0, 0);
-         this.txtInput.Multiline = true;
-         this.txtInput.Name = "txtInput";
-         this.txtInput.Size = new System.Drawing.Size(354, 48);
-         this.txtInput.TabIndex = 0;
-         this.txtInput.KeyDown += new System.Windows.Forms.KeyEventHandler(this.txtInput_KeyDown);
-         // 
-         // pnlSpacer
-         // 
-         this.pnlSpacer.BackColor = System.Drawing.Color.Black;
-         this.pnlSpacer.Dock = System.Windows.Forms.DockStyle.Bottom;
-         this.pnlSpacer.Location = new System.Drawing.Point(0, 199);
-         this.pnlSpacer.Name = "pnlSpacer";
-         this.pnlSpacer.Size = new System.Drawing.Size(354, 16);
-         this.pnlSpacer.TabIndex = 0;
+         this.splitContainer1.SplitterMoving += new System.Windows.Forms.SplitterCancelEventHandler(this.splitContainer1_SplitterMoving);
+         this.splitContainer1.SplitterMoved += new System.Windows.Forms.SplitterEventHandler(this.splitContainer1_SplitterMoved);
          // 
          // consoleSim
          // 
@@ -101,6 +85,9 @@
          this.consoleSim.CaretColor = System.Drawing.Color.Transparent;
          this.consoleSim.CharHeight = 18;
          this.consoleSim.CharWidth = 10;
+         this.consoleSim.ConsoleBackgroundColor = System.Drawing.Color.Black;
+         this.consoleSim.ConsoleFontStyle = System.Drawing.FontStyle.Regular;
+         this.consoleSim.ConsoleForeColor = System.Drawing.Color.WhiteSmoke;
          this.consoleSim.DefaultMarkerSize = 8;
          this.consoleSim.DisabledColor = System.Drawing.Color.FromArgb(((int)(((byte)(100)))), ((int)(((byte)(180)))), ((int)(((byte)(180)))), ((int)(((byte)(180)))));
          this.consoleSim.Dock = System.Windows.Forms.DockStyle.Fill;
@@ -116,22 +103,45 @@
          this.consoleSim.ReadOnly = true;
          this.consoleSim.ReplaceForm = null;
          this.consoleSim.SelectionColor = System.Drawing.Color.FromArgb(((int)(((byte)(60)))), ((int)(((byte)(0)))), ((int)(((byte)(0)))), ((int)(((byte)(255)))));
-         this.consoleSim.SelectionLength = 22;
          this.consoleSim.ServiceColors = ((FastColoredTextBoxNS.ServiceColors)(resources.GetObject("consoleSim.ServiceColors")));
          this.consoleSim.ShowLineNumbers = false;
-         this.consoleSim.Size = new System.Drawing.Size(354, 199);
+         this.consoleSim.Size = new System.Drawing.Size(354, 222);
          this.consoleSim.TabIndex = 1;
          this.consoleSim.Text = "consoleWindowEmulator1";
+         this.consoleSim.ToolTipDelay = 100;
          this.consoleSim.WordWrap = true;
          this.consoleSim.Zoom = 100;
          // 
-         // MooClient
+         // pnlSpacer
+         // 
+         this.pnlSpacer.BackColor = System.Drawing.Color.Black;
+         this.pnlSpacer.Dock = System.Windows.Forms.DockStyle.Bottom;
+         this.pnlSpacer.Location = new System.Drawing.Point(0, 222);
+         this.pnlSpacer.Name = "pnlSpacer";
+         this.pnlSpacer.Size = new System.Drawing.Size(354, 16);
+         this.pnlSpacer.TabIndex = 0;
+         // 
+         // txtInput
+         // 
+         this.txtInput.Dock = System.Windows.Forms.DockStyle.Fill;
+         this.txtInput.Location = new System.Drawing.Point(0, 0);
+         this.txtInput.Multiline = true;
+         this.txtInput.Name = "txtInput";
+         this.txtInput.PasswordChar = '*';
+         this.txtInput.Size = new System.Drawing.Size(354, 25);
+         this.txtInput.TabIndex = 0;
+         this.txtInput.UseSystemPasswordChar = true;
+         this.txtInput.TextChanged += new System.EventHandler(this.txtInput_TextChanged);
+         this.txtInput.KeyDown += new System.Windows.Forms.KeyEventHandler(this.txtInput_KeyDown);
+         // 
+         // MooClientTerminal
          // 
          this.AutoScaleDimensions = new System.Drawing.SizeF(8F, 20F);
          this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
          this.Controls.Add(this.splitContainer1);
-         this.Name = "MooClient";
+         this.Name = "MooClientTerminal";
          this.Size = new System.Drawing.Size(354, 267);
+         this.Resize += new System.EventHandler(this.MooClientTerminal_Resize);
          this.splitContainer1.Panel1.ResumeLayout(false);
          this.splitContainer1.Panel2.ResumeLayout(false);
          this.splitContainer1.Panel2.PerformLayout();
@@ -147,6 +157,6 @@
       private SplitContainer splitContainer1;
       private ConsoleWindowEmulator consoleSim;
       private Panel pnlSpacer;
-      private TextBox txtInput;
-   }
+        private TextBox txtInput;
+    }
 }

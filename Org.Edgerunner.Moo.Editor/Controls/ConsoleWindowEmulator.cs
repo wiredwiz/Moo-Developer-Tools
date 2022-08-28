@@ -4,6 +4,7 @@ using System.ComponentModel;
 using System.Data;
 using System.Drawing;
 using System.Linq;
+using System.Media;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
@@ -15,7 +16,7 @@ namespace Org.Edgerunner.Moo.Editor.Controls
 {
    public partial class ConsoleWindowEmulator : FastColoredTextBox
    {
-      private readonly ColorManager _ColorManager;
+      private readonly AnsiManager _AnsiManager;
       private Color _ConsoleForeColor;
       private Color _ConsoleBackgroundColor;
       private FontStyle _ConsoleFontStyle;
@@ -28,7 +29,7 @@ namespace Org.Edgerunner.Moo.Editor.Controls
          set
          {
             _ConsoleForeColor = value;
-            _ColorManager.DefaultTextColor = _ConsoleForeColor;
+            _AnsiManager.DefaultTextColor = _ConsoleForeColor;
          }
       }
 
@@ -38,7 +39,7 @@ namespace Org.Edgerunner.Moo.Editor.Controls
          set
          {
             _ConsoleBackgroundColor = value;
-            _ColorManager.DefaultTextBackgroundColor = _ConsoleBackgroundColor;
+            _AnsiManager.DefaultTextBackgroundColor = _ConsoleBackgroundColor;
          }
       }
 
@@ -48,18 +49,18 @@ namespace Org.Edgerunner.Moo.Editor.Controls
          set
          {
             _ConsoleFontStyle = value;
-            _ColorManager.DefaultFontTextStyle = _ConsoleFontStyle;
+            _AnsiManager.DefaultFontTextStyle = _ConsoleFontStyle;
          }
       }
 
       public ConsoleWindowEmulator()
       {
          InitializeComponent();
-         _ColorManager = new ColorManager(Color.White, Color.Black);
+         _AnsiManager = new AnsiManager(Color.White, Color.Black);
          ConsoleForeColor = Color.WhiteSmoke;
          ConsoleBackgroundColor = Color.Black;
          ConsoleFontStyle = FontStyle.Regular;
-         CurrentStyle = _ColorManager.CurrentStyle;
+         CurrentStyle = _AnsiManager.CurrentStyle;
       }
 
       protected override void OnLoad(EventArgs e)
@@ -74,6 +75,7 @@ namespace Org.Edgerunner.Moo.Editor.Controls
          WordWrapMode = WordWrapMode.WordWrapControlWidth;
          PreferredLineWidth = 0;
          ReadOnly = true;
+         var testStyle = new TextStyle(new SolidBrush(Color.Red), null, FontStyle.Regular);
       }
 
       /// <summary>
@@ -120,16 +122,22 @@ namespace Org.Edgerunner.Moo.Editor.Controls
             var codes = match.Groups["codes"].Value;
             if (match.Index != 0)
             {
-               Write(text[..(match.Index)], CurrentStyle);
+               if (_AnsiManager.Blinking)
+                  WriteWithStyles(text[..(match.Index)], new Style[] {CurrentStyle, DefaultBlinkingStyle });
+               else
+                  Write(text[..(match.Index)], CurrentStyle);
                Application.DoEvents();
             }
-            CurrentStyle = _ColorManager.ProcessColors(codes.Split(';').ToList().Select(int.Parse).ToList());
+            CurrentStyle = _AnsiManager.ProcessCodes(codes.Split(';').ToList().Select(int.Parse).ToList());
             text = match.Index + match.Length < text.Length ? text[(match.Index + match.Length)..] : string.Empty;
             match = Regex.Match(text, @"\e\[(?<codes>(\d+;)*\d+);*m");
          }
 
          if (!string.IsNullOrEmpty(text))
-            Write(text, CurrentStyle);
+            if (_AnsiManager.Blinking)
+               WriteWithStyles(text, new Style[] {CurrentStyle, DefaultBlinkingStyle });
+            else
+               Write(text, CurrentStyle);
       }
 
       /// <summary>
@@ -145,15 +153,45 @@ namespace Org.Edgerunner.Moo.Editor.Controls
       /// Append line to end of text.
       /// </summary>
       /// <param name="text">The text.</param>
-      /// <param name="style">The style.</param>
+      /// <param name="style">The style to apply.</param>
       public void Write(string text, Style style)
       {
+         var newText = text.Replace("\u0007", "");
+         if (newText.Length != text.Length)
+            SystemSounds.Beep.Play();
+
          try
          {
             if (style == null)
-               AppendText(text);
+               AppendText(newText);
             else
-               AppendText(text, style);
+               AppendText(newText, style);
+         }
+         finally
+         {
+            ClearUndo();
+         }
+
+         ScrollToEnd();
+      }
+
+      /// <summary>
+      /// Append line to end of text.
+      /// </summary>
+      /// <param name="text">The text.</param>
+      /// <param name="styles">The styles to apply.</param>
+      public void WriteWithStyles(string text, IEnumerable<Style> styles)
+      {
+         var newText = text.Replace("\u0007", "");
+         if (newText.Length != text.Length)
+            SystemSounds.Beep.Play();
+
+         try
+         {
+            if (styles == null)
+               AppendText(newText);
+            else
+               AppendTextWithStyles(newText, styles);
          }
          finally
          {

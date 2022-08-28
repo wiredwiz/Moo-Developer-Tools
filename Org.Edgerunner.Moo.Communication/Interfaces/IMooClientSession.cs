@@ -36,8 +36,10 @@
 
 
 using System;
+using System.Collections.Concurrent;
 using System.IO;
 using System.Text;
+using Org.Edgerunner.Messaging;
 using Org.Edgerunner.Moo.Communication.Buffers;
 
 namespace Org.Edgerunner.Moo.Communication.Interfaces;
@@ -77,20 +79,20 @@ public interface IMooClientSession
    bool IsOpen { get; }
 
    /// <summary>
-   /// Gets the command buffer.
+   /// Gets the command queue.
    /// </summary>
    /// <value>
-   /// The command buffer.
+   /// The command queue.
    /// </value>
-   CommunicationBuffer CommandBuffer { get; }
+   ConcurrentQueue<string> CommandQueue { get; }
 
    /// <summary>
-   /// Gets the out of band command buffer.
+   /// Gets the out of band command queue.
    /// </summary>
    /// <value>
-   /// The out of band command buffer.
+   /// The out of band command queue.
    /// </value>
-   CommunicationBuffer OutOfBandCommandBuffer { get; }
+   ConcurrentQueue<string> OutOfBandCommandQueue { get; }
 
    /// <summary>
    /// Sends the contents of the data buffer over the session connection.
@@ -133,8 +135,12 @@ public interface IMooClientSession
    /// <summary>
    /// Occurs when data is received on the connection.
    /// </summary>
-   /// <remarks>This could be normal command data or Out Of Band commands</remarks>
-   event EventHandler? DataReceived;
+   event EventHandler<string>? DataReceived;
+
+   /// <summary>
+   /// Occurs when an Out of Band Command is received on the connection.
+   /// </summary>
+   event EventHandler<string>? OutOfBandCommandReceived;
 
    /// <summary>
    /// Occurs when data is dropped because the buffer overflowed.

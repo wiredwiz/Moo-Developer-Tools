@@ -1,5 +1,5 @@
 ﻿#region BSD 3-Clause License
-// <copyright company="Edgerunner.org" file="ColorManager.cs">
+// <copyright company="Edgerunner.org" file="AnsiManager.cs">
 // Copyright (c)  2022
 // </copyright>
 //
@@ -38,9 +38,9 @@ using FastColoredTextBoxNS.Types;
 
 namespace Org.Edgerunner.Moo.Editor;
 
-public class ColorManager
+public class AnsiManager
 {
-   public ColorManager(Color defaultTextColor, Color defaultTextBackgroundColor)
+   public AnsiManager(Color defaultTextColor, Color defaultTextBackgroundColor)
    {
       DefaultTextColor = defaultTextColor;
       ForeColor = defaultTextColor;
@@ -50,9 +50,11 @@ public class ColorManager
       FontStyle = FontStyle.Regular;
       CurrentStyle = GetStyle(defaultTextColor, defaultTextBackgroundColor, FontStyle.Regular);
       IsReset = true;
+      Blinking = false;
+      ReverseVideo = false;
    }
 
-   static ColorManager()
+   static AnsiManager()
    {
       StyleCache = new Dictionary<string, TextStyle>();
    }
@@ -60,6 +62,8 @@ public class ColorManager
    public Color DefaultTextColor { get; set; }
    public Color DefaultTextBackgroundColor { get; set; }
    public FontStyle DefaultFontTextStyle { get; set; }
+
+   public bool Blinking { get; private set; }
 
    public TextStyle CurrentStyle { get; private set; }
 
@@ -71,12 +75,16 @@ public class ColorManager
 
    protected bool Bright { get; set; }
 
+   protected bool ReverseVideo { get; set; }
+
    protected bool IsReset { get; set; }
 
    protected static Dictionary<string, TextStyle> StyleCache { get; set; }
 
-   protected static TextStyle GetStyle(Color foregroundColor, Color backgroundColor, FontStyle fontStyle)
+   public TextStyle GetStyle(Color foregroundColor, Color backgroundColor, FontStyle fontStyle)
    {
+      if (ReverseVideo)
+         (backgroundColor, foregroundColor) = (foregroundColor, backgroundColor);
       string key = $"{foregroundColor}-{backgroundColor}-{fontStyle}";
       if (StyleCache.TryGetValue(key, out var style))
          return style;
@@ -86,9 +94,30 @@ public class ColorManager
       return StyleCache[key] = new TextStyle(foreBrush, backBrush, fontStyle);
    }
 
-   public TextStyle ProcessColors(List<int> codes)
+   public TextStyle ProcessCodes(List<int> codes)
    {
-      if (codes.Count > 2 && (codes[0] == 38 || codes[0] == 48))
+      if (codes.Count == 1 && codes[0] is 2 or 4 or 5 or 7)
+      {
+         if (codes[0] == 2)
+         {
+            Bright = false;
+            CurrentStyle = GetStyle(ForeColor, BackgroundColor, FontStyle);
+         }
+         else if (codes[0] == 4)
+         {
+            FontStyle |= FontStyle.Underline;
+            CurrentStyle = GetStyle(ForeColor, BackgroundColor, FontStyle);
+         }
+         else if (codes[0] == 5)
+            Blinking = true;
+         else if (codes[0] == 7)
+         {
+            ReverseVideo = true;
+            FontStyle |= FontStyle.Bold;
+            CurrentStyle = GetStyle(ForeColor, BackgroundColor, FontStyle);
+         }
+      }
+      else if (codes.Count > 2 && (codes[0] == 38 || codes[0] == 48))
       {
          if (codes[1] == 5)
             return ProcessXtermColors(codes);
@@ -116,12 +145,7 @@ public class ColorManager
       {
          if (code == 0)
          {
-            // Reset colors
-            Bright = false;
-            IsReset = true;
-            ForeColor = DefaultTextColor;
-            BackgroundColor = DefaultTextBackgroundColor;
-            FontStyle = DefaultFontTextStyle;
+            DoAnsiReset();
          }
          else
          {
@@ -182,6 +206,18 @@ public class ColorManager
       }
 
       return CurrentStyle = GetStyle(ForeColor, BackgroundColor, FontStyle);
+   }
+
+   private void DoAnsiReset()
+   {
+      // Reset colors
+      Bright = false;
+      IsReset = true;
+      Blinking = false;
+      ReverseVideo = false;
+      ForeColor = DefaultTextColor;
+      BackgroundColor = DefaultTextBackgroundColor;
+      FontStyle = DefaultFontTextStyle;
    }
 
    protected TextStyle ProcessXtermColors(List<int> codes)

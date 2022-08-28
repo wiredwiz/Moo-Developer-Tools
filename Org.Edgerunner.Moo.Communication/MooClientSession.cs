@@ -44,6 +44,10 @@ using Org.Edgerunner.Moo.Communication.Interfaces;
 using System;
 using Org.Edgerunner.Common.Buffers;
 using Org.Edgerunner.Moo.Communication.Buffers;
+using System.Runtime.InteropServices;
+using Org.Edgerunner.Messaging;
+using System.Collections.Concurrent;
+using IOException = System.IO.IOException;
 
 namespace Org.Edgerunner.Moo.Communication;
 
@@ -59,8 +63,10 @@ public class MooClientSession : IMooClientSession, IDisposable
    public MooClientSession(string world, string host, int port, string outOfBandPrefix = "#$#")
    {
       Client = new TcpClient();
-      CommandBuffer = new CommunicationBuffer(10000);
-      OutOfBandCommandBuffer = new CommunicationBuffer(10000);
+      CommandBuffer = new CommunicationBuffer(2048);
+      OutOfBandCommandBuffer = new CommunicationBuffer(2048);
+      CommandQueue = new ConcurrentQueue<string>();
+      OutOfBandCommandQueue = new ConcurrentQueue<string>();
       World = world;
       Host = host;
       Port = port;
@@ -125,10 +131,32 @@ public class MooClientSession : IMooClientSession, IDisposable
    {
       get
       {
-         Client.Client.Poll(0, SelectMode.SelectRead);
-         return Client is { Connected: true };
+         try
+         {
+            return !(Client.Client.Poll(5, SelectMode.SelectRead) && Client.Client.Available == 0);
+         }
+         catch (SocketException)
+         {
+            return false;
+         }
       }
    }
+
+   /// <summary>
+   /// Gets the command queue.
+   /// </summary>
+   /// <value>
+   /// The command queue.
+   /// </value>
+   public ConcurrentQueue<string> CommandQueue { get; }
+
+   /// <summary>
+   /// Gets the out of band command queue.
+   /// </summary>
+   /// <value>
+   /// The out of band command queue.
+   /// </value>
+   public ConcurrentQueue<string> OutOfBandCommandQueue { get; }
 
    /// <summary>
    /// Gets the command buffer.
@@ -136,7 +164,7 @@ public class MooClientSession : IMooClientSession, IDisposable
    /// <value>
    /// The command buffer.
    /// </value>
-   public CommunicationBuffer CommandBuffer { get; }
+   protected CommunicationBuffer CommandBuffer { get; }
 
    /// <summary>
    /// Gets the out of band command buffer.
@@ -144,7 +172,7 @@ public class MooClientSession : IMooClientSession, IDisposable
    /// <value>
    /// The out of band command buffer.
    /// </value>
-   public CommunicationBuffer OutOfBandCommandBuffer { get; }
+   protected CommunicationBuffer OutOfBandCommandBuffer { get; }
 
    /// <summary>
    /// Sends the contents of the data buffer over the session connection.
@@ -152,7 +180,7 @@ public class MooClientSession : IMooClientSession, IDisposable
    /// <param name="buffer">The data buffer.</param>
    public void Send(byte[] buffer)
    {
-      _Stream?.Write(buffer, 0, buffer.Length);
+      SendData(buffer);
    }
 
    /// <summary>
@@ -161,8 +189,8 @@ public class MooClientSession : IMooClientSession, IDisposable
    /// <param name="text">The text to send.</param>
    public void Send(string text)
    {
-      var data = Encoding.ASCII.GetBytes(text);
-      _Stream?.Write(data, 0, data.Length);
+      var data = Encoding.UTF8.GetBytes(text);
+      SendData(data);
    }
 
    /// <summary>
@@ -172,8 +200,8 @@ public class MooClientSession : IMooClientSession, IDisposable
    /// <remarks>This method appends a line feed for you.</remarks>
    public void SendLine(string text)
    {
-      var data = Encoding.ASCII.GetBytes($"{text}\n");
-      _Stream?.Write(data, 0, data.Length);
+      var data = Encoding.UTF8.GetBytes($"{text}\n");
+      SendData(data);
    }
 
    /// <summary>
@@ -185,7 +213,7 @@ public class MooClientSession : IMooClientSession, IDisposable
       var data = new byte[_OutOfBandBytes.Length + buffer.Length];
       Array.Copy(_OutOfBandBytes, data, _OutOfBandBytes.Length);
       buffer.CopyTo(data, _OutOfBandBytes.Length);
-      _Stream?.Write(data, 0, data.Length);
+      SendData(data);
    }
 
    /// <summary>
@@ -195,7 +223,7 @@ public class MooClientSession : IMooClientSession, IDisposable
    public void SendOutOfBand(string text)
    {
       var data = Encoding.ASCII.GetBytes($"{OutOfBandPrefix}{text}");
-      _Stream?.Write(data, 0, data.Length);
+      SendData(data);
    }
 
    /// <summary>
@@ -206,13 +234,30 @@ public class MooClientSession : IMooClientSession, IDisposable
    public void SendOutOfBandLine(string text)
    {
       var data = Encoding.ASCII.GetBytes($"{OutOfBandPrefix}{text}\n");
-      _Stream?.Write(data, 0, data.Length);
+      SendData(data);
+   }
+
+   private void SendData(byte[] data)
+   {
+      try
+      {
+         _Stream?.Write(data, 0, data.Length);
+      }
+      catch (IOException)
+      {
+         Debug.WriteLine("failed to write to socket");
+      }
    }
 
    /// <summary>
    /// Occurs when data is received on the connection.
    /// </summary>
-   public event EventHandler? DataReceived;
+   public event EventHandler<string>? DataReceived;
+
+   /// <summary>
+   /// Occurs when an Out of Band Command is received on the connection.
+   /// </summary>
+   public event EventHandler<string>? OutOfBandCommandReceived;
 
    /// <summary>
    /// Occurs when data is dropped because the buffer overflowed.
@@ -261,9 +306,14 @@ public class MooClientSession : IMooClientSession, IDisposable
       Closed?.InvokeOnUI(new object[] { this });
    }
 
-   protected void OnDataReceived()
+   protected void OnDataReceived(string text)
    {
-      DataReceived?.InvokeOnUI(new object[] { this });
+      DataReceived?.InvokeOnUI(new object[] { this, text });
+   }
+
+   protected void OnOutOfBandCommandReceived(string command)
+   {
+      OutOfBandCommandReceived?.InvokeOnUI(new object[] { this, command });
    }
 
    protected void OnDataDropped(int droppedBytes)
@@ -275,7 +325,7 @@ public class MooClientSession : IMooClientSession, IDisposable
    {
       var buffer = new byte[2048];
       var outOfBand = false;
-      while (Client is { Connected: true })
+      while (IsOpen)
       {
          Thread.Sleep(5);
          try
@@ -284,21 +334,20 @@ public class MooClientSession : IMooClientSession, IDisposable
             {
                var bytes = _Stream.Read(buffer, 0, buffer.Length);
                ProcessReadBuffer(buffer, bytes, ref outOfBand);
-               OnDataReceived();
             }
+
+            FlushCommandBuffer();
          }
          catch (ObjectDisposedException)
          {
             _Stream = null;
             OnClosed();
-            var text = Encoding.UTF8.GetBytes("\n** Connection Closed by client **");
-            foreach (var character in text)
-               CommandBuffer.PushBack(character);
             Debug.WriteLine("Stream disposed");
          }
          if (TokenSource.IsCancellationRequested)
-            return;
+            break;
       }
+      OnClosed();
    }
 
    private void ProcessReadBuffer(byte[] buffer, int bytes, ref bool outOfBandMode)
@@ -311,28 +360,70 @@ public class MooClientSession : IMooClientSession, IDisposable
          {
             // Do nothing, we are skipping the carriage return
          }
-         else if (!outOfBandMode && buffer[i] == '#')
+         else if (!outOfBandMode && CommandBuffer.IsEmpty && OutOfBandCommandBuffer.IsEmpty && buffer[i] == '#')
          {
             if ((bytes - i > 2) && (buffer[i + 1] == '$') && (buffer[i + 2] == '#'))
                outOfBandMode = true;
-
-            droppedBytes += BufferData(outOfBandMode, buffer[i]);
+            i += 2;
          }
-         else if (outOfBandMode)
+         else if (buffer[i] == '\n')
          {
-            if (buffer[i] == '\n')
+            var data = "\n";
+            var tmpOob = outOfBandMode;
+            var empty = outOfBandMode ? OutOfBandCommandBuffer.IsEmpty : CommandBuffer.IsEmpty;
+            if (!empty)
             {
-               outOfBandMode = false;
-               droppedBytes += BufferData(true, buffer[i]);
+               byte[] dataBuffer;
+               Decoder decoder;
+               BufferData(outOfBandMode, buffer[i]);
+               if (outOfBandMode)
+               {
+                  dataBuffer = OutOfBandCommandBuffer.ToArray();
+                  OutOfBandCommandBuffer.Clear();
+                  outOfBandMode = false;
+                  decoder = Encoding.ASCII.GetDecoder();
+               }
+               else
+               {
+                  dataBuffer = CommandBuffer.ToArray();
+                  CommandBuffer.Clear();
+                  decoder = Encoding.UTF8.GetDecoder();
+               }
+
+               var chars = new char[decoder.GetCharCount(dataBuffer, 0, dataBuffer.Length)];
+               decoder.GetChars(dataBuffer, 0, dataBuffer.Length, chars, 0);
+               data = new string(chars);
+            }
+
+            if (tmpOob)
+            {
+               OutOfBandCommandQueue.Enqueue(data);
+               OnOutOfBandCommandReceived(data);
             }
             else
-               droppedBytes += BufferData(outOfBandMode, buffer[i]);
+            {
+               CommandQueue.Enqueue(data);
+               OnDataReceived(data);
+            }
          }
          else
             droppedBytes += BufferData(outOfBandMode, buffer[i]);
       }
       if (droppedBytes != 0)
          OnDataDropped(droppedBytes);
+   }
+
+   private void FlushCommandBuffer()
+   {
+      var dataBuffer = CommandBuffer.ToArray();
+      CommandBuffer.Clear();
+      var decoder = Encoding.UTF8.GetDecoder();
+
+      var chars = new char[decoder.GetCharCount(dataBuffer, 0, dataBuffer.Length)];
+      decoder.GetChars(dataBuffer, 0, dataBuffer.Length, chars, 0);
+      var data = new string(chars);
+      CommandQueue.Enqueue(data);
+      OnDataReceived(data);
    }
 
    private int BufferData(bool outOfBandMode, byte b)

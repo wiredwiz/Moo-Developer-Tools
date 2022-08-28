@@ -55,12 +55,13 @@ public class CommunicationBuffer : ConcurrentCircularBuffer<byte>
    }
 
    /// <summary>
-   /// Initializes a new instance of the <see cref="CommunicationBuffer"/> class.
+   /// Initializes a new instance of the <see cref="CommunicationBuffer" /> class.
    /// </summary>
-   /// <param name="capacity">Buffer capacity. Must be positive.</param>
-   /// <param name="items">Items to fill buffer with. Items length must be less than capacity.
-   /// Suggestion: use Skip(x).Take(y).ToArray() to build this argument from
-   /// any enumerable.</param>
+   /// <param name="capacity">The capacity to use for the buffer.</param>
+   /// <param name="items">Items to fill buffer with.</param>
+   /// <exception cref="System.ArgumentNullException">items is null.</exception>
+   /// <exception cref="System.ArgumentException">items size is larger than the buffer capacity.</exception>
+   /// <exception cref="System.ArgumentOutOfRangeException">capacity is a non-positive number.</exception>
    public CommunicationBuffer(int capacity, byte[] items)
       : base(capacity, items)
    {

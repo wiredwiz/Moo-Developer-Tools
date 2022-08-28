@@ -95,7 +95,7 @@ namespace FastColoredTextBoxNS.Types {
 		public override void Draw(Graphics gr, Point position, TextSelectionRange range) {
 			//draw background
 			if (BackgroundBrush != null)
-				gr.FillRectangle(BackgroundBrush, position.X, position.Y, (range.End.iChar - range.Start.iChar) * range.tb.CharWidth, range.tb.CharHeight);
+				gr.FillRectangle(BackgroundBrush, position.X - (int)(range.tb.CharWidth * 0.10), position.Y, (range.End.iChar - range.Start.iChar) * range.tb.CharWidth + (int)(range.tb.CharWidth * 0.20), range.tb.CharHeight);
 			//draw chars
 			using var f = new Font(range.tb.Font, FontStyle);
 			Line line = range.tb[range.Start.iLine];
