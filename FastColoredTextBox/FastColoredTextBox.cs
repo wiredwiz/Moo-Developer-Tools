@@ -226,6 +226,11 @@ namespace FastColoredTextBoxNS
          CaretBlinking = true;
          ServiceColors = new ServiceColors();
          base.AutoScroll = true;
+         AccessibleRole = AccessibleRole.Text;
+         AccessibleDescription = "Textbox control";
+         AccessibleDefaultActionDescription = "Edit";
+         AccessibleName = "Fast Colored Text Box";
+         // #TODO add AccessibilityObject support
          timer.Tick += Timer_Tick;
          timer2.Tick += Timer2_Tick;
          timer3.Tick += Timer3_Tick;
