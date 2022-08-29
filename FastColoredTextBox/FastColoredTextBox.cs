@@ -533,6 +533,12 @@ namespace FastColoredTextBoxNS
       public int CharWidth { get; set; }
 
       /// <summary>
+      /// Determines if the vertical scrollbar is positioned at the bottom
+      /// </summary>
+      [Browsable(false)]
+      public bool VerticalScrollbarPositionedAtBottom => VerticalScroll.Value > (VerticalScroll.Maximum - ClientRectangle.Height - 30);
+
+      /// <summary>
       /// Spaces count for tab
       /// </summary>
       [DefaultValue(4)]
