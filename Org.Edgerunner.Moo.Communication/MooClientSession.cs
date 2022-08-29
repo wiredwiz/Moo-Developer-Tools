@@ -65,8 +65,7 @@ public class MooClientSession : IMooClientSession, IDisposable
       Client = new TcpClient();
       CommandBuffer = new CommunicationBuffer(2048);
       OutOfBandCommandBuffer = new CommunicationBuffer(2048);
-      CommandQueue = new ConcurrentQueue<string>();
-      OutOfBandCommandQueue = new ConcurrentQueue<string>();
+      CommandQueue = new ConcurrentQueue<SessionMessage>();
       World = world;
       Host = host;
       Port = port;
@@ -148,15 +147,7 @@ public class MooClientSession : IMooClientSession, IDisposable
    /// <value>
    /// The command queue.
    /// </value>
-   public ConcurrentQueue<string> CommandQueue { get; }
-
-   /// <summary>
-   /// Gets the out of band command queue.
-   /// </summary>
-   /// <value>
-   /// The out of band command queue.
-   /// </value>
-   public ConcurrentQueue<string> OutOfBandCommandQueue { get; }
+   public ConcurrentQueue<SessionMessage> CommandQueue { get; }
 
    /// <summary>
    /// Gets the command buffer.
@@ -250,14 +241,9 @@ public class MooClientSession : IMooClientSession, IDisposable
    }
 
    /// <summary>
-   /// Occurs when data is received on the connection.
+   /// Occurs when a message is received on the connection.
    /// </summary>
-   public event EventHandler<string>? DataReceived;
-
-   /// <summary>
-   /// Occurs when an Out of Band Command is received on the connection.
-   /// </summary>
-   public event EventHandler<string>? OutOfBandCommandReceived;
+   public event EventHandler<ClientMessageEventArgs>? MessageReceived;
 
    /// <summary>
    /// Occurs when data is dropped because the buffer overflowed.
@@ -306,14 +292,10 @@ public class MooClientSession : IMooClientSession, IDisposable
       Closed?.InvokeOnUI(new object[] { this });
    }
 
-   protected void OnDataReceived(string text)
+   protected void OnMessageReceived(string message, bool outOfBand)
    {
-      DataReceived?.InvokeOnUI(new object[] { this, text });
-   }
-
-   protected void OnOutOfBandCommandReceived(string command)
-   {
-      OutOfBandCommandReceived?.InvokeOnUI(new object[] { this, command });
+      // We are not firing this event on the UI so it can do background work
+      MessageReceived?.Invoke(this, new ClientMessageEventArgs(message, outOfBand));
    }
 
    protected void OnDataDropped(int droppedBytes)
@@ -375,7 +357,6 @@ public class MooClientSession : IMooClientSession, IDisposable
             {
                byte[] dataBuffer;
                Decoder decoder;
-               BufferData(outOfBandMode, buffer[i]);
                if (outOfBandMode)
                {
                   dataBuffer = OutOfBandCommandBuffer.ToArray();
@@ -385,6 +366,7 @@ public class MooClientSession : IMooClientSession, IDisposable
                }
                else
                {
+                  BufferData(outOfBandMode, buffer[i]);
                   dataBuffer = CommandBuffer.ToArray();
                   CommandBuffer.Clear();
                   decoder = Encoding.UTF8.GetDecoder();
@@ -395,16 +377,8 @@ public class MooClientSession : IMooClientSession, IDisposable
                data = new string(chars);
             }
 
-            if (tmpOob)
-            {
-               OutOfBandCommandQueue.Enqueue(data);
-               OnOutOfBandCommandReceived(data);
-            }
-            else
-            {
-               CommandQueue.Enqueue(data);
-               OnDataReceived(data);
-            }
+            CommandQueue.Enqueue(new SessionMessage(data, tmpOob));
+            OnMessageReceived(data, tmpOob);
          }
          else
             droppedBytes += BufferData(outOfBandMode, buffer[i]);
@@ -424,8 +398,8 @@ public class MooClientSession : IMooClientSession, IDisposable
          var chars = new char[decoder.GetCharCount(dataBuffer, 0, dataBuffer.Length)];
          decoder.GetChars(dataBuffer, 0, dataBuffer.Length, chars, 0);
          var data = new string(chars);
-         CommandQueue.Enqueue(data);
-         OnDataReceived(data);
+         CommandQueue.Enqueue(new SessionMessage(data, false));
+         OnMessageReceived(data, false);
       }
    }
 

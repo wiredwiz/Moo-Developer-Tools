@@ -28,7 +28,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="Language\Parsing\" />
     <Folder Include="Display\" />
     <Folder Include="Communication\" />
     <Folder Include="SyntaxHighlighting\" />
