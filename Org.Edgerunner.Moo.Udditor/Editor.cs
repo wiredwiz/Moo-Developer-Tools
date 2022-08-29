@@ -267,8 +267,8 @@ public partial class Editor : Form
     {
         var page = Pages[id];
         Workspace.SelectPage(page.UniqueName);
-        var editor = (Control)page.Controls[0];
-        editor.Focus();
+        var control = (Control)page.Controls[0];
+        control.Focus();
     }
 
     private void Display_DoubleClick(object sender, EventArgs e)
@@ -506,8 +506,8 @@ public partial class Editor : Form
             var port = prompt.HostPort;
             var page = NewTerminalClientPage(host, port, host);
             kryptonDockingManager.AddToWorkspace("Workspace", new KryptonPage[] { page });
-            SwitchToPage(page.UniqueName);
             ((MooClientTerminal)page.Controls[0]).Connect(host, host, port);
+            SwitchToPage(page.UniqueName);
         }
     }
 

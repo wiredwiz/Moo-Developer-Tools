@@ -113,6 +113,7 @@
          // 
          this.pnlSpacer.BackColor = System.Drawing.Color.Black;
          this.pnlSpacer.Dock = System.Windows.Forms.DockStyle.Bottom;
+         this.pnlSpacer.Enabled = false;
          this.pnlSpacer.Location = new System.Drawing.Point(0, 222);
          this.pnlSpacer.Name = "pnlSpacer";
          this.pnlSpacer.Size = new System.Drawing.Size(354, 16);
@@ -138,6 +139,7 @@
          this.Controls.Add(this.splitContainer1);
          this.Name = "MooClientTerminal";
          this.Size = new System.Drawing.Size(354, 267);
+         this.Enter += new System.EventHandler(this.MooClientTerminal_Enter);
          this.splitContainer1.Panel1.ResumeLayout(false);
          this.splitContainer1.Panel2.ResumeLayout(false);
          this.splitContainer1.Panel2.PerformLayout();

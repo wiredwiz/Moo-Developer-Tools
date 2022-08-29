@@ -55,6 +55,8 @@ namespace Org.Edgerunner.Moo.Editor.Controls
          _UserInteraction = false;
          _LastCommandAppearedToBeALogin = false;
          McpSessionManager = new McpClientSessionManager(2.1, 2.1, new List<IMcpPackage>());
+         ActiveControl = txtInput;
+         splitContainer1.ActiveControl = txtInput;
       }
 
       protected override void OnHandleDestroyed(EventArgs e)
@@ -301,6 +303,12 @@ namespace Org.Edgerunner.Moo.Editor.Controls
          {
             Debug.WriteLine(ex);
          }
+      }
+
+      private void MooClientTerminal_Enter(object sender, EventArgs e)
+      {
+         txtInput.Focus();
+         txtInput.SelectAll();
       }
    }
 }
