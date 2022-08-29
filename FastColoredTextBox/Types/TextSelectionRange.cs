@@ -3,13 +3,15 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 using System.Text.RegularExpressions;
+using System.Windows.Automation.Provider;
+using System.Windows.Automation.Text;
 
 namespace FastColoredTextBoxNS.Types
 {
    /// <summary>
    /// Diapason of text chars
    /// </summary>
-   public class TextSelectionRange : IEnumerable<Place>
+   public class TextSelectionRange : IEnumerable<Place>, ITextRangeProvider
    {
       Place start;
       Place end;
@@ -357,14 +359,110 @@ namespace FastColoredTextBoxNS.Types
          return GetCharsBeforeStart(-charsCount);
       }
 
+      #region ITextRangeProvider
+
+      public void AddToSelection()
+      {
+          throw new NotImplementedException();
+      }
+
+      ITextRangeProvider ITextRangeProvider.Clone()
+      {
+          return Clone();
+      }
+
+      public bool Compare(ITextRangeProvider range)
+      {
+          throw new NotImplementedException();
+      }
+
+      public int CompareEndpoints(TextPatternRangeEndpoint endpoint, ITextRangeProvider targetRange, TextPatternRangeEndpoint targetEndpoint)
+      {
+          throw new NotImplementedException();
+      }
+
+      public void ExpandToEnclosingUnit(TextUnit unit)
+      {
+          throw new NotImplementedException();
+      }
+
+      public ITextRangeProvider FindAttribute(int attribute, object value, bool backward)
+      {
+          throw new NotImplementedException();
+      }
+
+      public ITextRangeProvider FindText(string text, bool backward, bool ignoreCase)
+      {
+          throw new NotImplementedException();
+      }
+
+      public object GetAttributeValue(int attribute)
+      {
+          throw new NotImplementedException();
+      }
+
+      public double[] GetBoundingRectangles()
+      {
+          throw new NotImplementedException();
+      }
+
+      public IRawElementProviderSimple[] GetChildren()
+      {
+          throw new NotImplementedException();
+      }
+
+      public IRawElementProviderSimple GetEnclosingElement()
+      {
+          throw new NotImplementedException();
+      }
+
+      public string GetText(int maxLength)
+      {
+          throw new NotImplementedException();
+      }
+
+      public int Move(TextUnit unit, int count)
+      {
+          throw new NotImplementedException();
+      }
+
+      public void MoveEndpointByRange(TextPatternRangeEndpoint endpoint,
+                                      ITextRangeProvider targetRange,
+                                      TextPatternRangeEndpoint targetEndpoint)
+      {
+          throw new NotImplementedException();
+      }
+
+      public int MoveEndpointByUnit(TextPatternRangeEndpoint endpoint, TextUnit unit, int count)
+      {
+          throw new NotImplementedException();
+      }
+
+      public void RemoveFromSelection()
+      {
+          throw new NotImplementedException();
+      }
+
+      public void ScrollIntoView(bool alignToTop)
+      {
+          throw new NotImplementedException();
+      }
+
+      public void Select()
+      {
+          throw new NotImplementedException();
+      }
+
       /// <summary>
       /// Clone range
       /// </summary>
       /// <returns></returns>
       public TextSelectionRange Clone()
       {
-         return (TextSelectionRange)MemberwiseClone();
+          return (TextSelectionRange)MemberwiseClone();
       }
+
+      #endregion
 
       /// <summary>
       /// Return minimum of end.X and start.X
