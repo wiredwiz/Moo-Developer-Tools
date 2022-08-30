@@ -71,7 +71,6 @@ namespace Org.Edgerunner.Moo.Editor.Controls
          SyntaxHighlightingGuide = new MooSyntaxHighlightingGuide();
          StyleRegistry = new StyleRegistry(SyntaxHighlightingGuide);
          Highlighter = new EditorSyntaxHighlighter();
-         IndentationGuide = Moo.GetIndentationGuide(GrammarDialect, TabLength);
          LeftBracket = '(';
          LeftBracket2 = '{';
          LeftBracket3 = '[';
@@ -88,6 +87,16 @@ namespace Org.Edgerunner.Moo.Editor.Controls
          KeyDown += MooEditor_KeyDown;
          UndoRedoStateChanged += MooEditor_UndoRedoStateChanged;
          GrammarDialect = grammarDialect;
+      }
+
+      public override int TabLength
+      {
+          get => base.TabLength;
+          set
+          {
+              base.TabLength = value;
+              IndentationGuide = Moo.GetIndentationGuide(GrammarDialect, TabLength);
+          }
       }
 
       private void MooEditor_UndoRedoStateChanged(object sender, EventArgs e)
