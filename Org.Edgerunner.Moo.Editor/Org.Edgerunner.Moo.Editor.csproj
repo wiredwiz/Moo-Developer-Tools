@@ -25,6 +25,12 @@
     <Reference Include="Org.Edgerunner.MooSharp.Language.Grammar">
       <HintPath>..\References\Moo Grammar\Org.Edgerunner.MooSharp.Language.Grammar.dll</HintPath>
     </Reference>
+    <Reference Include="UIAutomationProvider">
+      <HintPath>..\References\UIA\UIAutomationProvider.dll</HintPath>
+    </Reference>
+    <Reference Include="UIAutomationTypes">
+      <HintPath>..\References\UIA\UIAutomationTypes.dll</HintPath>
+    </Reference>
   </ItemGroup>
 
   <ItemGroup>

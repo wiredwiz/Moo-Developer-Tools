@@ -361,71 +361,208 @@ namespace FastColoredTextBoxNS.Types
 
       #region ITextRangeProvider
 
+      /// <summary>
+      /// Adds to the collection of highlighted text in a text container that supports multiple, disjoint selections.
+      /// </summary>
+      /// <exception cref="System.NotImplementedException"></exception>
       public void AddToSelection()
       {
           throw new NotImplementedException();
       }
 
+      /// <summary>
+      /// Returns a new <see cref="T:System.Windows.Automation.Provider.ITextRangeProvider" /> identical to the original <see cref="T:System.Windows.Automation.Provider.ITextRangeProvider" /> and inheriting all properties of the original.
+      /// </summary>
+      /// <returns>
+      /// The new text range. A null reference (<see langword="Nothing" /> in Visual Basic) is never returned.
+      /// </returns>
       ITextRangeProvider ITextRangeProvider.Clone()
       {
           return Clone();
       }
 
+      /// <summary>
+      /// Returns a value that indicates whether the span (the <see cref="F:System.Windows.Automation.Text.TextPatternRangeEndpoint.Start" /> endpoint to the <see cref="F:System.Windows.Automation.Text.TextPatternRangeEndpoint.End" /> endpoint) of a text range is the same as another text range.
+      /// </summary>
+      /// <param name="range">A text range to compare.</param>
+      /// <returns>
+      ///   <see langword="true" /> if the span of both text ranges is identical; otherwise <see langword="false" />.
+      /// </returns>
+      /// <exception cref="System.NotImplementedException"></exception>
       public bool Compare(ITextRangeProvider range)
       {
           throw new NotImplementedException();
       }
 
+      /// <summary>
+      /// Returns a value that specifies whether two text ranges have identical endpoints.
+      /// </summary>
+      /// <param name="endpoint">The <see cref="F:System.Windows.Automation.Text.TextPatternRangeEndpoint.Start" /> or <see cref="F:System.Windows.Automation.Text.TextPatternRangeEndpoint.End" /> endpoint of the caller.</param>
+      /// <param name="targetRange">The target range for comparison.</param>
+      /// <param name="targetEndpoint">The <see cref="F:System.Windows.Automation.Text.TextPatternRangeEndpoint.Start" /> or <see cref="F:System.Windows.Automation.Text.TextPatternRangeEndpoint.End" /> endpoint of the target.</param>
+      /// <returns>
+      /// Returns a negative value if the caller's endpoint occurs earlier in the text than the target endpoint.
+      /// Returns zero if the caller's endpoint is at the same location as the target endpoint.
+      /// Returns a positive value if the caller's endpoint occurs later in the text than the target endpoint.
+      /// </returns>
+      /// <exception cref="System.NotImplementedException"></exception>
       public int CompareEndpoints(TextPatternRangeEndpoint endpoint, ITextRangeProvider targetRange, TextPatternRangeEndpoint targetEndpoint)
       {
           throw new NotImplementedException();
       }
 
+      /// <summary>
+      /// Expands the text range to the specified text unit.
+      /// </summary>
+      /// <param name="unit">The textual unit.</param>
+      /// <exception cref="System.NotImplementedException"></exception>
       public void ExpandToEnclosingUnit(TextUnit unit)
       {
           throw new NotImplementedException();
       }
 
+      /// <summary>
+      /// Returns a text range subset that has the specified attribute value.
+      /// </summary>
+      /// <param name="attribute">The attribute to search for.</param>
+      /// <param name="value">The attribute value to search for. This value must match the type specified for the attribute.</param>
+      /// <param name="backward"><see langword="true" /> if the last occurring text range should be returned instead of the first; otherwise <see langword="false" />.</param>
+      /// <returns>
+      /// A text range having a matching attribute and attribute value; otherwise null (<see langword="Nothing" /> in Visual Basic).
+      /// </returns>
+      /// <exception cref="System.NotImplementedException"></exception>
       public ITextRangeProvider FindAttribute(int attribute, object value, bool backward)
       {
           throw new NotImplementedException();
       }
 
+      /// <summary>
+      /// Returns a text range subset that contains the specified text.
+      /// </summary>
+      /// <param name="text">The text string to search for.</param>
+      /// <param name="backward"><see langword="true" /> if the last occurring text range should be returned instead of the first; otherwise <see langword="false" />.</param>
+      /// <param name="ignoreCase"><see langword="true" /> if case should be ignored; otherwise <see langword="false" />.</param>
+      /// <returns>
+      /// A text range matching the specified text; otherwise null (<see langword="Nothing" /> in Visual Basic).
+      /// </returns>
+      /// <exception cref="System.NotImplementedException"></exception>
       public ITextRangeProvider FindText(string text, bool backward, bool ignoreCase)
       {
           throw new NotImplementedException();
       }
 
+      /// <summary>
+      /// Retrieves the value of the specified attribute across the text range.
+      /// </summary>
+      /// <param name="attribute">The text attribute.</param>
+      /// <returns>
+      /// Retrieves an object representing the value of the specified attribute. For example, <c>GetAttributeValue(TextPattern.FontNameAttribute)</c> would return a string that represents the font name of the text range while <c>GetAttributeValue(TextPattern.IsItalicAttribute)</c> would return a value of type <see cref="T:System.Boolean" />.
+      /// Returns <see cref="F:System.Windows.Automation.TextPattern.MixedAttributeValue" /> if the value of the specified attribute varies over the text range.
+      /// Returns <see cref="F:System.Windows.Automation.AutomationElement.NotSupported" /> if the specified attribute is not supported by the provider or the control.
+      /// </returns>
+      /// <exception cref="System.NotImplementedException"></exception>
       public object GetAttributeValue(int attribute)
       {
           throw new NotImplementedException();
       }
 
+      /// <summary>
+      /// Retrieves a collection of bounding rectangles for each fully or partially visible line of text in a text range.
+      /// </summary>
+      /// <returns>
+      /// An array of bounding rectangles for each full or partial line of text in a text range.
+      /// An empty array for a degenerate range.
+      /// An empty array for a text range that has screen coordinates placing it completely off-screen, scrolled out of view, or obscured by an overlapping window.
+      /// </returns>
+      /// <exception cref="System.NotImplementedException"></exception>
       public double[] GetBoundingRectangles()
       {
           throw new NotImplementedException();
       }
 
+      /// <summary>
+      /// Retrieves a collection of all embedded objects that fall within the text range.
+      /// </summary>
+      /// <returns>
+      /// A collection of child objects that fall within the range. Children that overlap with the text range but are not entirely enclosed by it will also be included in the collection.
+      /// Returns an empty collection if there are no child objects.
+      /// </returns>
+      /// <exception cref="System.NotImplementedException"></exception>
       public IRawElementProviderSimple[] GetChildren()
       {
           throw new NotImplementedException();
       }
 
+      /// <summary>
+      /// Returns the innermost control that encloses the text range.
+      /// </summary>
+      /// <returns>
+      /// The enclosing control, typically the text provider that supplies the text range. However, if the text provider supports child elements such as tables or hyperlinks, then the enclosing element could be a descendant of the text provider.
+      /// </returns>
+      /// <exception cref="System.NotImplementedException"></exception>
       public IRawElementProviderSimple GetEnclosingElement()
       {
           throw new NotImplementedException();
       }
 
+      /// <summary>
+      /// Retrieves the plain text of the range.
+      /// </summary>
+      /// <param name="maxLength">The maximum length of the string to return. Use <c>-1</c> if no limit is required.</param>
+      /// <returns>
+      /// The plain text of the text range, possibly truncated at the specified <paramref name="maxLength" />.
+      /// </returns>
+      /// <exception cref="System.NotImplementedException"></exception>
       public string GetText(int maxLength)
       {
-          throw new NotImplementedException();
+         int fromLine = Math.Min(end.iLine, start.iLine);
+         int toLine = Math.Max(end.iLine, start.iLine);
+         int fromChar = FromX;
+         int toChar = ToX;
+
+         StringBuilder sb = new((toLine - fromLine) * 50);
+         if (fromLine >= 0)
+         {
+            for (int y = fromLine; y <= toLine; y++)
+            {
+               int fromX = y == fromLine ? fromChar : 0;
+               int toX = y == toLine ? Math.Min(toChar - 1, tb[y].Count - 1) : tb[y].Count - 1;
+               for (int x = fromX; x <= toX; x++)
+               {
+                  sb.Append(tb[y][x].C);
+               }
+               if (y != toLine && fromLine != toLine)
+                  foreach (char c in Environment.NewLine)
+                  {
+                     sb.Append(c);
+                  }
+            }
+         }
+         return sb.ToString();
       }
 
+      /// <summary>
+      /// Moves the text range the specified number of text units.
+      /// </summary>
+      /// <param name="unit">The text unit boundary.</param>
+      /// <param name="count">The number of text units to move.
+      /// A positive value moves the text range forward, a negative value moves the text range backward, and 0 has no effect.</param>
+      /// <returns>
+      /// The number of units actually moved. This can be less than the number requested if either of the new text range endpoints is greater than or less than the <see cref="P:System.Windows.Automation.Provider.ITextProvider.DocumentRange" /> endpoints.
+      /// </returns>
+      /// <exception cref="System.NotImplementedException"></exception>
       public int Move(TextUnit unit, int count)
       {
-          throw new NotImplementedException();
+         throw new NotImplementedException();
       }
 
+      /// <summary>
+      /// Moves one endpoint of a text range to the specified endpoint of a second text range.
+      /// </summary>
+      /// <param name="endpoint">The endpoint to move.</param>
+      /// <param name="targetRange">Another range from the same text provider.</param>
+      /// <param name="targetEndpoint">An endpoint on the other range.</param>
+      /// <exception cref="System.NotImplementedException"></exception>
       public void MoveEndpointByRange(TextPatternRangeEndpoint endpoint,
                                       ITextRangeProvider targetRange,
                                       TextPatternRangeEndpoint targetEndpoint)
@@ -433,24 +570,47 @@ namespace FastColoredTextBoxNS.Types
           throw new NotImplementedException();
       }
 
+      /// <summary>
+      /// Moves one endpoint of the text range the specified number of text units within the document range.
+      /// </summary>
+      /// <param name="endpoint">The endpoint to move.</param>
+      /// <param name="unit">The textual unit for moving.</param>
+      /// <param name="count">The number of units to move. A positive value moves the endpoint forward. A negative value moves backward. A value of 0 has no effect.</param>
+      /// <returns>
+      /// The number of units actually moved, which can be less than the number requested if moving the endpoint runs into the beginning or end of the document.
+      /// </returns>
+      /// <exception cref="System.NotImplementedException"></exception>
       public int MoveEndpointByUnit(TextPatternRangeEndpoint endpoint, TextUnit unit, int count)
       {
           throw new NotImplementedException();
       }
 
+      /// <summary>
+      /// Removes a highlighted section of text, corresponding to the caller's <see cref="F:System.Windows.Automation.Text.TextPatternRangeEndpoint.Start" /> and <see cref="F:System.Windows.Automation.Text.TextPatternRangeEndpoint.End" /> endpoints, from the collection of highlighted text in a text container that supports multiple, disjoint selections.
+      /// </summary>
+      /// <exception cref="System.NotImplementedException"></exception>
       public void RemoveFromSelection()
       {
           throw new NotImplementedException();
       }
 
+      /// <summary>
+      /// Causes the text control to scroll vertically until the text range is visible in the viewport.
+      /// </summary>
+      /// <param name="alignToTop"><see langword="true" /> if the text control should be scrolled so the text range is flush with the top of the viewport; <see langword="false" /> if it should be flush with the bottom of the viewport.</param>
+      /// <exception cref="System.NotImplementedException"></exception>
       public void ScrollIntoView(bool alignToTop)
       {
           throw new NotImplementedException();
       }
 
+      /// <summary>
+      /// Highlights text in the text control corresponding to the text range <see cref="F:System.Windows.Automation.Text.TextPatternRangeEndpoint.Start" /> and <see cref="F:System.Windows.Automation.Text.TextPatternRangeEndpoint.End" /> endpoints.
+      /// </summary>
+      /// <exception cref="System.NotImplementedException"></exception>
       public void Select()
       {
-          throw new NotImplementedException();
+         tb.Selection = this;
       }
 
       /// <summary>

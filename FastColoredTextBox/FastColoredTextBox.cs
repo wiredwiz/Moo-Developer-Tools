@@ -8234,7 +8234,7 @@ window.status = ""#print"";
         /// <exception cref="System.NotImplementedException"></exception>
         public ITextRangeProvider[] GetSelection()
         {
-            throw new NotImplementedException();
+           return new[] { Selection };
         }
 
         /// <summary>

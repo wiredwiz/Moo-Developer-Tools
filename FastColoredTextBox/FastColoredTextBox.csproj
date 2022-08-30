@@ -52,19 +52,19 @@
   <ItemGroup>
     <Reference Include="System.Design" />
     <Reference Include="UIAutomationClient">
-      <HintPath>..\..\..\Program Files\dotnet\packs\Microsoft.WindowsDesktop.App.Ref\6.0.8\ref\net6.0\UIAutomationClient.dll</HintPath>
+      <HintPath>..\References\UIA\UIAutomationClient.dll</HintPath>
     </Reference>
     <Reference Include="UIAutomationClientSideProviders">
-      <HintPath>..\..\..\Program Files\dotnet\packs\Microsoft.WindowsDesktop.App.Ref\6.0.8\ref\net6.0\UIAutomationClientSideProviders.dll</HintPath>
+      <HintPath>..\References\UIA\UIAutomationClientSideProviders.dll</HintPath>
     </Reference>
     <Reference Include="UIAutomationProvider">
-      <HintPath>..\..\..\Program Files\dotnet\packs\Microsoft.WindowsDesktop.App.Ref\6.0.8\ref\net6.0\UIAutomationProvider.dll</HintPath>
+      <HintPath>..\References\UIA\UIAutomationProvider.dll</HintPath>
     </Reference>
     <Reference Include="UIAutomationTypes">
-      <HintPath>..\..\..\Program Files\dotnet\packs\Microsoft.WindowsDesktop.App.Ref\6.0.8\ref\net6.0\UIAutomationTypes.dll</HintPath>
+      <HintPath>..\References\UIA\UIAutomationTypes.dll</HintPath>
     </Reference>
     <Reference Include="WindowsBase">
-      <HintPath>..\..\..\Program Files\dotnet\packs\Microsoft.WindowsDesktop.App.Ref\6.0.8\ref\net6.0\WindowsBase.dll</HintPath>
+      <HintPath>..\References\UIA\WindowsBase.dll</HintPath>
     </Reference>
   </ItemGroup>
   <ItemGroup>
