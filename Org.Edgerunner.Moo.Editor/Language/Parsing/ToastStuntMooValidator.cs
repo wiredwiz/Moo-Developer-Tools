@@ -68,11 +68,11 @@ public class ToastStuntMooValidator : ToastStuntMooParserBaseListener
       if (lhs != null)
          do
          {
-            if (lhs is not (EdgerunnerMooParser.PropertyExpressionContext or
-                EdgerunnerMooParser.IdentifierExpressionContext or
-                EdgerunnerMooParser.CorePropertyExpressionContext or
-                EdgerunnerMooParser.IndexedExpressionContext or
-                EdgerunnerMooParser.RangeIndexedExpressionContext))
+            if (lhs is not (ToastStuntMooParser.PropertyExpressionContext or
+                ToastStuntMooParser.IdentifierExpressionContext or
+                ToastStuntMooParser.CorePropertyExpressionContext or
+                ToastStuntMooParser.IndexedExpressionContext or
+                ToastStuntMooParser.RangeIndexedExpressionContext))
             {
                ok = false;
                var start = lhs.start;
