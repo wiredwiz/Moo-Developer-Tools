@@ -51,21 +51,6 @@
   </ItemGroup>
   <ItemGroup>
     <Reference Include="System.Design" />
-    <Reference Include="UIAutomationClient">
-      <HintPath>..\References\UIA\UIAutomationClient.dll</HintPath>
-    </Reference>
-    <Reference Include="UIAutomationClientSideProviders">
-      <HintPath>..\References\UIA\UIAutomationClientSideProviders.dll</HintPath>
-    </Reference>
-    <Reference Include="UIAutomationProvider">
-      <HintPath>..\References\UIA\UIAutomationProvider.dll</HintPath>
-    </Reference>
-    <Reference Include="UIAutomationTypes">
-      <HintPath>..\References\UIA\UIAutomationTypes.dll</HintPath>
-    </Reference>
-    <Reference Include="WindowsBase">
-      <HintPath>..\References\UIA\WindowsBase.dll</HintPath>
-    </Reference>
   </ItemGroup>
   <ItemGroup>
     <Compile Update="AutocompleteMenu.cs">

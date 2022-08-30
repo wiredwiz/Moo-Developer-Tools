@@ -54,7 +54,7 @@ public class FCTBAccessibleObject : AccessibleObject
     public FCTBAccessibleObject(FastColoredTextBox textBox)
     {
         TextBox = textBox;
-        Name = "Fast Colored Text Box FROO";
+        Name = string.Empty;
     }
 
     /// <summary>
@@ -85,7 +85,23 @@ public class FCTBAccessibleObject : AccessibleObject
     /// Gets or sets the object name.
     /// </summary>
     /// <value>The name.</value>
-    public override string Name { get; set; }
+    public override string Name { get; set; } = "sample name text";
+
+   /// <summary>
+   /// Gets a string that describes the default action of the object. Not all objects have a default action.
+   /// </summary>
+   public override string DefaultAction => "Edit";
+
+   protected string _Value = "foo text";
+
+   /// <summary>
+   /// Gets or sets the value of an accessible object.
+   /// </summary>
+   public override string Value
+    {
+       get => _Value;
+       set => _Value = value;
+    }
 
     /// <summary>
     /// Gets the state of this accessible object.
@@ -94,10 +110,10 @@ public class FCTBAccessibleObject : AccessibleObject
     public override AccessibleStates State
     {
         get
-        { 
-            AccessibleStates state = AccessibleStates.Selectable;
-            if (TextBox.Focused)
-                state |= AccessibleStates.Selected;
+        {
+            AccessibleStates state = AccessibleStates.Selectable | AccessibleStates.Focusable;
+            //if (TextBox.Focused)
+            //    state |= AccessibleStates.Selected | AccessibleStates.Focused;
             return state;
         }
     }
@@ -112,5 +128,5 @@ public class FCTBAccessibleObject : AccessibleObject
     /// Gets the parent of an accessible object.
     /// </summary>
     /// <value>The parent.</value>
-    public override AccessibleObject Parent => TextBox.Parent.AccessibilityObject;
+    public override AccessibleObject Parent => Application.OpenForms[0].AccessibilityObject;// TextBox.Parent.AccessibilityObject;
 }
