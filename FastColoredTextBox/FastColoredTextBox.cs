@@ -414,7 +414,7 @@ namespace FastColoredTextBoxNS
       /// </summary>
       [DefaultValue(true)]
       [Description("Enables caret blinking")]
-      public bool CaretBlinking { get; set; }
+      public virtual bool CaretBlinking { get; set; }
 
       /// <summary>
       /// Draw caret when the control is not focused
@@ -430,7 +430,7 @@ namespace FastColoredTextBoxNS
       /// </summary>
       [DefaultValue(typeof(Color), "Black")]
       [Description("Color of border of text area")]
-      public Color TextAreaBorderColor
+      public virtual Color TextAreaBorderColor
       {
          get { return textAreaBorderColor; }
          set
@@ -446,7 +446,7 @@ namespace FastColoredTextBoxNS
       /// </summary>
       [DefaultValue(typeof(TextAreaBorderType), "None")]
       [Description("Type of border of text area")]
-      public TextAreaBorderType TextAreaBorder
+      public virtual TextAreaBorderType TextAreaBorder
       {
          get { return textAreaBorder; }
          set
@@ -461,7 +461,7 @@ namespace FastColoredTextBoxNS
       /// </summary>
       [DefaultValue(typeof(Color), "Transparent")]
       [Description("Background color for current line. Set to Color.Transparent to hide current line highlighting")]
-      public Color CurrentLineColor
+      public virtual Color CurrentLineColor
       {
          get { return currentLineColor; }
          set
@@ -476,7 +476,7 @@ namespace FastColoredTextBoxNS
       /// </summary>
       [DefaultValue(typeof(Color), "Transparent")]
       [Description("Background color for highlighting of changed lines. Set to Color.Transparent to hide changed line highlighting")]
-      public Color ChangedLineColor
+      public virtual Color ChangedLineColor
       {
          get { return changedLineColor; }
          set
@@ -504,7 +504,7 @@ namespace FastColoredTextBoxNS
       /// Height of char in pixels (includes LineInterval)
       /// </summary>
       [Browsable(false)]
-      public int CharHeight
+      public virtual int CharHeight
       {
          get { return charHeight; }
          set
@@ -520,7 +520,7 @@ namespace FastColoredTextBoxNS
       /// </summary>
       [Description("Interval between lines in pixels")]
       [DefaultValue(0)]
-      public int LineInterval
+      public virtual int LineInterval
       {
          get { return lineInterval; }
          set
@@ -535,7 +535,7 @@ namespace FastColoredTextBoxNS
       /// Width of char in pixels
       /// </summary>
       [Browsable(false)]
-      public int CharWidth { get; set; }
+      public virtual int CharWidth { get; set; }
 
       /// <summary>
       /// Determines if the vertical scrollbar is positioned at the bottom
@@ -548,7 +548,7 @@ namespace FastColoredTextBoxNS
       /// </summary>
       [DefaultValue(4)]
       [Description("Spaces count for tab")]
-      public int TabLength { get; set; }
+      public virtual int TabLength { get; set; }
 
       /// <summary>
       /// Text was changed
