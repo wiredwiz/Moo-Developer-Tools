@@ -172,7 +172,7 @@ public partial class Editor : Form
         var editor = NewEditor(dialect);
         editor.OpenFile(filePath);
         var key = $"{name}-{Guid.NewGuid()}";
-        editor.Document = new Document(key, filePath, name);
+        editor.Document = new DocumentInfo(key, filePath, name);
         editor.Text = source;
         editor.Selection = new TextSelectionRange(editor, 0, 0, 0, 0);
         var page = NewPage(key, name, filePath, filePath, 0, editor);
@@ -185,7 +185,7 @@ public partial class Editor : Form
         var editor = NewEditor(dialect);
         var title = $"{hostName}/{verbName}";
         var key = $"{verbName}-{Guid.NewGuid()}";
-        editor.Document = new Document(key, string.Empty, verbName);
+        editor.Document = new DocumentInfo(key, string.Empty, verbName);
         editor.Text = source;
         editor.IsChanged = false;
         editor.Selection = new TextSelectionRange(editor, 0, 0, 0, 0);
@@ -199,7 +199,7 @@ public partial class Editor : Form
         var editor = NewEditor(dialect);
         var key = $"<New>-{Guid.NewGuid().ToString()}";
         var name = "<New>";
-        editor.Document = new Document(key, string.Empty, name);
+        editor.Document = new DocumentInfo(key, string.Empty, name);
         var page = NewPage(key, name, name, name, 0, editor);
         Pages[key] = page;
         return page;

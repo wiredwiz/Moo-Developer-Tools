@@ -36,8 +36,9 @@
 
 using System.Text;
 using Org.Edgerunner.Common.Extensions;
+using Org.Edgerunner.Mud.MCP.Exceptions;
 
-namespace Org.Edgerunner.Moo.Communication.MCP;
+namespace Org.Edgerunner.Mud.MCP;
 
 public static class McpUtils
 {
@@ -46,7 +47,7 @@ public static class McpUtils
    /// </summary>
    /// <param name="message">The message to parse.</param>
    /// <returns>A new <see cref="MCP.Message"/> instance.</returns>
-   /// <exception cref="Org.Edgerunner.Moo.Communication.MCP.InvalidMcpMessageFormatException">
+   /// <exception cref="InvalidMcpMessageFormatException">
    /// The message does not resemble a properly formatted MCP message.
    /// </exception>
    public static MCP.Message? ParseMessage(string message)

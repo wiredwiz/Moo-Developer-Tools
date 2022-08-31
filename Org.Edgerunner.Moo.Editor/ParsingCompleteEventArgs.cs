@@ -14,7 +14,7 @@ public class ParsingCompleteEventArgs : EventArgs
    /// <param name="errorMessages">The error messages.</param>
    /// <param name="tokens">The tokens.</param>
    /// <param name="result">The parser rule context result.</param>
-   public ParsingCompleteEventArgs(Document document, List<ParseMessage> errorMessages, List<DetailedToken> tokens, ParserRuleContext result)
+   public ParsingCompleteEventArgs(DocumentInfo document, List<ParseMessage> errorMessages, List<DetailedToken> tokens, ParserRuleContext result)
    {
       Document = document;
       ErrorMessages = errorMessages;
@@ -28,7 +28,7 @@ public class ParsingCompleteEventArgs : EventArgs
    /// <value>
    /// The document.
    /// </value>
-   public Document Document { get; set; }
+   public DocumentInfo Document { get; set; }
 
    /// <summary>
    /// Gets or sets the error messages.

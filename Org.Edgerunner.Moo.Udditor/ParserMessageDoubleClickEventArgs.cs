@@ -1,27 +1,27 @@
 ﻿#region BSD 3-Clause License
-// <copyright company="Edgerunner.org" file="IOutOfBandWorkerQueue.cs">
-// Copyright (c)  2022
+// <copyright company="Edgerunner.org" file="ParserMessageDoubleClickEventArgs.cs">
+// Copyright (c) Thaddeus Ryker 2022
 // </copyright>
-//
+// 
 // BSD 3-Clause License
-//
+// 
 // Copyright (c) 2022,
 // All rights reserved.
-//
+// 
 // Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are met:
-//
+// 
 // 1. Redistributions of source code must retain the above copyright notice, this
 //    list of conditions and the following disclaimer.
-//
+// 
 // 2. Redistributions in binary form must reproduce the above copyright notice,
 //    this list of conditions and the following disclaimer in the documentation
 //    and/or other materials provided with the distribution.
-//
+// 
 // 3. Neither the name of the copyright holder nor the names of its
 //    contributors may be used to endorse or promote products derived from
 //    this software without specific prior written permission.
-//
+// 
 // THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
 // AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
 // IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
@@ -34,22 +34,37 @@
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #endregion
 
-namespace Org.Edgerunner.Moo.Communication.OutOfBand;
+using JetBrains.Annotations;
+using Org.Edgerunner.ANTLR4.Tools.Common.Grammar.Errors;
 
-/// <summary>
-/// An interface representing an Out of Band Command worker queue.
-/// </summary>
-public interface IOutOfBandWorkerQueue
+namespace Org.Edgerunner.Moo.Udditor;
+
+public class ParserMessageDoubleClickEventArgs
 {
-   /// <summary>
-   /// Pushes the specified command.
-   /// </summary>
-   /// <param name="command">The command.</param>
-   void Push(string command);
+    // ReSharper disable once TooManyDependencies
+    /// <summary>
+    /// Initializes a new instance of the <see cref="ParserMessageDoubleClickEventArgs" /> class.
+    /// </summary>
+    /// <param name="lineNumber">The line number.</param>
+    /// <param name="columnPosition">The column position.</param>
+    /// <param name="pageId">The page identifier.</param>
+    /// <param name="message">The message.</param>
+    /// <param name="messageGuide">The message guide.</param>
+    public ParserMessageDoubleClickEventArgs(int lineNumber, int columnPosition, string pageId, string message, [CanBeNull] ISyntaxErrorGuide messageGuide)
+    {
+        LineNumber = lineNumber;
+        ColumnPosition = columnPosition;
+        Message = message;
+        MessageGuide = messageGuide;
+    }
 
-   /// <summary>
-   /// Pops the next command off the queue.
-   /// </summary>
-   /// <returns>The next command.</returns>
-   string Pop();
+    public int LineNumber { get; set; }
+
+    public int ColumnPosition { get; set; }
+
+    public string PageId { get; set; }
+
+    public string Message { get; set; }
+
+    public ISyntaxErrorGuide MessageGuide { get; set; }
 }
