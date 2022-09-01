@@ -412,6 +412,9 @@ namespace Org.Edgerunner.Moo.Editor.Controls
                                };
                ParseTreeWalker.Default.Walk(validator, context);
                ParseErrors.AddRange(validator.Errors);
+
+               // Configure code folding markers
+               ConfigureCodeFolding(context, EdgerunnerMooParser.ruleNames);
             }
             else if (GrammarDialect == GrammarDialect.ToastStunt)
             {
@@ -421,6 +424,9 @@ namespace Org.Edgerunner.Moo.Editor.Controls
                                };
                ParseTreeWalker.Default.Walk(validator, context);
                ParseErrors.AddRange(validator.Errors);
+
+               // Configure code folding markers
+               ConfigureCodeFolding(context, ToastStuntMooParser.ruleNames);
             }
             else if (GrammarDialect == GrammarDialect.LambdaMoo)
             {
@@ -430,10 +436,10 @@ namespace Org.Edgerunner.Moo.Editor.Controls
                                };
                ParseTreeWalker.Default.Walk(validator, context);
                ParseErrors.AddRange(validator.Errors);
-            }
 
-            // Configure code folding markers
-            ConfigureCodeFolding(context, ToastStuntMooParser.ruleNames);
+               // Configure code folding markers
+               ConfigureCodeFolding(context, MooParser.ruleNames);
+            }
 
             // Raise our event
             OnParsingComplete(this, new ParsingCompleteEventArgs(Document, ParseErrors, Tokens, context));
