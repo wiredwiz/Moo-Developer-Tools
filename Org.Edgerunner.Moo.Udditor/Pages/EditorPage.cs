@@ -2,26 +2,26 @@
 // <copyright company="Edgerunner.org" file="EditorPage.cs">
 // Copyright (c) Thaddeus Ryker 2022
 // </copyright>
-// 
+//
 // BSD 3-Clause License
-// 
+//
 // Copyright (c) 2022,
 // All rights reserved.
-// 
+//
 // Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are met:
-// 
+//
 // 1. Redistributions of source code must retain the above copyright notice, this
 //    list of conditions and the following disclaimer.
-// 
+//
 // 2. Redistributions in binary form must reproduce the above copyright notice,
 //    this list of conditions and the following disclaimer in the documentation
 //    and/or other materials provided with the distribution.
-// 
+//
 // 3. Neither the name of the copyright holder nor the names of its
 //    contributors may be used to endorse or promote products derived from
 //    this software without specific prior written permission.
-// 
+//
 // THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
 // AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
 // IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
@@ -47,17 +47,19 @@ using Org.Edgerunner.Moo.Editor.Configuration;
 
 namespace Org.Edgerunner.Moo.Udditor.Pages;
 
-public class EditorPage : KryptonPage
+public class EditorPage : ManagedPage
 {
     /// <summary>
     /// Initializes a new instance of the <see cref="EditorPage"/> class.
     /// </summary>
+    /// <param name="manager">The window manager.</param>
     /// <param name="verbName">Name of the verb.</param>
     /// <param name="worldName">Name of the world.</param>
     /// <param name="dialect">The dialect.</param>
     /// <param name="source">The source.</param>
     // ReSharper disable once TooManyDependencies
-    public EditorPage(string verbName, string worldName, GrammarDialect dialect, string source)
+    public EditorPage(WindowManager manager, string verbName, string worldName, GrammarDialect dialect, string source)
+    : base(manager)
     {
         var name = $@"{verbName} - {worldName}";
         var key = $"{name}-{Guid.NewGuid()}";
@@ -70,9 +72,11 @@ public class EditorPage : KryptonPage
     /// <summary>
     /// Initializes a new instance of the <see cref="EditorPage"/> class.
     /// </summary>
+    /// <param name="manager">The window manager.</param>
     /// <param name="dialect">The dialect.</param>
     /// <param name="filePath">The file path.</param>
-    public EditorPage(GrammarDialect dialect, string filePath)
+    public EditorPage(WindowManager manager, GrammarDialect dialect, string filePath)
+    : base(manager)
     {
         var name = Path.GetFileName(filePath);
         var key = $"{name}-{Guid.NewGuid()}";
@@ -80,6 +84,21 @@ public class EditorPage : KryptonPage
         //ToolTipTitle = filePath;
         Editor.Document = new DocumentInfo(key, filePath, name);
         Editor.OpenFile(filePath);
+        PostInitialize();
+    }
+
+    /// <summary>
+    /// Initializes a new instance of the <see cref="EditorPage"/> class.
+    /// </summary>
+    /// <param name="manager">The window manager.</param>
+    /// <param name="dialect">The dialect.</param>
+    public EditorPage(WindowManager manager, GrammarDialect dialect)
+        : base(manager)
+    {
+        var name = "<New>";
+        var key = $"{name}-{Guid.NewGuid()}";
+        InitializeEditor(dialect, key, name, name);
+        Editor.Document = new DocumentInfo(key, name, name);
         PostInitialize();
     }
 
@@ -99,6 +118,7 @@ public class EditorPage : KryptonPage
         ConfigureEditorSettings(Editor);
         Editor.GrammarDialect = dialect;
         UniqueName = id;
+        Text = title;
         TextTitle = title;
         TextDescription = description;
     }
@@ -139,7 +159,11 @@ public class EditorPage : KryptonPage
     /// Gets or sets the document.
     /// </summary>
     /// <value>The document.</value>
-    public DocumentInfo Document { get; set; }
+    public DocumentInfo Document
+    {
+        get => Editor.Document;
+        set => Editor.Document = value;
+    }
 
     /// <summary>
     /// Gets or sets the editor.
@@ -162,7 +186,7 @@ public class EditorPage : KryptonPage
         get => Editor.GrammarDialect;
         set => Editor.GrammarDialect = value;
     }
-    
+
     private void Editor_SelectionChangedDelayed(object sender, EventArgs e)
     {
         CursorPositionChanged?.Invoke(this, e);

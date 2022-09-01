@@ -68,6 +68,14 @@ public interface IMooClientSession
    bool IsOpen { get; }
 
    /// <summary>
+   /// Gets or sets a value indicating whether this instance is authenticated.
+   /// </summary>
+   /// <value>
+   ///   <c>true</c> if this instance is authenticated; otherwise, <c>false</c>.
+   /// </value>
+   public bool IsAuthenticated { get; }
+
+   /// <summary>
    ///    Gets the port address.
    /// </summary>
    /// <value>
@@ -82,6 +90,15 @@ public interface IMooClientSession
    ///    The world.
    /// </value>
    string World { get; }
+
+   /// <summary>
+   /// Gets the connection <see cref="System.IO.Stream"/>.
+   /// </summary>
+   /// <value>
+   /// The stream.
+   /// </value>
+   /// <seealso cref="System.IO.Stream"/>
+   Stream? Stream { get; }
 
    /// <summary>
    ///    Closes the session connection.
@@ -109,7 +126,12 @@ public interface IMooClientSession
    /// </summary>
    /// <param name="host">The host address.</param>
    /// <param name="port">The port address.</param>
-   void Open(string host, int port);
+   Task OpenAsync(string host, int port);
+
+   /// <summary>
+   /// Begins the reading data till session close.
+   /// </summary>
+   void BeginReadingDataTillClose();
 
    /// <summary>
    ///    Sends the contents of the data buffer over the session connection.

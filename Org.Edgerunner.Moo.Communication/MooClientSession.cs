@@ -93,7 +93,7 @@ public class MooClientSession : IMooClientSession, IDisposable
    protected readonly CancellationTokenSource TokenSource;
    protected readonly string OutOfBandPrefix;
 
-   protected NetworkStream? _Stream;
+   protected Stream? _Stream;
    protected byte[] _OutOfBandBytes;
 
    /// <summary>
@@ -140,6 +140,23 @@ public class MooClientSession : IMooClientSession, IDisposable
          }
       }
    }
+
+   /// <summary>
+   /// Gets the connection <see cref="System.IO.Stream" />.
+   /// </summary>
+   /// <value>
+   /// The stream.
+   /// </value>
+   /// <seealso cref="System.IO.Stream" />
+   public Stream? Stream => _Stream;
+
+   /// <summary>
+   /// Gets or sets a value indicating whether this instance is authenticated.
+   /// </summary>
+   /// <value>
+   ///   <c>true</c> if this instance is authenticated; otherwise, <c>false</c>.
+   /// </value>
+   public bool IsAuthenticated { get; protected set; }
 
    /// <summary>
    /// Gets the command queue.
@@ -255,16 +272,18 @@ public class MooClientSession : IMooClientSession, IDisposable
    /// </summary>
    public event EventHandler? Closed;
 
-   protected virtual NetworkStream GetStream(TcpClient client)
+   protected virtual Stream GetStream(TcpClient client)
    {
       return client.GetStream();
    }
 
-   public void Open(string host, int port)
+   public async Task OpenAsync(string host, int port)
    {
-      Client.Connect(Host, Port);
-      _Stream = GetStream(Client);
-      Task.Run(ReadFromConnection);
+      await Task.Run(() =>
+                      {
+                         Client.Connect(Host, Port);
+                         _Stream = GetStream(Client);
+                      });
    }
 
    /// <summary>
@@ -287,9 +306,20 @@ public class MooClientSession : IMooClientSession, IDisposable
       }
    }
 
+   /// <summary>
+   /// Called when session [closed].
+   /// </summary>
    protected void OnClosed()
    {
       Closed?.InvokeOnUI(new object[] { this });
+   }
+
+   /// <summary>
+   /// Begins the reading data till session close.
+   /// </summary>
+   public void BeginReadingDataTillClose()
+   {
+      Task.Run(ReadFromConnection);
    }
 
    protected void OnMessageReceived(string message, bool outOfBand)
@@ -312,7 +342,7 @@ public class MooClientSession : IMooClientSession, IDisposable
          Thread.Sleep(5);
          try
          {
-            while (_Stream is { DataAvailable: true })
+            while (_Stream != null && Client.Available > 0)
             {
                var bytes = _Stream.Read(buffer, 0, buffer.Length);
                ProcessReadBuffer(buffer, bytes, ref outOfBand);

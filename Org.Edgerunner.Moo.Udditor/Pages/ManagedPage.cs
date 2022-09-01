@@ -1,6 +1,6 @@
 ﻿#region BSD 3-Clause License
-// <copyright company="Edgerunner.org" file="TerminalPage.cs">
-// Copyright (c) Thaddeus Ryker 2022
+// <copyright company="Edgerunner.org" file="ManagedPage.cs">
+// Copyright (c)  2022
 // </copyright>
 //
 // BSD 3-Clause License
@@ -35,40 +35,19 @@
 #endregion
 
 using Krypton.Navigator;
-using Org.Edgerunner.Moo.Editor.Controls;
-using System;
 
 namespace Org.Edgerunner.Moo.Udditor.Pages;
 
-public class TerminalPage : ManagedPage
+/// <summary>
+/// Class representing a page managed by a WindowManager.
+/// </summary>
+/// <seealso cref="Krypton.Navigator.KryptonPage" />
+public class ManagedPage : KryptonPage
 {
-    /// <summary>
-    /// Initializes a new instance of the <see cref="TerminalPage" /> class.
-    /// </summary>
-    /// <param name="manager">The window manager.</param>
-    /// <param name="worldName">Name of the world.</param>
-    public TerminalPage(WindowManager manager, string worldName, bool useTls = false)
-    : base(manager)
+    public ManagedPage(WindowManager manager)
     {
-        Terminal = new MooClientTerminal(useTls);
-        // ReSharper disable VirtualMemberCallInConstructor
-        Text = worldName;
-        TextTitle = worldName;
-        TextDescription = worldName;
-        UniqueName = Guid.NewGuid().ToString();
-        // ReSharper restore VirtualMemberCallInConstructor
-        Terminal.Dock = DockStyle.Fill;
-        Controls.Add(Terminal);
+        Manager = manager;
     }
 
-    /// <summary>
-    /// Occurs when [new message(s) received].
-    /// </summary>
-    public event EventHandler NewMessageReceived
-    {
-        add { Terminal.NewMessageReceived += value; }
-        remove { Terminal.NewMessageReceived -= value; }
-    }
-
-    public MooClientTerminal Terminal { get; set; }
+    public WindowManager Manager { get; protected set; }
 }

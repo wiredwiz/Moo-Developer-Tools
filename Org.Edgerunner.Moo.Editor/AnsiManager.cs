@@ -110,9 +110,9 @@ public class AnsiManager
 
    protected static Dictionary<string, TextStyle> StyleCache { get; set; }
 
-   public TextStyle GetStyle(Color foregroundColor, Color backgroundColor, FontStyle fontStyle)
+   public static TextStyle GetStyle(Color foregroundColor, Color backgroundColor, FontStyle fontStyle, bool reverse = false)
    {
-      if (ReverseVideo)
+      if (reverse)
          (backgroundColor, foregroundColor) = (foregroundColor, backgroundColor);
       string key = $"{foregroundColor}-{backgroundColor}-{fontStyle}";
       if (StyleCache.TryGetValue(key, out var style))
@@ -130,12 +130,12 @@ public class AnsiManager
          if (codes[0] == 2)
          {
             Bright = false;
-            CurrentStyle = GetStyle(ForeColor, BackgroundColor, FontStyle);
+            CurrentStyle = GetStyle(ForeColor, BackgroundColor, FontStyle, ReverseVideo);
          }
          else if (codes[0] == 4)
          {
             FontStyle |= FontStyle.Underline;
-            CurrentStyle = GetStyle(ForeColor, BackgroundColor, FontStyle);
+            CurrentStyle = GetStyle(ForeColor, BackgroundColor, FontStyle, ReverseVideo);
          }
          else if (codes[0] == 5)
             Blinking = true;
@@ -143,7 +143,7 @@ public class AnsiManager
          {
             ReverseVideo = true;
             FontStyle |= FontStyle.Bold;
-            CurrentStyle = GetStyle(ForeColor, BackgroundColor, FontStyle);
+            CurrentStyle = GetStyle(ForeColor, BackgroundColor, FontStyle, ReverseVideo);
          }
          else if (codes[0] == 8)
             EchoEnabled = true;
@@ -236,7 +236,7 @@ public class AnsiManager
          }
       }
 
-      return CurrentStyle = GetStyle(ForeColor, BackgroundColor, FontStyle);
+      return CurrentStyle = GetStyle(ForeColor, BackgroundColor, FontStyle, ReverseVideo);
    }
 
    private void DoAnsiReset()
@@ -305,14 +305,14 @@ public class AnsiManager
          color = Color.FromArgb(rgb, rgb, rgb);
       }
       else
-         return CurrentStyle = GetStyle(ForeColor, BackgroundColor, FontStyle);
+         return CurrentStyle = GetStyle(ForeColor, BackgroundColor, FontStyle, ReverseVideo);
 
       if (codes[0] == 38)
          ForeColor = color;
       else if (codes[0] == 48)
          BackgroundColor = color;
 
-      return CurrentStyle = GetStyle(ForeColor, BackgroundColor, FontStyle);
+      return CurrentStyle = GetStyle(ForeColor, BackgroundColor, FontStyle, ReverseVideo);
    }
 
    protected TextStyle ProcessTrueColorColors(List<int> codes)
@@ -323,6 +323,6 @@ public class AnsiManager
       else if (codes[0] == 48)
          BackgroundColor = Color.FromArgb(codes[2], codes[3], codes[4]);
 
-      return CurrentStyle = GetStyle(ForeColor, BackgroundColor, FontStyle);
+      return CurrentStyle = GetStyle(ForeColor, BackgroundColor, FontStyle, ReverseVideo);
    }
 }

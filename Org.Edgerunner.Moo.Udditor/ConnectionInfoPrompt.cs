@@ -29,6 +29,12 @@ public partial class ConnectionInfoPrompt : Form
         set => txtPort.Text = value.ToString();
     }
 
+    public bool UseTls
+    {
+        get => chkTls.Checked;
+        set => chkTls.Checked = value;
+    }
+
     private void btnConnect_Click(object sender, EventArgs e)
     {
         DialogResult = DialogResult.OK;

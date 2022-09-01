@@ -2,26 +2,26 @@
 // <copyright company="Edgerunner.org" file="WindowManager.cs">
 // Copyright (c) Thaddeus Ryker 2022
 // </copyright>
-// 
+//
 // BSD 3-Clause License
-// 
+//
 // Copyright (c) 2022,
 // All rights reserved.
-// 
+//
 // Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are met:
-// 
+//
 // 1. Redistributions of source code must retain the above copyright notice, this
 //    list of conditions and the following disclaimer.
-// 
+//
 // 2. Redistributions in binary form must reproduce the above copyright notice,
 //    this list of conditions and the following disclaimer in the documentation
 //    and/or other materials provided with the distribution.
-// 
+//
 // 3. Neither the name of the copyright holder nor the names of its
 //    contributors may be used to endorse or promote products derived from
 //    this software without specific prior written permission.
-// 
+//
 // THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
 // AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
 // IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
@@ -39,6 +39,8 @@ using Krypton.Docking;
 using Krypton.Navigator;
 using Org.Edgerunner.Moo.Editor;
 using Org.Edgerunner.Moo.Udditor.Pages;
+using System;
+using Org.Edgerunner.Moo.Editor.Controls;
 
 namespace Org.Edgerunner.Moo.Udditor;
 
@@ -59,7 +61,15 @@ public class WindowManager
 
     public KryptonDockingWorkspace Workspace { get; set; }
 
-    protected Dictionary<string, KryptonPage> Pages { get; } = new();
+    public TerminalPage RecentTerminal { get; set; }
+
+    public EditorPage RecentEditor { get; set; }
+
+    protected Dictionary<string, ManagedPage> Pages { get; } = new();
+
+    public event EventHandler<EditorPage> EditorCursorUpdated;
+
+    public event EventHandler<EditorPage> EditorParsingComplete;
 
     /// <summary>
     /// Registers the page.
@@ -67,7 +77,7 @@ public class WindowManager
     /// <param name="key">The unique key for the page.</param>
     /// <param name="page">The page.</param>
     /// <returns>The registered <see cref="KryptonPage"/>.</returns>
-    public KryptonPage RegisterPage(string key, KryptonPage page)
+    public ManagedPage RegisterPage(string key, ManagedPage page)
     {
         Pages[key] = page;
         return page;
@@ -78,7 +88,7 @@ public class WindowManager
     /// </summary>
     /// <param name="page">The page.</param>
     /// <returns>The registered <see cref="KryptonPage"/>.</returns>
-    public KryptonPage RegisterPage(KryptonPage page)
+    public ManagedPage RegisterPage(ManagedPage page)
     {
         Pages[page.UniqueName] = page;
         return page;
@@ -88,10 +98,10 @@ public class WindowManager
     /// Uns the register page.
     /// </summary>
     /// <param name="key">The key.</param>
-    /// <returns>The un-registered <see cref="KryptonPage"/>.</returns>
-    public KryptonPage UnRegisterPage(string key)
+    /// <returns>The un-registered <see cref="ManagedPage"/>.</returns>
+    public ManagedPage UnRegisterPage(string key)
     {
-        if (Pages.TryGetValue(key, out KryptonPage page))
+        if (Pages.TryGetValue(key, out ManagedPage page))
         {
             Pages.Remove(key);
             return page;
@@ -114,11 +124,30 @@ public class WindowManager
     /// Creates a new editor page and registers it.
     /// </summary>
     /// <param name="dialect">The dialect.</param>
+    /// <returns>A new see<see cref="EditorPage"/> instance.</returns>
+    public EditorPage CreateEditorPage(GrammarDialect dialect)
+    {
+        var page = new EditorPage(this, dialect);
+        RegisterPage(page);
+        page.CursorPositionChanged += Page_CursorPositionChanged;
+        page.ParsingComplete += Page_ParsingComplete;
+        Workspace.DockingManager.AddToWorkspace("Workspace", new KryptonPage[] { page });
+        return page;
+    }
+
+    /// <summary>
+    /// Creates a new editor page and registers it.
+    /// </summary>
+    /// <param name="dialect">The dialect.</param>
     /// <param name="filePath">The file path.</param>
     /// <returns>A new see<see cref="EditorPage"/> instance.</returns>
     public EditorPage CreateEditorPage(GrammarDialect dialect, string filePath)
     {
-        var page = new EditorPage(dialect, filePath);
+        var page = new EditorPage(this, dialect, filePath);
+        RegisterPage(page);
+        page.CursorPositionChanged += Page_CursorPositionChanged;
+        page.ParsingComplete += Page_ParsingComplete;
+        Workspace.DockingManager.AddToWorkspace("Workspace", new KryptonPage[] { page });
         return page;
     }
 
@@ -132,7 +161,11 @@ public class WindowManager
     /// <returns>A new see<see cref="EditorPage"/> instance.</returns>
     public EditorPage CreateEditorPage(string verbName, string worldName, GrammarDialect dialect, string source)
     {
-        var page = new EditorPage(verbName, worldName, dialect, source);
+        var page = new EditorPage(this, verbName, worldName, dialect, source);
+        RegisterPage(page);
+        page.CursorPositionChanged += Page_CursorPositionChanged;
+        page.ParsingComplete += Page_ParsingComplete;
+        Workspace.DockingManager.AddToWorkspace("Workspace", new KryptonPage[] { page });
         return page;
     }
 
@@ -142,7 +175,9 @@ public class WindowManager
     /// <returns>A new <see cref="ParserMessageDisplayPage"/> instance.</returns>
     public ParserMessageDisplayPage CreateParserMessageDisplayPage()
     {
-        var page = new ParserMessageDisplayPage();
+        var page = new ParserMessageDisplayPage(this);
+        RegisterPage(page);
+        Workspace.DockingManager.AddDockspace("FooterControls", DockingEdge.Bottom, new KryptonPage[] { page });
         return page;
     }
 
@@ -150,24 +185,73 @@ public class WindowManager
     /// Creates a new terminal page and registers it.
     /// </summary>
     /// <param name="world">The world.</param>
-    /// <returns>A new <see cref="TerminalPage"/> instance.</returns>
-    public TerminalPage CreateTerminalPage(string world)
+    /// <param name="useTls">if set to <c>true</c> [use TLS].</param>
+    /// <returns>
+    /// A new <see cref="TerminalPage" /> instance.
+    /// </returns>
+    public TerminalPage CreateTerminalPage(string world, bool useTls = false)
     {
-        var page = new TerminalPage(world);
+        var page = new TerminalPage(this, world, useTls);
+        RegisterPage(page);
+        Workspace.DockingManager.AddToWorkspace("Workspace", new KryptonPage[] { page });
         return page;
+    }
+
+    private void Page_CursorPositionChanged(object sender, EventArgs e)
+    {
+        OnEditorCursorUpdated(sender as EditorPage);
+    }
+
+    private void Page_ParsingComplete(object sender, ParsingCompleteEventArgs e)
+    {
+        MooEditor editor = sender as MooEditor;
+        var page = editor.Parent;
+        OnEditorParsingCompleted(page as EditorPage);
+    }
+
+    /// <summary>
+    /// Gets the page referenced by the supplied key.
+    /// </summary>
+    /// <param name="key">The key.</param>
+    /// <returns>The related page or null if not found.</returns>
+    [CanBeNull]
+    public ManagedPage GetPage(string key)
+    {
+        if (Pages.TryGetValue(key, out var page))
+            return page;
+
+        return null;
     }
 
     /// <summary>
     /// Shows the page with the specified key.
     /// </summary>
     /// <param name="key">The key.</param>
-    public void ShowPage(string key)
+    /// <returns>The <see cref="KryptonPage"/> instance.</returns>
+    [CanBeNull]
+    public ManagedPage ShowPage(string key)
     {
-        if (Pages.TryGetValue(key, out KryptonPage page))
+        if (Pages.TryGetValue(key, out ManagedPage page))
         {
             Workspace.SelectPage(key);
             page.Focus();
+            return page;
         }
+
+        return null;
+    }
+
+    /// <summary>
+    /// Shows the page.
+    /// </summary>
+    /// <param name="page">The page to show.</param>
+    /// <returns>
+    /// The <see cref="KryptonPage" /> instance.
+    /// </returns>
+    [CanBeNull]
+    public ManagedPage ShowPage(ManagedPage page)
+    {
+        return ShowPage(page.UniqueName);
     }
 
     /// <summary>
@@ -176,10 +260,20 @@ public class WindowManager
     /// <param name="key">The key.</param>
     void ClosePage(string key)
     {
-        if (Pages.TryGetValue(key, out KryptonPage page))
+        if (Pages.TryGetValue(key, out ManagedPage page))
         {
             Workspace.DockingManager.CloseRequest(new[] { key });
             Workspace.DockingManager.RemovePage(page, true);
         }
+    }
+
+    protected virtual void OnEditorCursorUpdated(EditorPage e)
+    {
+        EditorCursorUpdated?.Invoke(this, e);
+    }
+
+    protected virtual void OnEditorParsingCompleted(EditorPage e)
+    {
+        EditorParsingComplete?.Invoke(this, e);
     }
 }

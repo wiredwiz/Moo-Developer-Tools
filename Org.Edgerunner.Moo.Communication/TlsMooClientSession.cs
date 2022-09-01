@@ -1,6 +1,6 @@
 ﻿#region BSD 3-Clause License
-// <copyright company="Edgerunner.org" file="TerminalPage.cs">
-// Copyright (c) Thaddeus Ryker 2022
+// <copyright company="Edgerunner.org" file="TlsMooClientSession.cs">
+// Copyright (c)  2022
 // </copyright>
 //
 // BSD 3-Clause License
@@ -34,41 +34,27 @@
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #endregion
 
-using Krypton.Navigator;
-using Org.Edgerunner.Moo.Editor.Controls;
-using System;
+using System.Net.Security;
+using System.Net.Sockets;
 
-namespace Org.Edgerunner.Moo.Udditor.Pages;
+namespace Org.Edgerunner.Moo.Communication;
 
-public class TerminalPage : ManagedPage
+/// <summary>
+/// Class representing a TLS client session.
+/// </summary>
+/// <seealso cref="Org.Edgerunner.Moo.Communication.MooClientSession" />
+public class TlsMooClientSession : MooClientSession
 {
-    /// <summary>
-    /// Initializes a new instance of the <see cref="TerminalPage" /> class.
-    /// </summary>
-    /// <param name="manager">The window manager.</param>
-    /// <param name="worldName">Name of the world.</param>
-    public TerminalPage(WindowManager manager, string worldName, bool useTls = false)
-    : base(manager)
-    {
-        Terminal = new MooClientTerminal(useTls);
-        // ReSharper disable VirtualMemberCallInConstructor
-        Text = worldName;
-        TextTitle = worldName;
-        TextDescription = worldName;
-        UniqueName = Guid.NewGuid().ToString();
-        // ReSharper restore VirtualMemberCallInConstructor
-        Terminal.Dock = DockStyle.Fill;
-        Controls.Add(Terminal);
-    }
+   public TlsMooClientSession(string world, string host, int port, string outOfBandPrefix = "#$#")
+      : base(world, host, port, outOfBandPrefix)
+   {
+   }
 
-    /// <summary>
-    /// Occurs when [new message(s) received].
-    /// </summary>
-    public event EventHandler NewMessageReceived
-    {
-        add { Terminal.NewMessageReceived += value; }
-        remove { Terminal.NewMessageReceived -= value; }
-    }
-
-    public MooClientTerminal Terminal { get; set; }
+   protected override Stream GetStream(TcpClient client)
+   {
+      var sslStream = new SslStream(base.GetStream(client));
+      sslStream.AuthenticateAsClient(Host);
+      IsAuthenticated = sslStream.IsAuthenticated;
+      return sslStream;
+   }
 }

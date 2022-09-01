@@ -2,26 +2,26 @@
 // <copyright company="Edgerunner.org" file="RootMessageProcessor.cs">
 // Copyright (c) Thaddeus Ryker 2022
 // </copyright>
-// 
+//
 // BSD 3-Clause License
-// 
+//
 // Copyright (c) 2022,
 // All rights reserved.
-// 
+//
 // Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are met:
-// 
+//
 // 1. Redistributions of source code must retain the above copyright notice, this
 //    list of conditions and the following disclaimer.
-// 
+//
 // 2. Redistributions in binary form must reproduce the above copyright notice,
 //    this list of conditions and the following disclaimer in the documentation
 //    and/or other materials provided with the distribution.
-// 
+//
 // 3. Neither the name of the copyright holder nor the names of its
 //    contributors may be used to endorse or promote products derived from
 //    this software without specific prior written permission.
-// 
+//
 // THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
 // AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
 // IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
@@ -73,7 +73,7 @@ public class RootMessageProcessor
     /// </summary>
     /// <value>The out of band messaging timeout interval in milliseconds.</value>
     public int OutOfBandMessagingTimeout { get; set; }
-    
+
     /// <summary>
     /// Gets the out of band message processor.
     /// </summary>
@@ -92,15 +92,13 @@ public class RootMessageProcessor
     public virtual IEnumerable<string>? ProcessMessage(string message)
     {
         // If we have been in an Out of Band message processing state too long
+        // Or if the previous message processing state was finished.
         // we reset the state along with all out of band processors.
-        if (_State.CurrentState == MessagingState.OUtOfBand && (DateTime.UtcNow - _State.LastMessageReceived).Milliseconds >= OutOfBandMessagingTimeout)
+        if (_State.Finished || _State.CurrentState == MessagingState.OUtOfBand && (DateTime.UtcNow - _State.LastMessageReceived).Milliseconds >= OutOfBandMessagingTimeout)
         {
             OutOfBandMessageProcessor.Reset();
             _State.Reset();
         }
-        // Otherwise if the state is finished from our previous message, we reset the state.
-        else if (_State.Finished)
-            _State.Reset();
 
         // Set our last message receipt time
         _State.LastMessageReceived = DateTime.UtcNow;

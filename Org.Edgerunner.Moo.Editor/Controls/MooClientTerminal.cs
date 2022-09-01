@@ -5,6 +5,7 @@ using System.Data;
 using System.Diagnostics;
 using System.Drawing;
 using System.Linq;
+using System.Net.Security;
 using System.Net.Sockets;
 using System.Text;
 using System.Threading.Tasks;
@@ -44,9 +45,23 @@ namespace Org.Edgerunner.Moo.Editor.Controls
 
       public string World => _Session.World;
 
+      public ConsoleWindowEmulator Output => consoleSim;
+
+      public TextBox Input => txtInput;
+
+      /// <summary>
+      /// Gets or sets a value indicating whether this <see cref="MooClientTerminal"/> is using TLS.
+      /// </summary>
+      /// <value>
+      ///   <c>true</c> if TLS; otherwise, <c>false</c>.
+      /// </value>
+      public bool Tls { get; protected set; }
+
       public bool EchoEnabled { get; set; }
 
-      public MooClientTerminal()
+      public bool IsConnected => _Session?.IsOpen ?? false;
+
+      public MooClientTerminal(bool useTls = false)
       {
          InitializeComponent();
          ConsoleForeColor = Color.WhiteSmoke;
@@ -59,6 +74,7 @@ namespace Org.Edgerunner.Moo.Editor.Controls
          McpSessionManager = new McpClientSessionManager(new Version(2,1), new Version(2,1), new List<IMcpPackage>());
          ActiveControl = txtInput;
          splitContainer1.ActiveControl = txtInput;
+         Tls = useTls;
       }
 
       /// <summary>
@@ -217,14 +233,41 @@ namespace Org.Edgerunner.Moo.Editor.Controls
          _Session.SendOutOfBandLine(command);
       }
 
-      public void Connect(string world, string host, int port)
+      public async Task ConnectAsync(string world, string host, int port, bool useTls = false)
       {
-         _Session = MooClient.Create<MooClientSession>(world, host, port);
+         Tls = useTls;
+         _Session = Tls ? MooClient.Create<TlsMooClientSession>(world, host, port) : MooClient.Create<MooClientSession>(world, host, port);
          _Session.Closed += Session_Closed;
          _Session.MessageReceived += SessionMessageReceived;
          _Session.DataDropped += Session_DataDropped;
-         _Session.Open(host, port);
+         await _Session.OpenAsync(host, port);
+         if (Tls)
+            if (_Session.Stream is SslStream stream)
+            {
+               var okStyle = AnsiManager.GetStyle(Color.LawnGreen, ConsoleBackgroundColor, FontStyle.Regular);
+               var badStyle = AnsiManager.GetStyle(Color.Red, ConsoleBackgroundColor, FontStyle.Regular);
+               consoleSim.WriteLine($"[ Cipher algorithm: {stream.CipherAlgorithm} ]", okStyle);
+               consoleSim.WriteLine($"[ Hash algorithm: {stream.HashAlgorithm} ]", okStyle);
+               if (!stream.IsAuthenticated)
+                  consoleSim.WriteLine("[ Authenticated: NO ]", badStyle);
+               else
+                  consoleSim.WriteLine($"[ Authenticated: {host} ]", okStyle);
+               if (!stream.IsEncrypted)
+                  consoleSim.WriteLine("[ Data Encryption: DISABLED ]", badStyle);
+               else
+                  consoleSim.WriteLine($"[ Data Encryption: ENABLED ]", okStyle);
+            }
+
+         _Session.BeginReadingDataTillClose();
          _LoggedInConnection = false;
+      }
+
+      /// <summary>
+      /// Puts focus the on the input box.
+      /// </summary>
+      public void FocusOnInput()
+      {
+         txtInput.Focus();
       }
 
       private void Session_DataDropped(object sender, int e)
@@ -243,7 +286,7 @@ namespace Org.Edgerunner.Moo.Editor.Controls
          // We define a local function to fetch the console line count to be used via thread invocation
          int GetLineCount() => consoleSim.Lines.Count;
 
-         var existingLineCount = consoleSim.Invoke((Func<int>)GetLineCount);
+         var existingLineCount = Invoke((Func<int>)GetLineCount);
          while (!_Session.CommandQueue.IsEmpty)
          {
             if (_Session.CommandQueue.TryDequeue(out var message))
@@ -276,7 +319,7 @@ namespace Org.Edgerunner.Moo.Editor.Controls
                         consoleSim.GoEnd();
                   }
 
-                  consoleSim.Invoke(SafeWrite);
+                  Invoke(SafeWrite);
                   NewMessageReceived?.InvokeOnUI(new object[] { this, EventArgs.Empty });
                }
             }
@@ -297,7 +340,7 @@ namespace Org.Edgerunner.Moo.Editor.Controls
       {
          _LoggedInConnection = false;
          Debug.WriteLine("** Session was closed **");
-         consoleSim.WriteLine("** Session closed by server **");
+         consoleSim.WriteLine("** Connection closed **");
       }
 
       public void Close()
@@ -305,7 +348,7 @@ namespace Org.Edgerunner.Moo.Editor.Controls
          _LoggedInConnection = false;
          try
          {
-            _Session.Close();
+            _Session?.Close();
          }
          catch (SocketException ex)
          {

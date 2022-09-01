@@ -3,26 +3,26 @@
 // <copyright company="Edgerunner.org" file="ParserMessageDisplayPage.cs">
 // Copyright (c) Thaddeus Ryker 2022
 // </copyright>
-// 
+//
 // BSD 3-Clause License
-// 
+//
 // Copyright (c) 2022,
 // All rights reserved.
-// 
+//
 // Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are met:
-// 
+//
 // 1. Redistributions of source code must retain the above copyright notice, this
 //    list of conditions and the following disclaimer.
-// 
+//
 // 2. Redistributions in binary form must reproduce the above copyright notice,
 //    this list of conditions and the following disclaimer in the documentation
 //    and/or other materials provided with the distribution.
-// 
+//
 // 3. Neither the name of the copyright holder nor the names of its
 //    contributors may be used to endorse or promote products derived from
 //    this software without specific prior written permission.
-// 
+//
 // THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
 // AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
 // IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
@@ -44,14 +44,16 @@ using Org.Edgerunner.Moo.Editor.Controls;
 
 namespace Org.Edgerunner.Moo.Udditor.Pages;
 
-public class ParserMessageDisplayPage : KryptonPage
+public class ParserMessageDisplayPage : ManagedPage
 {
     #region Constructors And Finalizers
 
     /// <summary>
     ///     Initializes a new instance of the <see cref="ParserMessageDisplayPage" /> class.
     /// </summary>
-    public ParserMessageDisplayPage()
+    /// <param name="manager">The window manager.</param>
+    public ParserMessageDisplayPage(WindowManager manager)
+    : base(manager)
     {
         MessageDisplay = new ErrorDisplay();
         ConfigureMessageDisplay(MessageDisplay);
@@ -61,6 +63,8 @@ public class ParserMessageDisplayPage : KryptonPage
         TextDescription = "A list of parser messages";
         ClearFlags(KryptonPageFlags.DockingAllowClose);
         // ReSharper restore VirtualMemberCallInConstructor
+        MessageDisplay.Dock = DockStyle.Fill;
+        Controls.Add(MessageDisplay);
         MessageDisplay.DoubleClick += MessageDisplay_DoubleClick;
     }
 
@@ -85,7 +89,7 @@ public class ParserMessageDisplayPage : KryptonPage
     {
         if (MessageDisplay.SelectedItems.Count == 0 || MessageDisplay.SelectedItems[0] == null)
         {
-            DoubleClick?.Invoke(this, 
+            DoubleClick?.Invoke(this,
                                 new ParserMessageDoubleClickEventArgs(0, 0, string.Empty, string.Empty, null));
         }
 

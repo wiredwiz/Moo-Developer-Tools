@@ -1,6 +1,7 @@
 ﻿using Krypton.Docking;
 using System.Diagnostics;
 using System.IO;
+using System.Net.Sockets;
 using System.Text;
 using System.Windows.Forms;
 using System.Xml.Linq;
@@ -13,6 +14,7 @@ using Org.Edgerunner.Moo.Editor;
 using Org.Edgerunner.Moo.Editor.Autocomplete;
 using Org.Edgerunner.Moo.Editor.Configuration;
 using Org.Edgerunner.Moo.Editor.Controls;
+using Org.Edgerunner.Moo.Udditor.Pages;
 using static System.Windows.Forms.VisualStyles.VisualStyleElement;
 
 namespace Org.Edgerunner.Moo.Udditor;
@@ -22,13 +24,12 @@ public partial class Editor : Form
     public Editor()
     {
         InitializeComponent();
-        Pages = new Dictionary<string, KryptonPage>();
         Errors = new SortedDictionary<string, List<ParseMessage>>();
         DefaultGrammarDialect = Settings.Instance.DefaultGrammarDialect;
         UpdateDialectMenu(Settings.Instance.DefaultGrammarDialect);
     }
 
-    private void MooCodeEditor_ParsingComplete(object sender, Moo.Editor.ParsingCompleteEventArgs e)
+    private void Editor_ParsingComplete(object sender, Moo.Editor.ParsingCompleteEventArgs e)
     {
         var key = e.Document.Id;
         if (e.ErrorMessages.Count == 0)
@@ -41,7 +42,10 @@ public partial class Editor : Form
         ErrorDisplay.PopulateErrors(allErrors);
     }
 
-    public MooEditor CurrentEditor { get; set; }
+    private void Editor_CursorPositionChanged(object sender, EventArgs e)
+    {
+
+    }
 
     private ErrorDisplay ErrorDisplay { get; set; }
 
@@ -49,71 +53,16 @@ public partial class Editor : Form
 
     private KryptonDockingWorkspace Workspace { get; set; }
 
-    private Dictionary<string, KryptonPage> Pages { get; set; }
-
     private SortedDictionary<string, List<ParseMessage>> Errors { get; set; }
 
-    private void ConfigureEditorSettings(MooEditor editor)
-    {
-        editor.Font = new Font(Settings.Instance.EditorFontFamily, Settings.Instance.EditorFontSize);
-        editor.ForeColor = Settings.Instance.EditorTextColor;
-        editor.CaretColor = Settings.Instance.EditorCaretColor;
-        editor.BackColor = Settings.Instance.EditorBackgroundColor;
-        editor.CurrentLineColor = Settings.Instance.EditorCurrentLineColor;
-        editor.AutoIndent = Settings.Instance.EditorAutoIndent;
-        editor.WordWrapIndent = Settings.Instance.EditorWordWrapIndent;
-        editor.WordWrapAutoIndent = Settings.Instance.EditorWordWrapAutoIndent;
-        editor.WordWrap = Settings.Instance.EditorWordWrap;
-        editor.AutoCompleteBrackets = Settings.Instance.EditorAutoBrackets;
-        editor.TabLength = Settings.Instance.EditorTabLength;
-        editor.LineNumberColor = Settings.Instance.EditorLineNumberColor;
-        editor.SelectionColor = Settings.Instance.EditorTextSelectionColor;
-        editor.ChangedLineColor = Settings.Instance.EditorChangedLineColor;
-        editor.FoldingIndicatorColor = Settings.Instance.EditorFoldingIndicatorColor;
-        editor.IndentBackColor = Settings.Instance.EditorIndentBackColor;
-        editor.BookmarkColor = Settings.Instance.EditorBookmarkColor;
-        BuildAutocompleteMenu(editor);
-    }
+    private WindowManager WindowManager { get; set; }
+
+    private ManagedPage CurrentPage { get; set; }
 
     private void SetDocumentGrammar(GrammarDialect grammarDialect)
     {
-        if (CurrentEditor != null)
-            CurrentEditor.GrammarDialect = grammarDialect;
-    }
-
-    private void BuildAutocompleteMenu(MooEditor editor)
-    {
-        editor.AutocompleteMenu = new AutocompleteMenu(editor);
-
-        //editor.AutocompleteMenu.Items.ImageList = imageList1;
-        editor.AutocompleteMenu.SearchPattern = @"[\w\.:=!<>+-/*%&|^]";
-        editor.AutocompleteMenu.AllowTabKey = true;
-        editor.AutocompleteMenu.MinFragmentLength = 1;
-
-        List<AutocompleteItem> items = new List<AutocompleteItem>();
-
-        foreach (var item in Snippets.LoadSnippets(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Snippets.txt")))
-            items.Add(new SnippetAutocompleteItem(item) { ImageIndex = 1 });
-        foreach (var item in Moo.Editor.Moo.Keywords)
-            items.Add(new AutoIndentingSnippet(item));
-        foreach (var builtin in Moo.Editor.Moo.Builtins.Values)
-            items.Add(new SnippetAutocompleteItem(builtin));
-
-        items.Add(new InsertSpaceSnippet());
-        items.Add(new InsertSpaceSnippet(@"^(\w+)([=<>!&|%-+*/]+)(\w+)$"));
-        items.Add(new FormatCommaSnippet(@"^(\w+)(([,]+)(\w+))+$"));
-
-        //set as autocomplete source
-        editor.AutocompleteMenu.Items.SetAutocompleteItems(items);
-        editor.AutocompleteMenu.AppearInterval = Settings.Instance.EditorAutocompleteDelay;
-    }
-
-    private void ConfigureMessageDisplay(ErrorDisplay display)
-    {
-        var font = new Font(Settings.Instance.EditorFontFamily, Settings.Instance.EditorFontSize);
-        display.Font = font;
-        display.ForeColor = Settings.Instance.EditorTextColor;
-        display.BackColor = Settings.Instance.EditorBackgroundColor;
+        if (CurrentPage is EditorPage page)
+            page.GrammarDialect = grammarDialect;
     }
 
     private void UpdateDialectMenu(GrammarDialect dialect)
@@ -138,165 +87,75 @@ public partial class Editor : Form
         }
     }
 
+    private void EnableGrammarMenu(bool enabled)
+    {
+        grammarToolStripMenuItem.Enabled = enabled;
+    }
+
+    private void UpdateMenus()
+    {
+        var isEditor = CurrentPage is EditorPage;
+        var isTerminal = CurrentPage is TerminalPage;
+        grammarToolStripMenuItem.Enabled = isEditor;
+        mnuItemSaveAsFile.Enabled = isEditor;
+        mnuItemFileSave.Enabled = isEditor;
+        mnuItemFormat.Enabled = isEditor;
+        mnuItemBookmarks.Enabled = isEditor;
+        mnuItemFolding.Enabled = isEditor;
+        mnuItemCloseConnection.Enabled = isTerminal;
+    }
+
     private void Editor_Load(object sender, EventArgs e)
     {
         // Setup docking functionality
         Workspace = kryptonDockingManager.ManageWorkspace(kryptonDockableWorkspace);
-        kryptonDockingManager.ManageControl("Control1", kryptonPanel);
+        WindowManager = new WindowManager(Workspace);
+        WindowManager.EditorCursorUpdated += WindowManager_EditorCursorUpdated;
+        WindowManager.EditorParsingComplete += WindowManager_EditorParsingComplete;
+        kryptonDockingManager.ManageControl("FooterControls", kryptonPanel);
         kryptonDockingManager.ManageFloating(this);
 
-        kryptonDockingManager.AddDockspace("Control1", DockingEdge.Bottom, new KryptonPage[] { NewErrorDisplay() });
+        var messageDisplay = WindowManager.CreateParserMessageDisplayPage();
+        ErrorDisplay = messageDisplay.MessageDisplay;
+        messageDisplay.DoubleClick += MessageDisplay_DoubleClick;
+        UpdateMenus();
     }
 
-    private KryptonPage NewPage(string id, string name, string title, string description, int image, Control content)
+    private void WindowManager_EditorParsingComplete(object sender, EditorPage e)
     {
-        // Create new page with title and image
-        KryptonPage page = new KryptonPage();
-        page.UniqueName = id;
-        page.Text = name;
-        page.TextTitle = title;
-        page.TextDescription = description;
-        //p.ImageSmall = imageListSmall.Images[image];
-
-        // Add the control for display inside the page
-        content.Dock = DockStyle.Fill;
-        page.Controls.Add(content);
-
-        return page;
-    }
-
-    private KryptonPage NewEditorPage(string filePath, GrammarDialect dialect)
-    {
-        var name = Path.GetFileName(filePath);
-        var source = File.ReadAllText(filePath);
-        var editor = NewEditor(dialect);
-        editor.OpenFile(filePath);
-        var key = $"{name}-{Guid.NewGuid()}";
-        editor.Document = new DocumentInfo(key, filePath, name);
-        editor.Text = source;
-        editor.Selection = new TextSelectionRange(editor, 0, 0, 0, 0);
-        var page = NewPage(key, name, filePath, filePath, 0, editor);
-        Pages[key] = page;
-        return page;
-    }
-
-    private KryptonPage NewEditorPage(string verbName, string hostName, GrammarDialect dialect, string source)
-    {
-        var editor = NewEditor(dialect);
-        var title = $"{hostName}/{verbName}";
-        var key = $"{verbName}-{Guid.NewGuid()}";
-        editor.Document = new DocumentInfo(key, string.Empty, verbName);
-        editor.Text = source;
-        editor.IsChanged = false;
-        editor.Selection = new TextSelectionRange(editor, 0, 0, 0, 0);
-        var page = NewPage(key, verbName, title, title, 0, editor);
-        Pages[key] = page;
-        return page;
-    }
-
-    private KryptonPage NewEditorPage(GrammarDialect dialect)
-    {
-        var editor = NewEditor(dialect);
-        var key = $"<New>-{Guid.NewGuid().ToString()}";
-        var name = "<New>";
-        editor.Document = new DocumentInfo(key, string.Empty, name);
-        var page = NewPage(key, name, name, name, 0, editor);
-        Pages[key] = page;
-        return page;
-    }
-
-    private MooEditor NewEditor(GrammarDialect dialect)
-    {
-        var editor = new MooEditor();
-        editor.BorderStyle = BorderStyle.Fixed3D;
-        editor.GrammarDialect = dialect;
-        ConfigureEditorSettings(editor);
-        editor.ParsingComplete += MooCodeEditor_ParsingComplete;
-        editor.Enter += Editor_Enter;
-        editor.SelectionChanged += Editor_SelectionChanged;
-        //CurrentEditor = editor;
-        return editor;
-    }
-
-    private void Editor_SelectionChanged(object sender, EventArgs e)
-    {
-        var editor = (MooEditor)sender;
-        if (editor != null && editor == CurrentEditor)
+        if (CurrentPage == e)
         {
-            tlStatusLine.Text = ((CurrentEditor?.Selection.Start.iLine + 1) ?? 1).ToString();
-            tlStatusColumn.Text = ((CurrentEditor?.Selection.Start.iChar + 1) ?? 1).ToString();
+            var key = e.Document.Id;
+            if (e.ParseErrors.Count == 0)
+                Errors.Remove(key);
+            else
+                Errors[key] = e.ParseErrors;
+            var allErrors = new List<ParseMessage>();
+            foreach (var eKey in Errors.Keys)
+                allErrors.AddRange(Errors[eKey]);
+            ErrorDisplay.PopulateErrors(allErrors);
+            e.Editor.Invalidate();
         }
     }
 
-    private void Editor_Enter(object sender, EventArgs e)
+    private void WindowManager_EditorCursorUpdated(object sender, EditorPage e)
     {
-        var editor = (MooEditor)sender;
-        CurrentEditor = editor;
-        tlStatusLine.Text = ((CurrentEditor?.Selection.Start.iLine + 1) ?? 1).ToString();
-        tlStatusColumn.Text = ((CurrentEditor?.Selection.Start.iChar + 1) ?? 1).ToString();
-        UpdateDialectMenu(CurrentEditor.GrammarDialect);
+        if (CurrentPage == e)
+        {
+            tlStatusLine.Text = ((e.Editor?.Selection.Start.iLine + 1) ?? 1).ToString();
+            tlStatusColumn.Text = ((e.Editor?.Selection.Start.iChar + 1) ?? 1).ToString();
+        }
     }
 
-    private KryptonPage NewErrorDisplay()
+    private void MessageDisplay_DoubleClick(object sender, ParserMessageDoubleClickEventArgs e)
     {
-        var display = new ErrorDisplay();
-        ConfigureMessageDisplay(display);
-        ErrorDisplay = display;
-        display.DoubleClick += Display_DoubleClick;
-        var page = NewPage("Errors", "Errors", "Error Messages", "A list of parser errors", 0, display);
-        page.ClearFlags(KryptonPageFlags.DockingAllowClose);
-        return page;
-    }
-
-    private MooClientTerminal NewTerminalClient()
-    {
-        var client = new MooClientTerminal();
-        return client;
-    }
-
-    private KryptonPage NewTerminalClientPage(string host, int port, string name = null)
-    {
-        var client = NewTerminalClient();
-        var key = Guid.NewGuid().ToString();
-        var page = NewPage(key, name, name, name, 0, client);
-        Pages[key] = page;
-        return page;
-    }
-
-    public void SwitchToPage(string id)
-    {
-        var page = Pages[id];
-        Workspace.SelectPage(page.UniqueName);
-        var control = (Control)page.Controls[0];
-        control.Focus();
-    }
-
-    private void Display_DoubleClick(object sender, EventArgs e)
-    {
-        var errDisplay = (ErrorDisplay)sender;
-        var key = errDisplay.SelectedItems[0].SubItems[0].Text;
-        int startLine;
-        int startColumn;
-        int endLine;
-        int endColumn;
-        //if (errDisplay.SelectedItems[0].Tag is ISyntaxErrorGuide guide)
-        //{
-        //    startLine = guide.Line - 1;
-        //    endLine = guide.EndingLine - 1;
-        //    startColumn = guide.Column;
-        //    endColumn = guide.EndingColumn;
-        //}
-        //else
-        //{
-            startLine = int.Parse(errDisplay.SelectedItems[0].SubItems[2].Text) - 1;
-            startColumn = int.Parse(errDisplay.SelectedItems[0].SubItems[3].Text) - 1;
-            endLine = startLine;
-            endColumn = startColumn;
-        //}
-        var page = Pages[key];
-        var editor = (MooEditor)page.Controls[0];
-        editor.Selection = new TextSelectionRange(editor, startColumn, startLine, endColumn, endLine);
-        SwitchToPage(page.UniqueName);
+        if (WindowManager.ShowPage(e.PageId) is EditorPage page)
+        {
+            page.Editor.Selection =
+                new TextSelectionRange(page.Editor, e.ColumnPosition, e.LineNumber, e.ColumnPosition, e.LineNumber);
+            page.Editor.Focus();
+            page.Editor.DoCaretVisible();
+        }
     }
 
     private void mnuItemExit_Click(object sender, EventArgs e)
@@ -306,9 +165,8 @@ public partial class Editor : Form
 
     private void tlMnuNew_Click(object sender, EventArgs e)
     {
-        var page = NewEditorPage(DefaultGrammarDialect);
-        kryptonDockingManager.AddToWorkspace("Workspace", new KryptonPage[] { page });
-        SwitchToPage(page.UniqueName);
+        var page = WindowManager.CreateEditorPage(DefaultGrammarDialect);
+        WindowManager.ShowPage(page);
     }
 
     private void mnuItemOpenFile_Click(object sender, EventArgs e)
@@ -320,16 +178,38 @@ public partial class Editor : Form
         if (openFileDialog.ShowDialog() == DialogResult.OK)
         {
             var path = openFileDialog.FileName;
-            var page = NewEditorPage(path, DefaultGrammarDialect);
-            kryptonDockingManager.AddToWorkspace("Workspace", new KryptonPage[] { page });
-            SwitchToPage(page.UniqueName);
+            var page = WindowManager.CreateEditorPage(DefaultGrammarDialect, path);
+            WindowManager.ShowPage(page);
         }
     }
-    private void tlMnuItemFileSave_Click(object sender, EventArgs e)
+    private void mnuItemSave_Click(object sender, EventArgs e)
     {
-        if (!string.IsNullOrEmpty(CurrentEditor.Document.Path))
-            CurrentEditor.SaveToFile(CurrentEditor.Document.Path, Encoding.Default);
-        else
+        if (CurrentPage is EditorPage page)
+        {
+            if (!string.IsNullOrEmpty(page.Document.Path))
+                page.Editor.SaveToFile(page.Document.Path, Encoding.Default);
+            else
+            {
+                saveFileDialog.DefaultExt = "moo";
+                saveFileDialog.Filter = @"Moo files (*.moo)|*.moo|Text files (*.txt)|*.txt|All files (*.*)|*.*";
+                saveFileDialog.Title = "Please select a file name to save as";
+                if (saveFileDialog.ShowDialog() == DialogResult.OK)
+                {
+                    var path = saveFileDialog.FileName;
+                    var name = Path.GetFileName(path);
+                    page.Editor.SaveToFile(path, Encoding.Default);
+                    page.Document.Path = path;
+                    page.Document.Name = name;
+                    page.ParseSourceCode();
+                }
+            }
+            page.Editor.Invalidate();
+        }
+    }
+
+    private void mnuItemSaveAsFile_Click(object sender, EventArgs e)
+    {
+        if (CurrentPage is EditorPage page)
         {
             saveFileDialog.DefaultExt = "moo";
             saveFileDialog.Filter = @"Moo files (*.moo)|*.moo|Text files (*.txt)|*.txt|All files (*.*)|*.*";
@@ -338,71 +218,60 @@ public partial class Editor : Form
             {
                 var path = saveFileDialog.FileName;
                 var name = Path.GetFileName(path);
-                CurrentEditor.SaveToFile(path, Encoding.Default);
-                CurrentEditor.Document.Path = path;
-                CurrentEditor.Document.Name = name;
-                CurrentEditor.ParseSourceCode(false);
+                page.Editor.SaveToFile(path, Encoding.Default);
+                page.Document.Path = path;
+                page.Document.Name = name;
+                page.ParseSourceCode();
             }
-        }
-        CurrentEditor.Invalidate();
-    }
-
-    private void mnuItemSaveAsFile_Click(object sender, EventArgs e)
-    {
-        saveFileDialog.DefaultExt = "moo";
-        saveFileDialog.Filter = @"Moo files (*.moo)|*.moo|Text files (*.txt)|*.txt|All files (*.*)|*.*";
-        saveFileDialog.Title = "Please select a file name to save as";
-        if (saveFileDialog.ShowDialog() == DialogResult.OK)
-        {
-            var path = saveFileDialog.FileName;
-            var name = Path.GetFileName(path);
-            CurrentEditor.SaveToFile(path, Encoding.Default);
-            CurrentEditor.Document.Path = path;
-            CurrentEditor.Document.Name = name;
-            CurrentEditor.ParseSourceCode(false);
         }
     }
 
     private void tlMnuItemClose_Click(object sender, EventArgs e)
     {
-        var page = kryptonDockingManager.PageForUniqueName(CurrentEditor.Document.Id);
-        kryptonDockingManager.RemovePage(page, true);
+        if (CurrentPage != null)
+            kryptonDockingManager.RemovePage(CurrentPage, true);
     }
 
     private void mnuItemFormat_Click(object sender, EventArgs e)
     {
-        CurrentEditor.SuspendLayout();
-        var current = CurrentEditor.Selection.Clone();
-        CurrentEditor.SelectAll();
-        CurrentEditor.DoAutoIndent();
-        CurrentEditor.Selection = current;
-        CurrentEditor.ResumeLayout();
-    }
-
-    private void MooEditor_SelectionChanged(object sender, EventArgs e)
-    {
-        tlStatusLine.Text = ((CurrentEditor?.Selection.Start.iLine + 1) ?? 1).ToString();
-        tlStatusColumn.Text = ((CurrentEditor?.Selection.Start.iChar + 1) ?? 1).ToString();
+        if (CurrentPage is EditorPage page)
+        {
+            page.Editor.SuspendLayout();
+            var current = page.Editor.Selection.Clone();
+            page.Editor.SelectAll();
+            page.Editor.DoAutoIndent();
+            page.Editor.Selection = current;
+            page.Editor.ResumeLayout();
+        }
     }
 
     private void mnuItemCut_Click(object sender, EventArgs e)
     {
-        CurrentEditor.Cut();
+        // TODO: add support for different window types
+        if (CurrentPage is EditorPage page)
+            page.Editor.Cut();
     }
 
     private void mnuItemCopy_Click(object sender, EventArgs e)
     {
-        CurrentEditor.Copy();
+        // TODO: add support for different window types
+        if (CurrentPage is EditorPage page)
+            page.Editor.Copy();
     }
 
     private void mnuItemCutPaste_Click(object sender, EventArgs e)
     {
-        CurrentEditor.Paste();
+        // TODO: add support for different window types
+        if (CurrentPage is EditorPage page)
+            page.Editor.Paste();
     }
 
     private void mnuItemFind_Click(object sender, EventArgs e)
     {
-        CurrentEditor.ShowFindDialog();
+        if (CurrentPage is EditorPage editorPage)
+            editorPage.Editor.ShowFindDialog();
+        else if (CurrentPage is TerminalPage terminalPage)
+            terminalPage.Terminal.Output.ShowFindDialog();
     }
 
     private void tlMnuHelp_Click(object sender, EventArgs e)
@@ -437,10 +306,9 @@ public partial class Editor : Form
     private void kryptonDockingManager_PageCloseRequest(object sender, CloseRequestEventArgs e)
     {
         var key = e.UniqueName;
-        var page = Pages[key];
-        if (page.Controls[0] is MooEditor { IsChanged: true } editor)
+        if (WindowManager.GetPage(key) is EditorPage page && page.Editor.IsChanged)
         {
-            var name = editor.Document.Name;
+            var name = page.Editor.Document.Name;
             DialogResult dialogResult = MessageBox.Show($"\"{name}\" has been modified but has not been saved.  Would you like to save this file?", "Modified File", MessageBoxButtons.YesNo);
             if(dialogResult == DialogResult.Yes)
             {
@@ -451,7 +319,7 @@ public partial class Editor : Form
                 if (saveFileDialog.ShowDialog() == DialogResult.OK)
                 {
                     var path = saveFileDialog.FileName;
-                    editor.SaveToFile(path, Encoding.Default);
+                    page.Editor.SaveToFile(path, Encoding.Default);
                 }
                 else
                     e.CloseRequest = DockingCloseRequest.None;
@@ -461,41 +329,41 @@ public partial class Editor : Form
 
     private void tlMnuItemToggleBookmark_Click(object sender, EventArgs e)
     {
-       if (CurrentEditor != null)
-         CurrentEditor.BookmarkLine(CurrentEditor.Selection.Start.iLine);
+       if (CurrentPage is EditorPage page)
+           page.Editor.BookmarkLine(page.Editor.Selection.Start.iLine);
     }
 
     private void tlMnuItemNextBookmark_Click(object sender, EventArgs e)
     {
-        if (CurrentEditor != null)
-            CurrentEditor.GotoNextBookmark(CurrentEditor.Selection.Start.iLine);
+        if (CurrentPage is EditorPage page)
+            page.Editor.GotoNextBookmark(page.Editor.Selection.Start.iLine);
     }
 
     private void tlMnuItemPrevBookmark_Click(object sender, EventArgs e)
     {
-        if (CurrentEditor != null)
-            CurrentEditor.GotoPrevBookmark(CurrentEditor.Selection.Start.iLine);
+        if (CurrentPage is EditorPage page)
+            page.Editor.GotoPrevBookmark(page.Editor.Selection.Start.iLine);
     }
 
     private void tlMnuItemToggleFolding_Click(object sender, EventArgs e)
     {
-        if (CurrentEditor != null)
-            CurrentEditor.ToggleFoldingBlock(CurrentEditor.Selection.Start.iLine);
+        if (CurrentPage is EditorPage page)
+            page.Editor.ToggleFoldingBlock(page.Editor.Selection.Start.iLine);
     }
 
     private void tlMnuItemExpandAll_Click(object sender, EventArgs e)
     {
-        if (CurrentEditor != null)
-            CurrentEditor.ExpandAllFoldingBlocks();
+        if (CurrentPage is EditorPage page)
+            page.Editor.ExpandAllFoldingBlocks();
     }
 
     private void tlMnuItemCollapseAll_Click(object sender, EventArgs e)
     {
-        if (CurrentEditor != null)
-            CurrentEditor.CollapseAllFoldingBlocks();
+        if (CurrentPage is EditorPage page)
+            page.Editor.CollapseAllFoldingBlocks();
     }
 
-    private void tlMnuItemOpenConnection_Click(object sender, EventArgs e)
+    private async void tlMnuItemOpenConnection_Click(object sender, EventArgs e)
     {
         var prompt = new ConnectionInfoPrompt();
         prompt.StartPosition = FormStartPosition.CenterParent;
@@ -504,35 +372,61 @@ public partial class Editor : Form
         {
             var host = prompt.HostAddress;
             var port = prompt.HostPort;
-            var page = NewTerminalClientPage(host, port, host);
-            kryptonDockingManager.AddToWorkspace("Workspace", new KryptonPage[] { page });
-            ((MooClientTerminal)page.Controls[0]).Connect(host, host, port);
-            SwitchToPage(page.UniqueName);
+            TerminalPage page = CurrentPage as TerminalPage;
+            if (page == null || page.Terminal.IsConnected)
+            {
+                page = WindowManager.CreateTerminalPage(host);
+            }
+
+            WindowManager.ShowPage(page);
+            try
+            {
+                page.Terminal.FocusOnInput();
+                await page.Terminal.ConnectAsync(host, host, port, prompt.UseTls);
+            }
+            catch (Exception ex)
+            {
+                if (prompt.UseTls && ex is IOException)
+                    MessageBox.Show("This host address may not support TLS", "Unable to connect");
+                else
+                    MessageBox.Show(ex.Message, "Unable to connect");
+            }
         }
     }
 
     private void tlMnuItemCloseConnection_Click(object sender, EventArgs e)
     {
-
+        if (CurrentPage is TerminalPage page)
+            page.Terminal.Close();
     }
 
-    private void kryptonDockingManager_FloatspaceRemoved(object sender, FloatspaceEventArgs e)
+    private void kryptonDockableWorkspace_ActivePageChanged(object sender, Krypton.Workspace.ActivePageChangedEventArgs e)
     {
-        int f = 1;
+        CurrentPage = e.NewPage as ManagedPage;
+
+        if (e.NewPage is EditorPage editorPage && WindowManager.RecentEditor == null)
+            WindowManager.RecentEditor = editorPage;
+        else if (e.NewPage is not EditorPage && e.OldPage is EditorPage oldEditorPage)
+            WindowManager.RecentEditor = oldEditorPage;
+
+        if (e.NewPage is TerminalPage terminalPage && WindowManager.RecentTerminal == null)
+            WindowManager.RecentTerminal = terminalPage;
+        else if (e.NewPage is not TerminalPage && e.OldPage is TerminalPage oldTerminalPage)
+            WindowManager.RecentTerminal = oldTerminalPage;
+
+        if (CurrentPage is EditorPage editorPage2)
+        {
+            tlStatusLine.Text = ((editorPage2.Editor?.Selection.Start.iLine + 1) ?? 1).ToString();
+            tlStatusColumn.Text = ((editorPage2.Editor?.Selection.Start.iChar + 1) ?? 1).ToString();
+        }
+
+        UpdateMenus();
+
+        if (CurrentPage is TerminalPage terminalPage2)
+            terminalPage2.Terminal.FocusOnInput();
     }
 
-    private void kryptonDockingManager_DockspaceCellRemoved(object sender, DockspaceCellEventArgs e)
+    private void kryptonDockableWorkspace_PageCloseClicked(object sender, UniqueNameEventArgs e)
     {
-        int f = 1;
-    }
-
-    private void kryptonDockingManager_PageAutoHiddenRequest(object sender, CancelUniqueNameEventArgs e)
-    {
-        int f = 1;
-    }
-
-    private void kryptonDockingManager_PageNavigatorRequest(object sender, CancelUniqueNameEventArgs e)
-    {
-        int f = 1;
     }
 }
