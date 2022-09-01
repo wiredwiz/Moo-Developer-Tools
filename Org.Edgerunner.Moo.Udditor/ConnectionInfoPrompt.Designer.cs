@@ -34,6 +34,7 @@ partial class ConnectionInfoPrompt
          this.btnCancel = new System.Windows.Forms.Button();
          this.btnConnect = new System.Windows.Forms.Button();
          this.txtPort = new System.Windows.Forms.MaskedTextBox();
+         this.chkTls = new System.Windows.Forms.CheckBox();
          this.SuspendLayout();
          // 
          // label1
@@ -66,7 +67,7 @@ partial class ConnectionInfoPrompt
          this.btnCancel.Location = new System.Drawing.Point(154, 69);
          this.btnCancel.Name = "btnCancel";
          this.btnCancel.Size = new System.Drawing.Size(94, 29);
-         this.btnCancel.TabIndex = 4;
+         this.btnCancel.TabIndex = 5;
          this.btnCancel.Text = "Cancel";
          this.btnCancel.UseVisualStyleBackColor = true;
          // 
@@ -75,7 +76,7 @@ partial class ConnectionInfoPrompt
          this.btnConnect.Location = new System.Drawing.Point(273, 69);
          this.btnConnect.Name = "btnConnect";
          this.btnConnect.Size = new System.Drawing.Size(94, 29);
-         this.btnConnect.TabIndex = 5;
+         this.btnConnect.TabIndex = 6;
          this.btnConnect.Text = "Connect";
          this.btnConnect.UseVisualStyleBackColor = true;
          this.btnConnect.Click += new System.EventHandler(this.btnConnect_Click);
@@ -89,12 +90,23 @@ partial class ConnectionInfoPrompt
          this.txtPort.TabIndex = 3;
          this.txtPort.ValidatingType = typeof(int);
          // 
+         // chkTls
+         // 
+         this.chkTls.AutoSize = true;
+         this.chkTls.Location = new System.Drawing.Point(12, 72);
+         this.chkTls.Name = "chkTls";
+         this.chkTls.Size = new System.Drawing.Size(82, 24);
+         this.chkTls.TabIndex = 4;
+         this.chkTls.Text = "Use TLS";
+         this.chkTls.UseVisualStyleBackColor = true;
+         // 
          // ConnectionInfoPrompt
          // 
          this.AutoScaleDimensions = new System.Drawing.SizeF(8F, 20F);
          this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
          this.CancelButton = this.btnCancel;
          this.ClientSize = new System.Drawing.Size(386, 110);
+         this.Controls.Add(this.chkTls);
          this.Controls.Add(this.txtPort);
          this.Controls.Add(this.btnConnect);
          this.Controls.Add(this.btnCancel);
@@ -117,4 +129,5 @@ partial class ConnectionInfoPrompt
     private Button btnCancel;
     private Button btnConnect;
     private MaskedTextBox txtPort;
+    private CheckBox chkTls;
 }
