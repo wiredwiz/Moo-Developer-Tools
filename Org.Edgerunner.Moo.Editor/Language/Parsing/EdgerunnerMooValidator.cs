@@ -47,7 +47,7 @@ public class EdgerunnerMooValidator : EdgerunnerMooParserBaseListener
 {
    public List<ParseMessage> Errors { get; set; }
 
-   public Document Document { get; set; }
+   public DocumentInfo Document { get; set; }
 
    public EdgerunnerMooValidator()
    {

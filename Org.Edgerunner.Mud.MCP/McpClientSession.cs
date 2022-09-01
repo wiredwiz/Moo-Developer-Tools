@@ -1,5 +1,5 @@
 ﻿#region BSD 3-Clause License
-// <copyright company="Edgerunner.org" file="IMcpPackage.cs">
+// <copyright company="Edgerunner.org" file="McpClientSession.cs">
 // Copyright (c)  2022
 // </copyright>
 //
@@ -34,35 +34,64 @@
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #endregion
 
-namespace Org.Edgerunner.Moo.Communication.MCP;
+using Org.Edgerunner.Mud.MCP.Interfaces;
+
+namespace Org.Edgerunner.Mud.MCP;
 
 /// <summary>
-/// Interface representing a specific MCP package implementation.
+/// A class representing an MCP client session.
 /// </summary>
-public interface IMcpPackage : IMcpProtocolHandler
+/// <seealso cref="IMcpSession" />
+public class McpClientSession : IMcpSession
 {
    /// <summary>
-   /// Gets or sets the name of the package.
+   /// Initializes a new instance of the <see cref="McpClientSession"/> class.
    /// </summary>
-   /// <value>
-   /// The package name.
-   /// </value>
-   /// <remarks></remarks>
-   string Name { get; set; }
+   /// <param name="manager">The manager.</param>
+   /// <param name="key">The key.</param>
+   /// <param name="protocolVersion">The protocol version.</param>
+   public McpClientSession(McpClientSessionManager manager, string key, Version protocolVersion)
+   {
+      Manager = manager;
+      Key = key;
+      ProtocolVersion = protocolVersion;
+      SupportedPackages = new Dictionary<string, IMcpPackage>();
+   }
 
    /// <summary>
-   /// Gets or sets the minimum supported package version.
+   /// Gets or sets the manager for this session.
    /// </summary>
    /// <value>
-   /// The minimum supported package version.
+   /// The manager.
    /// </value>
-   double MinimumVersion { get; set; }
+   public McpClientSessionManager Manager { get; }
 
    /// <summary>
-   /// Gets or sets the maximum supported package version.
+   /// Gets or sets the key negotiated for this session.
    /// </summary>
    /// <value>
-   /// The maximum supported package version.
+   /// The session key.
    /// </value>
-   double MaximumVersion { get; set; }
+   public string Key { get; }
+
+   /// <summary>
+   /// Gets or sets the protocol version being used for this session.
+   /// </summary>
+   /// <value>
+   /// The protocol version.
+   /// </value>
+   public Version ProtocolVersion { get; }
+
+   /// <summary>
+   /// Gets or sets the supported MCP packages for this session.
+   /// </summary>
+   /// <value>
+   /// The supported MCP packages.
+   /// </value>
+   public Dictionary<string, IMcpPackage> SupportedPackages { get; }
+
+   public string Handshake()
+   {
+      return $"mcp authentication-key: {Key} version: {Manager.MinimumVersion} to: {Manager.MaximumVersion}";
+   }
 }

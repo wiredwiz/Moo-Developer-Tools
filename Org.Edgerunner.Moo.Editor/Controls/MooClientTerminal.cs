@@ -14,13 +14,15 @@ using Org.Edgerunner.Common.Extensions;
 using Org.Edgerunner.Moo.Communication;
 using Org.Edgerunner.Moo.Communication.Buffers;
 using Org.Edgerunner.Moo.Communication.Interfaces;
-using Org.Edgerunner.Moo.Communication.MCP;
+using Org.Edgerunner.Mud.MCP;
+using Org.Edgerunner.Mud.MCP.Exceptions;
+using Org.Edgerunner.Mud.MCP.Interfaces;
 using static System.Net.Mime.MediaTypeNames;
 using Application = System.Windows.Forms.Application;
 
 namespace Org.Edgerunner.Moo.Editor.Controls
 {
-   public partial class MooClientTerminal : UserControl
+    public partial class MooClientTerminal : UserControl
    {
       private IMooClientSession _Session;
 
@@ -54,12 +56,17 @@ namespace Org.Edgerunner.Moo.Editor.Controls
          _InputCommandBuffer = new CommandBuffer(15);
          _UserInteraction = false;
          _LastCommandAppearedToBeALogin = false;
-         McpSessionManager = new McpClientSessionManager(2.1, 2.1, new List<IMcpPackage>());
+         McpSessionManager = new McpClientSessionManager(new Version(2,1), new Version(2,1), new List<IMcpPackage>());
          ActiveControl = txtInput;
          splitContainer1.ActiveControl = txtInput;
       }
 
-      protected override void OnHandleDestroyed(EventArgs e)
+      /// <summary>
+      /// Occurs when [new message(s) received].
+      /// </summary>
+        public event EventHandler NewMessageReceived;
+
+        protected override void OnHandleDestroyed(EventArgs e)
       {
          Close();
          base.OnHandleDestroyed(e);
@@ -248,9 +255,9 @@ namespace Org.Edgerunner.Moo.Editor.Controls
                   {
                      var parsed = McpUtils.ParseMessage(message.Text);
                      if (parsed != null)
-                        if (McpSessionManager.CanHandleMessage(parsed))
+                        if (McpSessionManager.IsNegotiationMessage(parsed))
                         {
-                           var result = McpSessionManager.ProcessMessage(parsed);
+                           var result = McpSessionManager.NegotiationMcpSession(parsed);
                            Debug.WriteLine($"Handshake: {result?.Handshake()}");
                         }
                   }
@@ -270,6 +277,7 @@ namespace Org.Edgerunner.Moo.Editor.Controls
                   }
 
                   consoleSim.Invoke(SafeWrite);
+                  NewMessageReceived?.InvokeOnUI(new object[] { this, EventArgs.Empty });
                }
             }
          }

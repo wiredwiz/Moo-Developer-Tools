@@ -20,6 +20,7 @@
   <ItemGroup>
     <ProjectReference Include="..\FastColoredTextBox\FastColoredTextBox.csproj" />
     <ProjectReference Include="..\Org.Edgerunner.Moo.Editor\Org.Edgerunner.Moo.Editor.csproj" />
+    <ProjectReference Include="..\Org.Edgerunner.Mud.MCP\Org.Edgerunner.Mud.MCP.csproj" />
   </ItemGroup>
 
   <ItemGroup>
@@ -58,6 +59,10 @@
       <Generator>SettingsSingleFileGenerator</Generator>
       <LastGenOutput>Settings.Designer.cs</LastGenOutput>
     </None>
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="Communication\OutOfBand\" />
   </ItemGroup>
 
 </Project>

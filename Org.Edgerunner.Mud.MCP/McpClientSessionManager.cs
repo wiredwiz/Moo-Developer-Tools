@@ -34,17 +34,18 @@
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #endregion
 
-using System.Globalization;
+using Org.Edgerunner.Mud.MCP.Exceptions;
+using Org.Edgerunner.Mud.MCP.Interfaces;
 
-namespace Org.Edgerunner.Moo.Communication.MCP;
+namespace Org.Edgerunner.Mud.MCP;
 
 /// <summary>
 /// A class responsible for managing MCP protocol interactions.
 /// </summary>
-/// <seealso cref="Org.Edgerunner.Moo.Communication.MCP.IMcpProtocolHandler" />
+/// <seealso cref="IMcpProtocolHandler" />
 public class McpClientSessionManager
 {
-   public McpClientSessionManager(double minimumVersion, double maximumVersion, IEnumerable<IMcpPackage> supportedPackages)
+   public McpClientSessionManager(Version minimumVersion, Version maximumVersion, IEnumerable<IMcpPackage> supportedPackages)
    {
       MinimumVersion = minimumVersion;
       MaximumVersion = maximumVersion;
@@ -57,7 +58,7 @@ public class McpClientSessionManager
    /// <value>
    /// The minimum protocol version.
    /// </value>
-   public double MinimumVersion { get; set; }
+   public Version MinimumVersion { get; set; }
 
    /// <summary>
    /// Gets or sets the maximum supported protocol version.
@@ -65,7 +66,7 @@ public class McpClientSessionManager
    /// <value>
    /// The maximum supported protocol version.
    /// </value>
-   public double MaximumVersion { get; set; }
+   public Version MaximumVersion { get; set; }
 
    /// <summary>
    /// Gets or sets the supported MCP packages.
@@ -80,8 +81,7 @@ public class McpClientSessionManager
    /// </summary>
    /// <param name="message">The message to analyze.</param>
    /// <returns></returns>
-   /// <exception cref="System.NotImplementedException"></exception>
-   public bool CanHandleMessage(MCP.Message message)
+   public bool IsNegotiationMessage(MCP.Message message)
    {
       if (message.Name.ToLowerInvariant() != "mcp")
          return false;
@@ -92,15 +92,17 @@ public class McpClientSessionManager
       return true;
    }
 
-   /// <summary>
-   /// Processes the message.
-   /// </summary>
-   /// <param name="message">The message to process.</param>
-   /// <returns>
-   /// The resulting list of session messages to send or display.
-   /// </returns>
-   /// <exception cref="System.NotImplementedException"></exception>
-   public IMcpSession? ProcessMessage(MCP.Message message)
+    /// <summary>
+    /// Processes the message.
+    /// </summary>
+    /// <param name="message">The message to process.</param>
+    /// <returns>The resulting list of session messages to send or display.</returns>
+    /// <exception cref="InvalidMcpMessageFormatException">
+    /// Message is not a properly formatted MCP message.
+    /// or
+    /// Message is missing required data fields.
+    /// </exception>
+    public IMcpSession? NegotiationMcpSession(MCP.Message message)
    {
       if (message.Name.ToLowerInvariant() != "mcp")
          throw new InvalidMcpMessageFormatException($"Message \"{message}\" does not resemble a properly formatted MCP message.");
@@ -114,19 +116,9 @@ public class McpClientSessionManager
       if (!message.Data.ContainsKey("to:"))
          throw new InvalidMcpMessageFormatException($"Message is missing a \"to:\" key.");
 
-      var minVersion = 0.0;
-      var maxVersion = 0.0;
-
-      if (!double.TryParse(message.Data["version:"],
-                           System.Globalization.NumberStyles.AllowDecimalPoint,
-                           CultureInfo.GetCultureInfo("en-US"),
-                           out minVersion))
+      if (!Version.TryParse(message.Data["version:"], out var minVersion))
          throw new InvalidMcpMessageFormatException($"Value \"{message.Data["version:"]}\" does not appear to be a valid version number.");
-
-      if (!double.TryParse(message.Data["to:"],
-                           System.Globalization.NumberStyles.AllowDecimalPoint,
-                           CultureInfo.GetCultureInfo("en-US"),
-                           out maxVersion))
+      if (!Version.TryParse(message.Data["to:"], out var maxVersion))
          throw new InvalidMcpMessageFormatException($"Value \"{message.Data["to:"]}\" does not appear to be a valid version number.");
 
       // If there is no compatible version between our ranges
@@ -134,7 +126,9 @@ public class McpClientSessionManager
       if (MaximumVersion < minVersion || maxVersion < MinimumVersion)
          return null;
 
-      var sessionVersion = Math.Min(maxVersion, MaximumVersion);
+      var sessionVersion = maxVersion;
+      if (MaximumVersion < sessionVersion)
+          sessionVersion = MaximumVersion;
 
       return new McpClientSession(this, McpUtils.GenerateSessionKey(12), sessionVersion);
    }

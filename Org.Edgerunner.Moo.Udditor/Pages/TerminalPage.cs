@@ -1,27 +1,27 @@
 ﻿#region BSD 3-Clause License
-// <copyright company="Edgerunner.org" file="Message.cs">
-// Copyright (c)  2022
+// <copyright company="Edgerunner.org" file="TerminalPage.cs">
+// Copyright (c) Thaddeus Ryker 2022
 // </copyright>
-//
+// 
 // BSD 3-Clause License
-//
+// 
 // Copyright (c) 2022,
 // All rights reserved.
-//
+// 
 // Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are met:
-//
+// 
 // 1. Redistributions of source code must retain the above copyright notice, this
 //    list of conditions and the following disclaimer.
-//
+// 
 // 2. Redistributions in binary form must reproduce the above copyright notice,
 //    this list of conditions and the following disclaimer in the documentation
 //    and/or other materials provided with the distribution.
-//
+// 
 // 3. Neither the name of the copyright holder nor the names of its
 //    contributors may be used to endorse or promote products derived from
 //    this software without specific prior written permission.
-//
+// 
 // THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
 // AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
 // IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
@@ -34,47 +34,36 @@
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #endregion
 
-namespace Org.Edgerunner.Moo.Communication.MCP;
+using Krypton.Navigator;
+using Org.Edgerunner.Moo.Editor.Controls;
+using System;
 
-/// <summary>
-/// A class representing an MCP message.
-/// </summary>
-public class Message
+namespace Org.Edgerunner.Moo.Udditor.Pages;
+
+public class TerminalPage : KryptonPage
 {
-   /// <summary>
-   /// Initializes a new instance of the <see cref="Message"/> class.
-   /// </summary>
-   /// <param name="name">The message name.</param>
-   /// <param name="key">The message key.</param>
-   /// <param name="data">The message data dictionary.</param>
-   public Message(string name, string key, Dictionary<string, string> data)
-   {
-      Name = name;
-      Key = key;
-      Data = data;
-   }
+    /// <summary>
+    /// Initializes a new instance of the <see cref="TerminalPage"/> class.
+    /// </summary>
+    /// <param name="worldName">Name of the world.</param>
+    public TerminalPage(string worldName)
+    {
+        Terminal = new MooClientTerminal();
+        // ReSharper disable VirtualMemberCallInConstructor
+        TextTitle = worldName;
+        TextDescription = worldName;
+        UniqueName = Guid.NewGuid().ToString();
+        // ReSharper restore VirtualMemberCallInConstructor
+    }
 
-   /// <summary>
-   /// Gets the message name.
-   /// </summary>
-   /// <value>
-   /// The message name.
-   /// </value>
-   public string Name { get; }
+    /// <summary>
+    /// Occurs when [new message(s) received].
+    /// </summary>
+    public event EventHandler NewMessageReceived
+    {
+        add { Terminal.NewMessageReceived += value; }
+        remove { Terminal.NewMessageReceived -= value; }
+    }
 
-   /// <summary>
-   /// Gets the message key.
-   /// </summary>
-   /// <value>
-   /// The message key.
-   /// </value>
-   public string Key { get; }
-
-   /// <summary>
-   /// Gets the message key/value pair dictionary.
-   /// </summary>
-   /// <value>
-   /// The data dictionary.
-   /// </value>
-   public Dictionary<string, string> Data { get; }
+    public MooClientTerminal Terminal { get; set; }
 }

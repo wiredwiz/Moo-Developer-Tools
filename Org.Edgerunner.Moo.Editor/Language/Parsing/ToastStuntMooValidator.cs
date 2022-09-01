@@ -47,7 +47,7 @@ public class ToastStuntMooValidator : ToastStuntMooParserBaseListener
 {
    public List<ParseMessage> Errors { get; set; }
 
-   public Document Document { get; set; }
+   public DocumentInfo Document { get; set; }
 
    public ToastStuntMooValidator()
    {

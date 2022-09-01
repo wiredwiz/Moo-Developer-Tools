@@ -1,5 +1,5 @@
 ﻿#region BSD 3-Clause License
-// <copyright company="Edgerunner.org" file="MCPManager.cs">
+// <copyright company="Edgerunner.org" file="IMcpProtocolHandler.cs">
 // Copyright (c)  2022
 // </copyright>
 //
@@ -34,14 +34,26 @@
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #endregion
 
-using Org.Edgerunner.Mud.MCP.Interfaces;
+using Org.Edgerunner.Moo.Communication;
 
-namespace Org.Edgerunner.Mud.MCP;
+namespace Org.Edgerunner.Mud.MCP.Interfaces;
 
-public static class MCPManager
+/// <summary>
+/// An interface representing an object capable of processing and MCP protocol message.
+/// </summary>
+public interface IMcpProtocolHandler
 {
-   static IMCPSession Negotiate(string query)
-   {
-      return null;
-   }
+    /// <summary>
+    /// Determines whether this instance can handle the message.
+    /// </summary>
+    /// <param name="message">The message to analyze.</param>
+    /// <returns></returns>
+    public bool CanHandleMessage(Message message);
+
+    /// <summary>
+    /// Processes the message.
+    /// </summary>
+    /// <param name="message">The message to process.</param>
+    /// <returns>The resulting list of session messages to send or display.</returns>
+    public List<SessionMessage>? ProcessMessage(Message message);
 }

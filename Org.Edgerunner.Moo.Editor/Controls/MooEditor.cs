@@ -113,7 +113,7 @@ namespace Org.Edgerunner.Moo.Editor.Controls
          }
       }
 
-      protected Document _Document;
+      protected DocumentInfo _Document;
 
       protected GrammarDialect _GrammarDialect;
 
@@ -147,7 +147,7 @@ namespace Org.Edgerunner.Moo.Editor.Controls
          }
       }
 
-      public Document Document
+      public DocumentInfo Document
       {
          get => _Document;
 
@@ -159,7 +159,11 @@ namespace Org.Edgerunner.Moo.Editor.Controls
          }
       }
 
-      public event EventHandler<ParsingCompleteEventArgs> ParsingComplete;
+        /// <summary>
+        /// Occurs when [parsing complete].
+        /// </summary>
+        public event EventHandler<ParsingCompleteEventArgs> ParsingComplete;
+
       private void MooEditor_KeyDown(object sender, KeyEventArgs e)
       {
          if ((e.KeyCode == Keys.OemSemicolon && e.Modifiers == 0) && NoTextSelection())

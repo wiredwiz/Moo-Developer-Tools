@@ -53,7 +53,7 @@ namespace Org.Edgerunner.ANTLR4.Tools.Common.Grammar.Errors
       /// <param name="message">The message.</param>
       /// <param name="guide">The syntax error guide.</param>
       // ReSharper disable once TooManyDependencies
-      public ParseMessage(Document document, int lineNumber, int column, string type, string message, ISyntaxErrorGuide guide)
+      public ParseMessage(DocumentInfo document, int lineNumber, int column, string type, string message, ISyntaxErrorGuide guide)
       {
          DocumentId = document?.Id ?? string.Empty;
          DocumentName = document?.Name ?? string.Empty;

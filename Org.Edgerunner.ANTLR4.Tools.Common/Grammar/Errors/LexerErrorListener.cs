@@ -57,7 +57,7 @@ namespace Org.Edgerunner.ANTLR4.Tools.Common.Grammar.Errors
       /// Initializes a new instance of the <see cref="LexerErrorListener"/> class.
       /// </summary>
       /// <param name="document">The source document.</param>
-      public LexerErrorListener(Document document)
+      public LexerErrorListener(DocumentInfo document)
          : this()
       {
          Document = document;
@@ -69,7 +69,7 @@ namespace Org.Edgerunner.ANTLR4.Tools.Common.Grammar.Errors
       /// <value>
       /// The source document.
       /// </value>
-      protected Document Document { get; set; }
+      protected DocumentInfo Document { get; set; }
 
       /// <summary>
       /// Gets the parsing errors.

@@ -1,6 +1,5 @@
 ﻿#region BSD 3-Clause License
-
-// <copyright company="Edgerunner.org" file="IMcpManager.cs">
+// <copyright company="Edgerunner.org" file="IMcpSession.cs">
 // Copyright (c)  2022
 // </copyright>
 //
@@ -33,33 +32,51 @@
 // CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
 // OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-
 #endregion
 
 
 namespace Org.Edgerunner.Mud.MCP.Interfaces;
 
 /// <summary>
-/// An interface that represents an MCP session.
+/// Interface representing a specific MCP session.
 /// </summary>
-// ReSharper disable once InconsistentNaming
-public interface IMCPSession
+public interface IMcpSession
 {
-   /// <summary>
-   /// Gets or sets the key for the session.
-   /// </summary>
-   /// <value>
-   /// The key.
-   /// </value>
-   string Key { get; }
+    /// <summary>
+    /// Gets or sets the manager for this session.
+    /// </summary>
+    /// <value>
+    /// The manager.
+    /// </value>
+    McpClientSessionManager Manager { get; }
 
-   /// <summary>
-   /// Gets or sets the protocol version for the session.
-   /// </summary>
-   /// <value>
-   /// The protocol version.
-   /// </value>
-   double ProtocolVersion { get; }
+    /// <summary>
+    /// Gets or sets the key negotiated for this session.
+    /// </summary>
+    /// <value>
+    /// The session key.
+    /// </value>
+    string Key { get; }
 
-   Dictionary<string, IMCPPackage> Packages { get; }
+    /// <summary>
+    /// Gets or sets the protocol version being used for this session.
+    /// </summary>
+    /// <value>
+    /// The protocol version.
+    /// </value>
+    Version ProtocolVersion { get; }
+
+    /// <summary>
+    /// Gets or sets the supported MCP packages for this session.
+    /// </summary>
+    /// <value>
+    /// The supported MCP packages.
+    /// </value>
+    Dictionary<string, IMcpPackage> SupportedPackages { get; }
+
+    /// <summary>
+    /// Generates a handshakes reply from this instance.
+    /// </summary>
+    /// <returns>The handshake reply.</returns>
+    string Handshake();
 }

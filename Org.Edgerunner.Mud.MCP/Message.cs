@@ -1,5 +1,5 @@
 ﻿#region BSD 3-Clause License
-// <copyright company="Edgerunner.org" file="McpClientSession.cs">
+// <copyright company="Edgerunner.org" file="Message.cs">
 // Copyright (c)  2022
 // </copyright>
 //
@@ -34,62 +34,47 @@
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #endregion
 
-namespace Org.Edgerunner.Moo.Communication.MCP;
+namespace Org.Edgerunner.Mud.MCP;
 
 /// <summary>
-/// A class representing an MCP client session.
+/// A class representing an MCP message.
 /// </summary>
-/// <seealso cref="Org.Edgerunner.Moo.Communication.MCP.IMcpSession" />
-public class McpClientSession : IMcpSession
+public class Message
 {
    /// <summary>
-   /// Initializes a new instance of the <see cref="McpClientSession"/> class.
+   /// Initializes a new instance of the <see cref="Message"/> class.
    /// </summary>
-   /// <param name="manager">The manager.</param>
-   /// <param name="key">The key.</param>
-   /// <param name="protocolVersion">The protocol version.</param>
-   public McpClientSession(McpClientSessionManager manager, string key, double protocolVersion)
+   /// <param name="name">The message name.</param>
+   /// <param name="key">The message key.</param>
+   /// <param name="data">The message data dictionary.</param>
+   public Message(string name, string key, Dictionary<string, string> data)
    {
-      Manager = manager;
+      Name = name;
       Key = key;
-      ProtocolVersion = protocolVersion;
-      SupportedPackages = new List<IMcpPackage>();
+      Data = data;
    }
 
    /// <summary>
-   /// Gets or sets the manager for this session.
+   /// Gets the message name.
    /// </summary>
    /// <value>
-   /// The manager.
+   /// The message name.
    /// </value>
-   public McpClientSessionManager Manager { get; }
+   public string Name { get; }
 
    /// <summary>
-   /// Gets or sets the key negotiated for this session.
+   /// Gets the message key.
    /// </summary>
    /// <value>
-   /// The session key.
+   /// The message key.
    /// </value>
    public string Key { get; }
 
    /// <summary>
-   /// Gets or sets the protocol version being used for this session.
+   /// Gets the message key/value pair dictionary.
    /// </summary>
    /// <value>
-   /// The protocol version.
+   /// The data dictionary.
    /// </value>
-   public double ProtocolVersion { get; }
-
-   /// <summary>
-   /// Gets or sets the supported MCP packages for this session.
-   /// </summary>
-   /// <value>
-   /// The supported MCP packages.
-   /// </value>
-   public List<IMcpPackage> SupportedPackages { get; }
-
-   public string Handshake()
-   {
-      return $"mcp authentication-key: {Key} version: {Manager.MinimumVersion} to: {Manager.MaximumVersion}";
-   }
+   public Dictionary<string, string> Data { get; }
 }

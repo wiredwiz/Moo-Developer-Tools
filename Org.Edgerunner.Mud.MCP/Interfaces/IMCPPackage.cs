@@ -1,5 +1,5 @@
 ﻿#region BSD 3-Clause License
-// <copyright company="Edgerunner.org" file="IMCPPackage.cs">
+// <copyright company="Edgerunner.org" file="IMcpPackage.cs">
 // Copyright (c)  2022
 // </copyright>
 //
@@ -34,9 +34,36 @@
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #endregion
 
+
 namespace Org.Edgerunner.Mud.MCP.Interfaces;
 
-public interface IMCPPackage
+/// <summary>
+/// Interface representing a specific MCP package implementation.
+/// </summary>
+public interface IMcpPackage : IMcpProtocolHandler
 {
+    /// <summary>
+    /// Gets or sets the name of the package.
+    /// </summary>
+    /// <value>
+    /// The package name.
+    /// </value>
+    /// <remarks></remarks>
+    string Name { get; set; }
 
+    /// <summary>
+    /// Gets or sets the minimum supported package version.
+    /// </summary>
+    /// <value>
+    /// The minimum supported package version.
+    /// </value>
+    double MinimumVersion { get; set; }
+
+    /// <summary>
+    /// Gets or sets the maximum supported package version.
+    /// </summary>
+    /// <value>
+    /// The maximum supported package version.
+    /// </value>
+    double MaximumVersion { get; set; }
 }
