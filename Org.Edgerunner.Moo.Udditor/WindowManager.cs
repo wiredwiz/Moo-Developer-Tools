@@ -45,6 +45,7 @@ using Org.Edgerunner.Moo.Communication.OutOfBand;
 using Org.Edgerunner.Moo.Editor.Controls;
 using Org.Edgerunner.Moo.Udditor.Communication.OutOfBand;
 using Antlr4.Runtime.Misc;
+using Krypton.Workspace;
 
 namespace Org.Edgerunner.Moo.Udditor;
 
@@ -74,6 +75,10 @@ public class WindowManager
     protected Dictionary<string, ManagedPage> Pages { get; } = new();
 
     protected Form _Owner;
+
+    protected string _EditorWorkspaceName = "Workspace";
+
+    public KryptonWorkspaceCell LastEditorCell { get; set; }
 
     public event EventHandler<EditorPage> EditorCursorUpdated;
 
@@ -141,7 +146,11 @@ public class WindowManager
             RegisterPage(page);
             page.CursorPositionChanged += Page_CursorPositionChanged;
             page.ParsingComplete += Page_ParsingComplete;
-            Workspace.DockingManager.AddToWorkspace("Workspace", new KryptonPage[] { page });
+            page.DockChanged += EditorPage_DockChanged;
+            if (LastEditorCell != null)
+                LastEditorCell.Pages.Add(page);
+            else
+                Workspace.DockingManager.AddToWorkspace(_EditorWorkspaceName, new KryptonPage[] { page });
             return page;
         }
 
@@ -162,7 +171,11 @@ public class WindowManager
             RegisterPage(page);
             page.CursorPositionChanged += Page_CursorPositionChanged;
             page.ParsingComplete += Page_ParsingComplete;
-            Workspace.DockingManager.AddToWorkspace("Workspace", new KryptonPage[] { page });
+            page.DockChanged += EditorPage_DockChanged;
+            if (LastEditorCell != null)
+                LastEditorCell.Pages.Add(page);
+            else
+                Workspace.DockingManager.AddToWorkspace(_EditorWorkspaceName, new KryptonPage[] { page });
             return page;
         }
 
@@ -185,11 +198,21 @@ public class WindowManager
             RegisterPage(page);
             page.CursorPositionChanged += Page_CursorPositionChanged;
             page.ParsingComplete += Page_ParsingComplete;
-            Workspace.DockingManager.AddToWorkspace("Workspace", new KryptonPage[] { page });
+            page.DockChanged += EditorPage_DockChanged;
+            if (LastEditorCell != null)
+                LastEditorCell.Pages.Add(page);
+            else
+                Workspace.DockingManager.AddToWorkspace(_EditorWorkspaceName, new KryptonPage[] { page });
             return page;
         }
 
         return _Owner.InvokeRequired ? _Owner.Invoke(CreatePage) : CreatePage();
+    }
+
+    private void EditorPage_DockChanged(object sender, EventArgs e)
+    {
+        if ((sender as EditorPage)?.KryptonParentContainer is KryptonWorkspaceCell cell)
+            LastEditorCell = cell;
     }
 
     /// <summary>
@@ -222,7 +245,7 @@ public class WindowManager
             processor.OutOfBandMessagingTimeout = 500000;
             var page = new TerminalPage(this, processor, world, useTls);
             RegisterPage(page);
-            Workspace.DockingManager.AddToWorkspace("Workspace", new KryptonPage[] { page });
+            Workspace.DockingManager.AddToWorkspace(_EditorWorkspaceName, new KryptonPage[] { page });
             return page;
         }
 

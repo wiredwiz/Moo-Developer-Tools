@@ -40,6 +40,7 @@ using System;
 using JetBrains.Annotations;
 using Org.Edgerunner.Moo.Communication;
 using Org.Edgerunner.Moo.Communication.Interfaces;
+using Krypton.Toolkit;
 
 namespace Org.Edgerunner.Moo.Udditor.Pages;
 
@@ -64,6 +65,8 @@ public class TerminalPage : ManagedPage
         TextTitle = worldName;
         TextDescription = worldName;
         UniqueName = Guid.NewGuid().ToString();
+        ToolTipBody = worldName;
+        ToolTipStyle = LabelStyle.ToolTip;
         // ReSharper restore VirtualMemberCallInConstructor
         Terminal.Dock = DockStyle.Fill;
         Controls.Add(Terminal);

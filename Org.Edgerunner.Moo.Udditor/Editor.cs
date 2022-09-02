@@ -8,6 +8,7 @@ using System.Xml.Linq;
 using Krypton.Navigator;
 using FastColoredTextBoxNS;
 using FastColoredTextBoxNS.Types;
+using Krypton.Workspace;
 using Org.Edgerunner.ANTLR4.Tools.Common;
 using Org.Edgerunner.ANTLR4.Tools.Common.Grammar.Errors;
 using Org.Edgerunner.Moo.Editor;
@@ -45,11 +46,6 @@ public partial class Editor : Form
         foreach (var eKey in Errors.Keys)
             allErrors.AddRange(Errors[eKey]);
         ErrorDisplay.PopulateErrors(allErrors);
-    }
-
-    private void Editor_CursorPositionChanged(object sender, EventArgs e)
-    {
-
     }
 
     private ErrorDisplay ErrorDisplay { get; set; }
@@ -438,6 +434,8 @@ public partial class Editor : Form
         {
             tlStatusLine.Text = ((editorPage2.Editor?.Selection.Start.iLine + 1) ?? 1).ToString();
             tlStatusColumn.Text = ((editorPage2.Editor?.Selection.Start.iChar + 1) ?? 1).ToString();
+            if (editorPage2.KryptonParentContainer is KryptonWorkspaceCell cell)
+                WindowManager.LastEditorCell = cell;
         }
 
         UpdateMenus();

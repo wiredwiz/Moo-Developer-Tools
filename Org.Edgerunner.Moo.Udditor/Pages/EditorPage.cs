@@ -42,6 +42,7 @@ using Org.Edgerunner.Moo.Editor.Controls;
 using System;
 using FastColoredTextBoxNS;
 using FastColoredTextBoxNS.Types;
+using Krypton.Toolkit;
 using Org.Edgerunner.Moo.Communication.Interfaces;
 using Org.Edgerunner.Moo.Editor.Autocomplete;
 using Org.Edgerunner.Moo.Editor.Configuration;
@@ -122,7 +123,8 @@ public class EditorPage : ManagedPage
         Text = title;
         TextTitle = title;
         TextDescription = description;
-        ToolTipTitle = description;
+        ToolTipBody = description;
+        ToolTipStyle = LabelStyle.ToolTip;
     }
 
     private void PostInitialize()
