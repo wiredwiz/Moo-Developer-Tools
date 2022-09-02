@@ -141,6 +141,7 @@ public class LocalEditHandler : IOutOfBandMessageHandler
         if (string.IsNullOrEmpty(upload))
             return false;
 
+        VerbSource.Clear();
         VerbName = name.Trim();
         UploadCommand = upload.Trim();
 

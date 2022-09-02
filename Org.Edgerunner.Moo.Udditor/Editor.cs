@@ -100,8 +100,9 @@ public partial class Editor : Form
     private void UpdateMenus()
     {
         var editPage = CurrentPage as EditorPage;
+        var terminalPage = CurrentPage as TerminalPage;
         var isEditor = editPage != null;
-        var isTerminal = CurrentPage is TerminalPage;
+        var isTerminal = terminalPage != null;
         grammarToolStripMenuItem.Enabled = isEditor;
         mnuItemSaveAsFile.Enabled = isEditor;
         mnuItemFileSave.Enabled = isEditor;
@@ -110,6 +111,40 @@ public partial class Editor : Form
         mnuItemFolding.Enabled = isEditor;
         mnuItemCloseConnection.Enabled = isTerminal;
         mnuItemSend.Enabled = isEditor && editPage.CanUpload;
+        mnuItemEchoCommands.Enabled = isTerminal;
+        mnuItemWordWrap.Enabled = isTerminal || isEditor;
+        mnuItemShowLineNumbers.Enabled = isEditor;
+        mnuItemIndentationGuides.Enabled = isEditor;
+        UpdateEditMenu();
+        UpdateTerminalMenu();
+        UpdateViewMenu();
+    }
+
+    private void UpdateEditMenu()
+    {
+        if (CurrentPage is EditorPage page)
+            mnuItemEnableCodeFolding.CheckState = page.ShowTextBlockIndentationGuides ? CheckState.Checked : CheckState.Unchecked;
+    }
+
+    private void UpdateViewMenu()
+    {
+        var editPage = CurrentPage as EditorPage;
+        var terminalPage = CurrentPage as TerminalPage;
+        var isEditor = editPage != null;
+        var isTerminal = terminalPage != null;
+        mnuItemWordWrap.CheckState = (isEditor && editPage.WordWrap) || (isTerminal && terminalPage.WordWrap)
+            ? CheckState.Checked
+            : CheckState.Unchecked;
+        mnuItemShowLineNumbers.CheckState = isEditor && editPage.ShowLineNumbers ? CheckState.Checked : CheckState.Unchecked;
+        mnuItemIndentationGuides.CheckState =
+            isEditor && editPage.ShowTextBlockIndentationGuides ? CheckState.Checked : CheckState.Unchecked;
+    }
+
+    void UpdateTerminalMenu()
+    {
+        var terminalPage = CurrentPage as TerminalPage;
+        var isTerminal = terminalPage != null;
+        mnuItemEchoCommands.CheckState = isTerminal && terminalPage.Terminal.EchoEnabled ? CheckState.Checked : CheckState.Unchecked;
     }
 
     private void Editor_Load(object sender, EventArgs e)
@@ -355,6 +390,7 @@ public partial class Editor : Form
         {
             var host = prompt.HostAddress;
             var port = prompt.HostPort;
+            var world = $"{host}:{port}";
             TerminalPage page = CurrentPage as TerminalPage;
             if (page == null || page.Terminal.IsConnected)
             {
@@ -365,7 +401,8 @@ public partial class Editor : Form
             try
             {
                 page.Terminal.FocusOnInput();
-                await page.Terminal.ConnectAsync(host, host, port, prompt.UseTls);
+                UpdateTerminalMenu();
+                await page.Terminal.ConnectAsync(world, host, port, prompt.UseTls);
             }
             catch (Exception ex)
             {
@@ -482,5 +519,53 @@ public partial class Editor : Form
     {
         if (WindowManager.RecentTerminal != null)
             WindowManager.ShowPage(WindowManager.RecentTerminal);
+    }
+
+    private void mnuItemEchoCommands_CheckStateChanged(object sender, EventArgs e)
+    {
+       if (CurrentPage is TerminalPage page)
+           page.Terminal.EchoEnabled = mnuItemEchoCommands.CheckState == CheckState.Checked;
+    }
+
+    private void mnuItemWordWrap_CheckStateChanged(object sender, EventArgs e)
+    {
+        if (CurrentPage is EditorPage editorPage)
+            editorPage.WordWrap = mnuItemWordWrap.CheckState == CheckState.Checked;
+        else if (CurrentPage is TerminalPage terminalPage)
+            terminalPage.WordWrap = mnuItemWordWrap.CheckState == CheckState.Checked;
+    }
+
+    private void mnuItemShowLineNumbers_CheckStateChanged(object sender, EventArgs e)
+    {
+        if (CurrentPage is EditorPage editorPage)
+            editorPage.ShowLineNumbers = mnuItemShowLineNumbers.CheckState == CheckState.Checked;
+    }
+
+    private void mnuItemIndentationGuides_CheckStateChanged(object sender, EventArgs e)
+    {
+        if (CurrentPage is EditorPage editorPage)
+            editorPage.ShowTextBlockIndentationGuides = mnuItemIndentationGuides.CheckState == CheckState.Checked;
+    }
+
+    private void mnuItemEnableCodeFolding_CheckStateChanged(object sender, EventArgs e)
+    {
+        if (CurrentPage is EditorPage editorPage)
+            editorPage.DisplayCodeFolding = mnuItemEnableCodeFolding.CheckState == CheckState.Checked;
+    }
+
+    private void mnuItemZoomIn_Click(object sender, EventArgs e)
+    {
+        if (CurrentPage is EditorPage editorPage)
+            editorPage.Editor.Zoom += 20;
+        if (CurrentPage is TerminalPage terminalPage)
+            terminalPage.Terminal.Output.Zoom += 20;
+    }
+
+    private void mnuItemZoomOut_Click(object sender, EventArgs e)
+    {
+        if (CurrentPage is EditorPage editorPage)
+            editorPage.Editor.Zoom -= 20;
+        if (CurrentPage is TerminalPage terminalPage)
+            terminalPage.Terminal.Output.Zoom -= 20;
     }
 }

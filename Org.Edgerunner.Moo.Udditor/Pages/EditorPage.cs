@@ -65,7 +65,6 @@ public class EditorPage : ManagedPage
         var name = $@"{verbName} - {worldName}";
         var key = $"{name}-{Guid.NewGuid()}";
         InitializeEditor(dialect, key, verbName, name);
-        //ToolTipTitle = $@"{verbName} - {worldName}";
         Editor.Document = new DocumentInfo(key, key, verbName);
         Editor.Text = source;
         PostInitialize();
@@ -123,6 +122,7 @@ public class EditorPage : ManagedPage
         Text = title;
         TextTitle = title;
         TextDescription = description;
+        ToolTipTitle = description;
     }
 
     private void PostInitialize()
@@ -197,6 +197,55 @@ public class EditorPage : ManagedPage
         set => Editor.GrammarDialect = value;
     }
 
+    /// <summary>
+    /// Gets or sets a value indicating whether word wrap is enabled in the editor.
+    /// </summary>
+    /// <value>
+    ///   <c>true</c> if word wrap enabled; otherwise, <c>false</c>.
+    /// </value>
+    public bool WordWrap
+    {
+        get => Editor.WordWrap;
+        set => Editor.WordWrap = value;
+    }
+
+    /// <summary>
+    /// Gets or sets a value indicating whether to show line numbers in the editor.
+    /// </summary>
+    /// <value>
+    ///   <c>true</c> if show line numbers is enabled; otherwise, <c>false</c>.
+    /// </value>
+    /// <exception cref="System.NotImplementedException"></exception>
+    public bool ShowLineNumbers
+    {
+        get => Editor.ShowLineNumbers;
+        set => Editor.ShowLineNumbers = value;
+    }
+
+    /// <summary>
+    /// Gets or sets a value indicating whether to display code folding.
+    /// </summary>
+    /// <value>
+    ///   <c>true</c> if [display code folding]; otherwise, <c>false</c>.
+    /// </value>
+    public bool DisplayCodeFolding
+    {
+        get => Editor.ShowCodeFolding;
+        set => Editor.ShowCodeFolding = value;
+    }
+
+    /// <summary>
+    /// Gets or sets a value indicating whether to show text block indentation guides.
+    /// </summary>
+    /// <value>
+    ///   <c>true</c> if [show text block indentation guides]; otherwise, <c>false</c>.
+    /// </value>
+    public bool ShowTextBlockIndentationGuides
+    {
+        get => Editor.ShowTextBlockIndentationGuides;
+        set => Editor.ShowTextBlockIndentationGuides = value;
+    }
+
     public bool CanUpload => Uploader != null && Uploader.ClientTerminal.IsConnected;
 
     /// <summary>
@@ -208,7 +257,8 @@ public class EditorPage : ManagedPage
         if (Uploader == null)
             return false;
 
-        Uploader.Upload(Editor.Text);
+        if (Uploader.Upload(Editor.Text))
+            Editor.IsChanged = false;
         return true;
     }
 
@@ -236,6 +286,9 @@ public class EditorPage : ManagedPage
         editor.FoldingIndicatorColor = Settings.Instance.EditorFoldingIndicatorColor;
         editor.IndentBackColor = Settings.Instance.EditorIndentBackColor;
         editor.BookmarkColor = Settings.Instance.EditorBookmarkColor;
+        editor.ShowCodeFolding = Settings.Instance.EditorShowCodeFolding;
+        editor.ShowTextBlockIndentationGuides = Settings.Instance.EditorShowTextIndentGuides;
+        editor.Zoom = Settings.Instance.EditorZoomFactor;
         BuildAutocompleteMenu(editor);
     }
 

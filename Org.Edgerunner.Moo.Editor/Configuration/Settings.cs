@@ -422,6 +422,20 @@ namespace Org.Edgerunner.Moo.Editor.Configuration
       public Color EditorBookmarkColor { get; set; }
 
       /// <summary>
+      /// Gets or sets the color of service lines in the editor.
+      /// </summary>
+      /// <value>
+      /// The color of service lines in the editor.
+      /// </value>
+      public Color EditorServiceLineColor { get; set; }
+
+      /// <summary>
+      /// Gets or sets the editor default zoom factor.
+      /// </summary>
+      /// <value>The editor zoom factor.</value>
+      public int EditorZoomFactor { get; set; }
+
+      /// <summary>
       /// Gets or sets a value indicating whether word wrap is enabled for the editor.
       /// </summary>
       /// <value><c>true</c> if word wrap enabled; otherwise, <c>false</c>.</value>
@@ -444,6 +458,18 @@ namespace Org.Edgerunner.Moo.Editor.Configuration
       /// </summary>
       /// <value><c>true</c> if automatic indent enabled; otherwise, <c>false</c>.</value>
       public bool EditorAutoIndent { get; set; }
+
+      /// <summary>
+      /// Gets or sets a value indicating whether code folding is enabled for the editor.
+      /// </summary>
+      /// <value><c>true</c> if code folding enabled; otherwise, <c>false</c>.</value>
+      public bool EditorShowCodeFolding { get; set; }
+
+      /// <summary>
+      /// Gets or sets a value indicating whether text indentation guides are enabled for the editor.
+      /// </summary>
+      /// <value><c>true</c> if text indentation guides enabled; otherwise, <c>false</c>.</value>
+      public bool EditorShowTextIndentGuides { get; set; }
 
       /// <summary>
       /// Gets or sets a value indicating whether automatic brackets is enabled for the editor.
@@ -594,6 +620,7 @@ namespace Org.Edgerunner.Moo.Editor.Configuration
          var defChangedLineColor = Color.Yellow;
          var defIndentBackColor = Color.WhiteSmoke;
          var defBookmarkColor = Color.PowderBlue;
+         var defServiceLineColor = Color.Silver;
 
          if (appSettings == null)
          {
@@ -608,6 +635,7 @@ namespace Org.Edgerunner.Moo.Editor.Configuration
             EditorChangedLineColor = defChangedLineColor;
             EditorIndentBackColor = defIndentBackColor;
             EditorBookmarkColor = defBookmarkColor;
+            EditorServiceLineColor = defServiceLineColor;
             return;
          }
 
@@ -731,6 +759,17 @@ namespace Org.Edgerunner.Moo.Editor.Configuration
          {
             EditorBookmarkColor = defBookmarkColor;
          }
+
+         // Fetch ServiceLineColor setting
+         result = appSettings["EditorServiceLineColor"]?.Value ?? string.Empty;
+         try
+         {
+            EditorServiceLineColor = !string.IsNullOrEmpty(result) ? ColorTranslator.FromHtml(result) : defServiceLineColor;
+         }
+         catch (Exception)
+         {
+            EditorServiceLineColor = defServiceLineColor;
+         }
       }
 
       [SuppressMessage("ReSharper", "ConditionIsAlwaysTrueOrFalse", Justification = "better to centralize defaults")]
@@ -744,6 +783,9 @@ namespace Org.Edgerunner.Moo.Editor.Configuration
          var defTabLength = 2;
          var defAutocompleteDelay = 50;
          var defGrammarDialect = GrammarDialect.Edgerunner;
+         var defCodeFolding = true;
+         var defIndentationGuides = true;
+         var defEditorZoomFactor = 0;
 
          if (appSettings == null)
          {
@@ -755,6 +797,9 @@ namespace Org.Edgerunner.Moo.Editor.Configuration
             EditorTabLength = defTabLength;
             EditorAutocompleteDelay = defAutocompleteDelay;
             DefaultGrammarDialect = defGrammarDialect;
+            EditorShowTextIndentGuides = defIndentationGuides;
+            EditorShowCodeFolding = defCodeFolding;
+            EditorZoomFactor = defEditorZoomFactor;
             return;
          }
 
@@ -774,17 +819,29 @@ namespace Org.Edgerunner.Moo.Editor.Configuration
          result = appSettings["EditorWordWrapIndent"]?.Value ?? string.Empty;
          EditorWordWrapIndent = !int.TryParse(result, out var settingValueInt) ? defWordWrapIndent : settingValueInt;
 
+         // Fetch EditorShowTextIndentGuides setting
+         result = appSettings["EditorShowTextIndentGuides"]?.Value ?? string.Empty;
+         EditorShowTextIndentGuides = !bool.TryParse(result, out settingValueBoolean) ? defIndentationGuides : settingValueBoolean;
+
+         // Fetch EditorShowCodeFolding setting
+         result = appSettings["EditorShowCodeFolding"]?.Value ?? string.Empty;
+         EditorShowCodeFolding = !bool.TryParse(result, out settingValueBoolean) ? defCodeFolding : settingValueBoolean;
+
          // Fetch EditorAutoBrackets settings
          result = appSettings["EditorAutoBrackets"]?.Value ?? string.Empty;
          EditorAutoBrackets = !bool.TryParse(result, out settingValueBoolean) ? defAutoComplete : settingValueBoolean;
 
          // Fetch EditorWordWrapIndent setting
          result = appSettings["EditorTabLength"]?.Value ?? string.Empty;
-         EditorTabLength = !int.TryParse(result, out settingValueInt) ? defTabLength : settingValueInt;
+         EditorTabLength = !int.TryParse(result, out settingValueInt) ? defTabLength : (settingValueInt > 0) ? settingValueInt : defTabLength;
 
          // Fetch EditorAutocompleteDelay setting
          result = appSettings["EditorAutocompleteDelay"]?.Value ?? string.Empty;
          EditorAutocompleteDelay = !int.TryParse(result, out settingValueInt) ? defAutocompleteDelay : settingValueInt;
+
+         // Fetch EditorAutocompleteDelay setting
+         result = appSettings["EditorZoomFactor"]?.Value ?? string.Empty;
+         EditorZoomFactor = !int.TryParse(result, out settingValueInt) ? defEditorZoomFactor : settingValueInt;
 
          // Fetch DefaultGrammarDialect setting
          result = appSettings["DefaultGrammarDialect"]?.Value ?? string.Empty;

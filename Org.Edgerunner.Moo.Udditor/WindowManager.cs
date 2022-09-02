@@ -135,12 +135,17 @@ public class WindowManager
     /// <returns>A new see<see cref="EditorPage"/> instance.</returns>
     public EditorPage CreateEditorPage(GrammarDialect dialect)
     {
-        var page = new EditorPage(this, dialect);
-        RegisterPage(page);
-        page.CursorPositionChanged += Page_CursorPositionChanged;
-        page.ParsingComplete += Page_ParsingComplete;
-        Workspace.DockingManager.AddToWorkspace("Workspace", new KryptonPage[] { page });
-        return page;
+        EditorPage CreatePage()
+        {
+            var page = new EditorPage(this, dialect);
+            RegisterPage(page);
+            page.CursorPositionChanged += Page_CursorPositionChanged;
+            page.ParsingComplete += Page_ParsingComplete;
+            Workspace.DockingManager.AddToWorkspace("Workspace", new KryptonPage[] { page });
+            return page;
+        }
+
+        return _Owner.InvokeRequired ? _Owner.Invoke(CreatePage) : CreatePage();
     }
 
     /// <summary>
@@ -151,12 +156,17 @@ public class WindowManager
     /// <returns>A new see<see cref="EditorPage"/> instance.</returns>
     public EditorPage CreateEditorPage(GrammarDialect dialect, string filePath)
     {
-        var page = new EditorPage(this, dialect, filePath);
-        RegisterPage(page);
-        page.CursorPositionChanged += Page_CursorPositionChanged;
-        page.ParsingComplete += Page_ParsingComplete;
-        Workspace.DockingManager.AddToWorkspace("Workspace", new KryptonPage[] { page });
-        return page;
+        EditorPage CreatePage()
+        {
+            var page = new EditorPage(this, dialect, filePath);
+            RegisterPage(page);
+            page.CursorPositionChanged += Page_CursorPositionChanged;
+            page.ParsingComplete += Page_ParsingComplete;
+            Workspace.DockingManager.AddToWorkspace("Workspace", new KryptonPage[] { page });
+            return page;
+        }
+
+        return _Owner.InvokeRequired ? _Owner.Invoke(CreatePage) : CreatePage();
     }
 
     /// <summary>
@@ -204,14 +214,19 @@ public class WindowManager
     /// </returns>
     public TerminalPage CreateTerminalPage(string world, bool useTls = false)
     {
-        var oobHandler = new OutOfBandMessageProcessor();
-        oobHandler.RegisterHandler(new LocalEditHandler(this));
-        var processor = new RootMessageProcessor("#$#", oobHandler);
-        processor.OutOfBandMessagingTimeout = 500000;
-        var page = new TerminalPage(this, processor, world, useTls);
-        RegisterPage(page);
-        Workspace.DockingManager.AddToWorkspace("Workspace", new KryptonPage[] { page });
-        return page;
+        TerminalPage CreatePage()
+        {
+            var oobHandler = new OutOfBandMessageProcessor();
+            oobHandler.RegisterHandler(new LocalEditHandler(this));
+            var processor = new RootMessageProcessor("#$#", oobHandler);
+            processor.OutOfBandMessagingTimeout = 500000;
+            var page = new TerminalPage(this, processor, world, useTls);
+            RegisterPage(page);
+            Workspace.DockingManager.AddToWorkspace("Workspace", new KryptonPage[] { page });
+            return page;
+        }
+
+        return _Owner.InvokeRequired ? _Owner.Invoke(CreatePage) : CreatePage();
     }
 
     private void Page_CursorPositionChanged(object sender, EventArgs e)
@@ -282,11 +297,19 @@ public class WindowManager
     /// <param name="key">The key.</param>
     void ClosePage(string key)
     {
-        if (Pages.TryGetValue(key, out ManagedPage page))
+        void DoClosePage()
         {
-            Workspace.DockingManager.CloseRequest(new[] { key });
-            Workspace.DockingManager.RemovePage(page, true);
+            if (Pages.TryGetValue(key, out ManagedPage page))
+            {
+                Workspace.DockingManager.CloseRequest(new[] { key });
+                Workspace.DockingManager.RemovePage(page, true);
+            }
         }
+
+        if (_Owner.InvokeRequired)
+            _Owner.Invoke(DoClosePage);
+        else
+            DoClosePage();
     }
 
     protected virtual void OnEditorCursorUpdated(EditorPage e)

@@ -45,6 +45,8 @@ namespace Org.Edgerunner.Moo.Udditor.Pages;
 
 public class TerminalPage : ManagedPage
 {
+    private string _OutOfBandPrefix;
+
     /// <summary>
     /// Initializes a new instance of the <see cref="TerminalPage" /> class.
     /// </summary>
@@ -77,4 +79,32 @@ public class TerminalPage : ManagedPage
     }
 
     public MooClientTerminal Terminal { get; set; }
+
+    /// <summary>
+    /// Gets or sets the out of band prefix for messages with this terminal.
+    /// </summary>
+    /// <value>
+    /// The out of band prefix for messages with this terminal.
+    /// </value>
+    public string OutOfBandPrefix
+    {
+        get => _OutOfBandPrefix;
+        set
+        {
+            _OutOfBandPrefix = value;
+            Terminal.OutOfBandPrefix = value;
+        }
+    }
+
+    /// <summary>
+    /// Gets or sets a value indicating whether word wrap is enabled in the editor.
+    /// </summary>
+    /// <value>
+    ///   <c>true</c> if word wrap enabled; otherwise, <c>false</c>.
+    /// </value>
+    public bool WordWrap
+    {
+        get => Terminal.WordWrap;
+        set => Terminal.WordWrap = value;
+    }
 }

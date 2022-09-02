@@ -34,6 +34,7 @@
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #endregion
 
+using System.ComponentModel;
 using System.Diagnostics;
 using System.Security.Authentication.ExtendedProtection;
 using System.Text.RegularExpressions;
@@ -103,10 +104,13 @@ namespace Org.Edgerunner.Moo.Editor.Controls
       {
          if (this.Document != null)
          {
-            ParseSourceCode();
+            var context = ParseSourceCode();
             ClearAllStyles();
             if (!string.IsNullOrEmpty(Text))
             {
+               // Configure code folding markers
+               ConfigureCodeFolding(context);
+
                // Perhaps we will find a range in the future rather than passing null to colorize all of it
                ColorizeTokens(null);
             }
@@ -117,6 +121,8 @@ namespace Org.Edgerunner.Moo.Editor.Controls
 
       protected GrammarDialect _GrammarDialect;
 
+      private bool _ShowCodeFolding;
+
       protected ParserErrorListener ParserErrorListener { get; set; }
 
       protected LexerErrorListener LexerErrorListener { get; set; }
@@ -125,16 +131,40 @@ namespace Org.Edgerunner.Moo.Editor.Controls
 
       protected IStyleRegistry StyleRegistry { get; }
 
+      [Browsable(false)]
       public EditorSyntaxHighlighter Highlighter { get; private set; }
 
       protected IMooIndentationGuide IndentationGuide { get; set; }
 
+      [Browsable(false)]
       public List<DetailedToken> Tokens { get; private set; }
 
+      [Browsable(false)]
       public List<ParseMessage> ParseErrors { get; private set; }
 
+      [Browsable(false)]
       public AutocompleteMenu AutocompleteMenu { get; set; }
 
+      /// <summary>
+      /// Determines whether to display code folding for moo code.
+      /// </summary>
+      [DefaultValue(false)]
+      [Description("Shows code folding guides for moo code.")]
+      public bool ShowCodeFolding
+      {
+         get => _ShowCodeFolding;
+         set
+         {
+            _ShowCodeFolding = value;
+            if (value)
+               ConfigureCodeFolding(ParseSourceCode());
+            else
+               ClearFoldingMarkers();
+            Invalidate();
+         }
+      }
+
+      [Browsable(false)]
       public GrammarDialect GrammarDialect
       {
          get => _GrammarDialect;
@@ -142,11 +172,22 @@ namespace Org.Edgerunner.Moo.Editor.Controls
          {
             _GrammarDialect = value;
             IndentationGuide = Moo.GetIndentationGuide(value, TabLength);
-            ParseSourceCode();
-            ColorizeTokens(null);
+            var context = ParseSourceCode();
+
+            ClearAllStyles();
+
+            if (!string.IsNullOrEmpty(Text))
+            {
+               // Configure code folding markers
+               ConfigureCodeFolding(context);
+
+               // Colorize tokens
+               ColorizeTokens(null);
+            }
          }
       }
 
+      [Browsable(false)]
       public DocumentInfo Document
       {
          get => _Document;
@@ -214,10 +255,13 @@ namespace Org.Edgerunner.Moo.Editor.Controls
 
       private void MooEditor_TextChangedDelayed(object sender, TextChangedEventArgs e)
       {
-         ParseSourceCode();
+         var context = ParseSourceCode();
          ClearAllStyles();
          if (!string.IsNullOrEmpty(Text))
          {
+            // Configure code folding markers
+            ConfigureCodeFolding(context);
+
             // Perhaps we will find a range in the future rather than passing null to colorize all of it
             ColorizeTokens(null);
          }
@@ -307,7 +351,7 @@ namespace Org.Edgerunner.Moo.Editor.Controls
          Highlighter.ColorizeTokens(this, StyleRegistry, tokensToColor, GetErrorGuides());
       }
 
-      public void ParseSourceCode(bool updateGui = true)
+      public ParserRuleContext ParseSourceCode(bool updateGui = true)
       {
          // Generate our lexer
          var inputStream = new AntlrInputStream(this.Text);
@@ -416,9 +460,6 @@ namespace Org.Edgerunner.Moo.Editor.Controls
                                };
                ParseTreeWalker.Default.Walk(validator, context);
                ParseErrors.AddRange(validator.Errors);
-
-               // Configure code folding markers
-               ConfigureCodeFolding(context, EdgerunnerMooParser.ruleNames);
             }
             else if (GrammarDialect == GrammarDialect.ToastStunt)
             {
@@ -428,9 +469,6 @@ namespace Org.Edgerunner.Moo.Editor.Controls
                                };
                ParseTreeWalker.Default.Walk(validator, context);
                ParseErrors.AddRange(validator.Errors);
-
-               // Configure code folding markers
-               ConfigureCodeFolding(context, ToastStuntMooParser.ruleNames);
             }
             else if (GrammarDialect == GrammarDialect.LambdaMoo)
             {
@@ -440,19 +478,34 @@ namespace Org.Edgerunner.Moo.Editor.Controls
                                };
                ParseTreeWalker.Default.Walk(validator, context);
                ParseErrors.AddRange(validator.Errors);
-
-               // Configure code folding markers
-               ConfigureCodeFolding(context, MooParser.ruleNames);
             }
 
             // Raise our event
             OnParsingComplete(this, new ParsingCompleteEventArgs(Document, ParseErrors, Tokens, context));
          }
+
+         return context;
       }
 
-      private void ConfigureCodeFolding(IParseTree tree, IList<string> parserRules)
+      private void ConfigureCodeFolding(ParserRuleContext context)
       {
-         ProcessTreeForFolding(tree, parserRules);
+         if (!ShowCodeFolding)
+            return;
+
+         IList<string> parserRules;
+
+         // Generate our list of parser rule names
+         if (GrammarDialect == GrammarDialect.Edgerunner)
+            parserRules = EdgerunnerMooParser.ruleNames;
+         else if (GrammarDialect == GrammarDialect.ToastStunt)
+            parserRules = ToastStuntMooParser.ruleNames;
+         else if (GrammarDialect == GrammarDialect.LambdaMoo)
+            parserRules = MooParser.ruleNames;
+         else
+            parserRules = new List<string>();
+
+         // Configure code folding markers
+         ProcessTreeForFolding(context, parserRules);
       }
 
       private void ProcessTreeForFolding(IParseTree node, IList<string> parserRules)
@@ -463,8 +516,6 @@ namespace Org.Edgerunner.Moo.Editor.Controls
             switch (nodeName)
             {
                case "ifStatement":
-               case "elseifStatement":
-               case "elseStatement":
                case "forStatement":
                case "forkStatement":
                case "whileStatement":

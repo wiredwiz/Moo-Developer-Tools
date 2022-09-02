@@ -36,6 +36,7 @@ namespace Org.Edgerunner.Moo.Editor.Controls
       private bool _UserInteraction;
 
       private bool _LastCommandAppearedToBeALogin;
+      private string _OutOfBandPrefix = "#$#";
 
       protected McpClientSessionManager McpSessionManager { get; set; }
 
@@ -48,6 +49,18 @@ namespace Org.Edgerunner.Moo.Editor.Controls
       public ConsoleWindowEmulator Output => consoleSim;
 
       public TextBox Input => txtInput;
+
+      /// <summary>
+      /// Gets or sets a value indicating whether word wrap is enabled for the console.
+      /// </summary>
+      /// <value>
+      ///   <c>true</c> if word wrap enabled; otherwise, <c>false</c>.
+      /// </value>
+      public bool WordWrap
+      {
+         get => consoleSim.WordWrap;
+         set => consoleSim.WordWrap = value;
+      }
 
       /// <summary>
       /// Gets or sets the message processor.
@@ -65,9 +78,27 @@ namespace Org.Edgerunner.Moo.Editor.Controls
       /// </value>
       public bool Tls { get; protected set; }
 
-      public string OutOfBandPrefix { get; set; } = "#$#";
+      public string OutOfBandPrefix
+      {
+         get => _OutOfBandPrefix;
+         set
+         {
+            _OutOfBandPrefix = value;
+            MessageProcessor.OutOfBandPrefix = value;
+         }
+      }
 
-      public bool EchoEnabled { get; set; }
+      /// <summary>
+      /// Gets or sets a value indicating whether [echo enabled].
+      /// </summary>
+      /// <value>
+      ///   <c>true</c> if [echo enabled]; otherwise, <c>false</c>.
+      /// </value>
+      public bool EchoEnabled
+      {
+         get => consoleSim.AnsiManager.EchoEnabled;
+         set => consoleSim.AnsiManager.EchoEnabled = value;
+      }
 
       public bool IsConnected => _Session?.IsOpen ?? false;
 
@@ -111,11 +142,7 @@ namespace Org.Edgerunner.Moo.Editor.Controls
       public Color ConsoleBackgroundColor
       {
          get => consoleSim.ConsoleBackgroundColor;
-         set
-         {
-            consoleSim.ConsoleBackgroundColor = value;
-            pnlSpacer.BackColor = value;
-         }
+         set => consoleSim.ConsoleBackgroundColor = value;
       }
 
       private void txtInput_KeyDown(object sender, KeyEventArgs e)
@@ -526,16 +553,16 @@ namespace Org.Edgerunner.Moo.Editor.Controls
             {
                var okStyle = AnsiManager.GetStyle(Color.LawnGreen, ConsoleBackgroundColor, FontStyle.Regular);
                var badStyle = AnsiManager.GetStyle(Color.Red, ConsoleBackgroundColor, FontStyle.Regular);
-               consoleSim.WriteLine($"[ Cipher algorithm: {stream.CipherAlgorithm} ]", okStyle);
-               consoleSim.WriteLine($"[ Hash algorithm: {stream.HashAlgorithm} ]", okStyle);
-               if (!stream.IsAuthenticated)
-                  consoleSim.WriteLine("[ Authenticated: NO ]", badStyle);
-               else
-                  consoleSim.WriteLine($"[ Authenticated: {host} ]", okStyle);
                if (!stream.IsEncrypted)
                   consoleSim.WriteLine("[ Data Encryption: DISABLED ]", badStyle);
                else
                   consoleSim.WriteLine($"[ Data Encryption: ENABLED ]", okStyle);
+               consoleSim.WriteLine($"[ Hash algorithm: {stream.HashAlgorithm} ]", okStyle);
+               consoleSim.WriteLine($"[ Cipher algorithm: {stream.CipherAlgorithm} ]", okStyle);
+               if (!stream.IsAuthenticated)
+                  consoleSim.WriteLine("[ Authenticated: NO ]", badStyle);
+               else
+                  consoleSim.WriteLine($"[ Authenticated: {host} ]", okStyle);
             }
 
          _Session.BeginReadingDataTillClose();

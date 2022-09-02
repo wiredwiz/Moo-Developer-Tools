@@ -50,4 +50,12 @@ public interface IMessageProcessor
    ///   <c>true</c> if successfully processed; otherwise <c>false</c>.
    /// </returns>
    bool ProcessMessage(IClientTerminal client, string message);
+
+   /// <summary>
+   /// Gets or sets the prefix for out of band messages.
+   /// </summary>
+   /// <value>
+   /// The prefix for out of band messages.
+   /// </value>
+   public string OutOfBandPrefix { get; set; }
 }

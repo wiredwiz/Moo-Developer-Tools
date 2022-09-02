@@ -66,7 +66,7 @@ public class RootMessageProcessor : IMessageProcessor
     /// Gets or sets the out of band prefix.
     /// </summary>
     /// <value>The out of band prefix.</value>
-    public string OutOfBandPrefix { get; protected set; }
+    public string OutOfBandPrefix { get; set; }
 
     /// <summary>
     /// Gets or sets the out of band messaging timeout.

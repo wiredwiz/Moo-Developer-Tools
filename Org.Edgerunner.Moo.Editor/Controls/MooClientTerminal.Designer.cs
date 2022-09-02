@@ -32,7 +32,6 @@
          System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(MooClientTerminal));
          this.splitContainer1 = new System.Windows.Forms.SplitContainer();
          this.consoleSim = new Org.Edgerunner.Moo.Editor.Controls.ConsoleWindowEmulator();
-         this.pnlSpacer = new System.Windows.Forms.Panel();
          this.txtInput = new System.Windows.Forms.TextBox();
          ((System.ComponentModel.ISupportInitialize)(this.splitContainer1)).BeginInit();
          this.splitContainer1.Panel1.SuspendLayout();
@@ -52,7 +51,6 @@
          // splitContainer1.Panel1
          // 
          this.splitContainer1.Panel1.Controls.Add(this.consoleSim);
-         this.splitContainer1.Panel1.Controls.Add(this.pnlSpacer);
          // 
          // splitContainer1.Panel2
          // 
@@ -63,6 +61,9 @@
          // 
          // consoleSim
          // 
+         this.consoleSim.AccessibleDescription = "Textbox control";
+         this.consoleSim.AccessibleName = "Fast Colored Text Box";
+         this.consoleSim.AccessibleRole = System.Windows.Forms.AccessibleRole.Text;
          this.consoleSim.AutoCompleteBracketsList = new char[] {
         '(',
         ')',
@@ -90,11 +91,13 @@
          this.consoleSim.DisabledColor = System.Drawing.Color.FromArgb(((int)(((byte)(100)))), ((int)(((byte)(180)))), ((int)(((byte)(180)))), ((int)(((byte)(180)))));
          this.consoleSim.Dock = System.Windows.Forms.DockStyle.Fill;
          this.consoleSim.FindForm = null;
+         this.consoleSim.Font = new System.Drawing.Font("Courier New", 9.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
          this.consoleSim.ForeColor = System.Drawing.Color.WhiteSmoke;
          this.consoleSim.GoToForm = null;
          this.consoleSim.Hotkeys = resources.GetString("consoleSim.Hotkeys");
          this.consoleSim.IsReplaceMode = false;
          this.consoleSim.Location = new System.Drawing.Point(0, 0);
+         this.consoleSim.Margin = new System.Windows.Forms.Padding(3, 3, 3, 20);
          this.consoleSim.Name = "consoleSim";
          this.consoleSim.Paddings = new System.Windows.Forms.Padding(0);
          this.consoleSim.ReadOnly = true;
@@ -102,22 +105,12 @@
          this.consoleSim.SelectionColor = System.Drawing.Color.FromArgb(((int)(((byte)(60)))), ((int)(((byte)(0)))), ((int)(((byte)(0)))), ((int)(((byte)(255)))));
          this.consoleSim.ServiceColors = ((FastColoredTextBoxNS.ServiceColors)(resources.GetObject("consoleSim.ServiceColors")));
          this.consoleSim.ShowLineNumbers = false;
-         this.consoleSim.Size = new System.Drawing.Size(354, 222);
+         this.consoleSim.Size = new System.Drawing.Size(354, 238);
          this.consoleSim.TabIndex = 1;
          this.consoleSim.Text = "consoleWindowEmulator1";
          this.consoleSim.ToolTipDelay = 100;
          this.consoleSim.WordWrap = true;
          this.consoleSim.Zoom = 100;
-         // 
-         // pnlSpacer
-         // 
-         this.pnlSpacer.BackColor = System.Drawing.Color.Black;
-         this.pnlSpacer.Dock = System.Windows.Forms.DockStyle.Bottom;
-         this.pnlSpacer.Enabled = false;
-         this.pnlSpacer.Location = new System.Drawing.Point(0, 222);
-         this.pnlSpacer.Name = "pnlSpacer";
-         this.pnlSpacer.Size = new System.Drawing.Size(354, 16);
-         this.pnlSpacer.TabIndex = 0;
          // 
          // txtInput
          // 
@@ -154,7 +147,6 @@
 
       private SplitContainer splitContainer1;
       private ConsoleWindowEmulator consoleSim;
-      private Panel pnlSpacer;
         private TextBox txtInput;
     }
 }
