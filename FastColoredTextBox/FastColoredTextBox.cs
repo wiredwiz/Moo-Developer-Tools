@@ -124,6 +124,7 @@ namespace FastColoredTextBoxNS
       private Color serviceLinesColor;
       private bool showFoldingLines;
       private bool showLineNumbers;
+      private bool showTextBlockIndentationGuides;
       private FastColoredTextBox sourceTextBox;
       private int startFoldingLine = -1;
       private int updating;
@@ -608,6 +609,21 @@ namespace FastColoredTextBoxNS
          set
          {
             showFoldingLines = value;
+            Invalidate();
+         }
+      }
+
+      /// <summary>
+      /// Shows vertical guide lines between each block of indented text.
+      /// </summary>
+      [DefaultValue(false)]
+      [Description("Shows vertical lines between each indented text block.")]
+      public bool ShowTextBlockIndentationGuides
+      {
+         get => showTextBlockIndentationGuides;
+         set
+         {
+            showTextBlockIndentationGuides = value;
             Invalidate();
          }
       }
@@ -2818,7 +2834,7 @@ namespace FastColoredTextBoxNS
       }
 
       /// <summary>
-      /// Clear all styles of all text
+      /// Clear all styles of all text.
       /// </summary>
       public void ClearAllStyles()
       {
@@ -2828,6 +2844,20 @@ namespace FastColoredTextBoxNS
          // Should already be clear, but why not be extra safe since the overhead
          // will be near non-existent.
          BlinkSet.Clear();
+
+         for (int i = 0; i < LineInfos.Count; i++)
+            SetVisibleState(i, VisibleState.Visible);
+
+         Invalidate();
+      }
+
+      /// <summary>
+      /// Clear all folding markers from the text.
+      /// </summary>
+      public void ClearFoldingMarkers()
+      {
+         foreach (Line line in lines)
+            line.FoldingStartMarker = line.FoldingEndMarker = null;
 
          for (int i = 0; i < LineInfos.Count; i++)
             SetVisibleState(i, VisibleState.Visible);
@@ -5206,16 +5236,22 @@ namespace FastColoredTextBoxNS
                 string.IsNullOrEmpty(line.FoldingStartMarker))
                e.Graphics.DrawLine(servicePen, LeftIndentLine, y + CharHeight * lineInfo.WordWrapStringsCount - 1,
                                    LeftIndentLine + 4, y + CharHeight * lineInfo.WordWrapStringsCount - 1);
+
+            var startingIndent = LeftIndent;
             //draw wordwrap strings of line
             for (int iWordWrapLine = 0; iWordWrapLine < lineInfo.WordWrapStringsCount; iWordWrapLine++)
             {
                y = lineInfo.startY + iWordWrapLine * CharHeight - VerticalScroll.Value;
-               // break if too long line (important for extremly big lines)
+               // break if too long line (important for extremely big lines)
                if (y > VerticalScroll.Value + ClientSize.Height)
                   break;
-               // continue if wordWrapLine isn't seen yet (important for extremly big lines)
+               // continue if wordWrapLine isn't seen yet (important for extremely big lines)
                if (lineInfo.startY + iWordWrapLine * CharHeight < VerticalScroll.Value)
                   continue;
+
+               // draw text block indent guide
+               if (ShowTextBlockIndentationGuides)
+                  DrawBlockIndentGuide(e, startingIndent + Paddings.Left + line.StartSpacesCount * CharWidth - HorizontalScroll.Value - TabLength, y);
 
                //indent
                var indent = iWordWrapLine == 0 ? 0 : lineInfo.wordWrapIndent * CharWidth;
@@ -5339,6 +5375,20 @@ namespace FastColoredTextBoxNS
 #endif
          //
          base.OnPaint(e);
+      }
+
+      private void DrawBlockIndentGuide(PaintEventArgs e, int x, int y)
+      {
+         x -= CharWidth * TabLength / 2;
+         e.Graphics.SmoothingMode = SmoothingMode.None;
+         using var pen = new Pen(Color.FromArgb(200, ServiceLinesColor), 2) { DashStyle = DashStyle.Dot };
+         int y2 = y + charHeight;
+         if (y2 > 0)
+            while (x >= LeftIndent + Paddings.Left)
+            {
+               e.Graphics.DrawLine(pen, x, y >= 0 ? y : 0, x, y2 < ClientSize.Height ? y2 : ClientSize.Height);
+               x -= TabLength * CharWidth;
+            }
       }
 
       private void DrawMarkers(PaintEventArgs e, Pen servicePen)
