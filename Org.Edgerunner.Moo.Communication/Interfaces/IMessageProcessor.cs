@@ -1,5 +1,5 @@
 ﻿#region BSD 3-Clause License
-// <copyright company="Edgerunner.org" file="SessionMessage.cs">
+// <copyright company="Edgerunner.org" file="IMessageProcessor.cs">
 // Copyright (c)  2022
 // </copyright>
 //
@@ -34,37 +34,20 @@
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #endregion
 
-namespace Org.Edgerunner.Moo.Communication;
+namespace Org.Edgerunner.Moo.Communication.Interfaces;
 
 /// <summary>
-/// Struct representing a client session message.
+/// Class responsible for processing messages and determining what to do with them.
 /// </summary>
-public struct SessionMessage
+public interface IMessageProcessor
 {
    /// <summary>
-   /// Initializes a new instance of the <see cref="SessionMessage"/> struct.
+   /// Processes the message determining what action to take.
    /// </summary>
-   /// <param name="text">The text.</param>
-   /// <param name="outOfBand">if set to <c>true</c> [out of band].</param>
-   public SessionMessage(string text, bool outOfBand)
-   {
-      Text = text;
-      OutOfBand = outOfBand;
-   }
-
-   /// <summary>
-   /// Gets or sets the message text.
-   /// </summary>
-   /// <value>
-   /// The message text.
-   /// </value>
-   public string Text { get; }
-
-   /// <summary>
-   /// Gets or sets a value indicating whether the message is out of band.
-   /// </summary>
-   /// <value>
-   ///   <c>true</c> if [out of band]; otherwise, <c>false</c>.
-   /// </value>
-   public bool OutOfBand { get; }
+   /// <param name="client">The client terminal.</param>
+   /// <param name="message">The message.</param>
+   /// <returns>
+   ///   <c>true</c> if successfully processed; otherwise <c>false</c>.
+   /// </returns>
+   bool ProcessMessage(IClientTerminal client, string message);
 }

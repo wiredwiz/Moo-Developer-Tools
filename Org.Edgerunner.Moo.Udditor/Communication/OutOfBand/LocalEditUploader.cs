@@ -1,27 +1,27 @@
 ﻿#region BSD 3-Clause License
-// <copyright company="Edgerunner.org" file="IMessageProcessor.cs">
-// Copyright (c) Thaddeus Ryker 2022
+// <copyright company="Edgerunner.org" file="LocalEditUploader.cs">
+// Copyright (c)  2022
 // </copyright>
-// 
+//
 // BSD 3-Clause License
-// 
+//
 // Copyright (c) 2022,
 // All rights reserved.
-// 
+//
 // Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are met:
-// 
+//
 // 1. Redistributions of source code must retain the above copyright notice, this
 //    list of conditions and the following disclaimer.
-// 
+//
 // 2. Redistributions in binary form must reproduce the above copyright notice,
 //    this list of conditions and the following disclaimer in the documentation
 //    and/or other materials provided with the distribution.
-// 
+//
 // 3. Neither the name of the copyright holder nor the names of its
 //    contributors may be used to endorse or promote products derived from
 //    this software without specific prior written permission.
-// 
+//
 // THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
 // AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
 // IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
@@ -34,26 +34,53 @@
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #endregion
 
-using Org.Edgerunner.Moo.Communication.Exceptions;
+using Org.Edgerunner.Moo.Communication.Interfaces;
 
-namespace Org.Edgerunner.Moo.Communication;
+namespace Org.Edgerunner.Moo.Udditor.Communication.OutOfBand;
 
 /// <summary>
-/// Interface representing an instance capable of processing messages.
+/// Class responsible for handling local edit protocol uploads.
 /// </summary>
-public interface IMessageProcessor
+/// <seealso cref="Org.Edgerunner.Moo.Communication.Interfaces.IClientUploader" />
+public sealed class LocalEditUploader : IClientUploader
 {
     /// <summary>
-    /// Processes the message.
+    /// Initializes a new instance of the <see cref="LocalEditUploader"/> class.
     /// </summary>
-    /// <param name="message">The message.</param>
-    /// <param name="state">The current message processing state.</param>
-    /// <returns><c>true</c> if was processed, <c>false</c> otherwise.</returns>
-    /// <exception cref="MessagingException">An error occurred during the processing of the message.</exception>
-    bool ProcessMessage(string message, ref MessageProcessingState state);
+    /// <param name="uploadCommand">The upload command.</param>
+    /// <param name="clientTerminal">The client terminal.</param>
+    public LocalEditUploader(string uploadCommand, IClientTerminal clientTerminal)
+    {
+        UploadCommand = uploadCommand;
+        ClientTerminal = clientTerminal;
+    }
+
+    private string UploadCommand { get; }
 
     /// <summary>
-    /// Resets this instance.
+    /// Gets the client terminal.
     /// </summary>
-    void Reset();
+    /// <value>
+    /// The client terminal.
+    /// </value>
+    public IClientTerminal ClientTerminal { get; }
+
+    /// <summary>
+    /// Uploads the content of this instance.
+    /// </summary>
+    /// <param name="sourceCode">The source code.</param>
+    /// <returns>
+    /// <c>true</c> if upload is successful; <c>false</c> otherwise.
+    /// </returns>
+    /// <exception cref="System.NotImplementedException"></exception>
+    public bool Upload(string sourceCode)
+    {
+        if (!ClientTerminal.IsConnected)
+            return false;
+
+        ClientTerminal.SendTextLine(UploadCommand);
+        ClientTerminal.SendTextLine(sourceCode);
+        ClientTerminal.SendTextLine(".");
+        return true;
+    }
 }

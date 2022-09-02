@@ -222,6 +222,16 @@ namespace Org.Edgerunner.Moo.Editor.Controls
          ScrollToEnd();
       }
 
+      /// <summary>
+      /// Append line to end of text.
+      /// </summary>
+      /// <param name="text">The text.</param>
+      /// <param name="style">The style to apply.</param>
+      public void WriteWithStyle(string text, Style style)
+      {
+         WriteWithStyles(text, new [] { style });
+      }
+
       public void ScrollToEnd()
       {
          Selection.Start = new Place(TextSource[^1].Count, TextSource.Count - 1);

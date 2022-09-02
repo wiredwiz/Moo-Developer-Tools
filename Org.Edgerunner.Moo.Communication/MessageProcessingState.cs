@@ -2,26 +2,26 @@
 // <copyright company="Edgerunner.org" file="MessageProcessingState.cs">
 // Copyright (c) Thaddeus Ryker 2022
 // </copyright>
-// 
+//
 // BSD 3-Clause License
-// 
+//
 // Copyright (c) 2022,
 // All rights reserved.
-// 
+//
 // Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are met:
-// 
+//
 // 1. Redistributions of source code must retain the above copyright notice, this
 //    list of conditions and the following disclaimer.
-// 
+//
 // 2. Redistributions in binary form must reproduce the above copyright notice,
 //    this list of conditions and the following disclaimer in the documentation
 //    and/or other materials provided with the distribution.
-// 
+//
 // 3. Neither the name of the copyright holder nor the names of its
 //    contributors may be used to endorse or promote products derived from
 //    this software without specific prior written permission.
-// 
+//
 // THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
 // AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
 // IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
@@ -54,7 +54,7 @@ public class MessageProcessingState
     /// </summary>
     /// <param name="currentProcessor">The current processor.</param>
     /// <remarks>The messaging state is set to default in this case.</remarks>
-    public MessageProcessingState(IMessageProcessor? currentProcessor)
+    public MessageProcessingState(IMessageProtocolProcessor? currentProcessor)
         :this(MessagingState.InBand, currentProcessor)
     {
     }
@@ -64,11 +64,10 @@ public class MessageProcessingState
     /// </summary>
     /// <param name="currentState">The state.</param>
     /// <param name="currentProcessor">The current processor.</param>
-    public MessageProcessingState(MessagingState currentState, IMessageProcessor? currentProcessor)
+    public MessageProcessingState(MessagingState currentState, IMessageProtocolProcessor? currentProcessor)
     {
         CurrentState = currentState;
         CurrentProcessor = currentProcessor;
-        Response = new List<string>();
         LastMessageReceived = DateTime.UtcNow;
         Finished = false;
     }
@@ -83,19 +82,13 @@ public class MessageProcessingState
     /// Gets or sets the current processor.
     /// </summary>
     /// <value>The current processor.</value>
-    public IMessageProcessor? CurrentProcessor { get; set; }
+    public IMessageProtocolProcessor? CurrentProcessor { get; set; }
 
     /// <summary>
     /// Gets or sets the time for when the last message was received.
     /// </summary>
     /// <value>The last message received time.</value>
     public DateTime LastMessageReceived { get; set; }
-
-    /// <summary>
-    /// Gets or sets the response.
-    /// </summary>
-    /// <value>The response.</value>
-    public List<string> Response { get; set; }
 
     /// <summary>
     /// Gets or sets a value indicating whether processing of the current message state is finished.
@@ -112,6 +105,5 @@ public class MessageProcessingState
         CurrentState = MessagingState.InBand;
         Finished = false;
         LastMessageReceived = DateTime.UtcNow;
-        Response.Clear();
     }
 }

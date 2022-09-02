@@ -1,6 +1,6 @@
 ﻿#region BSD 3-Clause License
-// <copyright company="Edgerunner.org" file="ClientMessageEventArgs.cs">
-// Copyright (c)  2022
+// <copyright company="Edgerunner.org" file="IMessageProtocolProcessor.cs">
+// Copyright (c) Thaddeus Ryker 2022
 // </copyright>
 //
 // BSD 3-Clause License
@@ -34,27 +34,30 @@
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #endregion
 
+using Org.Edgerunner.Moo.Communication.Exceptions;
+using Org.Edgerunner.Moo.Communication.Interfaces;
+
 namespace Org.Edgerunner.Moo.Communication;
 
 /// <summary>
-/// A class representing arguments for a client message event.
+/// Interface representing an instance capable of processing messages.
 /// </summary>
-/// <seealso cref="System.EventArgs" />
-public class ClientMessageEventArgs : EventArgs
+public interface IMessageProtocolProcessor
 {
-   public ClientMessageEventArgs(string message, bool outOfBand)
-   {
-      Message = message;
-      OutOfBand = outOfBand;
-   }
-
    /// <summary>
-   /// Gets or sets the data.
+   /// Processes the message.
    /// </summary>
-   /// <value>
-   /// The data.
-   /// </value>
-   public string Message { get; set; }
+   /// <param name="client">The client terminal emulator.</param>
+   /// <param name="message">The message.</param>
+   /// <param name="state">The current message processing state.</param>
+   /// <returns>
+   ///   <c>true</c> if was processed, <c>false</c> otherwise.
+   /// </returns>
+   /// <exception cref="MessagingException">An error occurred during the processing of the message.</exception>
+   bool ProcessMessage(IClientTerminal client, string message, ref MessageProcessingState state);
 
-   public bool OutOfBand { get; set; }
+    /// <summary>
+    /// Resets this instance.
+    /// </summary>
+    void Reset();
 }

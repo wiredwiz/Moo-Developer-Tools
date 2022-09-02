@@ -37,6 +37,7 @@ namespace Org.Edgerunner.Moo.Udditor
          this.fileToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
          this.tlMnuNew = new System.Windows.Forms.ToolStripMenuItem();
          this.mnuItemOpenFile = new System.Windows.Forms.ToolStripMenuItem();
+         this.mnuItemSend = new System.Windows.Forms.ToolStripMenuItem();
          this.mnuItemFileSave = new System.Windows.Forms.ToolStripMenuItem();
          this.mnuItemSaveAsFile = new System.Windows.Forms.ToolStripMenuItem();
          this.tlMnuItemClose = new System.Windows.Forms.ToolStripMenuItem();
@@ -79,6 +80,9 @@ namespace Org.Edgerunner.Moo.Udditor
          this.kryptonManager = new Krypton.Toolkit.KryptonManager(this.components);
          this.kryptonPanel = new Krypton.Toolkit.KryptonPanel();
          this.kryptonDockableWorkspace = new Krypton.Docking.KryptonDockableWorkspace();
+         this.mnuItemWindow = new System.Windows.Forms.ToolStripMenuItem();
+         this.mnuItemPrevEditor = new System.Windows.Forms.ToolStripMenuItem();
+         this.mnuItemPrevTerminal = new System.Windows.Forms.ToolStripMenuItem();
          this.menuStrip1.SuspendLayout();
          this.statusStrip1.SuspendLayout();
          ((System.ComponentModel.ISupportInitialize)(this.kryptonPanel)).BeginInit();
@@ -95,6 +99,7 @@ namespace Org.Edgerunner.Moo.Udditor
             this.editToolStripMenuItem,
             this.tlMnuItemConnection,
             this.grammarToolStripMenuItem,
+            this.mnuItemWindow,
             this.helpToolStripMenuItem});
          this.menuStrip1.Location = new System.Drawing.Point(0, 0);
          this.menuStrip1.Name = "menuStrip1";
@@ -107,6 +112,7 @@ namespace Org.Edgerunner.Moo.Udditor
          this.fileToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.tlMnuNew,
             this.mnuItemOpenFile,
+            this.mnuItemSend,
             this.mnuItemFileSave,
             this.mnuItemSaveAsFile,
             this.tlMnuItemClose,
@@ -120,7 +126,7 @@ namespace Org.Edgerunner.Moo.Udditor
          // 
          this.tlMnuNew.Name = "tlMnuNew";
          this.tlMnuNew.ShortcutKeys = ((System.Windows.Forms.Keys)((System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.N)));
-         this.tlMnuNew.Size = new System.Drawing.Size(181, 26);
+         this.tlMnuNew.Size = new System.Drawing.Size(224, 26);
          this.tlMnuNew.Text = "&New";
          this.tlMnuNew.Click += new System.EventHandler(this.tlMnuNew_Click);
          // 
@@ -128,41 +134,50 @@ namespace Org.Edgerunner.Moo.Udditor
          // 
          this.mnuItemOpenFile.Name = "mnuItemOpenFile";
          this.mnuItemOpenFile.ShortcutKeys = ((System.Windows.Forms.Keys)((System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.O)));
-         this.mnuItemOpenFile.Size = new System.Drawing.Size(181, 26);
+         this.mnuItemOpenFile.Size = new System.Drawing.Size(224, 26);
          this.mnuItemOpenFile.Text = "&Open";
          this.mnuItemOpenFile.Click += new System.EventHandler(this.mnuItemOpenFile_Click);
+         // 
+         // mnuItemSend
+         // 
+         this.mnuItemSend.Name = "mnuItemSend";
+         this.mnuItemSend.ShortcutKeys = ((System.Windows.Forms.Keys)(((System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.Shift) 
+            | System.Windows.Forms.Keys.S)));
+         this.mnuItemSend.Size = new System.Drawing.Size(224, 26);
+         this.mnuItemSend.Text = "Send";
+         this.mnuItemSend.Click += new System.EventHandler(this.mnuItemSend_Click);
          // 
          // mnuItemFileSave
          // 
          this.mnuItemFileSave.Name = "mnuItemFileSave";
          this.mnuItemFileSave.ShortcutKeys = ((System.Windows.Forms.Keys)((System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.S)));
-         this.mnuItemFileSave.Size = new System.Drawing.Size(181, 26);
+         this.mnuItemFileSave.Size = new System.Drawing.Size(224, 26);
          this.mnuItemFileSave.Text = "&Save";
          this.mnuItemFileSave.Click += new System.EventHandler(this.mnuItemSave_Click);
          // 
          // mnuItemSaveAsFile
          // 
          this.mnuItemSaveAsFile.Name = "mnuItemSaveAsFile";
-         this.mnuItemSaveAsFile.Size = new System.Drawing.Size(181, 26);
+         this.mnuItemSaveAsFile.Size = new System.Drawing.Size(224, 26);
          this.mnuItemSaveAsFile.Text = "Save &As";
          this.mnuItemSaveAsFile.Click += new System.EventHandler(this.mnuItemSaveAsFile_Click);
          // 
          // tlMnuItemClose
          // 
          this.tlMnuItemClose.Name = "tlMnuItemClose";
-         this.tlMnuItemClose.Size = new System.Drawing.Size(181, 26);
+         this.tlMnuItemClose.Size = new System.Drawing.Size(224, 26);
          this.tlMnuItemClose.Text = "&Close";
          this.tlMnuItemClose.Click += new System.EventHandler(this.tlMnuItemClose_Click);
          // 
          // toolStripSeparator1
          // 
          this.toolStripSeparator1.Name = "toolStripSeparator1";
-         this.toolStripSeparator1.Size = new System.Drawing.Size(178, 6);
+         this.toolStripSeparator1.Size = new System.Drawing.Size(221, 6);
          // 
          // mnuItemExit
          // 
          this.mnuItemExit.Name = "mnuItemExit";
-         this.mnuItemExit.Size = new System.Drawing.Size(181, 26);
+         this.mnuItemExit.Size = new System.Drawing.Size(224, 26);
          this.mnuItemExit.Text = "E&xit";
          this.mnuItemExit.Click += new System.EventHandler(this.mnuItemExit_Click);
          // 
@@ -186,53 +201,53 @@ namespace Org.Edgerunner.Moo.Udditor
          // mnuItemFormat
          // 
          this.mnuItemFormat.Name = "mnuItemFormat";
-         this.mnuItemFormat.Size = new System.Drawing.Size(169, 26);
+         this.mnuItemFormat.Size = new System.Drawing.Size(224, 26);
          this.mnuItemFormat.Text = "Format";
          this.mnuItemFormat.Click += new System.EventHandler(this.mnuItemFormat_Click);
          // 
          // toolStripSeparator2
          // 
          this.toolStripSeparator2.Name = "toolStripSeparator2";
-         this.toolStripSeparator2.Size = new System.Drawing.Size(166, 6);
+         this.toolStripSeparator2.Size = new System.Drawing.Size(221, 6);
          // 
          // mnuItemCut
          // 
          this.mnuItemCut.Name = "mnuItemCut";
-         this.mnuItemCut.Size = new System.Drawing.Size(169, 26);
+         this.mnuItemCut.Size = new System.Drawing.Size(224, 26);
          this.mnuItemCut.Text = "Cut";
          this.mnuItemCut.Click += new System.EventHandler(this.mnuItemCut_Click);
          // 
          // mnuItemCopy
          // 
          this.mnuItemCopy.Name = "mnuItemCopy";
-         this.mnuItemCopy.Size = new System.Drawing.Size(169, 26);
+         this.mnuItemCopy.Size = new System.Drawing.Size(224, 26);
          this.mnuItemCopy.Text = "Copy";
          this.mnuItemCopy.Click += new System.EventHandler(this.mnuItemCopy_Click);
          // 
          // mnuItemCutPaste
          // 
          this.mnuItemCutPaste.Name = "mnuItemCutPaste";
-         this.mnuItemCutPaste.Size = new System.Drawing.Size(169, 26);
+         this.mnuItemCutPaste.Size = new System.Drawing.Size(224, 26);
          this.mnuItemCutPaste.Text = "Paste";
          this.mnuItemCutPaste.Click += new System.EventHandler(this.mnuItemCutPaste_Click);
          // 
          // toolStripSeparator3
          // 
          this.toolStripSeparator3.Name = "toolStripSeparator3";
-         this.toolStripSeparator3.Size = new System.Drawing.Size(166, 6);
+         this.toolStripSeparator3.Size = new System.Drawing.Size(221, 6);
          // 
          // mnuItemFind
          // 
          this.mnuItemFind.Name = "mnuItemFind";
          this.mnuItemFind.ShortcutKeys = ((System.Windows.Forms.Keys)((System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.F)));
-         this.mnuItemFind.Size = new System.Drawing.Size(169, 26);
+         this.mnuItemFind.Size = new System.Drawing.Size(224, 26);
          this.mnuItemFind.Text = "Find";
          this.mnuItemFind.Click += new System.EventHandler(this.mnuItemFind_Click);
          // 
          // toolStripSeparator4
          // 
          this.toolStripSeparator4.Name = "toolStripSeparator4";
-         this.toolStripSeparator4.Size = new System.Drawing.Size(166, 6);
+         this.toolStripSeparator4.Size = new System.Drawing.Size(221, 6);
          // 
          // mnuItemBookmarks
          // 
@@ -241,7 +256,7 @@ namespace Org.Edgerunner.Moo.Udditor
             this.tlMnuItemNextBookmark,
             this.tlMnuItemPrevBookmark});
          this.mnuItemBookmarks.Name = "mnuItemBookmarks";
-         this.mnuItemBookmarks.Size = new System.Drawing.Size(169, 26);
+         this.mnuItemBookmarks.Size = new System.Drawing.Size(224, 26);
          this.mnuItemBookmarks.Text = "Bookmarks";
          // 
          // tlMnuItemToggleBookmark
@@ -277,7 +292,7 @@ namespace Org.Edgerunner.Moo.Udditor
             this.tlMnuItemExpandAll,
             this.tlMnuItemCollapseAll});
          this.mnuItemFolding.Name = "mnuItemFolding";
-         this.mnuItemFolding.Size = new System.Drawing.Size(169, 26);
+         this.mnuItemFolding.Size = new System.Drawing.Size(224, 26);
          this.mnuItemFolding.Text = "Folding";
          // 
          // tlMnuItemToggleFolding
@@ -315,6 +330,8 @@ namespace Org.Edgerunner.Moo.Udditor
          // tlMnuItemOpenConnection
          // 
          this.tlMnuItemOpenConnection.Name = "tlMnuItemOpenConnection";
+         this.tlMnuItemOpenConnection.ShortcutKeys = ((System.Windows.Forms.Keys)(((System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.Shift) 
+            | System.Windows.Forms.Keys.O)));
          this.tlMnuItemOpenConnection.Size = new System.Drawing.Size(224, 26);
          this.tlMnuItemOpenConnection.Text = "Open";
          this.tlMnuItemOpenConnection.Click += new System.EventHandler(this.tlMnuItemOpenConnection_Click);
@@ -322,6 +339,8 @@ namespace Org.Edgerunner.Moo.Udditor
          // mnuItemCloseConnection
          // 
          this.mnuItemCloseConnection.Name = "mnuItemCloseConnection";
+         this.mnuItemCloseConnection.ShortcutKeys = ((System.Windows.Forms.Keys)(((System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.Shift) 
+            | System.Windows.Forms.Keys.D)));
          this.mnuItemCloseConnection.Size = new System.Drawing.Size(224, 26);
          this.mnuItemCloseConnection.Text = "Close";
          this.mnuItemCloseConnection.Click += new System.EventHandler(this.tlMnuItemCloseConnection_Click);
@@ -339,14 +358,14 @@ namespace Org.Edgerunner.Moo.Udditor
          // tlMnuLanguageMoo
          // 
          this.tlMnuLanguageMoo.Name = "tlMnuLanguageMoo";
-         this.tlMnuLanguageMoo.Size = new System.Drawing.Size(177, 26);
+         this.tlMnuLanguageMoo.Size = new System.Drawing.Size(224, 26);
          this.tlMnuLanguageMoo.Text = "LambdaMoo";
          this.tlMnuLanguageMoo.Click += new System.EventHandler(this.tlMnuLanguageMoo_Click);
          // 
          // tlMnuLanguageTsMoo
          // 
          this.tlMnuLanguageTsMoo.Name = "tlMnuLanguageTsMoo";
-         this.tlMnuLanguageTsMoo.Size = new System.Drawing.Size(177, 26);
+         this.tlMnuLanguageTsMoo.Size = new System.Drawing.Size(224, 26);
          this.tlMnuLanguageTsMoo.Text = "ToastStunt";
          this.tlMnuLanguageTsMoo.Click += new System.EventHandler(this.tlMnuLanguageTsMoo_Click);
          // 
@@ -355,7 +374,7 @@ namespace Org.Edgerunner.Moo.Udditor
          this.tlMnuLanguageEdgeMoo.Checked = true;
          this.tlMnuLanguageEdgeMoo.CheckState = System.Windows.Forms.CheckState.Checked;
          this.tlMnuLanguageEdgeMoo.Name = "tlMnuLanguageEdgeMoo";
-         this.tlMnuLanguageEdgeMoo.Size = new System.Drawing.Size(177, 26);
+         this.tlMnuLanguageEdgeMoo.Size = new System.Drawing.Size(224, 26);
          this.tlMnuLanguageEdgeMoo.Text = "Edgerunner";
          this.tlMnuLanguageEdgeMoo.Click += new System.EventHandler(this.tlMnuLanguageEdgeMoo_Click);
          // 
@@ -370,7 +389,7 @@ namespace Org.Edgerunner.Moo.Udditor
          // tlMnuHelp
          // 
          this.tlMnuHelp.Name = "tlMnuHelp";
-         this.tlMnuHelp.Size = new System.Drawing.Size(133, 26);
+         this.tlMnuHelp.Size = new System.Drawing.Size(224, 26);
          this.tlMnuHelp.Text = "About";
          this.tlMnuHelp.Click += new System.EventHandler(this.tlMnuHelp_Click);
          // 
@@ -452,6 +471,31 @@ namespace Org.Edgerunner.Moo.Udditor
          this.kryptonDockableWorkspace.PageCloseClicked += new System.EventHandler<Krypton.Docking.UniqueNameEventArgs>(this.kryptonDockableWorkspace_PageCloseClicked);
          this.kryptonDockableWorkspace.ActivePageChanged += new System.EventHandler<Krypton.Workspace.ActivePageChangedEventArgs>(this.kryptonDockableWorkspace_ActivePageChanged);
          // 
+         // mnuItemWindow
+         // 
+         this.mnuItemWindow.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.mnuItemPrevEditor,
+            this.mnuItemPrevTerminal});
+         this.mnuItemWindow.Name = "mnuItemWindow";
+         this.mnuItemWindow.Size = new System.Drawing.Size(78, 24);
+         this.mnuItemWindow.Text = "Window";
+         // 
+         // mnuItemPrevEditor
+         // 
+         this.mnuItemPrevEditor.Name = "mnuItemPrevEditor";
+         this.mnuItemPrevEditor.ShortcutKeys = ((System.Windows.Forms.Keys)((System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.E)));
+         this.mnuItemPrevEditor.Size = new System.Drawing.Size(258, 26);
+         this.mnuItemPrevEditor.Text = "Previous Editor";
+         this.mnuItemPrevEditor.Click += new System.EventHandler(this.mnuItemPrevEditor_Click);
+         // 
+         // mnuItemPrevTerminal
+         // 
+         this.mnuItemPrevTerminal.Name = "mnuItemPrevTerminal";
+         this.mnuItemPrevTerminal.ShortcutKeys = ((System.Windows.Forms.Keys)((System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.T)));
+         this.mnuItemPrevTerminal.Size = new System.Drawing.Size(258, 26);
+         this.mnuItemPrevTerminal.Text = "Previous Terminal";
+         this.mnuItemPrevTerminal.Click += new System.EventHandler(this.mnuItemPrevTerminal_Click);
+         // 
          // Editor
          // 
          this.ClientSize = new System.Drawing.Size(957, 767);
@@ -523,5 +567,9 @@ namespace Org.Edgerunner.Moo.Udditor
         private ToolStripMenuItem tlMnuItemConnection;
         private ToolStripMenuItem tlMnuItemOpenConnection;
         private ToolStripMenuItem mnuItemCloseConnection;
+        private ToolStripMenuItem mnuItemSend;
+        private ToolStripMenuItem mnuItemWindow;
+        private ToolStripMenuItem mnuItemPrevEditor;
+        private ToolStripMenuItem mnuItemPrevTerminal;
     }
 }

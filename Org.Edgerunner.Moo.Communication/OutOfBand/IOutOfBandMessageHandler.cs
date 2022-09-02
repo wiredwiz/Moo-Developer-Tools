@@ -36,6 +36,6 @@
 
 namespace Org.Edgerunner.Moo.Communication.OutOfBand;
 
-public interface IOutOfBandMessageHandler : IMessageProcessor
+public interface IOutOfBandMessageHandler : IMessageProtocolProcessor
 {
 }

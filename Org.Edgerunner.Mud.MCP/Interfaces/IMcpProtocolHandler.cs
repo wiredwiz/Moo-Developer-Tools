@@ -50,10 +50,10 @@ public interface IMcpProtocolHandler
     /// <returns></returns>
     public bool CanHandleMessage(Message message);
 
-    /// <summary>
-    /// Processes the message.
-    /// </summary>
-    /// <param name="message">The message to process.</param>
-    /// <returns>The resulting list of session messages to send or display.</returns>
-    public List<SessionMessage>? ProcessMessage(Message message);
+   /// <summary>
+   /// Processes the message.
+   /// </summary>
+   /// <param name="message">The message to process.</param>
+   /// <returns><c>true</c> if successfully processed; otherwise <c>false</c>.</returns>
+   public bool ProcessMessage(Message message);
 }

@@ -35,7 +35,7 @@
 #endregion
 
 using Org.Edgerunner.Moo.Communication.Exceptions;
-using Org.Edgerunner.Moo.Communication.OutOfBand;
+using Org.Edgerunner.Moo.Communication.Interfaces;
 
 namespace Org.Edgerunner.Moo.Communication;
 
@@ -43,19 +43,19 @@ namespace Org.Edgerunner.Moo.Communication;
 /// Class that represents a message processor.
 /// </summary>
 // ReSharper disable once HollowTypeName
-public class RootMessageProcessor
+public class RootMessageProcessor : IMessageProcessor
 {
     /// <summary>
     /// The current state.
     /// </summary>
     private MessageProcessingState _State;
 
-    /// <summary>
-    /// Initializes a new instance of the <see cref="RootMessageProcessor" /> class.
-    /// </summary>
-    /// <param name="outOfBandPrefix">The out of band prefix.</param>
-    /// <param name="outOfBandMessageProcessor">The out of band message processor.</param>
-    protected RootMessageProcessor(string outOfBandPrefix, IMessageProcessor outOfBandMessageProcessor)
+   /// <summary>
+   /// Initializes a new instance of the <see cref="RootMessageProcessor" /> class.
+   /// </summary>
+   /// <param name="outOfBandPrefix">The out of band prefix.</param>
+   /// <param name="outOfBandMessageProcessor">The out of band message processor.</param>
+   public RootMessageProcessor(string outOfBandPrefix, IMessageProtocolProcessor? outOfBandMessageProcessor)
     {
         OutOfBandPrefix = outOfBandPrefix;
         OutOfBandMessageProcessor = outOfBandMessageProcessor;
@@ -72,31 +72,32 @@ public class RootMessageProcessor
     /// Gets or sets the out of band messaging timeout.
     /// </summary>
     /// <value>The out of band messaging timeout interval in milliseconds.</value>
-    public int OutOfBandMessagingTimeout { get; set; }
+    public int OutOfBandMessagingTimeout { get; set; } = 1000;
 
     /// <summary>
     /// Gets the out of band message processor.
     /// </summary>
     /// <value>The out of band message processor.</value>
-    protected IMessageProcessor OutOfBandMessageProcessor { get; }
+    protected IMessageProtocolProcessor? OutOfBandMessageProcessor { get; }
 
-    /// <summary>
-    /// Processes the message.
-    /// </summary>
-    /// <param name="message">The message.</param>
-    /// <returns>An <see>
-    ///         <cref>IEnumerable</cref>
-    ///     </see>
-    ///     containing response messages.</returns>
-    /// <exception cref="MessagingException">An error occurred during the processing of the message.</exception>
-    public virtual IEnumerable<string>? ProcessMessage(string message)
+   /// <summary>
+   /// Processes the message.
+   /// </summary>
+   /// <param name="client">The client terminal.</param>
+   /// <param name="message">The message.</param>
+   /// <returns>
+   /// An <see><cref>IEnumerable</cref></see>
+   /// containing response messages.
+   /// </returns>
+   /// <exception cref="MessagingException">An error occurred during the processing of the message.</exception>
+   public virtual bool ProcessMessage(IClientTerminal client, string message)
     {
         // If we have been in an Out of Band message processing state too long
         // Or if the previous message processing state was finished.
         // we reset the state along with all out of band processors.
         if (_State.Finished || _State.CurrentState == MessagingState.OUtOfBand && (DateTime.UtcNow - _State.LastMessageReceived).Milliseconds >= OutOfBandMessagingTimeout)
         {
-            OutOfBandMessageProcessor.Reset();
+            OutOfBandMessageProcessor?.Reset();
             _State.Reset();
         }
 
@@ -106,7 +107,7 @@ public class RootMessageProcessor
         // If the message is an out of band message, modify the message and our state
         if (message.StartsWith(OutOfBandPrefix))
         {
-            message = message.Length > OutOfBandPrefix.Length ? message.Remove(OutOfBandPrefix.Length) : String.Empty;
+            message = message.Length > OutOfBandPrefix.Length ? message.Remove(0, OutOfBandPrefix.Length) : String.Empty;
             _State.CurrentState = MessagingState.OUtOfBand;
         }
 
@@ -116,13 +117,10 @@ public class RootMessageProcessor
 
         // If we have a predefined processor, then hand off work to it.
         if (_State.CurrentProcessor != null)
-            if (_State.CurrentProcessor.ProcessMessage(message, ref _State))
-                return _State.Finished ? _State.Response : null;
+           return _State.CurrentProcessor.ProcessMessage(client, message, ref _State);
 
         // If we have reached this point, then we have plain vanilla display line, so we return it as a message to display
-        _State.Response.Clear();
         _State.Finished = true;
-        _State.Response.Add(message);
-        return _State.Response;
+        return false;
     }
 }

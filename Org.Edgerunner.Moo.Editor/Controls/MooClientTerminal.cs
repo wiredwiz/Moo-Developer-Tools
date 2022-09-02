@@ -23,7 +23,7 @@ using Application = System.Windows.Forms.Application;
 
 namespace Org.Edgerunner.Moo.Editor.Controls
 {
-    public partial class MooClientTerminal : UserControl
+    public partial class MooClientTerminal : UserControl, IClientTerminal
    {
       private IMooClientSession _Session;
 
@@ -50,6 +50,14 @@ namespace Org.Edgerunner.Moo.Editor.Controls
       public TextBox Input => txtInput;
 
       /// <summary>
+      /// Gets or sets the message processor.
+      /// </summary>
+      /// <value>
+      /// The message processor.
+      /// </value>
+      public IMessageProcessor MessageProcessor { get; set; }
+
+      /// <summary>
       /// Gets or sets a value indicating whether this <see cref="MooClientTerminal"/> is using TLS.
       /// </summary>
       /// <value>
@@ -57,14 +65,20 @@ namespace Org.Edgerunner.Moo.Editor.Controls
       /// </value>
       public bool Tls { get; protected set; }
 
+      public string OutOfBandPrefix { get; set; } = "#$#";
+
       public bool EchoEnabled { get; set; }
 
       public bool IsConnected => _Session?.IsOpen ?? false;
 
+      /// <summary>
+      /// Initializes a new instance of the <see cref="MooClientTerminal"/> class.
+      /// </summary>
+      /// <param name="useTls">if set to <c>true</c> [use TLS].</param>
       public MooClientTerminal(bool useTls = false)
       {
          InitializeComponent();
-         ConsoleForeColor = Color.WhiteSmoke;
+         ConsoleForegroundColor = Color.WhiteSmoke;
          ConsoleBackgroundColor = Color.Black;
          consoleSim.Text = string.Empty;
          _ReadingCommands = 0;
@@ -88,7 +102,7 @@ namespace Org.Edgerunner.Moo.Editor.Controls
          base.OnHandleDestroyed(e);
       }
 
-      public Color ConsoleForeColor
+      public Color ConsoleForegroundColor
       {
          get => consoleSim.ConsoleForeColor;
          set => consoleSim.ConsoleForeColor = value;
@@ -204,33 +218,299 @@ namespace Org.Edgerunner.Moo.Editor.Controls
          return false;
       }
 
+      /// <summary>
+      /// Sends the text lines to the client connection.
+      /// </summary>
+      /// <param name="text"></param>
       public void SendTextLines(IEnumerable<string> text)
       {
          foreach (var line in text)
             SendTextLine(line);
       }
 
+      /// <summary>
+      /// Sends the text line to the client connection.
+      /// </summary>
+      /// <param name="text">The text to send.</param>
       public void SendTextLine(string text)
       {
-         consoleSim.EchoTextLine(text);
-         _Session.SendLine(text);
+         void SafeWrite()
+         {
+            var atBottom = consoleSim.VerticalScrollbarPositionedAtBottom;
+
+            consoleSim.EchoTextLine(text);
+            _Session.SendLine(text);
+            if (atBottom)
+               consoleSim.GoEnd();
+         }
+
+         if (InvokeRequired)
+            Invoke(SafeWrite);
+         else
+            SafeWrite();
       }
 
+      /// <summary>
+      /// Sends the text to the client connection.
+      /// </summary>
+      /// <param name="text">The text to send.</param>
       public void SendText(string text)
       {
-         consoleSim.EchoText(text);
-         _Session.Send(text);
+         void SafeWrite()
+         {
+            var atBottom = consoleSim.VerticalScrollbarPositionedAtBottom;
+
+            consoleSim.EchoText(text);
+            _Session.Send(text);
+            if (atBottom)
+               consoleSim.GoEnd();
+         }
+
+         if (InvokeRequired)
+            Invoke(SafeWrite);
+         else
+            SafeWrite();
       }
 
-      public void SendOutOfBandCommands(IEnumerable<string> commands)
+      /// <summary>
+      /// Sends lines of text to the client connection as out of band command.
+      /// </summary>
+      /// <param name="lines">The list of lines.</param>
+      public void SendOutOfBandLines(IEnumerable<string> lines)
       {
-         foreach (var command in commands)
-            _Session.SendOutOfBandLine(command);
+         foreach (var line in lines)
+            _Session.SendLine($"{OutOfBandPrefix}{line}");
       }
 
-      public void SendOutOfBandCommand(string command)
+      /// <summary>
+      /// Sends the text to the client connection as out of band.
+      /// </summary>
+      /// <param name="line"></param>
+      public void SendOutOfBandLine(string line)
       {
-         _Session.SendOutOfBandLine(command);
+         _Session.SendLine($"{OutOfBandPrefix}{line}");
+      }
+
+      /// <summary>
+      /// Displays text to the terminal console emulator.
+      /// </summary>
+      /// <param name="text">The message to display.</param>
+      public void DisplayToConsole(string text)
+      {
+         void SafeWrite()
+         {
+            var atBottom = consoleSim.VerticalScrollbarPositionedAtBottom;
+
+            consoleSim.Write(text);
+
+            if (atBottom)
+               consoleSim.GoEnd();
+         }
+
+         if (InvokeRequired)
+            Invoke(SafeWrite);
+         else
+            SafeWrite();
+      }
+
+      /// <summary>
+      /// Displays text line to the terminal console emulator.
+      /// </summary>
+      /// <param name="text">The message to display.</param>
+      public void DisplayLineToConsole(string text)
+      {
+         void SafeWrite()
+         {
+            var atBottom = consoleSim.VerticalScrollbarPositionedAtBottom;
+
+            consoleSim.WriteLine(text);
+
+            if (atBottom)
+               consoleSim.GoEnd();
+         }
+
+         if (InvokeRequired)
+            Invoke(SafeWrite);
+         else
+            SafeWrite();
+      }
+
+      /// <summary>
+      /// Displays text lines to the terminal console emulator.
+      /// </summary>
+      /// <param name="lines">The message lines to display.</param>
+      public void DisplayLinesToConsole(IEnumerable<string> lines)
+      {
+         void SafeWrite()
+         {
+            var atBottom = consoleSim.VerticalScrollbarPositionedAtBottom;
+
+            foreach (var line in lines)
+               consoleSim.WriteLine(line);
+
+            if (atBottom)
+               consoleSim.GoEnd();
+         }
+
+         if (InvokeRequired)
+            Invoke(SafeWrite);
+         else
+            SafeWrite();
+      }
+
+      /// <summary>
+      /// Displays text line to the terminal console emulator.
+      /// </summary>
+      /// <param name="text">The message to display.</param>
+      /// <param name="foregroundColor">The foreground color of the text.</param>
+      /// <remarks>
+      /// The current terminal console emulator background color is used.
+      /// </remarks>
+      public void DisplayToConsole(string text, Color foregroundColor)
+      {
+         void SafeWrite()
+         {
+            var atBottom = consoleSim.VerticalScrollbarPositionedAtBottom;
+
+            var style = AnsiManager.GetStyle(foregroundColor, ConsoleBackgroundColor, FontStyle.Regular);
+            consoleSim.WriteWithStyle(text, style);
+
+            if (atBottom)
+               consoleSim.GoEnd();
+         }
+
+         if (InvokeRequired)
+            Invoke(SafeWrite);
+         else
+            SafeWrite();
+      }
+
+      /// <summary>
+      /// Displays text line to the terminal console emulator.
+      /// </summary>
+      /// <param name="text">The message to display.</param>
+      /// <param name="foregroundColor">The foreground color of the text.</param>
+      /// <remarks>
+      /// The current terminal console emulator background color is used.
+      /// </remarks>
+      public void DisplayLineToConsole(string text, Color foregroundColor)
+      {
+         void SafeWrite()
+         {
+            var atBottom = consoleSim.VerticalScrollbarPositionedAtBottom;
+
+            var style = AnsiManager.GetStyle(foregroundColor, ConsoleBackgroundColor, FontStyle.Regular);
+            consoleSim.WriteWithStyle($"{text}\n", style);
+
+            if (atBottom)
+               consoleSim.GoEnd();
+         }
+
+         if (InvokeRequired)
+            Invoke(SafeWrite);
+         else
+            SafeWrite();
+      }
+
+      /// <summary>
+      /// Displays text lines to the terminal console emulator.
+      /// </summary>
+      /// <param name="lines">The message lines to display.</param>
+      /// <param name="foregroundColor">The foreground color of the text.</param>
+      public void DisplayLinesToConsole(IEnumerable<string> lines, Color foregroundColor)
+      {
+         void SafeWrite()
+         {
+            var atBottom = consoleSim.VerticalScrollbarPositionedAtBottom;
+
+            var style = AnsiManager.GetStyle(foregroundColor, ConsoleBackgroundColor, FontStyle.Regular);
+            foreach (var line in lines)
+               consoleSim.WriteWithStyle($"{line}\n", style);
+
+            if (atBottom)
+               consoleSim.GoEnd();
+         }
+
+         if (InvokeRequired)
+            Invoke(SafeWrite);
+         else
+            SafeWrite();
+      }
+
+      /// <summary>
+      /// Displays text line to the terminal console emulator.
+      /// </summary>
+      /// <param name="text">The message to display.</param>
+      /// <param name="foregroundColor">The foreground color of the text.</param>
+      /// <param name="backgroundColor">The background color of the text.</param>
+      public void DisplayToConsole(string text, Color foregroundColor, Color backgroundColor)
+      {
+         void SafeWrite()
+         {
+            var atBottom = consoleSim.VerticalScrollbarPositionedAtBottom;
+
+            var style = AnsiManager.GetStyle(foregroundColor, backgroundColor, FontStyle.Regular);
+            consoleSim.WriteWithStyle(text, style);
+
+            if (atBottom)
+               consoleSim.GoEnd();
+         }
+
+         if (InvokeRequired)
+            Invoke(SafeWrite);
+         else
+            SafeWrite();
+      }
+
+      /// <summary>
+      /// Displays text to the terminal console emulator.
+      /// </summary>
+      /// <param name="text">The message to display.</param>
+      /// <param name="foregroundColor">The foreground color of the text.</param>
+      /// <param name="backgroundColor">The background color of the text.</param>
+      public void DisplayLineToConsole(string text, Color foregroundColor, Color backgroundColor)
+      {
+         void SafeWrite()
+         {
+            var atBottom = consoleSim.VerticalScrollbarPositionedAtBottom;
+
+            var style = AnsiManager.GetStyle(foregroundColor, backgroundColor, FontStyle.Regular);
+            consoleSim.WriteWithStyle($"{text}\n", style);
+
+            if (atBottom)
+               consoleSim.GoEnd();
+         }
+
+         if (InvokeRequired)
+            Invoke(SafeWrite);
+         else
+            SafeWrite();
+      }
+
+      /// <summary>
+      /// Displays text lines to the terminal console emulator.
+      /// </summary>
+      /// <param name="lines">The message lines to display.</param>
+      /// <param name="foregroundColor">The foreground color of the text.</param>
+      /// <param name="backgroundColor">The background color of the text.</param>
+      public void DisplayLinesToConsole(IEnumerable<string> lines, Color foregroundColor, Color backgroundColor)
+      {
+         void SafeWrite()
+         {
+            var atBottom = consoleSim.VerticalScrollbarPositionedAtBottom;
+
+            var style = AnsiManager.GetStyle(foregroundColor, backgroundColor, FontStyle.Regular);
+            foreach (var line in lines)
+               consoleSim.WriteWithStyle($"{line}\n", style);
+
+            if (atBottom)
+               consoleSim.GoEnd();
+         }
+
+         if (InvokeRequired)
+            Invoke(SafeWrite);
+         else
+            SafeWrite();
       }
 
       public async Task ConnectAsync(string world, string host, int port, bool useTls = false)
@@ -275,7 +555,7 @@ namespace Org.Edgerunner.Moo.Editor.Controls
          Debug.WriteLine($"{e} bytes dropped from buffer overflow");
       }
 
-      private void SessionMessageReceived(object sender, ClientMessageEventArgs e)
+      private void SessionMessageReceived(object sender, string e)
       {
          // While other client events are executed on the UI thread
          // This one is not, because it may perform long running operations.
@@ -291,37 +571,39 @@ namespace Org.Edgerunner.Moo.Editor.Controls
          {
             if (_Session.CommandQueue.TryDequeue(out var message))
             {
-               if (message.OutOfBand)
-               {
-                  Debug.WriteLine($"OOB: {message.Text}");
-                  try
-                  {
-                     var parsed = McpUtils.ParseMessage(message.Text);
-                     if (parsed != null)
-                        if (McpSessionManager.IsNegotiationMessage(parsed))
-                        {
-                           var result = McpSessionManager.NegotiationMcpSession(parsed);
-                           Debug.WriteLine($"Handshake: {result?.Handshake()}");
-                        }
-                  }
-                  catch (InvalidMcpMessageFormatException ex)
-                  {
-                     Debug.WriteLine(ex.Message);
-                  }
-               }
-               else
+               //if (message.OutOfBand)
+               //{
+               //   Debug.WriteLine($"OOB: {message.Text}");
+               //   try
+               //   {
+               //      var parsed = McpUtils.ParseMessage(message.Text);
+               //      if (parsed != null)
+               //         if (McpSessionManager.IsNegotiationMessage(parsed))
+               //         {
+               //            var result = McpSessionManager.NegotiationMcpSession(parsed);
+               //            Debug.WriteLine($"Handshake: {result?.Handshake()}");
+               //         }
+               //   }
+               //   catch (InvalidMcpMessageFormatException ex)
+               //   {
+               //      Debug.WriteLine(ex.Message);
+               //   }
+               //}
+               //else
+               if (MessageProcessor == null || !MessageProcessor.ProcessMessage(this, message))
                {
                   void SafeWrite()
                   {
                      var atBottom = consoleSim.VerticalScrollbarPositionedAtBottom;
-                     consoleSim.WriteAnsi(message.Text);
+                     consoleSim.WriteAnsi(message);
                      if (atBottom)
                         consoleSim.GoEnd();
                   }
 
                   Invoke(SafeWrite);
-                  NewMessageReceived?.InvokeOnUI(new object[] { this, EventArgs.Empty });
                }
+
+               NewMessageReceived?.InvokeOnUI(new object[] { this, EventArgs.Empty });
             }
          }
 

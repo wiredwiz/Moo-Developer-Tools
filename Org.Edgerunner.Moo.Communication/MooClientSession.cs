@@ -64,13 +64,10 @@ public class MooClientSession : IMooClientSession, IDisposable
    {
       Client = new TcpClient();
       CommandBuffer = new CommunicationBuffer(2048);
-      OutOfBandCommandBuffer = new CommunicationBuffer(2048);
-      CommandQueue = new ConcurrentQueue<SessionMessage>();
+      CommandQueue = new ConcurrentQueue<string>();
       World = world;
       Host = host;
       Port = port;
-      OutOfBandPrefix = outOfBandPrefix;
-      _OutOfBandBytes = Encoding.ASCII.GetBytes(outOfBandPrefix);
       TokenSource = new CancellationTokenSource();
    }
 
@@ -132,7 +129,10 @@ public class MooClientSession : IMooClientSession, IDisposable
       {
          try
          {
-            return !(Client.Client.Poll(5, SelectMode.SelectRead) && Client.Client.Available == 0);
+            if (Client.Client != null)
+               return !(Client.Client.Poll(5, SelectMode.SelectRead) && Client.Client.Available == 0);
+
+            return false;
          }
          catch (SocketException)
          {
@@ -164,7 +164,7 @@ public class MooClientSession : IMooClientSession, IDisposable
    /// <value>
    /// The command queue.
    /// </value>
-   public ConcurrentQueue<SessionMessage> CommandQueue { get; }
+   public ConcurrentQueue<string> CommandQueue { get; }
 
    /// <summary>
    /// Gets the command buffer.
@@ -173,14 +173,6 @@ public class MooClientSession : IMooClientSession, IDisposable
    /// The command buffer.
    /// </value>
    protected CommunicationBuffer CommandBuffer { get; }
-
-   /// <summary>
-   /// Gets the out of band command buffer.
-   /// </summary>
-   /// <value>
-   /// The out of band command buffer.
-   /// </value>
-   protected CommunicationBuffer OutOfBandCommandBuffer { get; }
 
    /// <summary>
    /// Sends the contents of the data buffer over the session connection.
@@ -212,39 +204,6 @@ public class MooClientSession : IMooClientSession, IDisposable
       SendData(data);
    }
 
-   /// <summary>
-   /// Sends the contents of the data buffer over the session connection as an out of band command.
-   /// </summary>
-   /// <param name="buffer">The data buffer.</param>
-   public void SendOutOfBand(byte[] buffer)
-   {
-      var data = new byte[_OutOfBandBytes.Length + buffer.Length];
-      Array.Copy(_OutOfBandBytes, data, _OutOfBandBytes.Length);
-      buffer.CopyTo(data, _OutOfBandBytes.Length);
-      SendData(data);
-   }
-
-   /// <summary>
-   /// Sends the text over the session connection as an out of band command.
-   /// </summary>
-   /// <param name="text">The text to send.</param>
-   public void SendOutOfBand(string text)
-   {
-      var data = Encoding.ASCII.GetBytes($"{OutOfBandPrefix}{text}");
-      SendData(data);
-   }
-
-   /// <summary>
-   /// Sends the line of text over the session connection as an out of band command.
-   /// </summary>
-   /// <param name="text">The line of text to send.</param>
-   /// <remarks>This method appends a line feed for you.</remarks>
-   public void SendOutOfBandLine(string text)
-   {
-      var data = Encoding.ASCII.GetBytes($"{OutOfBandPrefix}{text}\n");
-      SendData(data);
-   }
-
    private void SendData(byte[] data)
    {
       try
@@ -260,7 +219,7 @@ public class MooClientSession : IMooClientSession, IDisposable
    /// <summary>
    /// Occurs when a message is received on the connection.
    /// </summary>
-   public event EventHandler<ClientMessageEventArgs>? MessageReceived;
+   public event EventHandler<string>? MessageReceived;
 
    /// <summary>
    /// Occurs when data is dropped because the buffer overflowed.
@@ -322,10 +281,10 @@ public class MooClientSession : IMooClientSession, IDisposable
       Task.Run(ReadFromConnection);
    }
 
-   protected void OnMessageReceived(string message, bool outOfBand)
+   protected void OnMessageReceived(string message)
    {
       // We are not firing this event on the UI so it can do background work
-      MessageReceived?.Invoke(this, new ClientMessageEventArgs(message, outOfBand));
+      MessageReceived?.Invoke(this, message);
    }
 
    protected void OnDataDropped(int droppedBytes)
@@ -336,7 +295,6 @@ public class MooClientSession : IMooClientSession, IDisposable
    protected void ReadFromConnection()
    {
       var buffer = new byte[2048];
-      var outOfBand = false;
       while (IsOpen)
       {
          Thread.Sleep(5);
@@ -345,7 +303,7 @@ public class MooClientSession : IMooClientSession, IDisposable
             while (_Stream != null && Client.Available > 0)
             {
                var bytes = _Stream.Read(buffer, 0, buffer.Length);
-               ProcessReadBuffer(buffer, bytes, ref outOfBand);
+               ProcessReadBuffer(buffer, bytes);
             }
 
             FlushCommandBuffer();
@@ -362,7 +320,7 @@ public class MooClientSession : IMooClientSession, IDisposable
       OnClosed();
    }
 
-   private void ProcessReadBuffer(byte[] buffer, int bytes, ref bool outOfBandMode)
+   private void ProcessReadBuffer(byte[] buffer, int bytes)
    {
       var droppedBytes = 0;
       for (int i = 0; i < bytes; i++)
@@ -372,46 +330,27 @@ public class MooClientSession : IMooClientSession, IDisposable
          {
             // Do nothing, we are skipping the carriage return
          }
-         else if (!outOfBandMode && CommandBuffer.IsEmpty && OutOfBandCommandBuffer.IsEmpty && buffer[i] == '#')
-         {
-            if ((bytes - i > 2) && (buffer[i + 1] == '$') && (buffer[i + 2] == '#'))
-               outOfBandMode = true;
-            i += 2;
-         }
          else if (buffer[i] == '\n')
          {
             var data = "\n";
-            var tmpOob = outOfBandMode;
-            var empty = outOfBandMode ? OutOfBandCommandBuffer.IsEmpty : CommandBuffer.IsEmpty;
+            var empty = CommandBuffer.IsEmpty;
             if (!empty)
             {
-               byte[] dataBuffer;
-               Decoder decoder;
-               if (outOfBandMode)
-               {
-                  dataBuffer = OutOfBandCommandBuffer.ToArray();
-                  OutOfBandCommandBuffer.Clear();
-                  outOfBandMode = false;
-                  decoder = Encoding.ASCII.GetDecoder();
-               }
-               else
-               {
-                  BufferData(outOfBandMode, buffer[i]);
-                  dataBuffer = CommandBuffer.ToArray();
-                  CommandBuffer.Clear();
-                  decoder = Encoding.UTF8.GetDecoder();
-               }
+               BufferData(buffer[i]);
+               var dataBuffer = CommandBuffer.ToArray();
+               CommandBuffer.Clear();
+               var decoder = Encoding.UTF8.GetDecoder();
 
                var chars = new char[decoder.GetCharCount(dataBuffer, 0, dataBuffer.Length)];
                decoder.GetChars(dataBuffer, 0, dataBuffer.Length, chars, 0);
                data = new string(chars);
             }
 
-            CommandQueue.Enqueue(new SessionMessage(data, tmpOob));
-            OnMessageReceived(data, tmpOob);
+            CommandQueue.Enqueue(data);
+            OnMessageReceived(data);
          }
          else
-            droppedBytes += BufferData(outOfBandMode, buffer[i]);
+            droppedBytes += BufferData(buffer[i]);
       }
       if (droppedBytes != 0)
          OnDataDropped(droppedBytes);
@@ -428,24 +367,15 @@ public class MooClientSession : IMooClientSession, IDisposable
          var chars = new char[decoder.GetCharCount(dataBuffer, 0, dataBuffer.Length)];
          decoder.GetChars(dataBuffer, 0, dataBuffer.Length, chars, 0);
          var data = new string(chars);
-         CommandQueue.Enqueue(new SessionMessage(data, false));
-         OnMessageReceived(data, false);
+         CommandQueue.Enqueue(data);
+         OnMessageReceived(data);
       }
    }
 
-   private int BufferData(bool outOfBandMode, byte b)
+   private int BufferData(byte b)
    {
-      if (outOfBandMode)
-      {
-         var full = OutOfBandCommandBuffer.IsFull;
-         OutOfBandCommandBuffer.PushBack(b);
-         return full ? 1 : 0;
-      }
-      else
-      {
-         var full = CommandBuffer.IsFull;
-         CommandBuffer.PushBack(b);
-         return full ? 1 : 0;
-      }
+      var full = CommandBuffer.IsFull;
+      CommandBuffer.PushBack(b);
+      return full ? 1 : 0;
    }
 }

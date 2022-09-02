@@ -40,7 +40,11 @@ using Krypton.Navigator;
 using Org.Edgerunner.Moo.Editor;
 using Org.Edgerunner.Moo.Udditor.Pages;
 using System;
+using Org.Edgerunner.Moo.Communication;
+using Org.Edgerunner.Moo.Communication.OutOfBand;
 using Org.Edgerunner.Moo.Editor.Controls;
+using Org.Edgerunner.Moo.Udditor.Communication.OutOfBand;
+using Antlr4.Runtime.Misc;
 
 namespace Org.Edgerunner.Moo.Udditor;
 
@@ -51,12 +55,14 @@ namespace Org.Edgerunner.Moo.Udditor;
 public class WindowManager
 {
     /// <summary>
-    /// Initializes a new instance of the <see cref="WindowManager"/> class.
+    /// Initializes a new instance of the <see cref="WindowManager" /> class.
     /// </summary>
     /// <param name="workspace">The workspace.</param>
-    public WindowManager(KryptonDockingWorkspace workspace)
+    /// <param name="owner">The form that owns this instance.</param>
+    public WindowManager(KryptonDockingWorkspace workspace, Form owner)
     {
         Workspace = workspace;
+        _Owner = owner;
     }
 
     public KryptonDockingWorkspace Workspace { get; set; }
@@ -66,6 +72,8 @@ public class WindowManager
     public EditorPage RecentEditor { get; set; }
 
     protected Dictionary<string, ManagedPage> Pages { get; } = new();
+
+    protected Form _Owner;
 
     public event EventHandler<EditorPage> EditorCursorUpdated;
 
@@ -161,12 +169,17 @@ public class WindowManager
     /// <returns>A new see<see cref="EditorPage"/> instance.</returns>
     public EditorPage CreateEditorPage(string verbName, string worldName, GrammarDialect dialect, string source)
     {
-        var page = new EditorPage(this, verbName, worldName, dialect, source);
-        RegisterPage(page);
-        page.CursorPositionChanged += Page_CursorPositionChanged;
-        page.ParsingComplete += Page_ParsingComplete;
-        Workspace.DockingManager.AddToWorkspace("Workspace", new KryptonPage[] { page });
-        return page;
+        EditorPage CreatePage()
+        {
+            var page = new EditorPage(this, verbName, worldName, dialect, source);
+            RegisterPage(page);
+            page.CursorPositionChanged += Page_CursorPositionChanged;
+            page.ParsingComplete += Page_ParsingComplete;
+            Workspace.DockingManager.AddToWorkspace("Workspace", new KryptonPage[] { page });
+            return page;
+        }
+
+        return _Owner.InvokeRequired ? _Owner.Invoke(CreatePage) : CreatePage();
     }
 
     /// <summary>
@@ -191,7 +204,11 @@ public class WindowManager
     /// </returns>
     public TerminalPage CreateTerminalPage(string world, bool useTls = false)
     {
-        var page = new TerminalPage(this, world, useTls);
+        var oobHandler = new OutOfBandMessageProcessor();
+        oobHandler.RegisterHandler(new LocalEditHandler(this));
+        var processor = new RootMessageProcessor("#$#", oobHandler);
+        processor.OutOfBandMessagingTimeout = 500000;
+        var page = new TerminalPage(this, processor, world, useTls);
         RegisterPage(page);
         Workspace.DockingManager.AddToWorkspace("Workspace", new KryptonPage[] { page });
         return page;
@@ -231,14 +248,19 @@ public class WindowManager
     [CanBeNull]
     public ManagedPage ShowPage(string key)
     {
-        if (Pages.TryGetValue(key, out ManagedPage page))
+        ManagedPage DoShowPage()
         {
-            Workspace.SelectPage(key);
-            page.Focus();
-            return page;
+            if (Pages.TryGetValue(key, out ManagedPage page))
+            {
+                Workspace.SelectPage(key);
+                page.Focus();
+                return page;
+            }
+
+            return null;
         }
 
-        return null;
+        return _Owner.InvokeRequired ? _Owner.Invoke(DoShowPage) : DoShowPage();
     }
 
     /// <summary>

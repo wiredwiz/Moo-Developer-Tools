@@ -36,6 +36,11 @@ public partial class Editor : Form
             Errors.Remove(key);
         else
             Errors[key] = e.ErrorMessages;
+        UpdateParserErrors();
+    }
+
+    private void UpdateParserErrors()
+    {
         var allErrors = new List<ParseMessage>();
         foreach (var eKey in Errors.Keys)
             allErrors.AddRange(Errors[eKey]);
@@ -94,7 +99,8 @@ public partial class Editor : Form
 
     private void UpdateMenus()
     {
-        var isEditor = CurrentPage is EditorPage;
+        var editPage = CurrentPage as EditorPage;
+        var isEditor = editPage != null;
         var isTerminal = CurrentPage is TerminalPage;
         grammarToolStripMenuItem.Enabled = isEditor;
         mnuItemSaveAsFile.Enabled = isEditor;
@@ -103,13 +109,14 @@ public partial class Editor : Form
         mnuItemBookmarks.Enabled = isEditor;
         mnuItemFolding.Enabled = isEditor;
         mnuItemCloseConnection.Enabled = isTerminal;
+        mnuItemSend.Enabled = isEditor && editPage.CanUpload;
     }
 
     private void Editor_Load(object sender, EventArgs e)
     {
         // Setup docking functionality
         Workspace = kryptonDockingManager.ManageWorkspace(kryptonDockableWorkspace);
-        WindowManager = new WindowManager(Workspace);
+        WindowManager = new WindowManager(Workspace, this);
         WindowManager.EditorCursorUpdated += WindowManager_EditorCursorUpdated;
         WindowManager.EditorParsingComplete += WindowManager_EditorParsingComplete;
         kryptonDockingManager.ManageControl("FooterControls", kryptonPanel);
@@ -303,30 +310,6 @@ public partial class Editor : Form
         SetDocumentGrammar(GrammarDialect.Edgerunner);
     }
 
-    private void kryptonDockingManager_PageCloseRequest(object sender, CloseRequestEventArgs e)
-    {
-        var key = e.UniqueName;
-        if (WindowManager.GetPage(key) is EditorPage page && page.Editor.IsChanged)
-        {
-            var name = page.Editor.Document.Name;
-            DialogResult dialogResult = MessageBox.Show($"\"{name}\" has been modified but has not been saved.  Would you like to save this file?", "Modified File", MessageBoxButtons.YesNo);
-            if(dialogResult == DialogResult.Yes)
-            {
-                saveFileDialog.DefaultExt = "moo";
-                saveFileDialog.Filter = @"Moo files (*.moo)|*.moo|Text files (*.txt)|*.txt|All files (*.*)|*.*";
-                saveFileDialog.Title = "Please select a file name to save as";
-                saveFileDialog.FileName = name;
-                if (saveFileDialog.ShowDialog() == DialogResult.OK)
-                {
-                    var path = saveFileDialog.FileName;
-                    page.Editor.SaveToFile(path, Encoding.Default);
-                }
-                else
-                    e.CloseRequest = DockingCloseRequest.None;
-            }
-        }
-    }
-
     private void tlMnuItemToggleBookmark_Click(object sender, EventArgs e)
     {
        if (CurrentPage is EditorPage page)
@@ -406,12 +389,12 @@ public partial class Editor : Form
 
         if (e.NewPage is EditorPage editorPage && WindowManager.RecentEditor == null)
             WindowManager.RecentEditor = editorPage;
-        else if (e.NewPage is not EditorPage && e.OldPage is EditorPage oldEditorPage)
+        else if (e.OldPage is EditorPage oldEditorPage)
             WindowManager.RecentEditor = oldEditorPage;
 
         if (e.NewPage is TerminalPage terminalPage && WindowManager.RecentTerminal == null)
             WindowManager.RecentTerminal = terminalPage;
-        else if (e.NewPage is not TerminalPage && e.OldPage is TerminalPage oldTerminalPage)
+        else if (e.OldPage is TerminalPage oldTerminalPage)
             WindowManager.RecentTerminal = oldTerminalPage;
 
         if (CurrentPage is EditorPage editorPage2)
@@ -426,7 +409,78 @@ public partial class Editor : Form
             terminalPage2.Terminal.FocusOnInput();
     }
 
+    private void kryptonDockingManager_PageCloseRequest(object sender, CloseRequestEventArgs e)
+    {
+        var key = e.UniqueName;
+        var entry = WindowManager.GetPage(key);
+        if (entry is EditorPage page)
+        {
+            e.CloseRequest = PromptForSave(page, e.CloseRequest);
+            if (e.CloseRequest is DockingCloseRequest.RemovePage or DockingCloseRequest.RemovePageAndDispose)
+            {
+                Errors.Remove(e.UniqueName);
+                UpdateParserErrors();
+            }
+        }
+        else if (entry is TerminalPage terminalPage)
+            terminalPage.Terminal.Close();
+    }
+
     private void kryptonDockableWorkspace_PageCloseClicked(object sender, UniqueNameEventArgs e)
     {
+        var key = e.UniqueName;
+        var entry = WindowManager.GetPage(key);
+        if (entry is EditorPage page)
+        {
+            PromptForSave(page, DockingCloseRequest.RemovePageAndDispose);
+            Errors.Remove(e.UniqueName);
+            UpdateParserErrors();
+        }
+        else if (entry is TerminalPage terminalPage)
+            terminalPage.Terminal.Close();
+    }
+
+    private DockingCloseRequest PromptForSave(EditorPage page, DockingCloseRequest request)
+    {
+        if (page.Editor.IsChanged)
+        {
+            var name = page.Editor.Document.Name;
+            DialogResult dialogResult = MessageBox.Show($"\"{name}\" has been modified but has not been saved.  Would you like to save this file?", "Modified File", MessageBoxButtons.YesNo);
+            if (dialogResult == DialogResult.Yes)
+            {
+                saveFileDialog.DefaultExt = "moo";
+                saveFileDialog.Filter = @"Moo files (*.moo)|*.moo|Text files (*.txt)|*.txt|All files (*.*)|*.*";
+                saveFileDialog.Title = "Please select a file name to save as";
+                saveFileDialog.FileName = name;
+                if (saveFileDialog.ShowDialog() == DialogResult.OK)
+                {
+                    var path = saveFileDialog.FileName;
+                    page.Editor.SaveToFile(path, Encoding.Default);
+                    return request;
+                }
+
+                return DockingCloseRequest.None;
+            }
+        }
+
+        return request;
+    }
+
+    private void mnuItemSend_Click(object sender, EventArgs e)
+    {
+        if (CurrentPage is EditorPage { CanUpload: true } page)
+            page.UploadSource();
+    }
+
+    private void mnuItemPrevEditor_Click(object sender, EventArgs e)
+    {
+        if (WindowManager.RecentEditor != null)
+            WindowManager.ShowPage(WindowManager.RecentEditor);
+    }
+
+    private void mnuItemPrevTerminal_Click(object sender, EventArgs e)
+    {
+        if (WindowManager.RecentTerminal != null)
+            WindowManager.ShowPage(WindowManager.RecentTerminal);
     }
 }

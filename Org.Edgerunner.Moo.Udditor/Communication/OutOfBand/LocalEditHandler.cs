@@ -36,7 +36,9 @@
 
 using System.Text;
 using Org.Edgerunner.Moo.Communication;
+using Org.Edgerunner.Moo.Communication.Interfaces;
 using Org.Edgerunner.Moo.Communication.OutOfBand;
+using Org.Edgerunner.Moo.Editor.Configuration;
 
 namespace Org.Edgerunner.Moo.Udditor.Communication.OutOfBand;
 
@@ -48,9 +50,10 @@ namespace Org.Edgerunner.Moo.Udditor.Communication.OutOfBand;
 /// <seealso cref="IOutOfBandMessageHandler" />
 public class LocalEditHandler : IOutOfBandMessageHandler
 {
-    public LocalEditHandler()
+    public LocalEditHandler(WindowManager windowManager)
     {
         VerbSource = new StringBuilder();
+        _WindowManager = windowManager;
     }
 
     /// <summary>
@@ -77,27 +80,39 @@ public class LocalEditHandler : IOutOfBandMessageHandler
     /// </value>
     public StringBuilder VerbSource { get; set; }
 
+    private WindowManager _WindowManager;
+
     /// <summary>
     /// Processes the message.
     /// </summary>
+    /// <param name="client">The client terminal emulator.</param>
     /// <param name="message">The message.</param>
     /// <param name="state">The current message processing state.</param>
     /// <returns>
     ///   <c>true</c> if was processed, <c>false</c> otherwise.
     /// </returns>
-    public bool ProcessMessage(string message, ref MessageProcessingState state)
+    public bool ProcessMessage(IClientTerminal client, string message, ref MessageProcessingState state)
     {
         // We are already reading local edit source code
         if (state.CurrentProcessor == this && !state.Finished)
         {
-            if (message.Trim() == ".\n")
+            if (message.Trim() == ".")
             {
                 // The reset will clean up anyway, but I like to be paranoid
                 state.Finished = true;
                 state.CurrentProcessor = null;
 
                 // Open editor window
-                // TODO: create and open the edit window
+                var page = _WindowManager.CreateEditorPage(VerbName, client.World, Settings.Instance.DefaultGrammarDialect, VerbSource.ToString().Trim());
+                _WindowManager.ShowPage(page);
+                void ConfigurePage()
+                {
+                    page.Editor.IsChanged = false;
+                    page.Uploader = new LocalEditUploader(UploadCommand, client);
+                }
+                page.Invoke(ConfigurePage);
+                page.Editor.IsChanged = false;
+                state.Reset();
 
                 return true;
             }
@@ -126,8 +141,8 @@ public class LocalEditHandler : IOutOfBandMessageHandler
         if (string.IsNullOrEmpty(upload))
             return false;
 
-        VerbName = name;
-        UploadCommand = upload;
+        VerbName = name.Trim();
+        UploadCommand = upload.Trim();
 
         return true;
     }

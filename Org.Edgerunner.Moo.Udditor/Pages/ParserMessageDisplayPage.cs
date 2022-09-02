@@ -59,7 +59,8 @@ public class ParserMessageDisplayPage : ManagedPage
         ConfigureMessageDisplay(MessageDisplay);
         // ReSharper disable VirtualMemberCallInConstructor
         UniqueName = "ParserMessages";
-        TextTitle = "Messages";
+        Text = "Parser Messages";
+        TextTitle = "Parser Messages";
         TextDescription = "A list of parser messages";
         ClearFlags(KryptonPageFlags.DockingAllowClose);
         // ReSharper restore VirtualMemberCallInConstructor

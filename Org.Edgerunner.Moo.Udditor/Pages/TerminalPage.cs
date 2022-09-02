@@ -37,6 +37,9 @@
 using Krypton.Navigator;
 using Org.Edgerunner.Moo.Editor.Controls;
 using System;
+using JetBrains.Annotations;
+using Org.Edgerunner.Moo.Communication;
+using Org.Edgerunner.Moo.Communication.Interfaces;
 
 namespace Org.Edgerunner.Moo.Udditor.Pages;
 
@@ -45,12 +48,15 @@ public class TerminalPage : ManagedPage
     /// <summary>
     /// Initializes a new instance of the <see cref="TerminalPage" /> class.
     /// </summary>
+    /// <param name="messageProcessor">The message processor.</param>
     /// <param name="manager">The window manager.</param>
     /// <param name="worldName">Name of the world.</param>
-    public TerminalPage(WindowManager manager, string worldName, bool useTls = false)
+    /// <param name="useTls">if set to <c>true</c> [use TLS].</param>
+    public TerminalPage(WindowManager manager, [CanBeNull] IMessageProcessor messageProcessor, string worldName, bool useTls = false)
     : base(manager)
     {
         Terminal = new MooClientTerminal(useTls);
+        Terminal.MessageProcessor = messageProcessor;
         // ReSharper disable VirtualMemberCallInConstructor
         Text = worldName;
         TextTitle = worldName;

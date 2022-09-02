@@ -42,6 +42,7 @@ using Org.Edgerunner.Moo.Editor.Controls;
 using System;
 using FastColoredTextBoxNS;
 using FastColoredTextBoxNS.Types;
+using Org.Edgerunner.Moo.Communication.Interfaces;
 using Org.Edgerunner.Moo.Editor.Autocomplete;
 using Org.Edgerunner.Moo.Editor.Configuration;
 
@@ -65,6 +66,7 @@ public class EditorPage : ManagedPage
         var key = $"{name}-{Guid.NewGuid()}";
         InitializeEditor(dialect, key, verbName, name);
         //ToolTipTitle = $@"{verbName} - {worldName}";
+        Editor.Document = new DocumentInfo(key, key, verbName);
         Editor.Text = source;
         PostInitialize();
     }
@@ -172,6 +174,14 @@ public class EditorPage : ManagedPage
     public MooEditor Editor { get; set; }
 
     /// <summary>
+    /// Gets or sets the uploader.
+    /// </summary>
+    /// <value>
+    /// The uploader.
+    /// </value>
+    public IClientUploader Uploader { get; set; }
+
+    /// <summary>
     /// Gets the parse errors.
     /// </summary>
     /// <value>The parse errors.</value>
@@ -185,6 +195,21 @@ public class EditorPage : ManagedPage
     {
         get => Editor.GrammarDialect;
         set => Editor.GrammarDialect = value;
+    }
+
+    public bool CanUpload => Uploader != null && Uploader.ClientTerminal.IsConnected;
+
+    /// <summary>
+    /// Attempts to upload the source code to the linked client terminal.
+    /// </summary>
+    /// <returns></returns>
+    public bool UploadSource()
+    {
+        if (Uploader == null)
+            return false;
+
+        Uploader.Upload(Editor.Text);
+        return true;
     }
 
     private void Editor_SelectionChangedDelayed(object sender, EventArgs e)

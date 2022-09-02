@@ -49,7 +49,7 @@ public interface IMooClientSession
    /// <value>
    ///    The command queue.
    /// </value>
-   ConcurrentQueue<SessionMessage> CommandQueue { get; }
+   ConcurrentQueue<string> CommandQueue { get; }
 
    /// <summary>
    ///    Gets the host address.
@@ -119,7 +119,7 @@ public interface IMooClientSession
    /// <summary>
    ///    Occurs when a message is received on the connection.
    /// </summary>
-   event EventHandler<ClientMessageEventArgs>? MessageReceived;
+   event EventHandler<string>? MessageReceived;
 
    /// <summary>
    ///    Opens a connection to the specified host address.
@@ -151,23 +151,4 @@ public interface IMooClientSession
    /// <param name="text">The line of text to send.</param>
    /// <remarks>This method appends a line feed for you.</remarks>
    void SendLine(string text);
-
-   /// <summary>
-   ///    Sends the contents of the data buffer over the session connection as an out of band command.
-   /// </summary>
-   /// <param name="buffer">The data buffer.</param>
-   void SendOutOfBand(byte[] buffer);
-
-   /// <summary>
-   ///    Sends the text over the session connection as an out of band command.
-   /// </summary>
-   /// <param name="text">The text to send.</param>
-   void SendOutOfBand(string text);
-
-   /// <summary>
-   ///    Sends the line of text over the session connection as an out of band command.
-   /// </summary>
-   /// <param name="text">The line of text to send.</param>
-   /// <remarks>This method appends a line feed for you.</remarks>
-   void SendOutOfBandLine(string text);
 }
