@@ -68,11 +68,7 @@ public class EdgerunnerMooValidator : EdgerunnerMooParserBaseListener
       if (lhs != null)
          do
          {
-            if (lhs is not (EdgerunnerMooParser.PropertyExpressionContext or
-                EdgerunnerMooParser.IdentifierExpressionContext or
-                EdgerunnerMooParser.CorePropertyExpressionContext or
-                EdgerunnerMooParser.IndexedExpressionContext or
-                EdgerunnerMooParser.RangeIndexedExpressionContext))
+            if (!IsValidAssignmentTarget(lhs))
             {
                ok = false;
                var start = lhs.start;
@@ -89,5 +85,21 @@ public class EdgerunnerMooValidator : EdgerunnerMooParserBaseListener
                                      "Parser", "Invalid expression on left hand side of assignment operation",
                                      errGuide));
       base.ExitAssignmentExpression(context);
+   }
+
+   private static bool IsValidAssignmentTarget(ParserRuleContext lhs)
+   {
+      if (lhs is (EdgerunnerMooParser.PropertyExpressionContext or
+          EdgerunnerMooParser.IdentifierExpressionContext or
+          EdgerunnerMooParser.CorePropertyExpressionContext or
+          EdgerunnerMooParser.IndexedExpressionContext or
+          EdgerunnerMooParser.RangeIndexedExpressionContext))
+         return true;
+
+      if (lhs is EdgerunnerMooParser.AssignmentExpressionContext rule)
+         if (IsValidAssignmentTarget(rule.lhs) && IsValidAssignmentTarget(rule.rhs))
+            return true;
+
+      return false;
    }
 }

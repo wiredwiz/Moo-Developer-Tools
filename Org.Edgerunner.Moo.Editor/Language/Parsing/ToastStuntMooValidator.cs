@@ -68,11 +68,7 @@ public class ToastStuntMooValidator : ToastStuntMooParserBaseListener
       if (lhs != null)
          do
          {
-            if (lhs is not (ToastStuntMooParser.PropertyExpressionContext or
-                ToastStuntMooParser.IdentifierExpressionContext or
-                ToastStuntMooParser.CorePropertyExpressionContext or
-                ToastStuntMooParser.IndexedExpressionContext or
-                ToastStuntMooParser.RangeIndexedExpressionContext))
+            if (!IsValidAssignmentTarget(lhs))
             {
                ok = false;
                var start = lhs.start;
@@ -89,5 +85,21 @@ public class ToastStuntMooValidator : ToastStuntMooParserBaseListener
                                      "Parser", "Invalid expression on left hand side of assignment operation",
                                      errGuide));
       base.ExitAssignmentExpression(context);
+   }
+
+   private static bool IsValidAssignmentTarget(ParserRuleContext lhs)
+   {
+      if (lhs is (ToastStuntMooParser.PropertyExpressionContext or
+          ToastStuntMooParser.IdentifierExpressionContext or
+          ToastStuntMooParser.CorePropertyExpressionContext or
+          ToastStuntMooParser.IndexedExpressionContext or
+          ToastStuntMooParser.RangeIndexedExpressionContext))
+         return true;
+
+      if (lhs is ToastStuntMooParser.AssignmentExpressionContext rule)
+         if (IsValidAssignmentTarget(rule.lhs) && IsValidAssignmentTarget(rule.rhs))
+            return true;
+
+      return false;
    }
 }

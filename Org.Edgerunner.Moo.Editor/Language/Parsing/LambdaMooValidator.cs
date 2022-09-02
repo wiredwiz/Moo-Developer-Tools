@@ -68,11 +68,7 @@ public class LambdaMooValidator : MooParserBaseListener
       if (lhs != null)
          do
          {
-            if (lhs is not (MooParser.PropertyExpressionContext or
-                MooParser.IdentifierExpressionContext or
-                MooParser.CorePropertyExpressionContext or
-                MooParser.IndexedExpressionContext or
-                MooParser.RangeIndexedExpressionContext))
+            if (!IsValidAssignmentTarget(lhs))
             {
                ok = false;
                var start = lhs.start;
@@ -89,5 +85,21 @@ public class LambdaMooValidator : MooParserBaseListener
                                      "Parser", "Invalid expression on left hand side of assignment operation",
                                      errGuide));
       base.ExitAssignmentExpression(context);
+   }
+
+   private static bool IsValidAssignmentTarget(ParserRuleContext lhs)
+   {
+      if (lhs is (MooParser.PropertyExpressionContext or
+          MooParser.IdentifierExpressionContext or
+          MooParser.CorePropertyExpressionContext or
+          MooParser.IndexedExpressionContext or
+          MooParser.RangeIndexedExpressionContext))
+         return true;
+
+      if (lhs is MooParser.AssignmentExpressionContext rule)
+         if (IsValidAssignmentTarget(rule.lhs) && IsValidAssignmentTarget(rule.rhs))
+            return true;
+
+      return false;
    }
 }
