@@ -238,11 +238,27 @@ public class MooClientSession : IMooClientSession, IDisposable
 
    public async Task OpenAsync(string host, int port)
    {
-      await Task.Run(() =>
-                      {
-                         Client.Connect(Host, Port);
-                         _Stream = GetStream(Client);
-                      });
+      try
+      {
+         await Task.Run(() =>
+                         {
+                            Client.Connect(Host, Port);
+                            _Stream = GetStream(Client);
+                         }, TokenSource.Token);
+      }
+      catch (ObjectDisposedException)
+      {
+         Debug.WriteLine("Socket related objects were peremptorily disposed of.");
+      }
+      catch (SocketException ex)
+      {
+         if (ex.SocketErrorCode != SocketError.NotSocket)
+            throw;
+      }
+      catch (TaskCanceledException)
+      {
+         Debug.WriteLine("Socket open attempt cancelled.");
+      }
    }
 
    /// <summary>
