@@ -12,17 +12,19 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Org.Edgerunner.ANTLR4.Tools
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Configuration", "Solution Configuration", "{E39D283A-EFFD-4807-BC13-E64647099244}"
 	ProjectSection(SolutionItems) = preProject
+		LICENSE.txt = LICENSE.txt
 		Moo Developer Tools.sln.DotSettings = Moo Developer Tools.sln.DotSettings
+		README.md = README.md
 		Settings.StyleCop = Settings.StyleCop
 	EndProjectSection
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Org.Edgerunner.Mud.MCP", "Org.Edgerunner.Mud.MCP\Org.Edgerunner.Mud.MCP.csproj", "{A4A1F6E3-257E-40B3-B0F6-781574247FDB}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Org.Edgerunner.Mud.MCP", "Org.Edgerunner.Mud.MCP\Org.Edgerunner.Mud.MCP.csproj", "{A4A1F6E3-257E-40B3-B0F6-781574247FDB}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Org.Edgerunner.Messaging", "Org.Edgerunner.Messaging\Org.Edgerunner.Messaging.csproj", "{771FCA3E-7245-4DC7-9F74-67739E4963D1}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Org.Edgerunner.Messaging", "Org.Edgerunner.Messaging\Org.Edgerunner.Messaging.csproj", "{771FCA3E-7245-4DC7-9F74-67739E4963D1}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Org.Edgerunner.Moo.Communication", "Org.Edgerunner.Moo.Communication\Org.Edgerunner.Moo.Communication.csproj", "{5EED186E-8DB0-4909-BC37-1E64899A1925}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Org.Edgerunner.Moo.Communication", "Org.Edgerunner.Moo.Communication\Org.Edgerunner.Moo.Communication.csproj", "{5EED186E-8DB0-4909-BC37-1E64899A1925}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Org.Edgerunner.Common", "Org.Edgerunner.Common\Org.Edgerunner.Common.csproj", "{686803D5-A5A2-4F8C-946B-778E1BA82318}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Org.Edgerunner.Common", "Org.Edgerunner.Common\Org.Edgerunner.Common.csproj", "{686803D5-A5A2-4F8C-946B-778E1BA82318}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
