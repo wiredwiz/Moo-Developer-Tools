@@ -460,6 +460,12 @@ namespace Org.Edgerunner.Moo.Editor.Configuration
       public bool EditorAutoIndent { get; set; }
 
       /// <summary>
+      /// Gets or sets a value indicating whether to use a dark theme for the editor.
+      /// </summary>
+      /// <value><c>true</c> if dark theme enabled; otherwise, <c>false</c>.</value>
+      public bool EditorDarkTheme { get; set; }
+
+      /// <summary>
       /// Gets or sets a value indicating whether code folding is enabled for the editor.
       /// </summary>
       /// <value><c>true</c> if code folding enabled; otherwise, <c>false</c>.</value>
@@ -786,6 +792,7 @@ namespace Org.Edgerunner.Moo.Editor.Configuration
          var defCodeFolding = true;
          var defIndentationGuides = true;
          var defEditorZoomFactor = 0;
+         var defDarkTheme = false;
 
          if (appSettings == null)
          {
@@ -800,6 +807,7 @@ namespace Org.Edgerunner.Moo.Editor.Configuration
             EditorShowTextIndentGuides = defIndentationGuides;
             EditorShowCodeFolding = defCodeFolding;
             EditorZoomFactor = defEditorZoomFactor;
+            EditorDarkTheme = defDarkTheme;
             return;
          }
 
@@ -830,6 +838,10 @@ namespace Org.Edgerunner.Moo.Editor.Configuration
          // Fetch EditorAutoBrackets settings
          result = appSettings["EditorAutoBrackets"]?.Value ?? string.Empty;
          EditorAutoBrackets = !bool.TryParse(result, out settingValueBoolean) ? defAutoComplete : settingValueBoolean;
+
+         // Fetch EditorDarkTheme settings
+         result = appSettings["EditorDarkTheme"]?.Value ?? string.Empty;
+         EditorDarkTheme = !bool.TryParse(result, out settingValueBoolean) ? defDarkTheme : settingValueBoolean;
 
          // Fetch EditorWordWrapIndent setting
          result = appSettings["EditorTabLength"]?.Value ?? string.Empty;

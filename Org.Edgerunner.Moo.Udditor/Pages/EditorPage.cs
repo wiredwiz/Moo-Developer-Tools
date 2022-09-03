@@ -288,6 +288,7 @@ public class EditorPage : ManagedPage
         editor.FoldingIndicatorColor = Settings.Instance.EditorFoldingIndicatorColor;
         editor.IndentBackColor = Settings.Instance.EditorIndentBackColor;
         editor.BookmarkColor = Settings.Instance.EditorBookmarkColor;
+        editor.ServiceLinesColor = Settings.Instance.EditorServiceLineColor;
         editor.ShowCodeFolding = Settings.Instance.EditorShowCodeFolding;
         editor.ShowTextBlockIndentationGuides = Settings.Instance.EditorShowTextIndentGuides;
         editor.Zoom = Settings.Instance.EditorZoomFactor;

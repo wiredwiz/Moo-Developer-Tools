@@ -8,6 +8,7 @@ using System.Xml.Linq;
 using Krypton.Navigator;
 using FastColoredTextBoxNS;
 using FastColoredTextBoxNS.Types;
+using Krypton.Toolkit;
 using Krypton.Workspace;
 using Org.Edgerunner.ANTLR4.Tools.Common;
 using Org.Edgerunner.ANTLR4.Tools.Common.Grammar.Errors;
@@ -145,6 +146,8 @@ public partial class Editor : Form
 
     private void Editor_Load(object sender, EventArgs e)
     {
+        if (Settings.Instance.EditorDarkTheme)
+            kryptonManager.GlobalPalette = kryptonPalette1;
         // Setup docking functionality
         Workspace = kryptonDockingManager.ManageWorkspace(kryptonDockableWorkspace);
         WindowManager = new WindowManager(Workspace, this);

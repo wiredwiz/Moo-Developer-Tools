@@ -36,6 +36,9 @@ namespace Org.Edgerunner.Moo.Editor.Controls
       private bool _UserInteraction;
 
       private bool _LastCommandAppearedToBeALogin;
+
+      private int _LastAttemptedLoginScreenLines;
+
       private string _OutOfBandPrefix = "#$#";
 
       protected McpClientSessionManager McpSessionManager { get; set; }
@@ -169,6 +172,7 @@ namespace Org.Edgerunner.Moo.Editor.Controls
                consoleSim.AnsiManager.EchoEnabled = existing;
                _UserInteraction = true;
                _LastCommandAppearedToBeALogin = true;
+               _LastAttemptedLoginScreenLines = consoleSim.Lines.Count;
                txtInput.Text = string.Empty;
                txtInput.UseSystemPasswordChar = true;
             }
@@ -590,10 +594,6 @@ namespace Org.Edgerunner.Moo.Editor.Controls
          if (reading == 1)
             return;
 
-         // We define a local function to fetch the console line count to be used via thread invocation
-         int GetLineCount() => consoleSim.Lines.Count;
-
-         var existingLineCount = Invoke((Func<int>)GetLineCount);
          while (!_Session.CommandQueue.IsEmpty)
          {
             if (_Session.CommandQueue.TryDequeue(out var message))
@@ -634,12 +634,15 @@ namespace Org.Edgerunner.Moo.Editor.Controls
             }
          }
 
+         // We define a local function to fetch the console line count to be used via thread invocation
+         int GetLineCount() => consoleSim.Lines.Count;
+
          // This logic is a bit ugly, but it kind of works.
          // We are assuming that if we see more than 2 new lines printed to screen
          // after the user types a command, the appears to be a login command
          // We can mark the connection as being logged in.
          if (!_LoggedInConnection && _UserInteraction && _LastCommandAppearedToBeALogin)
-            if (consoleSim.Invoke(GetLineCount) - existingLineCount > 2)
+            if (consoleSim.Invoke(GetLineCount) - _LastAttemptedLoginScreenLines > 2)
                _LoggedInConnection = true;
 
          _ReadingCommands = 0;

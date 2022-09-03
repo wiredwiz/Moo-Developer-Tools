@@ -91,6 +91,7 @@ namespace Org.Edgerunner.Moo.Udditor
          this.saveFileDialog = new System.Windows.Forms.SaveFileDialog();
          this.kryptonDockingManager = new Krypton.Docking.KryptonDockingManager();
          this.kryptonManager = new Krypton.Toolkit.KryptonManager(this.components);
+         this.kryptonPalette1 = new Krypton.Toolkit.KryptonPalette(this.components);
          this.kryptonPanel = new Krypton.Toolkit.KryptonPanel();
          this.kryptonDockableWorkspace = new Krypton.Docking.KryptonDockableWorkspace();
          this.menuStrip1.SuspendLayout();
@@ -566,6 +567,14 @@ namespace Org.Edgerunner.Moo.Udditor
          this.kryptonDockingManager.DefaultCloseRequest = Krypton.Docking.DockingCloseRequest.RemovePageAndDispose;
          this.kryptonDockingManager.PageCloseRequest += new System.EventHandler<Krypton.Docking.CloseRequestEventArgs>(this.kryptonDockingManager_PageCloseRequest);
          // 
+         // kryptonPalette1
+         // 
+         this.kryptonPalette1.BasePaletteMode = Krypton.Toolkit.PaletteMode.Office365BlackDarkMode;
+         this.kryptonPalette1.TabStyles.TabCommon.StateCommon.Back.Color1 = System.Drawing.Color.DimGray;
+         this.kryptonPalette1.TabStyles.TabCommon.StateCommon.Back.Color2 = System.Drawing.Color.Gray;
+         this.kryptonPalette1.TabStyles.TabCommon.StateSelected.Back.Color1 = System.Drawing.Color.DarkGray;
+         this.kryptonPalette1.TabStyles.TabCommon.StateSelected.Back.Color2 = System.Drawing.Color.Silver;
+         // 
          // kryptonPanel
          // 
          this.kryptonPanel.Controls.Add(this.kryptonDockableWorkspace);
@@ -684,5 +693,6 @@ namespace Org.Edgerunner.Moo.Udditor
         private ToolStripMenuItem mnuItemZoomIn;
         private ToolStripMenuItem mnuItemZoomOut;
         private ToolStripSeparator toolStripSeparator6;
+        private Krypton.Toolkit.KryptonPalette kryptonPalette1;
     }
 }
