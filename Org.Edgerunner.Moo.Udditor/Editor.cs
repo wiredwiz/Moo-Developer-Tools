@@ -565,8 +565,10 @@ public partial class Editor : Form
     private void mnuItemZoomOut_Click(object sender, EventArgs e)
     {
         if (CurrentPage is EditorPage editorPage)
-            editorPage.Editor.Zoom -= 20;
+            if (editorPage.Editor.Zoom > 30)
+                editorPage.Editor.Zoom -= 20;
         if (CurrentPage is TerminalPage terminalPage)
-            terminalPage.Terminal.Output.Zoom -= 20;
+            if (terminalPage.Terminal.Output.Zoom > 30)
+                terminalPage.Terminal.Output.Zoom -= 20;
     }
 }
