@@ -15,3 +15,6 @@ language.  Lastly is the EdgerunnerMoo syntax, which is my personal fork of the 
 compound assignment operators as well as prefix/postfix increment and decrement operators.
 
 More documentation to come later..
+
+Attribution:
+Program logo derived from an open use image, created by author Onsemeliot on OpenClipart.
