@@ -63,7 +63,7 @@ public partial class Editor : Form
 
     private void SetDocumentGrammar(GrammarDialect grammarDialect)
     {
-        if (CurrentPage is EditorPage page)
+        if (CurrentPage is MooCodeEditorPage page)
             page.GrammarDialect = grammarDialect;
     }
 
@@ -96,7 +96,7 @@ public partial class Editor : Form
 
     private void UpdateMenus()
     {
-        var editPage = CurrentPage as EditorPage;
+        var editPage = CurrentPage as MooCodeEditorPage;
         var terminalPage = CurrentPage as TerminalPage;
         var isEditor = editPage != null;
         var isTerminal = terminalPage != null;
@@ -119,13 +119,13 @@ public partial class Editor : Form
 
     private void UpdateEditMenu()
     {
-        if (CurrentPage is EditorPage page)
+        if (CurrentPage is MooCodeEditorPage page)
             mnuItemEnableCodeFolding.CheckState = page.ShowTextBlockIndentationGuides ? CheckState.Checked : CheckState.Unchecked;
     }
 
     private void UpdateViewMenu()
     {
-        var editPage = CurrentPage as EditorPage;
+        var editPage = CurrentPage as MooCodeEditorPage;
         var terminalPage = CurrentPage as TerminalPage;
         var isEditor = editPage != null;
         var isTerminal = terminalPage != null;
@@ -162,7 +162,7 @@ public partial class Editor : Form
         UpdateMenus();
     }
 
-    private void WindowManager_EditorParsingComplete(object sender, EditorPage e)
+    private void WindowManager_EditorParsingComplete(object sender, MooCodeEditorPage e)
     {
         if (CurrentPage == e)
         {
@@ -179,7 +179,7 @@ public partial class Editor : Form
         }
     }
 
-    private void WindowManager_EditorCursorUpdated(object sender, EditorPage e)
+    private void WindowManager_EditorCursorUpdated(object sender, MooCodeEditorPage e)
     {
         if (CurrentPage == e)
         {
@@ -190,7 +190,7 @@ public partial class Editor : Form
 
     private void MessageDisplay_DoubleClick(object sender, ParserMessageDoubleClickEventArgs e)
     {
-        if (WindowManager.ShowPage(e.PageId) is EditorPage page)
+        if (WindowManager.ShowPage(e.PageId) is MooCodeEditorPage page)
         {
             page.Editor.Selection =
                 new TextSelectionRange(page.Editor, e.ColumnPosition, e.LineNumber, e.ColumnPosition, e.LineNumber);
@@ -225,7 +225,7 @@ public partial class Editor : Form
     }
     private void mnuItemSave_Click(object sender, EventArgs e)
     {
-        if (CurrentPage is EditorPage page)
+        if (CurrentPage is MooCodeEditorPage page)
         {
             if (!string.IsNullOrEmpty(page.Document.Path))
                 page.Editor.SaveToFile(page.Document.Path, Encoding.Default);
@@ -250,7 +250,7 @@ public partial class Editor : Form
 
     private void mnuItemSaveAsFile_Click(object sender, EventArgs e)
     {
-        if (CurrentPage is EditorPage page)
+        if (CurrentPage is MooCodeEditorPage page)
         {
             saveFileDialog.DefaultExt = "moo";
             saveFileDialog.Filter = @"Moo files (*.moo)|*.moo|Text files (*.txt)|*.txt|All files (*.*)|*.*";
@@ -275,7 +275,7 @@ public partial class Editor : Form
 
     private void mnuItemFormat_Click(object sender, EventArgs e)
     {
-        if (CurrentPage is EditorPage page)
+        if (CurrentPage is MooCodeEditorPage page)
         {
             page.Editor.SuspendLayout();
             var current = page.Editor.Selection.Clone();
@@ -289,27 +289,27 @@ public partial class Editor : Form
     private void mnuItemCut_Click(object sender, EventArgs e)
     {
         // TODO: add support for different window types
-        if (CurrentPage is EditorPage page)
+        if (CurrentPage is MooCodeEditorPage page)
             page.Editor.Cut();
     }
 
     private void mnuItemCopy_Click(object sender, EventArgs e)
     {
         // TODO: add support for different window types
-        if (CurrentPage is EditorPage page)
+        if (CurrentPage is MooCodeEditorPage page)
             page.Editor.Copy();
     }
 
     private void mnuItemCutPaste_Click(object sender, EventArgs e)
     {
         // TODO: add support for different window types
-        if (CurrentPage is EditorPage page)
+        if (CurrentPage is MooCodeEditorPage page)
             page.Editor.Paste();
     }
 
     private void mnuItemFind_Click(object sender, EventArgs e)
     {
-        if (CurrentPage is EditorPage editorPage)
+        if (CurrentPage is MooCodeEditorPage editorPage)
             editorPage.Editor.ShowFindDialog();
         else if (CurrentPage is TerminalPage terminalPage)
             terminalPage.Terminal.Output.ShowFindDialog();
@@ -346,37 +346,37 @@ public partial class Editor : Form
 
     private void tlMnuItemToggleBookmark_Click(object sender, EventArgs e)
     {
-       if (CurrentPage is EditorPage page)
+       if (CurrentPage is MooCodeEditorPage page)
            page.Editor.BookmarkLine(page.Editor.Selection.Start.iLine);
     }
 
     private void tlMnuItemNextBookmark_Click(object sender, EventArgs e)
     {
-        if (CurrentPage is EditorPage page)
+        if (CurrentPage is MooCodeEditorPage page)
             page.Editor.GotoNextBookmark(page.Editor.Selection.Start.iLine);
     }
 
     private void tlMnuItemPrevBookmark_Click(object sender, EventArgs e)
     {
-        if (CurrentPage is EditorPage page)
+        if (CurrentPage is MooCodeEditorPage page)
             page.Editor.GotoPrevBookmark(page.Editor.Selection.Start.iLine);
     }
 
     private void tlMnuItemToggleFolding_Click(object sender, EventArgs e)
     {
-        if (CurrentPage is EditorPage page)
+        if (CurrentPage is MooCodeEditorPage page)
             page.Editor.ToggleFoldingBlock(page.Editor.Selection.Start.iLine);
     }
 
     private void tlMnuItemExpandAll_Click(object sender, EventArgs e)
     {
-        if (CurrentPage is EditorPage page)
+        if (CurrentPage is MooCodeEditorPage page)
             page.Editor.ExpandAllFoldingBlocks();
     }
 
     private void tlMnuItemCollapseAll_Click(object sender, EventArgs e)
     {
-        if (CurrentPage is EditorPage page)
+        if (CurrentPage is MooCodeEditorPage page)
             page.Editor.CollapseAllFoldingBlocks();
     }
 
@@ -423,9 +423,9 @@ public partial class Editor : Form
     {
         CurrentPage = e.NewPage as ManagedPage;
 
-        if (e.NewPage is EditorPage editorPage && WindowManager.RecentEditor == null)
+        if (e.NewPage is MooCodeEditorPage editorPage && WindowManager.RecentEditor == null)
             WindowManager.RecentEditor = editorPage;
-        else if (e.OldPage is EditorPage oldEditorPage)
+        else if (e.OldPage is MooCodeEditorPage oldEditorPage)
             WindowManager.RecentEditor = oldEditorPage;
 
         if (e.NewPage is TerminalPage terminalPage && WindowManager.RecentTerminal == null)
@@ -433,7 +433,7 @@ public partial class Editor : Form
         else if (e.OldPage is TerminalPage oldTerminalPage)
             WindowManager.RecentTerminal = oldTerminalPage;
 
-        if (CurrentPage is EditorPage editorPage2)
+        if (CurrentPage is MooCodeEditorPage editorPage2)
         {
             tlStatusLine.Text = ((editorPage2.Editor?.Selection.Start.iLine + 1) ?? 1).ToString();
             tlStatusColumn.Text = ((editorPage2.Editor?.Selection.Start.iChar + 1) ?? 1).ToString();
@@ -451,7 +451,7 @@ public partial class Editor : Form
     {
         var key = e.UniqueName;
         var entry = WindowManager.GetPage(key);
-        if (entry is EditorPage page)
+        if (entry is MooCodeEditorPage page)
         {
             e.CloseRequest = PromptForSave(page, e.CloseRequest);
             if (e.CloseRequest is DockingCloseRequest.RemovePage or DockingCloseRequest.RemovePageAndDispose)
@@ -468,7 +468,7 @@ public partial class Editor : Form
     {
         var key = e.UniqueName;
         var entry = WindowManager.GetPage(key);
-        if (entry is EditorPage page)
+        if (entry is MooCodeEditorPage page)
         {
             PromptForSave(page, DockingCloseRequest.RemovePageAndDispose);
             Errors.Remove(e.UniqueName);
@@ -478,7 +478,7 @@ public partial class Editor : Form
             terminalPage.Terminal.Close();
     }
 
-    private DockingCloseRequest PromptForSave(EditorPage page, DockingCloseRequest request)
+    private DockingCloseRequest PromptForSave(MooCodeEditorPage page, DockingCloseRequest request)
     {
         if (page.Editor.IsChanged)
         {
@@ -506,7 +506,7 @@ public partial class Editor : Form
 
     private void mnuItemSend_Click(object sender, EventArgs e)
     {
-        if (CurrentPage is EditorPage { CanUpload: true } page)
+        if (CurrentPage is MooCodeEditorPage { CanUpload: true } page)
             page.UploadSource();
     }
 
@@ -530,7 +530,7 @@ public partial class Editor : Form
 
     private void mnuItemWordWrap_CheckStateChanged(object sender, EventArgs e)
     {
-        if (CurrentPage is EditorPage editorPage)
+        if (CurrentPage is MooCodeEditorPage editorPage)
             editorPage.WordWrap = mnuItemWordWrap.CheckState == CheckState.Checked;
         else if (CurrentPage is TerminalPage terminalPage)
             terminalPage.WordWrap = mnuItemWordWrap.CheckState == CheckState.Checked;
@@ -538,25 +538,25 @@ public partial class Editor : Form
 
     private void mnuItemShowLineNumbers_CheckStateChanged(object sender, EventArgs e)
     {
-        if (CurrentPage is EditorPage editorPage)
+        if (CurrentPage is MooCodeEditorPage editorPage)
             editorPage.ShowLineNumbers = mnuItemShowLineNumbers.CheckState == CheckState.Checked;
     }
 
     private void mnuItemIndentationGuides_CheckStateChanged(object sender, EventArgs e)
     {
-        if (CurrentPage is EditorPage editorPage)
+        if (CurrentPage is MooCodeEditorPage editorPage)
             editorPage.ShowTextBlockIndentationGuides = mnuItemIndentationGuides.CheckState == CheckState.Checked;
     }
 
     private void mnuItemEnableCodeFolding_CheckStateChanged(object sender, EventArgs e)
     {
-        if (CurrentPage is EditorPage editorPage)
+        if (CurrentPage is MooCodeEditorPage editorPage)
             editorPage.DisplayCodeFolding = mnuItemEnableCodeFolding.CheckState == CheckState.Checked;
     }
 
     private void mnuItemZoomIn_Click(object sender, EventArgs e)
     {
-        if (CurrentPage is EditorPage editorPage)
+        if (CurrentPage is MooCodeEditorPage editorPage)
             editorPage.Editor.Zoom += 20;
         if (CurrentPage is TerminalPage terminalPage)
             terminalPage.Terminal.Output.Zoom += 20;
@@ -564,7 +564,7 @@ public partial class Editor : Form
 
     private void mnuItemZoomOut_Click(object sender, EventArgs e)
     {
-        if (CurrentPage is EditorPage editorPage)
+        if (CurrentPage is MooCodeEditorPage editorPage)
             if (editorPage.Editor.Zoom > 30)
                 editorPage.Editor.Zoom -= 20;
         if (CurrentPage is TerminalPage terminalPage)

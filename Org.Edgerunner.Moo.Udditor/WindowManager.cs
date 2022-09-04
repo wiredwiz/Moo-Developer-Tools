@@ -70,7 +70,7 @@ public class WindowManager
 
     public TerminalPage RecentTerminal { get; set; }
 
-    public EditorPage RecentEditor { get; set; }
+    public MooCodeEditorPage RecentEditor { get; set; }
 
     protected Dictionary<string, ManagedPage> Pages { get; } = new();
 
@@ -80,9 +80,9 @@ public class WindowManager
 
     public KryptonWorkspaceCell LastEditorCell { get; set; }
 
-    public event EventHandler<EditorPage> EditorCursorUpdated;
+    public event EventHandler<MooCodeEditorPage> EditorCursorUpdated;
 
-    public event EventHandler<EditorPage> EditorParsingComplete;
+    public event EventHandler<MooCodeEditorPage> EditorParsingComplete;
 
     /// <summary>
     /// Registers the page.
@@ -137,12 +137,12 @@ public class WindowManager
     /// Creates a new editor page and registers it.
     /// </summary>
     /// <param name="dialect">The dialect.</param>
-    /// <returns>A new see<see cref="EditorPage"/> instance.</returns>
-    public EditorPage CreateEditorPage(GrammarDialect dialect)
+    /// <returns>A new see<see cref="MooCodeEditorPage"/> instance.</returns>
+    public MooCodeEditorPage CreateEditorPage(GrammarDialect dialect)
     {
-        EditorPage CreatePage()
+        MooCodeEditorPage CreatePage()
         {
-            var page = new EditorPage(this, dialect);
+            var page = new MooCodeEditorPage(this, dialect);
             RegisterPage(page);
             page.CursorPositionChanged += Page_CursorPositionChanged;
             page.ParsingComplete += Page_ParsingComplete;
@@ -162,12 +162,12 @@ public class WindowManager
     /// </summary>
     /// <param name="dialect">The dialect.</param>
     /// <param name="filePath">The file path.</param>
-    /// <returns>A new see<see cref="EditorPage"/> instance.</returns>
-    public EditorPage CreateEditorPage(GrammarDialect dialect, string filePath)
+    /// <returns>A new see<see cref="MooCodeEditorPage"/> instance.</returns>
+    public MooCodeEditorPage CreateEditorPage(GrammarDialect dialect, string filePath)
     {
-        EditorPage CreatePage()
+        MooCodeEditorPage CreatePage()
         {
-            var page = new EditorPage(this, dialect, filePath);
+            var page = new MooCodeEditorPage(this, dialect, filePath);
             RegisterPage(page);
             page.CursorPositionChanged += Page_CursorPositionChanged;
             page.ParsingComplete += Page_ParsingComplete;
@@ -189,12 +189,12 @@ public class WindowManager
     /// <param name="worldName">Name of the world.</param>
     /// <param name="dialect">The dialect.</param>
     /// <param name="source">The source.</param>
-    /// <returns>A new see<see cref="EditorPage"/> instance.</returns>
-    public EditorPage CreateEditorPage(string verbName, string worldName, GrammarDialect dialect, string source)
+    /// <returns>A new see<see cref="MooCodeEditorPage"/> instance.</returns>
+    public MooCodeEditorPage CreateEditorPage(string verbName, string worldName, GrammarDialect dialect, string source)
     {
-        EditorPage CreatePage()
+        MooCodeEditorPage CreatePage()
         {
-            var page = new EditorPage(this, verbName, worldName, dialect, source);
+            var page = new MooCodeEditorPage(this, verbName, worldName, dialect, source);
             RegisterPage(page);
             page.CursorPositionChanged += Page_CursorPositionChanged;
             page.ParsingComplete += Page_ParsingComplete;
@@ -211,7 +211,7 @@ public class WindowManager
 
     private void EditorPage_DockChanged(object sender, EventArgs e)
     {
-        if ((sender as EditorPage)?.KryptonParentContainer is KryptonWorkspaceCell cell)
+        if ((sender as MooCodeEditorPage)?.KryptonParentContainer is KryptonWorkspaceCell cell)
             LastEditorCell = cell;
     }
 
@@ -254,14 +254,14 @@ public class WindowManager
 
     private void Page_CursorPositionChanged(object sender, EventArgs e)
     {
-        OnEditorCursorUpdated(sender as EditorPage);
+        OnEditorCursorUpdated(sender as MooCodeEditorPage);
     }
 
     private void Page_ParsingComplete(object sender, ParsingCompleteEventArgs e)
     {
         MooEditor editor = sender as MooEditor;
         var page = editor.Parent;
-        OnEditorParsingCompleted(page as EditorPage);
+        OnEditorParsingCompleted(page as MooCodeEditorPage);
     }
 
     /// <summary>
@@ -335,12 +335,12 @@ public class WindowManager
             DoClosePage();
     }
 
-    protected virtual void OnEditorCursorUpdated(EditorPage e)
+    protected virtual void OnEditorCursorUpdated(MooCodeEditorPage e)
     {
         EditorCursorUpdated?.Invoke(this, e);
     }
 
-    protected virtual void OnEditorParsingCompleted(EditorPage e)
+    protected virtual void OnEditorParsingCompleted(MooCodeEditorPage e)
     {
         EditorParsingComplete?.Invoke(this, e);
     }

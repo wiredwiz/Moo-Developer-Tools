@@ -1,5 +1,5 @@
 ﻿#region BSD 3-Clause License
-// <copyright company="Edgerunner.org" file="EditorPage.cs">
+// <copyright company="Edgerunner.org" file="MooCodeEditorPage.cs">
 // Copyright (c) Thaddeus Ryker 2022
 // </copyright>
 //
@@ -49,10 +49,10 @@ using Org.Edgerunner.Moo.Editor.Configuration;
 
 namespace Org.Edgerunner.Moo.Udditor.Pages;
 
-public class EditorPage : ManagedPage
+public class MooCodeEditorPage : ManagedPage
 {
     /// <summary>
-    /// Initializes a new instance of the <see cref="EditorPage"/> class.
+    /// Initializes a new instance of the <see cref="MooCodeEditorPage"/> class.
     /// </summary>
     /// <param name="manager">The window manager.</param>
     /// <param name="verbName">Name of the verb.</param>
@@ -60,7 +60,7 @@ public class EditorPage : ManagedPage
     /// <param name="dialect">The dialect.</param>
     /// <param name="source">The source.</param>
     // ReSharper disable once TooManyDependencies
-    public EditorPage(WindowManager manager, string verbName, string worldName, GrammarDialect dialect, string source)
+    public MooCodeEditorPage(WindowManager manager, string verbName, string worldName, GrammarDialect dialect, string source)
     : base(manager)
     {
         var name = $@"{verbName} - {worldName}";
@@ -72,12 +72,12 @@ public class EditorPage : ManagedPage
     }
 
     /// <summary>
-    /// Initializes a new instance of the <see cref="EditorPage"/> class.
+    /// Initializes a new instance of the <see cref="MooCodeEditorPage"/> class.
     /// </summary>
     /// <param name="manager">The window manager.</param>
     /// <param name="dialect">The dialect.</param>
     /// <param name="filePath">The file path.</param>
-    public EditorPage(WindowManager manager, GrammarDialect dialect, string filePath)
+    public MooCodeEditorPage(WindowManager manager, GrammarDialect dialect, string filePath)
     : base(manager)
     {
         var name = Path.GetFileName(filePath);
@@ -90,11 +90,11 @@ public class EditorPage : ManagedPage
     }
 
     /// <summary>
-    /// Initializes a new instance of the <see cref="EditorPage"/> class.
+    /// Initializes a new instance of the <see cref="MooCodeEditorPage"/> class.
     /// </summary>
     /// <param name="manager">The window manager.</param>
     /// <param name="dialect">The dialect.</param>
-    public EditorPage(WindowManager manager, GrammarDialect dialect)
+    public MooCodeEditorPage(WindowManager manager, GrammarDialect dialect)
         : base(manager)
     {
         var name = "<New>";

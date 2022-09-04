@@ -10,6 +10,7 @@
 
   <ItemGroup>
     <PackageReference Include="Antlr4.Runtime" Version="4.6.6" />
+    <PackageReference Include="Markdig.Signed" Version="0.30.3" />
     <PackageReference Include="System.Threading" Version="4.3.0" />
   </ItemGroup>
 
