@@ -138,7 +138,7 @@ public class WindowManager
     /// </summary>
     /// <param name="dialect">The dialect.</param>
     /// <returns>A new see<see cref="MooCodeEditorPage"/> instance.</returns>
-    public MooCodeEditorPage CreateEditorPage(GrammarDialect dialect)
+    public MooCodeEditorPage CreateMooCodeEditorPage(GrammarDialect dialect)
     {
         MooCodeEditorPage CreatePage()
         {
@@ -163,7 +163,7 @@ public class WindowManager
     /// <param name="dialect">The dialect.</param>
     /// <param name="filePath">The file path.</param>
     /// <returns>A new see<see cref="MooCodeEditorPage"/> instance.</returns>
-    public MooCodeEditorPage CreateEditorPage(GrammarDialect dialect, string filePath)
+    public MooCodeEditorPage CreateMooCodeEditorPage(GrammarDialect dialect, string filePath)
     {
         MooCodeEditorPage CreatePage()
         {
@@ -190,7 +190,7 @@ public class WindowManager
     /// <param name="dialect">The dialect.</param>
     /// <param name="source">The source.</param>
     /// <returns>A new see<see cref="MooCodeEditorPage"/> instance.</returns>
-    public MooCodeEditorPage CreateEditorPage(string verbName, string worldName, GrammarDialect dialect, string source)
+    public MooCodeEditorPage CreateMooCodeEditorPage(string verbName, string worldName, GrammarDialect dialect, string source)
     {
         MooCodeEditorPage CreatePage()
         {
@@ -209,10 +209,37 @@ public class WindowManager
         return _Owner.InvokeRequired ? _Owner.Invoke(CreatePage) : CreatePage();
     }
 
+    /// <summary>
+    /// Creates a new editor page and registers it.
+    /// </summary>
+    /// <param name="documentName">Name of the verb.</param>
+    /// <param name="worldName">Name of the world.</param>
+    /// <param name="source">The source.</param>
+    /// <returns>A new see<see cref="MarkdownEditorPage"/> instance.</returns>
+    public MarkdownEditorPage CreateMarkdownEditorPage(string documentName, string worldName, string source)
+    {
+        MarkdownEditorPage CreatePage()
+        {
+            var page = new MarkdownEditorPage(this, documentName, worldName, source);
+            RegisterPage(page);
+            page.CursorPositionChanged += Page_CursorPositionChanged;
+            page.DockChanged += EditorPage_DockChanged;
+            if (LastEditorCell != null)
+                LastEditorCell.Pages.Add(page);
+            else
+                Workspace.DockingManager.AddToWorkspace(_EditorWorkspaceName, new KryptonPage[] { page });
+            return page;
+        }
+
+        return _Owner.InvokeRequired ? _Owner.Invoke(CreatePage) : CreatePage();
+    }
+
     private void EditorPage_DockChanged(object sender, EventArgs e)
     {
         if ((sender as MooCodeEditorPage)?.KryptonParentContainer is KryptonWorkspaceCell cell)
             LastEditorCell = cell;
+        else if ((sender as MarkdownEditorPage)?.KryptonParentContainer is KryptonWorkspaceCell cell2)
+            LastEditorCell = cell2;
     }
 
     /// <summary>

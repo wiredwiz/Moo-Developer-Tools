@@ -49,7 +49,7 @@ using Org.Edgerunner.Moo.Editor.Configuration;
 
 namespace Org.Edgerunner.Moo.Udditor.Pages;
 
-public class MooCodeEditorPage : ManagedPage
+public class MooCodeEditorPage : EditorPage
 {
     /// <summary>
     /// Initializes a new instance of the <see cref="MooCodeEditorPage"/> class.
@@ -147,23 +147,28 @@ public class MooCodeEditorPage : ManagedPage
     /// </summary>
     public event EventHandler CursorPositionChanged;
 
+    public override FastColoredTextBox SourceEditor
+    {
+        get => Editor;
+    }
+
     /// <summary>
     /// Gets the current line number.
     /// </summary>
     /// <value>The current line number.</value>
-    public int CurrentLineNumber => Editor.Selection.Start.iLine;
+    public override int CurrentLineNumber => Editor.Selection.Start.iLine;
 
     /// <summary>
     /// Gets the current column position.
     /// </summary>
     /// <value>The current column position.</value>
-    public int CurrentColumnPosition => Editor.Selection.Start.iChar;
+    public override int CurrentColumnPosition => Editor.Selection.Start.iChar;
 
     /// <summary>
     /// Gets or sets the document.
     /// </summary>
     /// <value>The document.</value>
-    public DocumentInfo Document
+    public override DocumentInfo Document
     {
         get => Editor.Document;
         set => Editor.Document = value;
@@ -174,14 +179,6 @@ public class MooCodeEditorPage : ManagedPage
     /// </summary>
     /// <value>The editor.</value>
     public MooCodeEditor Editor { get; set; }
-
-    /// <summary>
-    /// Gets or sets the uploader.
-    /// </summary>
-    /// <value>
-    /// The uploader.
-    /// </value>
-    public IClientUploader Uploader { get; set; }
 
     /// <summary>
     /// Gets the parse errors.
@@ -247,8 +244,6 @@ public class MooCodeEditorPage : ManagedPage
         get => Editor.ShowTextBlockIndentationGuides;
         set => Editor.ShowTextBlockIndentationGuides = value;
     }
-
-    public bool CanUpload => Uploader != null && Uploader.ClientTerminal.IsConnected;
 
     /// <summary>
     /// Attempts to upload the source code to the linked client terminal.

@@ -206,7 +206,7 @@ public partial class Editor : Form
 
     private void tlMnuNew_Click(object sender, EventArgs e)
     {
-        var page = WindowManager.CreateEditorPage(DefaultGrammarDialect);
+        var page = WindowManager.CreateMooCodeEditorPage(DefaultGrammarDialect);
         WindowManager.ShowPage(page);
     }
 
@@ -214,12 +214,12 @@ public partial class Editor : Form
     {
         openFileDialog.Multiselect = false;
         openFileDialog.DefaultExt = "moo";
-        openFileDialog.Filter = @"Moo files (*.moo)|*.moo|Text files (*.txt)|*.txt|All files (*.*)|*.*";
+        openFileDialog.Filter = @"Moo files (*.moo)|*.moo|Text files (*.txt)|*.txt|Markdown files (*.md)|*.md|All files (*.*)|*.*";
         openFileDialog.Title = "Please select a moo source file to open";
         if (openFileDialog.ShowDialog() == DialogResult.OK)
         {
             var path = openFileDialog.FileName;
-            var page = WindowManager.CreateEditorPage(DefaultGrammarDialect, path);
+            var page = WindowManager.CreateMooCodeEditorPage(DefaultGrammarDialect, path);
             WindowManager.ShowPage(page);
         }
     }
@@ -232,7 +232,7 @@ public partial class Editor : Form
             else
             {
                 saveFileDialog.DefaultExt = "moo";
-                saveFileDialog.Filter = @"Moo files (*.moo)|*.moo|Text files (*.txt)|*.txt|All files (*.*)|*.*";
+                saveFileDialog.Filter = @"Moo files (*.moo)|*.moo|Text files (*.txt)|*.txt|Markdown files (*.md)|*.md|All files (*.*)|*.*";
                 saveFileDialog.Title = "Please select a file name to save as";
                 if (saveFileDialog.ShowDialog() == DialogResult.OK)
                 {
@@ -253,7 +253,7 @@ public partial class Editor : Form
         if (CurrentPage is MooCodeEditorPage page)
         {
             saveFileDialog.DefaultExt = "moo";
-            saveFileDialog.Filter = @"Moo files (*.moo)|*.moo|Text files (*.txt)|*.txt|All files (*.*)|*.*";
+            saveFileDialog.Filter = @"Moo files (*.moo)|*.moo|Text files (*.txt)|*.txt|Markdown files (*.md)|*.md|All files (*.*)|*.*";
             saveFileDialog.Title = "Please select a file name to save as";
             if (saveFileDialog.ShowDialog() == DialogResult.OK)
             {

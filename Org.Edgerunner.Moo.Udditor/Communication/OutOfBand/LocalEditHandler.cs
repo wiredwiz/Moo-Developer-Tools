@@ -39,6 +39,7 @@ using Org.Edgerunner.Moo.Communication;
 using Org.Edgerunner.Moo.Communication.Interfaces;
 using Org.Edgerunner.Moo.Communication.OutOfBand;
 using Org.Edgerunner.Moo.Editor.Configuration;
+using Org.Edgerunner.Moo.Udditor.Pages;
 
 namespace Org.Edgerunner.Moo.Udditor.Communication.OutOfBand;
 
@@ -52,7 +53,7 @@ public class LocalEditHandler : IOutOfBandMessageHandler
 {
     public LocalEditHandler(WindowManager windowManager)
     {
-        VerbSource = new StringBuilder();
+        DocumentSource = new StringBuilder();
         _WindowManager = windowManager;
     }
 
@@ -62,7 +63,7 @@ public class LocalEditHandler : IOutOfBandMessageHandler
     /// <value>
     /// The name of the verb.
     /// </value>
-    public string VerbName { get; protected set; }
+    public string DocumentName { get; protected set; }
 
     /// <summary>
     /// Gets or sets the upload command.
@@ -78,7 +79,7 @@ public class LocalEditHandler : IOutOfBandMessageHandler
     /// <value>
     /// The verb source.
     /// </value>
-    public StringBuilder VerbSource { get; set; }
+    public StringBuilder DocumentSource { get; set; }
 
     private WindowManager _WindowManager;
 
@@ -103,21 +104,27 @@ public class LocalEditHandler : IOutOfBandMessageHandler
                 state.CurrentProcessor = null;
 
                 // Open editor window
-                var page = _WindowManager.CreateEditorPage(VerbName, client.World, Settings.Instance.DefaultGrammarDialect, VerbSource.ToString().Trim());
+                EditorPage page;
+                if (DocumentName.Contains(":"))
+                    page = _WindowManager.CreateMooCodeEditorPage(DocumentName,
+                                                           client.World,
+                                                           Settings.Instance.DefaultGrammarDialect,
+                                                           DocumentSource.ToString().Trim());
+                else
+                    page = _WindowManager.CreateMarkdownEditorPage(DocumentName, client.World, DocumentSource.ToString().Trim());
                 _WindowManager.ShowPage(page);
                 void ConfigurePage()
                 {
-                    page.Editor.IsChanged = false;
+                    page.SourceEditor.IsChanged = false;
                     page.Uploader = new LocalEditUploader(UploadCommand, client);
                 }
                 page.Invoke(ConfigurePage);
-                page.Editor.IsChanged = false;
                 state.Reset();
 
                 return true;
             }
 
-            VerbSource.Append(message);
+            DocumentSource.Append(message);
             return true;
         }
 
@@ -141,8 +148,8 @@ public class LocalEditHandler : IOutOfBandMessageHandler
         if (string.IsNullOrEmpty(upload))
             return false;
 
-        VerbSource.Clear();
-        VerbName = name.Trim();
+        DocumentSource.Clear();
+        DocumentName = name.Trim();
         UploadCommand = upload.Trim();
 
         return true;
@@ -151,7 +158,7 @@ public class LocalEditHandler : IOutOfBandMessageHandler
     public void Reset()
     {
         UploadCommand = string.Empty;
-        VerbName = string.Empty;
-        VerbSource.Clear();
+        DocumentName = string.Empty;
+        DocumentSource.Clear();
     }
 }

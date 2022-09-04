@@ -30,39 +30,39 @@
       {
          this.components = new System.ComponentModel.Container();
          System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(MarkdownEditor));
-         this.splitContainer1 = new System.Windows.Forms.SplitContainer();
-         this.textEditor = new FastColoredTextBoxNS.FastColoredTextBox();
+         this.splitContainer = new System.Windows.Forms.SplitContainer();
+         this.TextInput = new FastColoredTextBoxNS.FastColoredTextBox();
          this.webPanel = new TheArtOfDev.HtmlRenderer.WinForms.HtmlPanel();
-         ((System.ComponentModel.ISupportInitialize)(this.splitContainer1)).BeginInit();
-         this.splitContainer1.Panel1.SuspendLayout();
-         this.splitContainer1.Panel2.SuspendLayout();
-         this.splitContainer1.SuspendLayout();
-         ((System.ComponentModel.ISupportInitialize)(this.textEditor)).BeginInit();
+         ((System.ComponentModel.ISupportInitialize)(this.splitContainer)).BeginInit();
+         this.splitContainer.Panel1.SuspendLayout();
+         this.splitContainer.Panel2.SuspendLayout();
+         this.splitContainer.SuspendLayout();
+         ((System.ComponentModel.ISupportInitialize)(this.TextInput)).BeginInit();
          this.SuspendLayout();
          // 
-         // splitContainer1
+         // splitContainer
          // 
-         this.splitContainer1.Dock = System.Windows.Forms.DockStyle.Fill;
-         this.splitContainer1.Location = new System.Drawing.Point(0, 0);
-         this.splitContainer1.Name = "splitContainer1";
+         this.splitContainer.Dock = System.Windows.Forms.DockStyle.Fill;
+         this.splitContainer.Location = new System.Drawing.Point(0, 0);
+         this.splitContainer.Name = "splitContainer";
          // 
-         // splitContainer1.Panel1
+         // splitContainer.Panel1
          // 
-         this.splitContainer1.Panel1.Controls.Add(this.textEditor);
+         this.splitContainer.Panel1.Controls.Add(this.TextInput);
          // 
-         // splitContainer1.Panel2
+         // splitContainer.Panel2
          // 
-         this.splitContainer1.Panel2.Controls.Add(this.webPanel);
-         this.splitContainer1.Size = new System.Drawing.Size(306, 256);
-         this.splitContainer1.SplitterDistance = 168;
-         this.splitContainer1.TabIndex = 0;
+         this.splitContainer.Panel2.Controls.Add(this.webPanel);
+         this.splitContainer.Size = new System.Drawing.Size(306, 256);
+         this.splitContainer.SplitterDistance = 168;
+         this.splitContainer.TabIndex = 0;
          // 
-         // textEditor
+         // TextInput
          // 
-         this.textEditor.AccessibleDescription = "Textbox control";
-         this.textEditor.AccessibleName = "Fast Colored Text Box";
-         this.textEditor.AccessibleRole = System.Windows.Forms.AccessibleRole.Text;
-         this.textEditor.AutoCompleteBracketsList = new char[] {
+         this.TextInput.AccessibleDescription = "Textbox control";
+         this.TextInput.AccessibleName = "Fast Colored Text Box";
+         this.TextInput.AccessibleRole = System.Windows.Forms.AccessibleRole.Text;
+         this.TextInput.AutoCompleteBracketsList = new char[] {
         '(',
         ')',
         '{',
@@ -73,31 +73,33 @@
         '\"',
         '\'',
         '\''};
-         this.textEditor.AutoIndentCharsPatterns = "^\\s*[\\w\\.]+(\\s\\w+)?\\s*(?<range>=)\\s*(?<range>[^;=]+);\r\n^\\s*(case|default)\\s*[^:]*" +
+         this.TextInput.AutoIndentChars = false;
+         this.TextInput.AutoIndentCharsPatterns = "^\\s*[\\w\\.]+(\\s\\w+)?\\s*(?<range>=)\\s*(?<range>[^;=]+);\r\n^\\s*(case|default)\\s*[^:]*" +
     "(?<range>:)\\s*(?<range>[^;]+);";
-         this.textEditor.AutoScrollMinSize = new System.Drawing.Size(31, 18);
-         this.textEditor.BackBrush = null;
-         this.textEditor.CharHeight = 18;
-         this.textEditor.CharWidth = 10;
-         this.textEditor.DefaultMarkerSize = 8;
-         this.textEditor.DisabledColor = System.Drawing.Color.FromArgb(((int)(((byte)(100)))), ((int)(((byte)(180)))), ((int)(((byte)(180)))), ((int)(((byte)(180)))));
-         this.textEditor.Dock = System.Windows.Forms.DockStyle.Fill;
-         this.textEditor.FindForm = null;
-         this.textEditor.Font = new System.Drawing.Font("Courier New", 9.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
-         this.textEditor.GoToForm = null;
-         this.textEditor.Hotkeys = resources.GetString("textEditor.Hotkeys");
-         this.textEditor.IsReplaceMode = false;
-         this.textEditor.Location = new System.Drawing.Point(0, 0);
-         this.textEditor.Name = "textEditor";
-         this.textEditor.Paddings = new System.Windows.Forms.Padding(0);
-         this.textEditor.ReplaceForm = null;
-         this.textEditor.SelectionColor = System.Drawing.Color.FromArgb(((int)(((byte)(60)))), ((int)(((byte)(0)))), ((int)(((byte)(0)))), ((int)(((byte)(255)))));
-         this.textEditor.ServiceColors = ((FastColoredTextBoxNS.ServiceColors)(resources.GetObject("textEditor.ServiceColors")));
-         this.textEditor.Size = new System.Drawing.Size(168, 256);
-         this.textEditor.TabIndex = 0;
-         this.textEditor.ToolTipDelay = 100;
-         this.textEditor.Zoom = 100;
-         this.textEditor.TextChangedDelayed += new System.EventHandler<FastColoredTextBoxNS.TextChangedEventArgs>(this.textEditor_TextChangedDelayed);
+         this.TextInput.AutoScrollMinSize = new System.Drawing.Size(0, 18);
+         this.TextInput.BackBrush = null;
+         this.TextInput.CharHeight = 18;
+         this.TextInput.CharWidth = 10;
+         this.TextInput.DefaultMarkerSize = 8;
+         this.TextInput.DisabledColor = System.Drawing.Color.FromArgb(((int)(((byte)(100)))), ((int)(((byte)(180)))), ((int)(((byte)(180)))), ((int)(((byte)(180)))));
+         this.TextInput.Dock = System.Windows.Forms.DockStyle.Fill;
+         this.TextInput.FindForm = null;
+         this.TextInput.GoToForm = null;
+         this.TextInput.Hotkeys = resources.GetString("TextInput.Hotkeys");
+         this.TextInput.IsReplaceMode = false;
+         this.TextInput.Location = new System.Drawing.Point(0, 0);
+         this.TextInput.Name = "TextInput";
+         this.TextInput.Paddings = new System.Windows.Forms.Padding(0);
+         this.TextInput.ReplaceForm = null;
+         this.TextInput.SelectionColor = System.Drawing.Color.FromArgb(((int)(((byte)(60)))), ((int)(((byte)(0)))), ((int)(((byte)(0)))), ((int)(((byte)(255)))));
+         this.TextInput.ServiceColors = null;
+         this.TextInput.Size = new System.Drawing.Size(168, 256);
+         this.TextInput.TabIndex = 0;
+         this.TextInput.TabLength = 2;
+         this.TextInput.ToolTipDelay = 100;
+         this.TextInput.WordWrap = true;
+         this.TextInput.Zoom = 100;
+         this.TextInput.TextChangedDelayed += new System.EventHandler<FastColoredTextBoxNS.TextChangedEventArgs>(this.textEditor_TextChangedDelayed);
          // 
          // webPanel
          // 
@@ -115,22 +117,22 @@
          // 
          this.AutoScaleDimensions = new System.Drawing.SizeF(8F, 20F);
          this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-         this.Controls.Add(this.splitContainer1);
+         this.Controls.Add(this.splitContainer);
          this.Name = "MarkdownEditor";
          this.Size = new System.Drawing.Size(306, 256);
-         this.splitContainer1.Panel1.ResumeLayout(false);
-         this.splitContainer1.Panel2.ResumeLayout(false);
-         ((System.ComponentModel.ISupportInitialize)(this.splitContainer1)).EndInit();
-         this.splitContainer1.ResumeLayout(false);
-         ((System.ComponentModel.ISupportInitialize)(this.textEditor)).EndInit();
+         this.splitContainer.Panel1.ResumeLayout(false);
+         this.splitContainer.Panel2.ResumeLayout(false);
+         ((System.ComponentModel.ISupportInitialize)(this.splitContainer)).EndInit();
+         this.splitContainer.ResumeLayout(false);
+         ((System.ComponentModel.ISupportInitialize)(this.TextInput)).EndInit();
          this.ResumeLayout(false);
 
       }
 
         #endregion
 
-        private SplitContainer splitContainer1;
-        private FastColoredTextBoxNS.FastColoredTextBox textEditor;
+        private SplitContainer splitContainer;
+        private FastColoredTextBoxNS.FastColoredTextBox TextInput;
         private TheArtOfDev.HtmlRenderer.WinForms.HtmlPanel webPanel;
     }
 }
