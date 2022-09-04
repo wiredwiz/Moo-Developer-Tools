@@ -1,6 +1,6 @@
 ﻿namespace Org.Edgerunner.Moo.Editor.Controls
 {
-   partial class MooEditor
+   partial class MooCodeEditor
    {
       /// <summary>
       /// Required designer variable.
@@ -34,7 +34,7 @@
          // 
          this.AutoScaleDimensions = new System.Drawing.SizeF(8F, 20F);
          this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-         this.Name = "MooEditor";
+         this.Name = "MooCodeEditor";
          this.Size = new System.Drawing.Size(598, 513);
          this.ResumeLayout(false);
 

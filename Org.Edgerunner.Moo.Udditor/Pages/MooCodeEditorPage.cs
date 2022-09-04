@@ -113,7 +113,7 @@ public class MooCodeEditorPage : ManagedPage
     /// <param name="description">The page description.</param>
     private void InitializeEditor(GrammarDialect dialect, string id, string title, string description)
     {
-        Editor = new MooEditor();
+        Editor = new MooCodeEditor();
         Editor.BorderStyle = BorderStyle.Fixed3D;
         Editor.Dock = DockStyle.Fill;
         Controls.Add(Editor);
@@ -173,7 +173,7 @@ public class MooCodeEditorPage : ManagedPage
     /// Gets or sets the editor.
     /// </summary>
     /// <value>The editor.</value>
-    public MooEditor Editor { get; set; }
+    public MooCodeEditor Editor { get; set; }
 
     /// <summary>
     /// Gets or sets the uploader.
@@ -269,40 +269,40 @@ public class MooCodeEditorPage : ManagedPage
         CursorPositionChanged?.Invoke(this, e);
     }
 
-    private void ConfigureEditorSettings(MooEditor editor)
+    private void ConfigureEditorSettings(MooCodeEditor codeEditor)
     {
-        editor.Font = new Font(Settings.Instance.EditorFontFamily, Settings.Instance.EditorFontSize);
-        editor.ForeColor = Settings.Instance.EditorTextColor;
-        editor.CaretColor = Settings.Instance.EditorCaretColor;
-        editor.BackColor = Settings.Instance.EditorBackgroundColor;
-        editor.CurrentLineColor = Settings.Instance.EditorCurrentLineColor;
-        editor.AutoIndent = Settings.Instance.EditorAutoIndent;
-        editor.WordWrapIndent = Settings.Instance.EditorWordWrapIndent;
-        editor.WordWrapAutoIndent = Settings.Instance.EditorWordWrapAutoIndent;
-        editor.WordWrap = Settings.Instance.EditorWordWrap;
-        editor.AutoCompleteBrackets = Settings.Instance.EditorAutoBrackets;
-        editor.TabLength = Settings.Instance.EditorTabLength;
-        editor.LineNumberColor = Settings.Instance.EditorLineNumberColor;
-        editor.SelectionColor = Settings.Instance.EditorTextSelectionColor;
-        editor.ChangedLineColor = Settings.Instance.EditorChangedLineColor;
-        editor.FoldingIndicatorColor = Settings.Instance.EditorFoldingIndicatorColor;
-        editor.IndentBackColor = Settings.Instance.EditorIndentBackColor;
-        editor.BookmarkColor = Settings.Instance.EditorBookmarkColor;
-        editor.ServiceLinesColor = Settings.Instance.EditorServiceLineColor;
-        editor.ShowCodeFolding = Settings.Instance.EditorShowCodeFolding;
-        editor.ShowTextBlockIndentationGuides = Settings.Instance.EditorShowTextIndentGuides;
-        editor.Zoom = Settings.Instance.EditorZoomFactor;
-        BuildAutocompleteMenu(editor);
+        codeEditor.Font = new Font(Settings.Instance.EditorFontFamily, Settings.Instance.EditorFontSize);
+        codeEditor.ForeColor = Settings.Instance.EditorTextColor;
+        codeEditor.CaretColor = Settings.Instance.EditorCaretColor;
+        codeEditor.BackColor = Settings.Instance.EditorBackgroundColor;
+        codeEditor.CurrentLineColor = Settings.Instance.EditorCurrentLineColor;
+        codeEditor.AutoIndent = Settings.Instance.EditorAutoIndent;
+        codeEditor.WordWrapIndent = Settings.Instance.EditorWordWrapIndent;
+        codeEditor.WordWrapAutoIndent = Settings.Instance.EditorWordWrapAutoIndent;
+        codeEditor.WordWrap = Settings.Instance.EditorWordWrap;
+        codeEditor.AutoCompleteBrackets = Settings.Instance.EditorAutoBrackets;
+        codeEditor.TabLength = Settings.Instance.EditorTabLength;
+        codeEditor.LineNumberColor = Settings.Instance.EditorLineNumberColor;
+        codeEditor.SelectionColor = Settings.Instance.EditorTextSelectionColor;
+        codeEditor.ChangedLineColor = Settings.Instance.EditorChangedLineColor;
+        codeEditor.FoldingIndicatorColor = Settings.Instance.EditorFoldingIndicatorColor;
+        codeEditor.IndentBackColor = Settings.Instance.EditorIndentBackColor;
+        codeEditor.BookmarkColor = Settings.Instance.EditorBookmarkColor;
+        codeEditor.ServiceLinesColor = Settings.Instance.EditorServiceLineColor;
+        codeEditor.ShowCodeFolding = Settings.Instance.EditorShowCodeFolding;
+        codeEditor.ShowTextBlockIndentationGuides = Settings.Instance.EditorShowTextIndentGuides;
+        codeEditor.Zoom = Settings.Instance.EditorZoomFactor;
+        BuildAutocompleteMenu(codeEditor);
     }
 
-    private void BuildAutocompleteMenu(MooEditor editor)
+    private void BuildAutocompleteMenu(MooCodeEditor codeEditor)
     {
-        editor.AutocompleteMenu = new AutocompleteMenu(editor);
+        codeEditor.AutocompleteMenu = new AutocompleteMenu(codeEditor);
 
         //editor.AutocompleteMenu.Items.ImageList = imageList1;
-        editor.AutocompleteMenu.SearchPattern = @"[\w\.:=!<>+-/*%&|^]";
-        editor.AutocompleteMenu.AllowTabKey = true;
-        editor.AutocompleteMenu.MinFragmentLength = 1;
+        codeEditor.AutocompleteMenu.SearchPattern = @"[\w\.:=!<>+-/*%&|^]";
+        codeEditor.AutocompleteMenu.AllowTabKey = true;
+        codeEditor.AutocompleteMenu.MinFragmentLength = 1;
 
         List<AutocompleteItem> items = new List<AutocompleteItem>();
 
@@ -318,8 +318,8 @@ public class MooCodeEditorPage : ManagedPage
         items.Add(new FormatCommaSnippet(@"^(\w+)(([,]+)(\w+))+$"));
 
         //set as autocomplete source
-        editor.AutocompleteMenu.Items.SetAutocompleteItems(items);
-        editor.AutocompleteMenu.AppearInterval = Settings.Instance.EditorAutocompleteDelay;
+        codeEditor.AutocompleteMenu.Items.SetAutocompleteItems(items);
+        codeEditor.AutocompleteMenu.AppearInterval = Settings.Instance.EditorAutocompleteDelay;
     }
 
     /// <summary>

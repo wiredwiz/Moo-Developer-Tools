@@ -56,13 +56,13 @@ using Place = FastColoredTextBoxNS.Types.Place;
 
 namespace Org.Edgerunner.Moo.Editor.Controls
 {
-   public partial class MooEditor : FastColoredTextBox
+   public partial class MooCodeEditor : FastColoredTextBox
    {
-      public MooEditor()
+      public MooCodeEditor()
         : this(GrammarDialect.Edgerunner)
       { }
 
-      public MooEditor(GrammarDialect grammarDialect)
+      public MooCodeEditor(GrammarDialect grammarDialect)
       {
          InitializeComponent();
          Tokens = new List<DetailedToken>();
@@ -538,11 +538,11 @@ namespace Org.Edgerunner.Moo.Editor.Controls
       /// <summary>
       /// Called when [parsing complete].
       /// </summary>
-      /// <param name="mooEditor">The moo editor.</param>
+      /// <param name="mooCodeEditor">The moo editor.</param>
       /// <param name="parsingCompleteEventArgs">The <see cref="ParsingCompleteEventArgs"/> instance containing the event data.</param>
-      private void OnParsingComplete(MooEditor mooEditor, ParsingCompleteEventArgs parsingCompleteEventArgs)
+      private void OnParsingComplete(MooCodeEditor mooCodeEditor, ParsingCompleteEventArgs parsingCompleteEventArgs)
       {
-         ParsingComplete?.Invoke(mooEditor, parsingCompleteEventArgs);
+         ParsingComplete?.Invoke(mooCodeEditor, parsingCompleteEventArgs);
       }
 
       public void ToggleFoldingBlock(int iLine)

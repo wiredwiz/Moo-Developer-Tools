@@ -259,8 +259,8 @@ public class WindowManager
 
     private void Page_ParsingComplete(object sender, ParsingCompleteEventArgs e)
     {
-        MooEditor editor = sender as MooEditor;
-        var page = editor.Parent;
+        MooCodeEditor codeEditor = sender as MooCodeEditor;
+        var page = codeEditor.Parent;
         OnEditorParsingCompleted(page as MooCodeEditorPage);
     }
 
