@@ -84,6 +84,7 @@
          this.TextInput.DisabledColor = System.Drawing.Color.FromArgb(((int)(((byte)(100)))), ((int)(((byte)(180)))), ((int)(((byte)(180)))), ((int)(((byte)(180)))));
          this.TextInput.Dock = System.Windows.Forms.DockStyle.Fill;
          this.TextInput.FindForm = null;
+         this.TextInput.Font = new System.Drawing.Font("Courier New", 9.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
          this.TextInput.GoToForm = null;
          this.TextInput.Hotkeys = resources.GetString("TextInput.Hotkeys");
          this.TextInput.IsReplaceMode = false;
@@ -99,7 +100,9 @@
          this.TextInput.ToolTipDelay = 100;
          this.TextInput.WordWrap = true;
          this.TextInput.Zoom = 100;
+         this.TextInput.SelectionChanged += new System.EventHandler(this.TextInput_SelectionChanged);
          this.TextInput.TextChangedDelayed += new System.EventHandler<FastColoredTextBoxNS.TextChangedEventArgs>(this.textEditor_TextChangedDelayed);
+         this.TextInput.Scroll += new System.Windows.Forms.ScrollEventHandler(this.TextInput_Scroll);
          // 
          // webPanel
          // 

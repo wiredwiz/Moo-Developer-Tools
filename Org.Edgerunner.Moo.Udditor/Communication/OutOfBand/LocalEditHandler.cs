@@ -112,11 +112,12 @@ public class LocalEditHandler : IOutOfBandMessageHandler
                                                            DocumentSource.ToString().Trim());
                 else
                     page = _WindowManager.CreateMarkdownEditorPage(DocumentName, client.World, DocumentSource.ToString().Trim());
+                // Uploader must be configured before showing the page
+                page.Uploader = new LocalEditUploader(UploadCommand, client);
                 _WindowManager.ShowPage(page);
                 void ConfigurePage()
                 {
                     page.SourceEditor.IsChanged = false;
-                    page.Uploader = new LocalEditUploader(UploadCommand, client);
                 }
                 page.Invoke(ConfigurePage);
                 state.Reset();

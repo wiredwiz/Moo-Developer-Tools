@@ -34,7 +34,6 @@
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #endregion
 
-using Krypton.Navigator;
 using Org.Edgerunner.ANTLR4.Tools.Common;
 using Org.Edgerunner.ANTLR4.Tools.Common.Grammar.Errors;
 using Org.Edgerunner.Moo.Editor;
@@ -43,7 +42,6 @@ using System;
 using FastColoredTextBoxNS;
 using FastColoredTextBoxNS.Types;
 using Krypton.Toolkit;
-using Org.Edgerunner.Moo.Communication.Interfaces;
 using Org.Edgerunner.Moo.Editor.Autocomplete;
 using Org.Edgerunner.Moo.Editor.Configuration;
 
@@ -130,7 +128,7 @@ public class MooCodeEditorPage : EditorPage
     private void PostInitialize()
     {
         Editor.SelectionChangedDelayed += Editor_SelectionChangedDelayed;
-        Editor.Selection = new TextSelectionRange(Editor, 0, 0, 0, 0);
+        Editor.Selection = new TextSelectionRange(SourceEditor, 0, 0, 0, 0);
     }
 
     /// <summary>
@@ -141,11 +139,6 @@ public class MooCodeEditorPage : EditorPage
         add { Editor.ParsingComplete += value; }
         remove { Editor.ParsingComplete -= value; }
     }
-
-    /// <summary>
-    /// Occurs when [cursor position changed].
-    /// </summary>
-    public event EventHandler CursorPositionChanged;
 
     public override FastColoredTextBox SourceEditor
     {
@@ -197,31 +190,6 @@ public class MooCodeEditorPage : EditorPage
     }
 
     /// <summary>
-    /// Gets or sets a value indicating whether word wrap is enabled in the editor.
-    /// </summary>
-    /// <value>
-    ///   <c>true</c> if word wrap enabled; otherwise, <c>false</c>.
-    /// </value>
-    public bool WordWrap
-    {
-        get => Editor.WordWrap;
-        set => Editor.WordWrap = value;
-    }
-
-    /// <summary>
-    /// Gets or sets a value indicating whether to show line numbers in the editor.
-    /// </summary>
-    /// <value>
-    ///   <c>true</c> if show line numbers is enabled; otherwise, <c>false</c>.
-    /// </value>
-    /// <exception cref="System.NotImplementedException"></exception>
-    public bool ShowLineNumbers
-    {
-        get => Editor.ShowLineNumbers;
-        set => Editor.ShowLineNumbers = value;
-    }
-
-    /// <summary>
     /// Gets or sets a value indicating whether to display code folding.
     /// </summary>
     /// <value>
@@ -243,25 +211,6 @@ public class MooCodeEditorPage : EditorPage
     {
         get => Editor.ShowTextBlockIndentationGuides;
         set => Editor.ShowTextBlockIndentationGuides = value;
-    }
-
-    /// <summary>
-    /// Attempts to upload the source code to the linked client terminal.
-    /// </summary>
-    /// <returns></returns>
-    public bool UploadSource()
-    {
-        if (Uploader == null)
-            return false;
-
-        if (Uploader.Upload(Editor.Text))
-            Editor.IsChanged = false;
-        return true;
-    }
-
-    private void Editor_SelectionChangedDelayed(object sender, EventArgs e)
-    {
-        CursorPositionChanged?.Invoke(this, e);
     }
 
     private void ConfigureEditorSettings(MooCodeEditor codeEditor)
@@ -323,5 +272,10 @@ public class MooCodeEditorPage : EditorPage
     public void ParseSourceCode()
     {
         Editor.ParseSourceCode();
+    }
+
+    private void Editor_SelectionChangedDelayed(object sender, EventArgs e)
+    {
+        OnCursorPositionChanged();
     }
 }

@@ -10,18 +10,23 @@ using System.Windows.Forms;
 using Markdig;
 using Org.Edgerunner.ANTLR4.Tools.Common.Grammar.Errors;
 using Org.Edgerunner.ANTLR4.Tools.Common;
+using Org.Edgerunner.Moo.MooText;
 using TheArtOfDev.HtmlRenderer.WinForms;
 
 namespace Org.Edgerunner.Moo.Editor.Controls
 {
    public partial class MarkdownEditor : UserControl
    {
-      private readonly MarkdownPipeline _Pipeline;
+      private readonly MarkdownPipeline _MarkdownPipeline;
+      private readonly MooTextPipeline _MooPipeline;
+      private Color _PreviewPaneBackgroundColor;
+      private Color _PreviewPaneForegroundColor;
 
       public MarkdownEditor()
       {
          InitializeComponent();
-         _Pipeline = new MarkdownPipelineBuilder().UseAdvancedExtensions().Build();
+         _MarkdownPipeline = new MarkdownPipelineBuilder().UseAdvancedExtensions().Build();
+         _MooPipeline = new MooTextPipelineBuilder().ProcessColors().Build();
       }
 
       /// <summary>
@@ -43,6 +48,40 @@ namespace Org.Edgerunner.Moo.Editor.Controls
       [Browsable(false)]
       public DocumentInfo Document { get; set; }
 
+      [DefaultValue(false)]
+      [DisplayName("Enable Markdown")]
+      [Description("Enables processing of markdown in the text.")]
+      public bool EnableMarkdownProcessing { get; set; }
+
+      [DefaultValue(true)]
+      [DisplayName("Enable Moo Text")]
+      [Description("Enables processing of Moo Text codes.")]
+      public bool EnableMooTextProcessing { get; set; } = true;
+
+      [DisplayName("Preview Pane Color")]
+      [Description("Determines the background color of the preview pane.")]
+      public Color PreviewPaneBackgroundColor
+      {
+         get => _PreviewPaneBackgroundColor;
+         set
+         {
+            _PreviewPaneBackgroundColor = value;
+            webPanel.BackColor = value;
+         }
+      }
+
+      [DisplayName("Preview Pane Text Color")]
+      [Description("Determines the text color of the preview pane.")]
+      public Color PreviewPaneForegroundColor
+      {
+         get => _PreviewPaneForegroundColor;
+         set
+         {
+            _PreviewPaneForegroundColor = value;
+            webPanel.ForeColor = value;
+         }
+      }
+
       /// <summary>
       /// Allows previewing of markdown text.
       /// </summary>
@@ -57,6 +96,7 @@ namespace Org.Edgerunner.Moo.Editor.Controls
             {
                splitContainer.Panel2Collapsed = false;
                splitContainer.Panel2.Show();
+               SetPreviewPanelScroll();
             }
             else
             {
@@ -68,7 +108,59 @@ namespace Org.Edgerunner.Moo.Editor.Controls
 
       private void textEditor_TextChangedDelayed(object sender, FastColoredTextBoxNS.TextChangedEventArgs e)
       {
-         webPanel.Text = Markdown.ToHtml(TextInput.Text, _Pipeline);
+         var working = TextInput.Text;
+
+         if (EnableMooTextProcessing)
+            working = MooText.MooText.ToHtml(working, _MooPipeline);
+
+         if (EnableMarkdownProcessing)
+            working = Markdown.ToHtml(working, _MarkdownPipeline);
+
+         working = $"<!DOCTYPE html><html><body color=\"{ColorTranslator.ToHtml(PreviewPaneForegroundColor)}\">" + working + "</body></html>";
+         webPanel.Text = working;
+      }
+
+      private void TextInput_Scroll(object sender, ScrollEventArgs e)
+      {
+         if (splitContainer.Panel2.Visible)
+            SetPreviewPanelScroll();
+      }
+
+      private void SetPreviewPanelScroll()
+      {
+         if (webPanel.VerticalScroll.Visible)
+         {
+            double range = TextInput.VerticalScroll.Maximum - TextInput.ClientRectangle.Height;
+            var percent = TextInput.VerticalScroll.Value / range;
+            var newValue = (int)Math.Truncate(
+                                              (webPanel.VerticalScroll.Maximum -
+                                               webPanel.VerticalScroll.LargeChange +
+                                               webPanel.VerticalScroll.SmallChange) * percent);
+            webPanel.VerticalScroll.Value = Math.Max(Math.Min(newValue, webPanel.VerticalScroll.Maximum), 0);
+         }
+      }
+
+      private void TextInput_SelectionChanged(object sender, EventArgs e)
+      {
+         if (TextInput.Lines.Count == 0)
+            return;
+
+         var lineNo = TextInput.Selection.Start.iLine + 1;
+
+         if (lineNo == 1)
+         {
+            webPanel.VerticalScroll.Value = 0;
+         }
+         else
+         {
+            var percentage = lineNo / (double)TextInput.Lines.Count;
+            var newValue = (int)Math.Truncate(
+                                              (webPanel.VerticalScroll.Maximum -
+                                               webPanel.VerticalScroll.LargeChange +
+                                               webPanel.VerticalScroll.SmallChange + 1) * percentage);
+            webPanel.VerticalScroll.Value = Math.Max(Math.Min(newValue, webPanel.VerticalScroll.Maximum), 0);
+         }
+         webPanel.PerformLayout();
       }
    }
 }

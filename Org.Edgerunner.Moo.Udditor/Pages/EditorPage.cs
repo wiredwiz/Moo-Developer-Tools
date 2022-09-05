@@ -34,9 +34,9 @@
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #endregion
 
+using FastColoredTextBoxNS.Types;
 using Org.Edgerunner.ANTLR4.Tools.Common;
 using Org.Edgerunner.Moo.Communication.Interfaces;
-using Org.Edgerunner.Moo.Editor.Controls;
 
 namespace Org.Edgerunner.Moo.Udditor.Pages;
 
@@ -46,6 +46,11 @@ public abstract class EditorPage : ManagedPage
         : base(manager)
     {
     }
+
+    /// <summary>
+    /// Occurs when [cursor position changed].
+    /// </summary>
+    public event EventHandler CursorPositionChanged;
 
     /// <summary>
     /// Gets or sets the source editor.
@@ -86,4 +91,48 @@ public abstract class EditorPage : ManagedPage
     ///   <c>true</c> if this instance can upload; otherwise, <c>false</c>.
     /// </value>
     public virtual bool CanUpload => Uploader != null && Uploader.ClientTerminal.IsConnected;
+
+    /// <summary>
+    /// Gets or sets a value indicating whether word wrap is enabled in the editor.
+    /// </summary>
+    /// <value>
+    ///   <c>true</c> if word wrap enabled; otherwise, <c>false</c>.
+    /// </value>
+    public bool WordWrap
+    {
+        get => SourceEditor.WordWrap;
+        set => SourceEditor.WordWrap = value;
+    }
+
+    /// <summary>
+    /// Gets or sets a value indicating whether to show line numbers in the editor.
+    /// </summary>
+    /// <value>
+    ///   <c>true</c> if show line numbers is enabled; otherwise, <c>false</c>.
+    /// </value>
+    /// <exception cref="System.NotImplementedException"></exception>
+    public bool ShowLineNumbers
+    {
+        get => SourceEditor.ShowLineNumbers;
+        set => SourceEditor.ShowLineNumbers = value;
+    }
+
+    /// <summary>
+    /// Attempts to upload the source code to the linked client terminal.
+    /// </summary>
+    /// <returns></returns>
+    public bool UploadSource()
+    {
+        if (Uploader == null)
+            return false;
+
+        if (Uploader.Upload(SourceEditor.Text))
+            SourceEditor.IsChanged = false;
+        return true;
+    }
+
+    protected virtual void OnCursorPositionChanged()
+    {
+        CursorPositionChanged?.Invoke(this, EventArgs.Empty);
+    }
 }

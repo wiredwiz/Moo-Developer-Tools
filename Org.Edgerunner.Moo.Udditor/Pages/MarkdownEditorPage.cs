@@ -35,10 +35,9 @@
 #endregion
 
 using FastColoredTextBoxNS;
+using FastColoredTextBoxNS.Types;
 using Krypton.Toolkit;
 using Org.Edgerunner.ANTLR4.Tools.Common;
-using Org.Edgerunner.Moo.Communication.Interfaces;
-using Org.Edgerunner.Moo.Editor;
 using Org.Edgerunner.Moo.Editor.Controls;
 
 namespace Org.Edgerunner.Moo.Udditor.Pages;
@@ -53,12 +52,8 @@ public class MarkdownEditorPage : EditorPage
         InitializeEditor(key, documentName, name);
         Editor.Document = new DocumentInfo(key, key, documentName);
         Editor.Input.Text = source;
+        PostInitialize();
     }
-
-    /// <summary>
-    /// Occurs when [cursor position changed].
-    /// </summary>
-    public event EventHandler CursorPositionChanged;
 
     public override FastColoredTextBox SourceEditor => Editor.Input;
 
@@ -91,18 +86,6 @@ public class MarkdownEditorPage : EditorPage
     }
 
     /// <summary>
-    /// Gets or sets a value indicating whether word wrap is enabled in the editor.
-    /// </summary>
-    /// <value>
-    ///   <c>true</c> if word wrap enabled; otherwise, <c>false</c>.
-    /// </value>
-    public bool WordWrap
-    {
-        get => Editor.Input.WordWrap;
-        set => Editor.Input.WordWrap = value;
-    }
-
-    /// <summary>
     /// Initializes a new editor control instance.
     /// </summary>
     /// <param name="id">The unique identifier for the page.</param>
@@ -126,10 +109,11 @@ public class MarkdownEditorPage : EditorPage
     private void PostInitialize()
     {
         Editor.Input.SelectionChangedDelayed += Editor_SelectionChangedDelayed;
+        Editor.Input.Selection = new TextSelectionRange(SourceEditor, 0, 0, 0, 0);
     }
 
     private void Editor_SelectionChangedDelayed(object sender, EventArgs e)
     {
-        CursorPositionChanged?.Invoke(this, e);
+        OnCursorPositionChanged();
     }
 }

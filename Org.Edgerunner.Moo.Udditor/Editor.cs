@@ -96,7 +96,7 @@ public partial class Editor : Form
 
     private void UpdateMenus()
     {
-        var editPage = CurrentPage as MooCodeEditorPage;
+        var editPage = CurrentPage as EditorPage;
         var terminalPage = CurrentPage as TerminalPage;
         var isEditor = editPage != null;
         var isTerminal = terminalPage != null;
@@ -125,16 +125,18 @@ public partial class Editor : Form
 
     private void UpdateViewMenu()
     {
-        var editPage = CurrentPage as MooCodeEditorPage;
+        var mooCodeEditorPage = CurrentPage as MooCodeEditorPage;
+        var editorPage = CurrentPage as EditorPage;
         var terminalPage = CurrentPage as TerminalPage;
-        var isEditor = editPage != null;
+        var isMooCodeEditor = mooCodeEditorPage != null;
+        var isEditor = editorPage != null;
         var isTerminal = terminalPage != null;
-        mnuItemWordWrap.CheckState = (isEditor && editPage.WordWrap) || (isTerminal && terminalPage.WordWrap)
+        mnuItemWordWrap.CheckState = (isEditor && editorPage.WordWrap) || (isTerminal && terminalPage.WordWrap)
             ? CheckState.Checked
             : CheckState.Unchecked;
-        mnuItemShowLineNumbers.CheckState = isEditor && editPage.ShowLineNumbers ? CheckState.Checked : CheckState.Unchecked;
+        mnuItemShowLineNumbers.CheckState = isEditor && editorPage.ShowLineNumbers ? CheckState.Checked : CheckState.Unchecked;
         mnuItemIndentationGuides.CheckState =
-            isEditor && editPage.ShowTextBlockIndentationGuides ? CheckState.Checked : CheckState.Unchecked;
+            isMooCodeEditor && mooCodeEditorPage.ShowTextBlockIndentationGuides ? CheckState.Checked : CheckState.Unchecked;
     }
 
     void UpdateTerminalMenu()
@@ -179,12 +181,12 @@ public partial class Editor : Form
         }
     }
 
-    private void WindowManager_EditorCursorUpdated(object sender, MooCodeEditorPage e)
+    private void WindowManager_EditorCursorUpdated(object sender, EditorPage e)
     {
         if (CurrentPage == e)
         {
-            tlStatusLine.Text = ((e.Editor?.Selection.Start.iLine + 1) ?? 1).ToString();
-            tlStatusColumn.Text = ((e.Editor?.Selection.Start.iChar + 1) ?? 1).ToString();
+            tlStatusLine.Text = ((e.SourceEditor?.Selection.Start.iLine + 1) ?? 1).ToString();
+            tlStatusColumn.Text = ((e.SourceEditor?.Selection.Start.iChar + 1) ?? 1).ToString();
         }
     }
 
@@ -225,10 +227,10 @@ public partial class Editor : Form
     }
     private void mnuItemSave_Click(object sender, EventArgs e)
     {
-        if (CurrentPage is MooCodeEditorPage page)
+        if (CurrentPage is EditorPage page)
         {
             if (!string.IsNullOrEmpty(page.Document.Path))
-                page.Editor.SaveToFile(page.Document.Path, Encoding.Default);
+                page.SourceEditor.SaveToFile(page.Document.Path, Encoding.Default);
             else
             {
                 saveFileDialog.DefaultExt = "moo";
@@ -238,19 +240,20 @@ public partial class Editor : Form
                 {
                     var path = saveFileDialog.FileName;
                     var name = Path.GetFileName(path);
-                    page.Editor.SaveToFile(path, Encoding.Default);
+                    page.SourceEditor.SaveToFile(path, Encoding.Default);
                     page.Document.Path = path;
                     page.Document.Name = name;
-                    page.ParseSourceCode();
+                    if (page is MooCodeEditorPage mooCodeEditorPage)
+                        mooCodeEditorPage.ParseSourceCode();
                 }
             }
-            page.Editor.Invalidate();
+            page.SourceEditor.Invalidate();
         }
     }
 
     private void mnuItemSaveAsFile_Click(object sender, EventArgs e)
     {
-        if (CurrentPage is MooCodeEditorPage page)
+        if (CurrentPage is EditorPage page)
         {
             saveFileDialog.DefaultExt = "moo";
             saveFileDialog.Filter = @"Moo files (*.moo)|*.moo|Text files (*.txt)|*.txt|Markdown files (*.md)|*.md|All files (*.*)|*.*";
@@ -259,10 +262,11 @@ public partial class Editor : Form
             {
                 var path = saveFileDialog.FileName;
                 var name = Path.GetFileName(path);
-                page.Editor.SaveToFile(path, Encoding.Default);
+                page.SourceEditor.SaveToFile(path, Encoding.Default);
                 page.Document.Path = path;
                 page.Document.Name = name;
-                page.ParseSourceCode();
+                if (page is MooCodeEditorPage mooCodeEditorPage)
+                    mooCodeEditorPage.ParseSourceCode();
             }
         }
     }
@@ -289,28 +293,28 @@ public partial class Editor : Form
     private void mnuItemCut_Click(object sender, EventArgs e)
     {
         // TODO: add support for different window types
-        if (CurrentPage is MooCodeEditorPage page)
-            page.Editor.Cut();
+        if (CurrentPage is EditorPage page)
+            page.SourceEditor.Cut();
     }
 
     private void mnuItemCopy_Click(object sender, EventArgs e)
     {
         // TODO: add support for different window types
-        if (CurrentPage is MooCodeEditorPage page)
-            page.Editor.Copy();
+        if (CurrentPage is EditorPage page)
+            page.SourceEditor.Copy();
     }
 
     private void mnuItemCutPaste_Click(object sender, EventArgs e)
     {
         // TODO: add support for different window types
-        if (CurrentPage is MooCodeEditorPage page)
-            page.Editor.Paste();
+        if (CurrentPage is EditorPage page)
+            page.SourceEditor.Paste();
     }
 
     private void mnuItemFind_Click(object sender, EventArgs e)
     {
-        if (CurrentPage is MooCodeEditorPage editorPage)
-            editorPage.Editor.ShowFindDialog();
+        if (CurrentPage is EditorPage editorPage)
+            editorPage.SourceEditor.ShowFindDialog();
         else if (CurrentPage is TerminalPage terminalPage)
             terminalPage.Terminal.Output.ShowFindDialog();
     }
@@ -433,10 +437,10 @@ public partial class Editor : Form
         else if (e.OldPage is TerminalPage oldTerminalPage)
             WindowManager.RecentTerminal = oldTerminalPage;
 
-        if (CurrentPage is MooCodeEditorPage editorPage2)
+        if (CurrentPage is EditorPage editorPage2)
         {
-            tlStatusLine.Text = ((editorPage2.Editor?.Selection.Start.iLine + 1) ?? 1).ToString();
-            tlStatusColumn.Text = ((editorPage2.Editor?.Selection.Start.iChar + 1) ?? 1).ToString();
+            tlStatusLine.Text = ((editorPage2.SourceEditor?.Selection.Start.iLine + 1) ?? 1).ToString();
+            tlStatusColumn.Text = ((editorPage2.SourceEditor?.Selection.Start.iChar + 1) ?? 1).ToString();
             if (editorPage2.KryptonParentContainer is KryptonWorkspaceCell cell)
                 WindowManager.LastEditorCell = cell;
         }
@@ -506,7 +510,7 @@ public partial class Editor : Form
 
     private void mnuItemSend_Click(object sender, EventArgs e)
     {
-        if (CurrentPage is MooCodeEditorPage { CanUpload: true } page)
+        if (CurrentPage is EditorPage { CanUpload: true } page)
             page.UploadSource();
     }
 
@@ -530,7 +534,7 @@ public partial class Editor : Form
 
     private void mnuItemWordWrap_CheckStateChanged(object sender, EventArgs e)
     {
-        if (CurrentPage is MooCodeEditorPage editorPage)
+        if (CurrentPage is EditorPage editorPage)
             editorPage.WordWrap = mnuItemWordWrap.CheckState == CheckState.Checked;
         else if (CurrentPage is TerminalPage terminalPage)
             terminalPage.WordWrap = mnuItemWordWrap.CheckState == CheckState.Checked;
@@ -538,7 +542,7 @@ public partial class Editor : Form
 
     private void mnuItemShowLineNumbers_CheckStateChanged(object sender, EventArgs e)
     {
-        if (CurrentPage is MooCodeEditorPage editorPage)
+        if (CurrentPage is EditorPage editorPage)
             editorPage.ShowLineNumbers = mnuItemShowLineNumbers.CheckState == CheckState.Checked;
     }
 
@@ -556,17 +560,17 @@ public partial class Editor : Form
 
     private void mnuItemZoomIn_Click(object sender, EventArgs e)
     {
-        if (CurrentPage is MooCodeEditorPage editorPage)
-            editorPage.Editor.Zoom += 20;
+        if (CurrentPage is EditorPage editorPage)
+            editorPage.SourceEditor.Zoom += 20;
         if (CurrentPage is TerminalPage terminalPage)
             terminalPage.Terminal.Output.Zoom += 20;
     }
 
     private void mnuItemZoomOut_Click(object sender, EventArgs e)
     {
-        if (CurrentPage is MooCodeEditorPage editorPage)
-            if (editorPage.Editor.Zoom > 30)
-                editorPage.Editor.Zoom -= 20;
+        if (CurrentPage is EditorPage editorPage)
+            if (editorPage.SourceEditor.Zoom > 30)
+                editorPage.SourceEditor.Zoom -= 20;
         if (CurrentPage is TerminalPage terminalPage)
             if (terminalPage.Terminal.Output.Zoom > 30)
                 terminalPage.Terminal.Output.Zoom -= 20;

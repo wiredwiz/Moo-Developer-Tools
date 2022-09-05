@@ -80,7 +80,7 @@ public class WindowManager
 
     public KryptonWorkspaceCell LastEditorCell { get; set; }
 
-    public event EventHandler<MooCodeEditorPage> EditorCursorUpdated;
+    public event EventHandler<EditorPage> EditorCursorUpdated;
 
     public event EventHandler<MooCodeEditorPage> EditorParsingComplete;
 
@@ -222,6 +222,8 @@ public class WindowManager
         {
             var page = new MarkdownEditorPage(this, documentName, worldName, source);
             RegisterPage(page);
+            page.Editor.PreviewPaneBackgroundColor = Color.Black;
+            page.Editor.PreviewPaneForegroundColor = Color.White;
             page.CursorPositionChanged += Page_CursorPositionChanged;
             page.DockChanged += EditorPage_DockChanged;
             if (LastEditorCell != null)
@@ -281,7 +283,7 @@ public class WindowManager
 
     private void Page_CursorPositionChanged(object sender, EventArgs e)
     {
-        OnEditorCursorUpdated(sender as MooCodeEditorPage);
+        OnEditorCursorUpdated(sender as EditorPage);
     }
 
     private void Page_ParsingComplete(object sender, ParsingCompleteEventArgs e)
@@ -362,7 +364,7 @@ public class WindowManager
             DoClosePage();
     }
 
-    protected virtual void OnEditorCursorUpdated(MooCodeEditorPage e)
+    protected virtual void OnEditorCursorUpdated(EditorPage e)
     {
         EditorCursorUpdated?.Invoke(this, e);
     }
