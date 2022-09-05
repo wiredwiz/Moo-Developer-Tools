@@ -77,10 +77,12 @@ public sealed class LocalEditUploader : IClientUploader
     {
         if (!ClientTerminal.IsConnected)
             return false;
-
+        var echoEnabled = ClientTerminal.EchoEnabled;
+        ClientTerminal.EchoEnabled = false;
         ClientTerminal.SendTextLine(UploadCommand);
         ClientTerminal.SendTextLine(sourceCode);
         ClientTerminal.SendTextLine(".");
+        ClientTerminal.EchoEnabled = echoEnabled;
         return true;
     }
 }
