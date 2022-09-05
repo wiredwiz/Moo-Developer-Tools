@@ -21,6 +21,7 @@ namespace Org.Edgerunner.Moo.Editor.Controls
       private readonly MooTextPipeline _MooPipeline;
       private Color _PreviewPaneBackgroundColor;
       private Color _PreviewPaneForegroundColor;
+      private int _LastLineNo;
 
       public MarkdownEditor()
       {
@@ -117,7 +118,11 @@ namespace Org.Edgerunner.Moo.Editor.Controls
             working = Markdown.ToHtml(working, _MarkdownPipeline);
 
          working = $"<!DOCTYPE html><html><body color=\"{ColorTranslator.ToHtml(PreviewPaneForegroundColor)}\">" + working + "</body></html>";
+         var currentVerticalScroll = webPanel.VerticalScroll.Value;
          webPanel.Text = working;
+         var newScroll = CalculateVerticalScroll(_LastLineNo);
+         //while (webPanel.VerticalScroll.Value != newScroll)
+            webPanel.VerticalScroll.Value = newScroll;
       }
 
       private void TextInput_Scroll(object sender, ScrollEventArgs e)
@@ -145,22 +150,24 @@ namespace Org.Edgerunner.Moo.Editor.Controls
          if (TextInput.Lines.Count == 0)
             return;
 
-         var lineNo = TextInput.Selection.Start.iLine + 1;
+         if (_LastLineNo == TextInput.Selection.Start.iLine + 1)
+            return;
 
-         if (lineNo == 1)
-         {
-            webPanel.VerticalScroll.Value = 0;
-         }
-         else
-         {
-            var percentage = lineNo / (double)TextInput.Lines.Count;
-            var newValue = (int)Math.Truncate(
-                                              (webPanel.VerticalScroll.Maximum -
-                                               webPanel.VerticalScroll.LargeChange +
-                                               webPanel.VerticalScroll.SmallChange + 1) * percentage);
-            webPanel.VerticalScroll.Value = Math.Max(Math.Min(newValue, webPanel.VerticalScroll.Maximum), 0);
-         }
+         _LastLineNo = TextInput.Selection.Start.iLine + 1;
+
+         webPanel.VerticalScroll.Value = CalculateVerticalScroll(_LastLineNo);
          webPanel.PerformLayout();
+      }
+
+      private int CalculateVerticalScroll(int lineNo)
+      {
+         if (lineNo == 1)
+            return 0;
+
+         var max = webPanel.VerticalScroll.Maximum - webPanel.VerticalScroll.LargeChange + 1;
+         var percentage = lineNo / (double)TextInput.Lines.Count;
+         var newValue = (int)Math.Truncate(max * percentage);
+         return Math.Max(Math.Min(newValue, max), 0);
       }
    }
 }
