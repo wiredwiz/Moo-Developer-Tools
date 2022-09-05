@@ -97,21 +97,23 @@ public partial class Editor : Form
     private void UpdateMenus()
     {
         var editPage = CurrentPage as EditorPage;
+        var mooCodeEditorPage = CurrentPage as MooCodeEditorPage;
         var terminalPage = CurrentPage as TerminalPage;
         var isEditor = editPage != null;
+        var isMooCodeEditor = mooCodeEditorPage != null;
         var isTerminal = terminalPage != null;
-        grammarToolStripMenuItem.Enabled = isEditor;
+        grammarToolStripMenuItem.Enabled = isMooCodeEditor;
         mnuItemSaveAsFile.Enabled = isEditor;
         mnuItemFileSave.Enabled = isEditor;
-        mnuItemFormat.Enabled = isEditor;
-        mnuItemBookmarks.Enabled = isEditor;
-        mnuItemFolding.Enabled = isEditor;
+        mnuItemFormat.Enabled = isMooCodeEditor;
+        mnuItemBookmarks.Enabled = isMooCodeEditor;
+        mnuItemFolding.Enabled = isMooCodeEditor;
         mnuItemCloseConnection.Enabled = isTerminal;
         mnuItemSend.Enabled = isEditor && editPage.CanUpload;
         mnuItemEchoCommands.Enabled = isTerminal;
         mnuItemWordWrap.Enabled = isTerminal || isEditor;
         mnuItemShowLineNumbers.Enabled = isEditor;
-        mnuItemIndentationGuides.Enabled = isEditor;
+        mnuItemIndentationGuides.Enabled = isMooCodeEditor;
         UpdateEditMenu();
         UpdateTerminalMenu();
         UpdateViewMenu();
@@ -126,10 +128,12 @@ public partial class Editor : Form
     private void UpdateViewMenu()
     {
         var mooCodeEditorPage = CurrentPage as MooCodeEditorPage;
+        var documentEditorPage = CurrentPage as MarkdownEditorPage;
         var editorPage = CurrentPage as EditorPage;
         var terminalPage = CurrentPage as TerminalPage;
         var isMooCodeEditor = mooCodeEditorPage != null;
         var isEditor = editorPage != null;
+        var isDocumentEditor = documentEditorPage != null;
         var isTerminal = terminalPage != null;
         mnuItemWordWrap.CheckState = (isEditor && editorPage.WordWrap) || (isTerminal && terminalPage.WordWrap)
             ? CheckState.Checked
@@ -137,6 +141,8 @@ public partial class Editor : Form
         mnuItemShowLineNumbers.CheckState = isEditor && editorPage.ShowLineNumbers ? CheckState.Checked : CheckState.Unchecked;
         mnuItemIndentationGuides.CheckState =
             isMooCodeEditor && mooCodeEditorPage.ShowTextBlockIndentationGuides ? CheckState.Checked : CheckState.Unchecked;
+        mnuItemShowPreviewPane.CheckState =
+            isDocumentEditor && documentEditorPage.EnablePreview ? CheckState.Checked : CheckState.Unchecked;
     }
 
     void UpdateTerminalMenu()
@@ -574,5 +580,11 @@ public partial class Editor : Form
         if (CurrentPage is TerminalPage terminalPage)
             if (terminalPage.Terminal.Output.Zoom > 30)
                 terminalPage.Terminal.Output.Zoom -= 20;
+    }
+
+    private void mnuItemShowPreviewPane_Click(object sender, EventArgs e)
+    {
+        if (CurrentPage is MarkdownEditorPage page)
+            page.EnablePreview = mnuItemShowPreviewPane.CheckState == CheckState.Checked;
     }
 }
