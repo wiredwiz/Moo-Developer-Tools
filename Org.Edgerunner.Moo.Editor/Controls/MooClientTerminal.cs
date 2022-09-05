@@ -179,9 +179,9 @@ namespace Org.Edgerunner.Moo.Editor.Controls
 
             e.SuppressKeyPress = true;
          }
-         else if (e.KeyCode == Keys.Up)
+         else if (e.KeyCode == Keys.Up && !e.Alt && !e.Shift)
          {
-            if (txtInput.SelectionLength == txtInput.Text.Length)
+            if (e.Control || txtInput.SelectionLength == txtInput.Text.Length)
             {
                if (!_InputCommandBuffer.IsEmpty)
                {
@@ -192,10 +192,22 @@ namespace Org.Edgerunner.Moo.Editor.Controls
                e.SuppressKeyPress = true;
             }
          }
-         else if (e.KeyCode == Keys.Down)
+         else if (e.KeyCode == Keys.Down && !e.Alt && !e.Shift)
          {
-            if (txtInput.SelectionLength == txtInput.Text.Length)
+            if (e.Control || txtInput.SelectionLength == txtInput.Text.Length)
             {
+               if (_InputCommandBuffer.IsEmpty && !string.IsNullOrEmpty(txtInput.Text))
+               {
+                  _InputCommandBuffer.PushFront(txtInput.Text);
+               }
+               else if (_InputCommandBuffer.CurrentPosition == 0 &&
+                        !string.IsNullOrEmpty(txtInput.Text) &&
+                        !_InputCommandBuffer.IsEmpty &&
+                        _InputCommandBuffer[0] != txtInput.Text)
+               {
+                  _InputCommandBuffer.PushFront(txtInput.Text);
+               }
+
                if (!_InputCommandBuffer.IsEmpty)
                {
                   txtInput.Text = _InputCommandBuffer.MoveForwardInBuffer();
@@ -594,58 +606,44 @@ namespace Org.Edgerunner.Moo.Editor.Controls
          if (reading == 1)
             return;
 
-         while (!_Session.CommandQueue.IsEmpty)
+         try
          {
-            if (_Session.CommandQueue.TryDequeue(out var message))
+            while (!_Session.CommandQueue.IsEmpty)
             {
-               //if (message.OutOfBand)
-               //{
-               //   Debug.WriteLine($"OOB: {message.Text}");
-               //   try
-               //   {
-               //      var parsed = McpUtils.ParseMessage(message.Text);
-               //      if (parsed != null)
-               //         if (McpSessionManager.IsNegotiationMessage(parsed))
-               //         {
-               //            var result = McpSessionManager.NegotiationMcpSession(parsed);
-               //            Debug.WriteLine($"Handshake: {result?.Handshake()}");
-               //         }
-               //   }
-               //   catch (InvalidMcpMessageFormatException ex)
-               //   {
-               //      Debug.WriteLine(ex.Message);
-               //   }
-               //}
-               //else
-               if (MessageProcessor == null || !MessageProcessor.ProcessMessage(this, message))
+               if (_Session.CommandQueue.TryDequeue(out var message))
                {
-                  void SafeWrite()
+                  if (MessageProcessor == null || !MessageProcessor.ProcessMessage(this, message))
                   {
-                     var atBottom = consoleSim.VerticalScrollbarPositionedAtBottom;
-                     consoleSim.WriteAnsi(message);
-                     if (atBottom)
-                        consoleSim.GoEnd();
+                     void SafeWrite()
+                     {
+                        var atBottom = consoleSim.VerticalScrollbarPositionedAtBottom;
+                        consoleSim.WriteAnsi(message);
+                        if (atBottom)
+                           consoleSim.GoEnd();
+                     }
+
+                     Invoke(SafeWrite);
                   }
 
-                  Invoke(SafeWrite);
+                  NewMessageReceived?.InvokeOnUI(new object[] { this, EventArgs.Empty });
                }
-
-               NewMessageReceived?.InvokeOnUI(new object[] { this, EventArgs.Empty });
             }
+
+            // We define a local function to fetch the console line count to be used via thread invocation
+            int GetLineCount() => consoleSim.Lines.Count;
+
+            // This logic is a bit ugly, but it kind of works.
+            // We are assuming that if we see more than 2 new lines printed to screen
+            // after the user types a command, the appears to be a login command
+            // We can mark the connection as being logged in.
+            if (!_LoggedInConnection && _UserInteraction && _LastCommandAppearedToBeALogin)
+               if (consoleSim.Invoke(GetLineCount) - _LastAttemptedLoginScreenLines > 2)
+                  _LoggedInConnection = true;
          }
-
-         // We define a local function to fetch the console line count to be used via thread invocation
-         int GetLineCount() => consoleSim.Lines.Count;
-
-         // This logic is a bit ugly, but it kind of works.
-         // We are assuming that if we see more than 2 new lines printed to screen
-         // after the user types a command, the appears to be a login command
-         // We can mark the connection as being logged in.
-         if (!_LoggedInConnection && _UserInteraction && _LastCommandAppearedToBeALogin)
-            if (consoleSim.Invoke(GetLineCount) - _LastAttemptedLoginScreenLines > 2)
-               _LoggedInConnection = true;
-
-         _ReadingCommands = 0;
+         finally
+         {
+            _ReadingCommands = 0;
+         }
       }
 
       private void Session_Closed(object sender, EventArgs e)

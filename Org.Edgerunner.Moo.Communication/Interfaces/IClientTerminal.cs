@@ -89,6 +89,14 @@ public interface IClientTerminal
    public bool IsConnected { get; }
 
    /// <summary>
+   /// Gets or sets a value indicating whether [echo enabled].
+   /// </summary>
+   /// <value>
+   ///   <c>true</c> if [echo enabled]; otherwise, <c>false</c>.
+   /// </value>
+   public bool EchoEnabled { get; set; }
+
+   /// <summary>
    /// Sends the text lines to the client connection.
    /// </summary>
    /// <param name="lines">The text lines to send.</param>
