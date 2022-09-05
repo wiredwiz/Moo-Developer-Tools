@@ -197,12 +197,13 @@ namespace FastColoredTextBoxNS.Text {
 		static string GetStyleName(IEnumerable<Style> styles)
       {
          var names = new List<string>();
-			foreach (var style in styles)
-			{
-				if (style == null)
-					break;
-            names.Add(style.GetType().Name);
-			}
+			if (styles != null)
+				foreach (var style in styles)
+				{
+					if (style == null)
+						break;
+	            names.Add(style.GetType().Name);
+				}
 			return string.Join(',', names).Replace(" ", "").Replace(",", "");
 		}
 

@@ -47,7 +47,10 @@ namespace FastColoredTextBoxNS.Text {
 			//
 			foreach (Place p in r) {
 				StyledChar c = r.tb[p.iLine][p.iChar];
-				if (!currentStyles.SequenceEqual(c.Styles)) {
+				if ((c.Styles == null && currentStyles != null) ||
+					 (currentStyles == null && c.Styles != null) ||
+					 (currentStyles != null &&
+				    !currentStyles.SequenceEqual(c.Styles))) {
 					Flush(sb, tempSB, currentStyles);
 					currentStyles = c.Styles;
 				}
