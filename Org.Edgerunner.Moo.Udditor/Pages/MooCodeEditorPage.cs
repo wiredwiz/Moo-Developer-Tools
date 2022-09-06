@@ -47,7 +47,7 @@ using Org.Edgerunner.Moo.Editor.Configuration;
 
 namespace Org.Edgerunner.Moo.Udditor.Pages;
 
-public class MooCodeEditorPage : MooDocumentEditorPage
+public class MooCodeEditorPage : MooEditorPage
 {
     /// <summary>
     /// Initializes a new instance of the <see cref="MooCodeEditorPage"/> class.

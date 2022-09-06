@@ -1,5 +1,5 @@
 ﻿#region BSD 3-Clause License
-// <copyright company="Edgerunner.org" file="DocumentEditorPage.cs">
+// <copyright company="Edgerunner.org" file="MooDocumentEditorPage.cs">
 // Copyright (c)  2022
 // </copyright>
 //
@@ -42,9 +42,9 @@ using Org.Edgerunner.Moo.Editor.Controls;
 
 namespace Org.Edgerunner.Moo.Udditor.Pages;
 
-public class DocumentEditorPage : MooEditorPage
+public class MooDocumentEditorPage : MooEditorPage
 {
-    public DocumentEditorPage(WindowManager manager, string documentName, string worldName, string source)
+    public MooDocumentEditorPage(WindowManager manager, string documentName, string worldName, string source)
         : base(manager)
     {
         var name = $@"{documentName} - {worldName}";

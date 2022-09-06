@@ -104,7 +104,7 @@ public class LocalEditHandler : IOutOfBandMessageHandler
                 state.CurrentProcessor = null;
 
                 // Open editor window
-                EditorPage page;
+                MooEditorPage page;
                 if (DocumentName.Contains(":"))
                     page = _WindowManager.CreateMooCodeEditorPage(DocumentName,
                                                            client.World,
