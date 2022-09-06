@@ -1,5 +1,5 @@
 ﻿#region BSD 3-Clause License
-// <copyright company="Edgerunner.org" file="MooText.cs">
+// <copyright company="Edgerunner.org" file="PlainTextToHtmlConverter.cs">
 // Copyright (c)  2022
 // </copyright>
 //
@@ -38,59 +38,62 @@ using System.Text;
 
 namespace Org.Edgerunner.Moo.MooText;
 
-/// <summary>
-/// Class for formatting moo text.
-/// </summary>
-public static class MooText
+public static class PlainTextToHtmlConverter
 {
-   /// <summary>
-   /// Converts the supplied Moo text to html.
-   /// </summary>
-   /// <param name="text">The text to convert.</param>
-   /// <param name="processorPipeline">The processor pipeline.</param>
-   /// <returns>The resulting formatted HTML text.</returns>
-   public static string ToHtml(string text, MooTextPipeline? processorPipeline)
+   public static string ToHtml(string text)
    {
-      if (string.IsNullOrEmpty(text))
-         return string.Empty;
-
-      processorPipeline?.Reset();
-      var builder = new StringBuilder(text.Length + 40);
-      var position = 0;
-      var chars = text.ToCharArray();
-      while (position < chars.Length)
-      {
-         if (processorPipeline != null)
-         {
-            if (!processorPipeline.Process(ref chars, ref position, ref builder))
-               ProcessCharacter(ref chars, ref position, ref builder);
-         }
-         else
-            ProcessCharacter(ref chars, ref position, ref builder);
-      }
-
-      return builder.ToString();
+      return ToHtml(text.ToCharArray());
    }
 
-   /// <summary>
-   /// Processes the character.
-   /// </summary>
-   /// <param name="chars">The character array.</param>
-   /// <param name="position">The current position.</param>
-   /// <param name="builder">The output string builder.</param>
-   private static void ProcessCharacter(ref char[] chars, ref int position, ref StringBuilder builder)
+   public static string ToHtml(char[] text)
    {
-      var c = chars[position++];
-      if (c == '\r')
+      var length = text.Length;
+      var sb = new StringBuilder(length);
+      sb.Append(text);
+      sb.Replace("\r\n", "\n");
+      length = sb.Length;
+      sb.CopyTo(0, text, 0, length);
+      sb.Clear();
+      sb.Append("<p>");
+      var openParagraph = true;
+      for (int i = 0; i < length; i++)
       {
-         // do nothing
+         if (text[i] == '\r')
+         {
+            // ignore
+         }
+         else if (text[i] == '\n')
+         {
+            if (i + 1 < length && text[i + 1] == '\n')
+            {
+               if (openParagraph)
+               {
+                  sb.Append("</p>");
+                  openParagraph = false;
+               }
+               else
+               {
+                  sb.Append("<br/>");
+               }
+               i++;
+            }
+            else
+               sb.Append("<br/>");
+         }
+         else
+         {
+            if (!openParagraph)
+            {
+               openParagraph = true;
+               sb.Append("<p>");
+            }
+            sb.Append(text[i]);
+         }
       }
-      else if (c == '\n')
-      {
-         //builder.Append("<br>");
-         builder.Append(c);
-      }
-      else
-         builder.Append(c);
+
+      if (openParagraph)
+         sb.Append("</p>");
+
+      return sb.ToString();
    }
 }
