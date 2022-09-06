@@ -6,4 +6,8 @@
     <Nullable>enable</Nullable>
   </PropertyGroup>
 
+  <ItemGroup>
+    <PackageReference Include="UniversalSerializer" Version="3.18.4.15" />
+  </ItemGroup>
+
 </Project>
