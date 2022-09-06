@@ -51,7 +51,14 @@ public static class PlainTextToHtmlConverter
       var sb = new StringBuilder(length);
       sb.Append(text);
       sb.Replace("\r\n", "\n");
+      sb.Replace("&", "&amp;");
+      sb.Replace("<", "&lt;");
+      sb.Replace(">", "&gt;");
+      sb.Replace("\"", "&quot;");
+      sb.Replace("'", "&#39;");
+      sb.Replace(" ", "&nbsp;");
       length = sb.Length;
+      text = new char[sb.Length];
       sb.CopyTo(0, text, 0, length);
       sb.Clear();
       sb.Append("<p>");
