@@ -1,5 +1,5 @@
 ﻿#region BSD 3-Clause License
-// <copyright company="Edgerunner.org" file="MooDocumentEditorPage.cs">
+// <copyright company="Edgerunner.org" file="DocumentEditorPage.cs">
 // Copyright (c)  2022
 // </copyright>
 //
@@ -34,105 +34,88 @@
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #endregion
 
+using FastColoredTextBoxNS;
 using FastColoredTextBoxNS.Types;
+using Krypton.Toolkit;
 using Org.Edgerunner.ANTLR4.Tools.Common;
-using Org.Edgerunner.Moo.Communication.Interfaces;
+using Org.Edgerunner.Moo.Editor.Controls;
 
 namespace Org.Edgerunner.Moo.Udditor.Pages;
 
-public abstract class MooDocumentEditorPage : ManagedPage
+public class DocumentEditorPage : MooEditorPage
 {
-    protected MooDocumentEditorPage(WindowManager manager)
+    public DocumentEditorPage(WindowManager manager, string documentName, string worldName, string source)
         : base(manager)
     {
+        var name = $@"{documentName} - {worldName}";
+        var key = $"{name}-{Guid.NewGuid()}";
+        InitializeEditor(key, documentName, name);
+        Editor.Document = new DocumentInfo(key, key, documentName);
+        Editor.Input.Text = source;
+        Editor.Input.IsChanged = false;
+        Editor.Input.ClearUndo();;
+        PostInitialize();
+    }
+
+    public override FastColoredTextBox SourceEditor => Editor.Input;
+
+    public override int CurrentLineNumber => Editor.Input.Selection.Start.iLine;
+
+    public override int CurrentColumnPosition => Editor.Input.Selection.Start.iChar;
+
+    public override DocumentInfo Document
+    {
+        get => Editor.Document;
+        set => Editor.Document = value;
     }
 
     /// <summary>
-    /// Occurs when [cursor position changed].
+    /// Gets or sets the editor.
     /// </summary>
-    public event EventHandler CursorPositionChanged;
+    /// <value>The editor.</value>
+    public MooDocumentEditor Editor { get; set; }
 
     /// <summary>
-    /// Gets or sets the source editor.
-    /// </summary>
-    /// <value>The source editor.</value>
-    public abstract FastColoredTextBoxNS.FastColoredTextBox SourceEditor { get; }
-
-    /// <summary>
-    /// Gets the current line number.
-    /// </summary>
-    /// <value>The current line number.</value>
-    public abstract int CurrentLineNumber { get; }
-
-    /// <summary>
-    /// Gets the current column position.
-    /// </summary>
-    /// <value>The current column position.</value>
-    public abstract int CurrentColumnPosition { get; }
-
-    /// <summary>
-    /// Gets or sets the document.
-    /// </summary>
-    /// <value>The document.</value>
-    public virtual DocumentInfo Document { get; set; }
-
-    /// <summary>
-    /// Gets or sets the uploader.
+    /// Gets or sets a value indicating whether [enable preview].
     /// </summary>
     /// <value>
-    /// The uploader.
+    ///   <c>true</c> if [enable preview]; otherwise, <c>false</c>.
     /// </value>
-    public virtual IClientUploader Uploader { get; set; }
-
-    /// <summary>
-    /// Gets a value indicating whether this instance can upload its contents.
-    /// </summary>
-    /// <value>
-    ///   <c>true</c> if this instance can upload; otherwise, <c>false</c>.
-    /// </value>
-    public virtual bool CanUpload => Uploader != null && Uploader.ClientTerminal.IsConnected;
-
-    /// <summary>
-    /// Gets or sets a value indicating whether word wrap is enabled in the editor.
-    /// </summary>
-    /// <value>
-    ///   <c>true</c> if word wrap enabled; otherwise, <c>false</c>.
-    /// </value>
-    public bool WordWrap
+    public bool EnablePreview
     {
-        get => SourceEditor.WordWrap;
-        set => SourceEditor.WordWrap = value;
+        get => Editor.EnablePreview;
+        set => Editor.EnablePreview = value;
     }
 
     /// <summary>
-    /// Gets or sets a value indicating whether to show line numbers in the editor.
+    /// Initializes a new editor control instance.
     /// </summary>
-    /// <value>
-    ///   <c>true</c> if show line numbers is enabled; otherwise, <c>false</c>.
-    /// </value>
-    /// <exception cref="System.NotImplementedException"></exception>
-    public bool ShowLineNumbers
+    /// <param name="id">The unique identifier for the page.</param>
+    /// <param name="title">The page title.</param>
+    /// <param name="description">The page description.</param>
+    private void InitializeEditor(string id, string title, string description)
     {
-        get => SourceEditor.ShowLineNumbers;
-        set => SourceEditor.ShowLineNumbers = value;
+        Editor = new MooDocumentEditor();
+        Editor.BorderStyle = BorderStyle.Fixed3D;
+        Editor.Dock = DockStyle.Fill;
+        Controls.Add(Editor);
+        UniqueName = id;
+        Text = title;
+        TextTitle = title;
+        TextDescription = description;
+        ToolTipBody = description;
+        ToolTipStyle = LabelStyle.ToolTip;
+        PostInitialize();
     }
 
-    /// <summary>
-    /// Attempts to upload the source code to the linked client terminal.
-    /// </summary>
-    /// <returns></returns>
-    public bool UploadSource()
+    private void PostInitialize()
     {
-        if (Uploader == null)
-            return false;
-
-        if (Uploader.Upload(SourceEditor.Text))
-            SourceEditor.IsChanged = false;
-        return true;
+        Editor.Input.SelectionChangedDelayed += Editor_SelectionChangedDelayed;
+        Editor.Input.Selection = new TextSelectionRange(SourceEditor, 0, 0, 0, 0);
     }
 
-    protected virtual void OnCursorPositionChanged()
+    private void Editor_SelectionChangedDelayed(object sender, EventArgs e)
     {
-        CursorPositionChanged?.Invoke(this, EventArgs.Empty);
+        OnCursorPositionChanged();
     }
 }
