@@ -42,7 +42,7 @@ using Org.Edgerunner.Moo.Editor.Controls;
 
 namespace Org.Edgerunner.Moo.Udditor.Pages;
 
-public class DocumentEditorPage : EditorPage
+public class DocumentEditorPage : MooDocumentEditorPage
 {
     public DocumentEditorPage(WindowManager manager, string documentName, string worldName, string source)
         : base(manager)
