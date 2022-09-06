@@ -15,15 +15,17 @@ using TheArtOfDev.HtmlRenderer.WinForms;
 
 namespace Org.Edgerunner.Moo.Editor.Controls
 {
-   public partial class MarkdownEditor : UserControl
+   public partial class MooDocumentEditor : UserControl
    {
       private readonly MarkdownPipeline _MarkdownPipeline;
       private readonly MooTextPipeline _MooPipeline;
       private Color _PreviewPaneBackgroundColor;
       private Color _PreviewPaneForegroundColor;
       private int _LastLineNo;
+      private bool _EnableMooTextProcessing = true;
+      private bool _EnableMarkdownProcessing;
 
-      public MarkdownEditor()
+      public MooDocumentEditor()
       {
          InitializeComponent();
          _MarkdownPipeline = new MarkdownPipelineBuilder().UseAdvancedExtensions().Build();
@@ -52,12 +54,28 @@ namespace Org.Edgerunner.Moo.Editor.Controls
       [DefaultValue(false)]
       [DisplayName("Enable Markdown")]
       [Description("Enables processing of markdown in the text.")]
-      public bool EnableMarkdownProcessing { get; set; }
+      public bool EnableMarkdownProcessing
+      {
+         get => _EnableMarkdownProcessing;
+         set
+         {
+            _EnableMarkdownProcessing = value;
+            UpdatePreviewContent(TextInput.Text);
+         }
+      }
 
       [DefaultValue(true)]
       [DisplayName("Enable Moo Text")]
       [Description("Enables processing of Moo Text codes.")]
-      public bool EnableMooTextProcessing { get; set; } = true;
+      public bool EnableMooTextProcessing
+      {
+         get => _EnableMooTextProcessing;
+         set
+         {
+            _EnableMooTextProcessing = value;
+            UpdatePreviewContent(TextInput.Text);
+         }
+      }
 
       [DisplayName("Preview Pane Color")]
       [Description("Determines the background color of the preview pane.")]
@@ -109,20 +127,26 @@ namespace Org.Edgerunner.Moo.Editor.Controls
 
       private void textEditor_TextChangedDelayed(object sender, FastColoredTextBoxNS.TextChangedEventArgs e)
       {
-         var working = TextInput.Text;
+         UpdatePreviewContent(TextInput.Text);
+      }
+
+      private void UpdatePreviewContent(string content)
+      {
+         if (EnableMarkdownProcessing)
+            content = Markdown.ToHtml(content, _MarkdownPipeline);
+         else
+            content = PlainTextToHtmlConverter.ToHtml(content);
 
          if (EnableMooTextProcessing)
-            working = MooText.MooText.ToHtml(working, _MooPipeline);
+            content = MooText.MooText.ToHtml(content, _MooPipeline);
 
-         if (EnableMarkdownProcessing)
-            working = Markdown.ToHtml(working, _MarkdownPipeline);
-
-         working = $"<!DOCTYPE html><html><body color=\"{ColorTranslator.ToHtml(PreviewPaneForegroundColor)}\">" + working + "</body></html>";
+         content = $"<!DOCTYPE html><html><body color=\"{ColorTranslator.ToHtml(PreviewPaneForegroundColor)}\">" + content +
+                   "</body></html>";
          var currentVerticalScroll = webPanel.VerticalScroll.Value;
-         webPanel.Text = working;
+         webPanel.Text = content;
          var newScroll = CalculateVerticalScroll(_LastLineNo);
          //while (webPanel.VerticalScroll.Value != newScroll)
-            webPanel.VerticalScroll.Value = newScroll;
+         webPanel.VerticalScroll.Value = newScroll;
       }
 
       private void TextInput_Scroll(object sender, ScrollEventArgs e)

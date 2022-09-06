@@ -127,6 +127,8 @@ public class MooCodeEditorPage : EditorPage
 
     private void PostInitialize()
     {
+        Editor.IsChanged = false;
+        Editor.ClearUndo();
         Editor.SelectionChangedDelayed += Editor_SelectionChangedDelayed;
         Editor.Selection = new TextSelectionRange(SourceEditor, 0, 0, 0, 0);
     }

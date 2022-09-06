@@ -1,5 +1,5 @@
 ﻿#region BSD 3-Clause License
-// <copyright company="Edgerunner.org" file="EditorPage.cs">
+// <copyright company="Edgerunner.org" file="MooDocumentEditorPage.cs">
 // Copyright (c)  2022
 // </copyright>
 //
@@ -40,9 +40,9 @@ using Org.Edgerunner.Moo.Communication.Interfaces;
 
 namespace Org.Edgerunner.Moo.Udditor.Pages;
 
-public abstract class EditorPage : ManagedPage
+public abstract class MooDocumentEditorPage : ManagedPage
 {
-    protected EditorPage(WindowManager manager)
+    protected MooDocumentEditorPage(WindowManager manager)
         : base(manager)
     {
     }

@@ -80,7 +80,7 @@ public class WindowManager
 
     public KryptonWorkspaceCell LastEditorCell { get; set; }
 
-    public event EventHandler<EditorPage> EditorCursorUpdated;
+    public event EventHandler<MooDocumentEditorPage> EditorCursorUpdated;
 
     public event EventHandler<MooCodeEditorPage> EditorParsingComplete;
 
@@ -210,17 +210,17 @@ public class WindowManager
     }
 
     /// <summary>
-    /// Creates a new editor page and registers it.
+    /// Creates a new document editor page and registers it.
     /// </summary>
-    /// <param name="documentName">Name of the verb.</param>
+    /// <param name="documentName">Name of the document.</param>
     /// <param name="worldName">Name of the world.</param>
     /// <param name="source">The source.</param>
-    /// <returns>A new see<see cref="MarkdownEditorPage"/> instance.</returns>
-    public MarkdownEditorPage CreateMarkdownEditorPage(string documentName, string worldName, string source)
+    /// <returns>A new see<see cref="DocumentEditorPage"/> instance.</returns>
+    public DocumentEditorPage CreateDocumentEditorPage(string documentName, string worldName, string source)
     {
-        MarkdownEditorPage CreatePage()
+        DocumentEditorPage CreatePage()
         {
-            var page = new MarkdownEditorPage(this, documentName, worldName, source);
+            var page = new DocumentEditorPage(this, documentName, worldName, source);
             RegisterPage(page);
             page.Editor.PreviewPaneBackgroundColor = Color.Black;
             page.Editor.PreviewPaneForegroundColor = Color.White;
@@ -240,7 +240,7 @@ public class WindowManager
     {
         if ((sender as MooCodeEditorPage)?.KryptonParentContainer is KryptonWorkspaceCell cell)
             LastEditorCell = cell;
-        else if ((sender as MarkdownEditorPage)?.KryptonParentContainer is KryptonWorkspaceCell cell2)
+        else if ((sender as DocumentEditorPage)?.KryptonParentContainer is KryptonWorkspaceCell cell2)
             LastEditorCell = cell2;
     }
 
@@ -283,7 +283,7 @@ public class WindowManager
 
     private void Page_CursorPositionChanged(object sender, EventArgs e)
     {
-        OnEditorCursorUpdated(sender as EditorPage);
+        OnEditorCursorUpdated(sender as MooDocumentEditorPage);
     }
 
     private void Page_ParsingComplete(object sender, ParsingCompleteEventArgs e)
@@ -364,7 +364,7 @@ public class WindowManager
             DoClosePage();
     }
 
-    protected virtual void OnEditorCursorUpdated(EditorPage e)
+    protected virtual void OnEditorCursorUpdated(MooDocumentEditorPage e)
     {
         EditorCursorUpdated?.Invoke(this, e);
     }

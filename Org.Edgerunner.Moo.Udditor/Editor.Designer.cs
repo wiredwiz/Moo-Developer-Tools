@@ -61,6 +61,11 @@ namespace Org.Edgerunner.Moo.Udditor
             this.tlMnuItemToggleFolding = new System.Windows.Forms.ToolStripMenuItem();
             this.tlMnuItemExpandAll = new System.Windows.Forms.ToolStripMenuItem();
             this.tlMnuItemCollapseAll = new System.Windows.Forms.ToolStripMenuItem();
+            this.toolStripSeparator7 = new System.Windows.Forms.ToolStripSeparator();
+            this.mnuItemMarkdown = new System.Windows.Forms.ToolStripMenuItem();
+            this.mnuItemMarkdownSupport = new System.Windows.Forms.ToolStripMenuItem();
+            this.mnuItemMooText = new System.Windows.Forms.ToolStripMenuItem();
+            this.mnuItemMooTextColor = new System.Windows.Forms.ToolStripMenuItem();
             this.mnuItemView = new System.Windows.Forms.ToolStripMenuItem();
             this.mnuItemZoomIn = new System.Windows.Forms.ToolStripMenuItem();
             this.mnuItemZoomOut = new System.Windows.Forms.ToolStripMenuItem();
@@ -68,6 +73,7 @@ namespace Org.Edgerunner.Moo.Udditor
             this.mnuItemWordWrap = new System.Windows.Forms.ToolStripMenuItem();
             this.mnuItemShowLineNumbers = new System.Windows.Forms.ToolStripMenuItem();
             this.mnuItemIndentationGuides = new System.Windows.Forms.ToolStripMenuItem();
+            this.mnuItemShowPreviewPane = new System.Windows.Forms.ToolStripMenuItem();
             this.mnuItemTerminal = new System.Windows.Forms.ToolStripMenuItem();
             this.tlMnuItemOpenConnection = new System.Windows.Forms.ToolStripMenuItem();
             this.mnuItemCloseConnection = new System.Windows.Forms.ToolStripMenuItem();
@@ -94,7 +100,6 @@ namespace Org.Edgerunner.Moo.Udditor
             this.kryptonPalette1 = new Krypton.Toolkit.KryptonPalette(this.components);
             this.kryptonPanel = new Krypton.Toolkit.KryptonPanel();
             this.kryptonDockableWorkspace = new Krypton.Docking.KryptonDockableWorkspace();
-            this.mnuItemShowPreviewPane = new System.Windows.Forms.ToolStripMenuItem();
             this.menuStrip1.SuspendLayout();
             this.statusStrip1.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.kryptonPanel)).BeginInit();
@@ -206,7 +211,10 @@ namespace Org.Edgerunner.Moo.Udditor
             this.mnuItemFind,
             this.toolStripSeparator4,
             this.mnuItemBookmarks,
-            this.mnuItemFolding});
+            this.mnuItemFolding,
+            this.toolStripSeparator7,
+            this.mnuItemMarkdown,
+            this.mnuItemMooText});
             this.editToolStripMenuItem.Name = "editToolStripMenuItem";
             this.editToolStripMenuItem.Size = new System.Drawing.Size(49, 24);
             this.editToolStripMenuItem.Text = "&Edit";
@@ -214,53 +222,53 @@ namespace Org.Edgerunner.Moo.Udditor
             // mnuItemFormat
             // 
             this.mnuItemFormat.Name = "mnuItemFormat";
-            this.mnuItemFormat.Size = new System.Drawing.Size(169, 26);
+            this.mnuItemFormat.Size = new System.Drawing.Size(224, 26);
             this.mnuItemFormat.Text = "Format";
             this.mnuItemFormat.Click += new System.EventHandler(this.mnuItemFormat_Click);
             // 
             // toolStripSeparator2
             // 
             this.toolStripSeparator2.Name = "toolStripSeparator2";
-            this.toolStripSeparator2.Size = new System.Drawing.Size(166, 6);
+            this.toolStripSeparator2.Size = new System.Drawing.Size(221, 6);
             // 
             // mnuItemCut
             // 
             this.mnuItemCut.Name = "mnuItemCut";
-            this.mnuItemCut.Size = new System.Drawing.Size(169, 26);
+            this.mnuItemCut.Size = new System.Drawing.Size(224, 26);
             this.mnuItemCut.Text = "Cut";
             this.mnuItemCut.Click += new System.EventHandler(this.mnuItemCut_Click);
             // 
             // mnuItemCopy
             // 
             this.mnuItemCopy.Name = "mnuItemCopy";
-            this.mnuItemCopy.Size = new System.Drawing.Size(169, 26);
+            this.mnuItemCopy.Size = new System.Drawing.Size(224, 26);
             this.mnuItemCopy.Text = "Copy";
             this.mnuItemCopy.Click += new System.EventHandler(this.mnuItemCopy_Click);
             // 
             // mnuItemCutPaste
             // 
             this.mnuItemCutPaste.Name = "mnuItemCutPaste";
-            this.mnuItemCutPaste.Size = new System.Drawing.Size(169, 26);
+            this.mnuItemCutPaste.Size = new System.Drawing.Size(224, 26);
             this.mnuItemCutPaste.Text = "Paste";
             this.mnuItemCutPaste.Click += new System.EventHandler(this.mnuItemCutPaste_Click);
             // 
             // toolStripSeparator3
             // 
             this.toolStripSeparator3.Name = "toolStripSeparator3";
-            this.toolStripSeparator3.Size = new System.Drawing.Size(166, 6);
+            this.toolStripSeparator3.Size = new System.Drawing.Size(221, 6);
             // 
             // mnuItemFind
             // 
             this.mnuItemFind.Name = "mnuItemFind";
             this.mnuItemFind.ShortcutKeys = ((System.Windows.Forms.Keys)((System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.F)));
-            this.mnuItemFind.Size = new System.Drawing.Size(169, 26);
+            this.mnuItemFind.Size = new System.Drawing.Size(224, 26);
             this.mnuItemFind.Text = "Find";
             this.mnuItemFind.Click += new System.EventHandler(this.mnuItemFind_Click);
             // 
             // toolStripSeparator4
             // 
             this.toolStripSeparator4.Name = "toolStripSeparator4";
-            this.toolStripSeparator4.Size = new System.Drawing.Size(166, 6);
+            this.toolStripSeparator4.Size = new System.Drawing.Size(221, 6);
             // 
             // mnuItemBookmarks
             // 
@@ -269,7 +277,7 @@ namespace Org.Edgerunner.Moo.Udditor
             this.tlMnuItemNextBookmark,
             this.tlMnuItemPrevBookmark});
             this.mnuItemBookmarks.Name = "mnuItemBookmarks";
-            this.mnuItemBookmarks.Size = new System.Drawing.Size(169, 26);
+            this.mnuItemBookmarks.Size = new System.Drawing.Size(224, 26);
             this.mnuItemBookmarks.Text = "Bookmarks";
             // 
             // tlMnuItemToggleBookmark
@@ -306,7 +314,7 @@ namespace Org.Edgerunner.Moo.Udditor
             this.tlMnuItemExpandAll,
             this.tlMnuItemCollapseAll});
             this.mnuItemFolding.Name = "mnuItemFolding";
-            this.mnuItemFolding.Size = new System.Drawing.Size(169, 26);
+            this.mnuItemFolding.Size = new System.Drawing.Size(224, 26);
             this.mnuItemFolding.Text = "Folding";
             // 
             // mnuItemEnableCodeFolding
@@ -341,6 +349,49 @@ namespace Org.Edgerunner.Moo.Udditor
             this.tlMnuItemCollapseAll.Size = new System.Drawing.Size(326, 26);
             this.tlMnuItemCollapseAll.Text = "Collapse All Blocks";
             this.tlMnuItemCollapseAll.Click += new System.EventHandler(this.tlMnuItemCollapseAll_Click);
+            // 
+            // toolStripSeparator7
+            // 
+            this.toolStripSeparator7.Name = "toolStripSeparator7";
+            this.toolStripSeparator7.Size = new System.Drawing.Size(221, 6);
+            // 
+            // mnuItemMarkdown
+            // 
+            this.mnuItemMarkdown.Checked = true;
+            this.mnuItemMarkdown.CheckState = System.Windows.Forms.CheckState.Checked;
+            this.mnuItemMarkdown.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.mnuItemMarkdownSupport});
+            this.mnuItemMarkdown.Name = "mnuItemMarkdown";
+            this.mnuItemMarkdown.Size = new System.Drawing.Size(224, 26);
+            this.mnuItemMarkdown.Text = "Markdown";
+            // 
+            // mnuItemMarkdownSupport
+            // 
+            this.mnuItemMarkdownSupport.Checked = true;
+            this.mnuItemMarkdownSupport.CheckOnClick = true;
+            this.mnuItemMarkdownSupport.CheckState = System.Windows.Forms.CheckState.Checked;
+            this.mnuItemMarkdownSupport.Name = "mnuItemMarkdownSupport";
+            this.mnuItemMarkdownSupport.Size = new System.Drawing.Size(224, 26);
+            this.mnuItemMarkdownSupport.Text = "Enable support";
+            this.mnuItemMarkdownSupport.CheckStateChanged += new System.EventHandler(this.mnuItemMarkdownSupport_CheckStateChanged);
+            // 
+            // mnuItemMooText
+            // 
+            this.mnuItemMooText.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.mnuItemMooTextColor});
+            this.mnuItemMooText.Name = "mnuItemMooText";
+            this.mnuItemMooText.Size = new System.Drawing.Size(224, 26);
+            this.mnuItemMooText.Text = "Moo Text";
+            // 
+            // mnuItemMooTextColor
+            // 
+            this.mnuItemMooTextColor.Checked = true;
+            this.mnuItemMooTextColor.CheckOnClick = true;
+            this.mnuItemMooTextColor.CheckState = System.Windows.Forms.CheckState.Checked;
+            this.mnuItemMooTextColor.Name = "mnuItemMooTextColor";
+            this.mnuItemMooTextColor.Size = new System.Drawing.Size(230, 26);
+            this.mnuItemMooTextColor.Text = "Enable color support";
+            this.mnuItemMooTextColor.CheckStateChanged += new System.EventHandler(this.mnuItemMooTextColor_CheckStateChanged);
             // 
             // mnuItemView
             // 
@@ -406,6 +457,16 @@ namespace Org.Edgerunner.Moo.Udditor
             this.mnuItemIndentationGuides.Size = new System.Drawing.Size(271, 26);
             this.mnuItemIndentationGuides.Text = "Indentation guide lines";
             this.mnuItemIndentationGuides.CheckStateChanged += new System.EventHandler(this.mnuItemIndentationGuides_CheckStateChanged);
+            // 
+            // mnuItemShowPreviewPane
+            // 
+            this.mnuItemShowPreviewPane.Checked = true;
+            this.mnuItemShowPreviewPane.CheckOnClick = true;
+            this.mnuItemShowPreviewPane.CheckState = System.Windows.Forms.CheckState.Checked;
+            this.mnuItemShowPreviewPane.Name = "mnuItemShowPreviewPane";
+            this.mnuItemShowPreviewPane.Size = new System.Drawing.Size(271, 26);
+            this.mnuItemShowPreviewPane.Text = "Show Preview Pane";
+            this.mnuItemShowPreviewPane.CheckStateChanged += new System.EventHandler(this.mnuItemShowPreviewPane_CheckStateChanged);
             // 
             // mnuItemTerminal
             // 
@@ -610,16 +671,6 @@ namespace Org.Edgerunner.Moo.Udditor
             this.kryptonDockableWorkspace.PageCloseClicked += new System.EventHandler<Krypton.Docking.UniqueNameEventArgs>(this.kryptonDockableWorkspace_PageCloseClicked);
             this.kryptonDockableWorkspace.ActivePageChanged += new System.EventHandler<Krypton.Workspace.ActivePageChangedEventArgs>(this.kryptonDockableWorkspace_ActivePageChanged);
             // 
-            // mnuItemShowPreviewPane
-            // 
-            this.mnuItemShowPreviewPane.Checked = true;
-            this.mnuItemShowPreviewPane.CheckOnClick = true;
-            this.mnuItemShowPreviewPane.CheckState = System.Windows.Forms.CheckState.Checked;
-            this.mnuItemShowPreviewPane.Name = "mnuItemShowPreviewPane";
-            this.mnuItemShowPreviewPane.Size = new System.Drawing.Size(271, 26);
-            this.mnuItemShowPreviewPane.Text = "Show Preview Pane";
-            this.mnuItemShowPreviewPane.Click += new System.EventHandler(this.mnuItemShowPreviewPane_Click);
-            // 
             // Editor
             // 
             this.ClientSize = new System.Drawing.Size(957, 767);
@@ -707,5 +758,10 @@ namespace Org.Edgerunner.Moo.Udditor
         private ToolStripSeparator toolStripSeparator6;
         private Krypton.Toolkit.KryptonPalette kryptonPalette1;
         private ToolStripMenuItem mnuItemShowPreviewPane;
+        private ToolStripSeparator toolStripSeparator7;
+        private ToolStripMenuItem mnuItemMarkdown;
+        private ToolStripMenuItem mnuItemMarkdownSupport;
+        private ToolStripMenuItem mnuItemMooText;
+        private ToolStripMenuItem mnuItemMooTextColor;
     }
 }

@@ -96,11 +96,13 @@ public partial class Editor : Form
 
     private void UpdateMenus()
     {
-        var editPage = CurrentPage as EditorPage;
+        var editPage = CurrentPage as MooDocumentEditorPage;
         var mooCodeEditorPage = CurrentPage as MooCodeEditorPage;
+        var documentEditorPage = CurrentPage as DocumentEditorPage;
         var terminalPage = CurrentPage as TerminalPage;
         var isEditor = editPage != null;
         var isMooCodeEditor = mooCodeEditorPage != null;
+        var isDocumentEditor = documentEditorPage != null;
         var isTerminal = terminalPage != null;
         grammarToolStripMenuItem.Enabled = isMooCodeEditor;
         mnuItemSaveAsFile.Enabled = isEditor;
@@ -114,6 +116,8 @@ public partial class Editor : Form
         mnuItemWordWrap.Enabled = isTerminal || isEditor;
         mnuItemShowLineNumbers.Enabled = isEditor;
         mnuItemIndentationGuides.Enabled = isMooCodeEditor;
+        mnuItemMarkdown.Enabled = isDocumentEditor;
+        mnuItemMooText.Enabled = isDocumentEditor;
         UpdateEditMenu();
         UpdateTerminalMenu();
         UpdateViewMenu();
@@ -123,13 +127,19 @@ public partial class Editor : Form
     {
         if (CurrentPage is MooCodeEditorPage page)
             mnuItemEnableCodeFolding.CheckState = page.ShowTextBlockIndentationGuides ? CheckState.Checked : CheckState.Unchecked;
+        if (CurrentPage is DocumentEditorPage documentPage)
+        {
+            mnuItemMarkdownSupport.CheckState =
+                documentPage.Editor.EnableMarkdownProcessing ? CheckState.Checked : CheckState.Unchecked;
+            mnuItemMooTextColor.CheckState = documentPage.Editor.EnableMooTextProcessing ? CheckState.Checked : CheckState.Unchecked;
+        }
     }
 
     private void UpdateViewMenu()
     {
         var mooCodeEditorPage = CurrentPage as MooCodeEditorPage;
-        var documentEditorPage = CurrentPage as MarkdownEditorPage;
-        var editorPage = CurrentPage as EditorPage;
+        var documentEditorPage = CurrentPage as DocumentEditorPage;
+        var editorPage = CurrentPage as MooDocumentEditorPage;
         var terminalPage = CurrentPage as TerminalPage;
         var isMooCodeEditor = mooCodeEditorPage != null;
         var isEditor = editorPage != null;
@@ -187,7 +197,7 @@ public partial class Editor : Form
         }
     }
 
-    private void WindowManager_EditorCursorUpdated(object sender, EditorPage e)
+    private void WindowManager_EditorCursorUpdated(object sender, MooDocumentEditorPage e)
     {
         if (CurrentPage == e)
         {
@@ -233,7 +243,7 @@ public partial class Editor : Form
     }
     private void mnuItemSave_Click(object sender, EventArgs e)
     {
-        if (CurrentPage is EditorPage page)
+        if (CurrentPage is MooDocumentEditorPage page)
         {
             if (!string.IsNullOrEmpty(page.Document.Path))
                 page.SourceEditor.SaveToFile(page.Document.Path, Encoding.Default);
@@ -259,7 +269,7 @@ public partial class Editor : Form
 
     private void mnuItemSaveAsFile_Click(object sender, EventArgs e)
     {
-        if (CurrentPage is EditorPage page)
+        if (CurrentPage is MooDocumentEditorPage page)
         {
             saveFileDialog.DefaultExt = "moo";
             saveFileDialog.Filter = @"Moo files (*.moo)|*.moo|Text files (*.txt)|*.txt|Markdown files (*.md)|*.md|All files (*.*)|*.*";
@@ -299,27 +309,27 @@ public partial class Editor : Form
     private void mnuItemCut_Click(object sender, EventArgs e)
     {
         // TODO: add support for different window types
-        if (CurrentPage is EditorPage page)
+        if (CurrentPage is MooDocumentEditorPage page)
             page.SourceEditor.Cut();
     }
 
     private void mnuItemCopy_Click(object sender, EventArgs e)
     {
         // TODO: add support for different window types
-        if (CurrentPage is EditorPage page)
+        if (CurrentPage is MooDocumentEditorPage page)
             page.SourceEditor.Copy();
     }
 
     private void mnuItemCutPaste_Click(object sender, EventArgs e)
     {
         // TODO: add support for different window types
-        if (CurrentPage is EditorPage page)
+        if (CurrentPage is MooDocumentEditorPage page)
             page.SourceEditor.Paste();
     }
 
     private void mnuItemFind_Click(object sender, EventArgs e)
     {
-        if (CurrentPage is EditorPage editorPage)
+        if (CurrentPage is MooDocumentEditorPage editorPage)
             editorPage.SourceEditor.ShowFindDialog();
         else if (CurrentPage is TerminalPage terminalPage)
             terminalPage.Terminal.Output.ShowFindDialog();
@@ -443,7 +453,7 @@ public partial class Editor : Form
         else if (e.OldPage is TerminalPage oldTerminalPage)
             WindowManager.RecentTerminal = oldTerminalPage;
 
-        if (CurrentPage is EditorPage editorPage2)
+        if (CurrentPage is MooDocumentEditorPage editorPage2)
         {
             tlStatusLine.Text = ((editorPage2.SourceEditor?.Selection.Start.iLine + 1) ?? 1).ToString();
             tlStatusColumn.Text = ((editorPage2.SourceEditor?.Selection.Start.iChar + 1) ?? 1).ToString();
@@ -516,7 +526,7 @@ public partial class Editor : Form
 
     private void mnuItemSend_Click(object sender, EventArgs e)
     {
-        if (CurrentPage is EditorPage { CanUpload: true } page)
+        if (CurrentPage is MooDocumentEditorPage { CanUpload: true } page)
             page.UploadSource();
     }
 
@@ -540,7 +550,7 @@ public partial class Editor : Form
 
     private void mnuItemWordWrap_CheckStateChanged(object sender, EventArgs e)
     {
-        if (CurrentPage is EditorPage editorPage)
+        if (CurrentPage is MooDocumentEditorPage editorPage)
             editorPage.WordWrap = mnuItemWordWrap.CheckState == CheckState.Checked;
         else if (CurrentPage is TerminalPage terminalPage)
             terminalPage.WordWrap = mnuItemWordWrap.CheckState == CheckState.Checked;
@@ -548,7 +558,7 @@ public partial class Editor : Form
 
     private void mnuItemShowLineNumbers_CheckStateChanged(object sender, EventArgs e)
     {
-        if (CurrentPage is EditorPage editorPage)
+        if (CurrentPage is MooDocumentEditorPage editorPage)
             editorPage.ShowLineNumbers = mnuItemShowLineNumbers.CheckState == CheckState.Checked;
     }
 
@@ -566,7 +576,7 @@ public partial class Editor : Form
 
     private void mnuItemZoomIn_Click(object sender, EventArgs e)
     {
-        if (CurrentPage is EditorPage editorPage)
+        if (CurrentPage is MooDocumentEditorPage editorPage)
             editorPage.SourceEditor.Zoom += 20;
         if (CurrentPage is TerminalPage terminalPage)
             terminalPage.Terminal.Output.Zoom += 20;
@@ -574,7 +584,7 @@ public partial class Editor : Form
 
     private void mnuItemZoomOut_Click(object sender, EventArgs e)
     {
-        if (CurrentPage is EditorPage editorPage)
+        if (CurrentPage is MooDocumentEditorPage editorPage)
             if (editorPage.SourceEditor.Zoom > 30)
                 editorPage.SourceEditor.Zoom -= 20;
         if (CurrentPage is TerminalPage terminalPage)
@@ -582,9 +592,22 @@ public partial class Editor : Form
                 terminalPage.Terminal.Output.Zoom -= 20;
     }
 
-    private void mnuItemShowPreviewPane_Click(object sender, EventArgs e)
+    private void mnuItemShowPreviewPane_CheckStateChanged(object sender, EventArgs e)
     {
-        if (CurrentPage is MarkdownEditorPage page)
+        if (CurrentPage is DocumentEditorPage page)
             page.EnablePreview = mnuItemShowPreviewPane.CheckState == CheckState.Checked;
+    }
+
+    private void mnuItemMooTextColor_CheckStateChanged(object sender, EventArgs e)
+    {
+        if (CurrentPage is DocumentEditorPage page)
+            page.Editor.EnableMooTextProcessing = mnuItemMooTextColor.CheckState == CheckState.Checked;
+    }
+
+    private void mnuItemMarkdownSupport_CheckStateChanged(object sender, EventArgs e)
+    {
+        mnuItemMarkdown.CheckState = mnuItemMarkdownSupport.CheckState;
+        if (CurrentPage is DocumentEditorPage page)
+            page.Editor.EnableMarkdownProcessing = mnuItemMarkdownSupport.CheckState == CheckState.Checked;
     }
 }

@@ -1,5 +1,5 @@
 ﻿#region BSD 3-Clause License
-// <copyright company="Edgerunner.org" file="MarkdownEditorPage.cs">
+// <copyright company="Edgerunner.org" file="DocumentEditorPage.cs">
 // Copyright (c)  2022
 // </copyright>
 //
@@ -42,9 +42,9 @@ using Org.Edgerunner.Moo.Editor.Controls;
 
 namespace Org.Edgerunner.Moo.Udditor.Pages;
 
-public class MarkdownEditorPage : EditorPage
+public class DocumentEditorPage : EditorPage
 {
-    public MarkdownEditorPage(WindowManager manager, string documentName, string worldName, string source)
+    public DocumentEditorPage(WindowManager manager, string documentName, string worldName, string source)
         : base(manager)
     {
         var name = $@"{documentName} - {worldName}";
@@ -52,6 +52,8 @@ public class MarkdownEditorPage : EditorPage
         InitializeEditor(key, documentName, name);
         Editor.Document = new DocumentInfo(key, key, documentName);
         Editor.Input.Text = source;
+        Editor.Input.IsChanged = false;
+        Editor.Input.ClearUndo();;
         PostInitialize();
     }
 
@@ -71,7 +73,7 @@ public class MarkdownEditorPage : EditorPage
     /// Gets or sets the editor.
     /// </summary>
     /// <value>The editor.</value>
-    public MarkdownEditor Editor { get; set; }
+    public MooDocumentEditor Editor { get; set; }
 
     /// <summary>
     /// Gets or sets a value indicating whether [enable preview].
@@ -93,7 +95,7 @@ public class MarkdownEditorPage : EditorPage
     /// <param name="description">The page description.</param>
     private void InitializeEditor(string id, string title, string description)
     {
-        Editor = new MarkdownEditor();
+        Editor = new MooDocumentEditor();
         Editor.BorderStyle = BorderStyle.Fixed3D;
         Editor.Dock = DockStyle.Fill;
         Controls.Add(Editor);

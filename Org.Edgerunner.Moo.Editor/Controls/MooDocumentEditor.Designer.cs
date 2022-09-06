@@ -1,6 +1,6 @@
 ﻿namespace Org.Edgerunner.Moo.Editor.Controls
 {
-   partial class MarkdownEditor
+   partial class MooDocumentEditor
    {
       /// <summary> 
       /// Required designer variable.
@@ -29,7 +29,7 @@
       private void InitializeComponent()
       {
             this.components = new System.ComponentModel.Container();
-            System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(MarkdownEditor));
+            System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(MooDocumentEditor));
             this.splitContainer = new System.Windows.Forms.SplitContainer();
             this.TextInput = new FastColoredTextBoxNS.FastColoredTextBox();
             this.webPanel = new TheArtOfDev.HtmlRenderer.WinForms.HtmlPanel();
@@ -116,12 +116,12 @@
             this.webPanel.TabIndex = 0;
             this.webPanel.Text = null;
             // 
-            // MarkdownEditor
+            // MooDocumentEditor
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(8F, 20F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.Controls.Add(this.splitContainer);
-            this.Name = "MarkdownEditor";
+            this.Name = "MooDocumentEditor";
             this.Size = new System.Drawing.Size(306, 256);
             this.splitContainer.Panel1.ResumeLayout(false);
             this.splitContainer.Panel2.ResumeLayout(false);
