@@ -28,106 +28,117 @@ partial class ConnectionInfoPrompt
     /// </summary>
     private void InitializeComponent()
     {
-         this.label1 = new System.Windows.Forms.Label();
-         this.txtHost = new System.Windows.Forms.TextBox();
-         this.label2 = new System.Windows.Forms.Label();
-         this.btnCancel = new System.Windows.Forms.Button();
-         this.btnConnect = new System.Windows.Forms.Button();
-         this.txtPort = new System.Windows.Forms.MaskedTextBox();
-         this.chkTls = new System.Windows.Forms.CheckBox();
+         this.kryptonLabel1 = new Krypton.Toolkit.KryptonLabel();
+         this.kryptonLabel2 = new Krypton.Toolkit.KryptonLabel();
+         this.txtPort = new Krypton.Toolkit.KryptonTextBox();
+         this.txtHost = new Krypton.Toolkit.KryptonTextBox();
+         this.chkTls = new Krypton.Toolkit.KryptonCheckBox();
+         this.kryptonPanel1 = new Krypton.Toolkit.KryptonPanel();
+         this.btnConnect = new Krypton.Toolkit.KryptonButton();
+         this.btnCancel = new Krypton.Toolkit.KryptonButton();
+         ((System.ComponentModel.ISupportInitialize)(this.kryptonPanel1)).BeginInit();
+         this.kryptonPanel1.SuspendLayout();
          this.SuspendLayout();
          // 
-         // label1
+         // kryptonLabel1
          // 
-         this.label1.AutoSize = true;
-         this.label1.Location = new System.Drawing.Point(12, 21);
-         this.label1.Name = "label1";
-         this.label1.Size = new System.Drawing.Size(40, 20);
-         this.label1.TabIndex = 0;
-         this.label1.Text = "Host";
+         this.kryptonLabel1.Location = new System.Drawing.Point(11, 20);
+         this.kryptonLabel1.Name = "kryptonLabel1";
+         this.kryptonLabel1.Size = new System.Drawing.Size(41, 23);
+         this.kryptonLabel1.TabIndex = 0;
+         this.kryptonLabel1.Values.Text = "Host";
          // 
-         // txtHost
+         // kryptonLabel2
          // 
-         this.txtHost.Location = new System.Drawing.Point(58, 18);
-         this.txtHost.Name = "txtHost";
-         this.txtHost.Size = new System.Drawing.Size(198, 27);
-         this.txtHost.TabIndex = 1;
-         // 
-         // label2
-         // 
-         this.label2.AutoSize = true;
-         this.label2.Location = new System.Drawing.Point(273, 21);
-         this.label2.Name = "label2";
-         this.label2.Size = new System.Drawing.Size(35, 20);
-         this.label2.TabIndex = 2;
-         this.label2.Text = "Port";
-         // 
-         // btnCancel
-         // 
-         this.btnCancel.Location = new System.Drawing.Point(154, 69);
-         this.btnCancel.Name = "btnCancel";
-         this.btnCancel.Size = new System.Drawing.Size(94, 29);
-         this.btnCancel.TabIndex = 5;
-         this.btnCancel.Text = "Cancel";
-         this.btnCancel.UseVisualStyleBackColor = true;
-         // 
-         // btnConnect
-         // 
-         this.btnConnect.Location = new System.Drawing.Point(273, 69);
-         this.btnConnect.Name = "btnConnect";
-         this.btnConnect.Size = new System.Drawing.Size(94, 29);
-         this.btnConnect.TabIndex = 6;
-         this.btnConnect.Text = "Connect";
-         this.btnConnect.UseVisualStyleBackColor = true;
-         this.btnConnect.Click += new System.EventHandler(this.btnConnect_Click);
+         this.kryptonLabel2.Location = new System.Drawing.Point(273, 20);
+         this.kryptonLabel2.Name = "kryptonLabel2";
+         this.kryptonLabel2.Size = new System.Drawing.Size(38, 23);
+         this.kryptonLabel2.TabIndex = 2;
+         this.kryptonLabel2.Values.Text = "Port";
          // 
          // txtPort
          // 
-         this.txtPort.Location = new System.Drawing.Point(314, 18);
-         this.txtPort.Mask = "00000";
+         this.txtPort.Location = new System.Drawing.Point(317, 17);
          this.txtPort.Name = "txtPort";
-         this.txtPort.Size = new System.Drawing.Size(53, 27);
+         this.txtPort.Size = new System.Drawing.Size(46, 26);
          this.txtPort.TabIndex = 3;
-         this.txtPort.ValidatingType = typeof(int);
+         this.txtPort.Validating += new System.ComponentModel.CancelEventHandler(this.ConnectInfo_Validating);
+         // 
+         // txtHost
+         // 
+         this.txtHost.Location = new System.Drawing.Point(58, 17);
+         this.txtHost.Name = "txtHost";
+         this.txtHost.Size = new System.Drawing.Size(209, 26);
+         this.txtHost.TabIndex = 1;
+         this.txtHost.Validating += new System.ComponentModel.CancelEventHandler(this.ConnectInfo_Validating);
          // 
          // chkTls
          // 
-         this.chkTls.AutoSize = true;
-         this.chkTls.Location = new System.Drawing.Point(12, 72);
+         this.chkTls.Location = new System.Drawing.Point(12, 67);
          this.chkTls.Name = "chkTls";
-         this.chkTls.Size = new System.Drawing.Size(82, 24);
+         this.chkTls.Size = new System.Drawing.Size(74, 23);
          this.chkTls.TabIndex = 4;
-         this.chkTls.Text = "Use TLS";
-         this.chkTls.UseVisualStyleBackColor = true;
+         this.chkTls.Values.Text = "Use TLS";
+         // 
+         // kryptonPanel1
+         // 
+         this.kryptonPanel1.Controls.Add(this.btnConnect);
+         this.kryptonPanel1.Controls.Add(this.btnCancel);
+         this.kryptonPanel1.Controls.Add(this.chkTls);
+         this.kryptonPanel1.Controls.Add(this.kryptonLabel1);
+         this.kryptonPanel1.Controls.Add(this.txtHost);
+         this.kryptonPanel1.Controls.Add(this.kryptonLabel2);
+         this.kryptonPanel1.Controls.Add(this.txtPort);
+         this.kryptonPanel1.Dock = System.Windows.Forms.DockStyle.Fill;
+         this.kryptonPanel1.Location = new System.Drawing.Point(0, 0);
+         this.kryptonPanel1.Name = "kryptonPanel1";
+         this.kryptonPanel1.Size = new System.Drawing.Size(386, 104);
+         this.kryptonPanel1.TabIndex = 0;
+         // 
+         // btnConnect
+         // 
+         this.btnConnect.Enabled = false;
+         this.btnConnect.Location = new System.Drawing.Point(274, 65);
+         this.btnConnect.Name = "btnConnect";
+         this.btnConnect.Size = new System.Drawing.Size(89, 36);
+         this.btnConnect.StateCommon.Content.ShortText.Font = new System.Drawing.Font("Segoe UI", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
+         this.btnConnect.TabIndex = 6;
+         this.btnConnect.Values.Text = "Connect";
+         this.btnConnect.Click += new System.EventHandler(this.btnConnect_Click);
+         // 
+         // btnCancel
+         // 
+         this.btnCancel.Location = new System.Drawing.Point(163, 65);
+         this.btnCancel.Name = "btnCancel";
+         this.btnCancel.Size = new System.Drawing.Size(89, 36);
+         this.btnCancel.StateCommon.Content.ShortText.Font = new System.Drawing.Font("Segoe UI", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
+         this.btnCancel.TabIndex = 5;
+         this.btnCancel.Values.Text = "Cancel";
          // 
          // ConnectionInfoPrompt
          // 
-         this.AutoScaleDimensions = new System.Drawing.SizeF(8F, 20F);
+         this.AutoScaleDimensions = new System.Drawing.SizeF(8F, 19F);
          this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
          this.CancelButton = this.btnCancel;
-         this.ClientSize = new System.Drawing.Size(386, 110);
-         this.Controls.Add(this.chkTls);
-         this.Controls.Add(this.txtPort);
-         this.Controls.Add(this.btnConnect);
-         this.Controls.Add(this.btnCancel);
-         this.Controls.Add(this.label2);
-         this.Controls.Add(this.txtHost);
-         this.Controls.Add(this.label1);
+         this.ClientSize = new System.Drawing.Size(386, 104);
+         this.Controls.Add(this.kryptonPanel1);
          this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedToolWindow;
          this.Name = "ConnectionInfoPrompt";
          this.Text = "Enter Connection Info";
+         ((System.ComponentModel.ISupportInitialize)(this.kryptonPanel1)).EndInit();
+         this.kryptonPanel1.ResumeLayout(false);
+         this.kryptonPanel1.PerformLayout();
          this.ResumeLayout(false);
-         this.PerformLayout();
 
     }
 
     #endregion
-
-    private Label label1;
-    private TextBox txtHost;
-    private Label label2;
-    private Button btnCancel;
-    private Button btnConnect;
-    private MaskedTextBox txtPort;
-    private CheckBox chkTls;
+    private Krypton.Toolkit.KryptonLabel kryptonLabel1;
+    private Krypton.Toolkit.KryptonLabel kryptonLabel2;
+    private Krypton.Toolkit.KryptonTextBox txtPort;
+    private Krypton.Toolkit.KryptonTextBox txtHost;
+    private Krypton.Toolkit.KryptonCheckBox chkTls;
+    private Krypton.Toolkit.KryptonPanel kryptonPanel1;
+    private Krypton.Toolkit.KryptonButton btnCancel;
+    private Krypton.Toolkit.KryptonButton btnConnect;
 }

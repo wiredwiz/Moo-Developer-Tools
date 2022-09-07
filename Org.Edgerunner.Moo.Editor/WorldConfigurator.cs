@@ -8,11 +8,12 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
+using Krypton.Toolkit;
 using Org.Edgerunner.Moo.Common.Encryption;
 
 namespace Org.Edgerunner.Moo.Editor
 {
-   public partial class WorldConfigurator : Form
+   public partial class WorldConfigurator : KryptonForm
    {
       private WorldConfiguration _World;
 

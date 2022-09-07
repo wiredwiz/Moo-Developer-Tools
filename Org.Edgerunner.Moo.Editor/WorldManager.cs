@@ -1,4 +1,5 @@
-﻿using Org.Edgerunner.Moo.Common;
+﻿using Krypton.Toolkit;
+using Org.Edgerunner.Moo.Common;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -11,7 +12,7 @@ using System.Windows.Forms;
 
 namespace Org.Edgerunner.Moo.Editor
 {
-   public partial class WorldManager : Form
+   public partial class WorldManager : KryptonForm
    {
       public WorldManager()
       {

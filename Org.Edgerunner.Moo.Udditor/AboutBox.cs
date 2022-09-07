@@ -6,9 +6,10 @@ using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
 using System.Windows.Forms;
+using Krypton.Toolkit;
 
 namespace Org.Edgerunner.Moo.Udditor;
-partial class AboutBox : Form
+partial class AboutBox : KryptonForm
 {
     public AboutBox()
     {
