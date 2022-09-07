@@ -107,7 +107,7 @@ public class UserLogin
     [XmlIgnore]
     public string DecryptedPassword
     {
-        get => AesCrypto.Decrypt(Password, _Key) ?? Empty;
+        get => !IsNullOrEmpty(Password) ? AesCrypto.Decrypt(Password, _Key) ?? Empty : Empty;
         set => Password = AesCrypto.Encrypt(value, _Key);
     }
 }
