@@ -144,6 +144,7 @@ partial class AboutBox
          // 
          // okButton
          // 
+         this.okButton.AccessibleRole = System.Windows.Forms.AccessibleRole.PushButton;
          this.okButton.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
          this.okButton.DialogResult = System.Windows.Forms.DialogResult.Cancel;
          this.okButton.Location = new System.Drawing.Point(452, 350);
@@ -168,6 +169,7 @@ partial class AboutBox
          this.AcceptButton = this.okButton;
          this.AutoScaleDimensions = new System.Drawing.SizeF(8F, 19F);
          this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
+         this.CancelButton = this.okButton;
          this.ClientSize = new System.Drawing.Size(580, 413);
          this.Controls.Add(this.kryptonPanel1);
          this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedDialog;

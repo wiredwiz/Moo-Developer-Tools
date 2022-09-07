@@ -42,6 +42,7 @@
          // 
          // btnConnect
          // 
+         this.btnConnect.AccessibleRole = System.Windows.Forms.AccessibleRole.PushButton;
          this.btnConnect.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
          this.btnConnect.Location = new System.Drawing.Point(251, 253);
          this.btnConnect.Name = "btnConnect";
@@ -54,6 +55,7 @@
          // 
          // btnEdit
          // 
+         this.btnEdit.AccessibleRole = System.Windows.Forms.AccessibleRole.PushButton;
          this.btnEdit.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
          this.btnEdit.Location = new System.Drawing.Point(251, 152);
          this.btnEdit.Name = "btnEdit";
@@ -66,6 +68,7 @@
          // 
          // btnDelete
          // 
+         this.btnDelete.AccessibleRole = System.Windows.Forms.AccessibleRole.PushButton;
          this.btnDelete.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
          this.btnDelete.Location = new System.Drawing.Point(251, 194);
          this.btnDelete.Name = "btnDelete";
@@ -78,6 +81,7 @@
          // 
          // btnMoveUp
          // 
+         this.btnMoveUp.AccessibleRole = System.Windows.Forms.AccessibleRole.PushButton;
          this.btnMoveUp.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
          this.btnMoveUp.Location = new System.Drawing.Point(251, 12);
          this.btnMoveUp.Name = "btnMoveUp";
@@ -90,6 +94,7 @@
          // 
          // btnMoveDown
          // 
+         this.btnMoveDown.AccessibleRole = System.Windows.Forms.AccessibleRole.PushButton;
          this.btnMoveDown.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
          this.btnMoveDown.Location = new System.Drawing.Point(251, 54);
          this.btnMoveDown.Name = "btnMoveDown";
@@ -102,6 +107,7 @@
          // 
          // btnNew
          // 
+         this.btnNew.AccessibleRole = System.Windows.Forms.AccessibleRole.PushButton;
          this.btnNew.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
          this.btnNew.Location = new System.Drawing.Point(251, 110);
          this.btnNew.Name = "btnNew";
@@ -114,6 +120,7 @@
          // 
          // lstWorlds
          // 
+         this.lstWorlds.AccessibleRole = System.Windows.Forms.AccessibleRole.List;
          this.lstWorlds.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
             | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));

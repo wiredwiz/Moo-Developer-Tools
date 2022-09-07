@@ -107,6 +107,7 @@
          // 
          // txtConnection
          // 
+         this.txtConnection.AccessibleName = "Connection string";
          this.txtConnection.Location = new System.Drawing.Point(104, 182);
          this.txtConnection.Multiline = true;
          this.txtConnection.Name = "txtConnection";
@@ -116,6 +117,7 @@
          // 
          // txtName
          // 
+         this.txtName.AccessibleName = "World Name";
          this.txtName.Location = new System.Drawing.Point(104, 12);
          this.txtName.Name = "txtName";
          this.txtName.Size = new System.Drawing.Size(156, 26);
@@ -124,6 +126,7 @@
          // 
          // txtHost
          // 
+         this.txtHost.AccessibleName = "Host Address";
          this.txtHost.Location = new System.Drawing.Point(104, 44);
          this.txtHost.Name = "txtHost";
          this.txtHost.Size = new System.Drawing.Size(156, 26);
@@ -132,6 +135,7 @@
          // 
          // txtPort
          // 
+         this.txtPort.AccessibleName = "Port Number";
          this.txtPort.Location = new System.Drawing.Point(104, 76);
          this.txtPort.Name = "txtPort";
          this.txtPort.Size = new System.Drawing.Size(156, 26);
@@ -141,6 +145,7 @@
          // 
          // txtUser
          // 
+         this.txtUser.AccessibleName = "Use Name";
          this.txtUser.Location = new System.Drawing.Point(104, 118);
          this.txtUser.Name = "txtUser";
          this.txtUser.Size = new System.Drawing.Size(156, 26);
@@ -148,6 +153,7 @@
          // 
          // txtPassword
          // 
+         this.txtPassword.AccessibleName = "User Password";
          this.txtPassword.Location = new System.Drawing.Point(104, 150);
          this.txtPassword.Name = "txtPassword";
          this.txtPassword.PasswordChar = '●';
@@ -157,6 +163,7 @@
          // 
          // chkMcp
          // 
+         this.chkMcp.AccessibleRole = System.Windows.Forms.AccessibleRole.CheckButton;
          this.chkMcp.Location = new System.Drawing.Point(51, 397);
          this.chkMcp.Name = "chkMcp";
          this.chkMcp.Size = new System.Drawing.Size(100, 23);
@@ -165,6 +172,7 @@
          // 
          // chkColor
          // 
+         this.chkColor.AccessibleRole = System.Windows.Forms.AccessibleRole.CheckButton;
          this.chkColor.Location = new System.Drawing.Point(51, 426);
          this.chkColor.Name = "chkColor";
          this.chkColor.Size = new System.Drawing.Size(105, 23);
@@ -173,6 +181,7 @@
          // 
          // chkShowOnMenu
          // 
+         this.chkShowOnMenu.AccessibleRole = System.Windows.Forms.AccessibleRole.CheckButton;
          this.chkShowOnMenu.Location = new System.Drawing.Point(51, 455);
          this.chkShowOnMenu.Name = "chkShowOnMenu";
          this.chkShowOnMenu.Size = new System.Drawing.Size(177, 23);
@@ -181,6 +190,7 @@
          // 
          // chkLocalEdit
          // 
+         this.chkLocalEdit.AccessibleRole = System.Windows.Forms.AccessibleRole.CheckButton;
          this.chkLocalEdit.Location = new System.Drawing.Point(51, 368);
          this.chkLocalEdit.Name = "chkLocalEdit";
          this.chkLocalEdit.Size = new System.Drawing.Size(193, 23);
@@ -210,6 +220,7 @@
          // 
          this.btnShowPassword.AccessibleDescription = "Displays or hides the password text";
          this.btnShowPassword.AccessibleName = "Show password button";
+         this.btnShowPassword.AccessibleRole = System.Windows.Forms.AccessibleRole.PushButton;
          this.btnShowPassword.Checked = true;
          this.btnShowPassword.Location = new System.Drawing.Point(266, 151);
          this.btnShowPassword.Name = "btnShowPassword";
@@ -222,6 +233,7 @@
          // 
          // chkEnableEcho
          // 
+         this.chkEnableEcho.AccessibleRole = System.Windows.Forms.AccessibleRole.CheckButton;
          this.chkEnableEcho.Location = new System.Drawing.Point(51, 338);
          this.chkEnableEcho.Name = "chkEnableEcho";
          this.chkEnableEcho.Size = new System.Drawing.Size(156, 23);
@@ -230,6 +242,7 @@
          // 
          // chkAutoLogin
          // 
+         this.chkAutoLogin.AccessibleRole = System.Windows.Forms.AccessibleRole.CheckButton;
          this.chkAutoLogin.Location = new System.Drawing.Point(51, 280);
          this.chkAutoLogin.Name = "chkAutoLogin";
          this.chkAutoLogin.Size = new System.Drawing.Size(150, 23);
@@ -238,6 +251,7 @@
          // 
          // chkPrompt
          // 
+         this.chkPrompt.AccessibleRole = System.Windows.Forms.AccessibleRole.CheckButton;
          this.chkPrompt.Location = new System.Drawing.Point(51, 309);
          this.chkPrompt.Name = "chkPrompt";
          this.chkPrompt.Size = new System.Drawing.Size(171, 23);
@@ -246,6 +260,7 @@
          // 
          // chkUseTLS
          // 
+         this.chkUseTLS.AccessibleRole = System.Windows.Forms.AccessibleRole.CheckButton;
          this.chkUseTLS.Location = new System.Drawing.Point(51, 251);
          this.chkUseTLS.Name = "chkUseTLS";
          this.chkUseTLS.Size = new System.Drawing.Size(74, 23);

@@ -8,13 +8,14 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <StartupObject>Org.Edgerunner.Moo.Udditor.Program</StartupObject>
     <Authors>wiredwiz</Authors>
-    <Description>A rapid IDE for the Moo programming language.</Description>
+    <Description>A rapid IDE for the Moo programming language.  Udditor includes a client terminal program, a Moo code editor and document editor.
+Udditor is intended to allow Moo programmers to work faster, waste less time and write better code.</Description>
     <Copyright>Thaddeus Ryker 2022</Copyright>
     <AssemblyName>Moo Udditor</AssemblyName>
     <ApplicationIcon>UdditorLogo.ico</ApplicationIcon>
-    <AssemblyVersion>1.0.22228.2</AssemblyVersion>
-    <FileVersion>1.0.22228.2</FileVersion>
-    <Version>1.0.22249.0-alpha</Version>
+    <AssemblyVersion>1.0.22250.0</AssemblyVersion>
+    <FileVersion>1.0.22250.0</FileVersion>
+    <Version>1.0.22250.0-alpha</Version>
   </PropertyGroup>
 
   <ItemGroup>

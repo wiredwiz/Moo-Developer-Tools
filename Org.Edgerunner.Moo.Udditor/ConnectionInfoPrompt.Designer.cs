@@ -58,6 +58,7 @@ partial class ConnectionInfoPrompt
          // 
          // txtPort
          // 
+         this.txtPort.AccessibleName = "Port Number";
          this.txtPort.Location = new System.Drawing.Point(317, 17);
          this.txtPort.Name = "txtPort";
          this.txtPort.Size = new System.Drawing.Size(46, 26);
@@ -66,6 +67,7 @@ partial class ConnectionInfoPrompt
          // 
          // txtHost
          // 
+         this.txtHost.AccessibleName = "Host Address";
          this.txtHost.Location = new System.Drawing.Point(58, 17);
          this.txtHost.Name = "txtHost";
          this.txtHost.Size = new System.Drawing.Size(209, 26);
@@ -74,6 +76,7 @@ partial class ConnectionInfoPrompt
          // 
          // chkTls
          // 
+         this.chkTls.AccessibleRole = System.Windows.Forms.AccessibleRole.CheckButton;
          this.chkTls.Location = new System.Drawing.Point(12, 67);
          this.chkTls.Name = "chkTls";
          this.chkTls.Size = new System.Drawing.Size(74, 23);
@@ -97,6 +100,7 @@ partial class ConnectionInfoPrompt
          // 
          // btnConnect
          // 
+         this.btnConnect.AccessibleRole = System.Windows.Forms.AccessibleRole.PushButton;
          this.btnConnect.Enabled = false;
          this.btnConnect.Location = new System.Drawing.Point(274, 65);
          this.btnConnect.Name = "btnConnect";
@@ -108,6 +112,7 @@ partial class ConnectionInfoPrompt
          // 
          // btnCancel
          // 
+         this.btnCancel.AccessibleRole = System.Windows.Forms.AccessibleRole.PushButton;
          this.btnCancel.Location = new System.Drawing.Point(163, 65);
          this.btnCancel.Name = "btnCancel";
          this.btnCancel.Size = new System.Drawing.Size(89, 36);
