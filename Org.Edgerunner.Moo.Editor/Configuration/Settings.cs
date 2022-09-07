@@ -1330,7 +1330,7 @@ namespace Org.Edgerunner.Moo.Editor.Configuration
 
       private void LoadBracketHighlightSettings(KeyValueConfigurationCollection appSettings)
       {
-          var defColor = Color.Tomato;
+          var defColor = Color.SaddleBrown;
           var defBackColor = Color.Transparent;
           var defStyle = FontStyle.Regular;
 
@@ -1372,7 +1372,7 @@ namespace Org.Edgerunner.Moo.Editor.Configuration
 
       private void LoadCurlyBraceHighlightSettings(KeyValueConfigurationCollection appSettings)
       {
-          var defColor = Color.Tomato;
+          var defColor = Color.SaddleBrown;
           var defBackColor = Color.Transparent;
           var defStyle = FontStyle.Regular;
 
