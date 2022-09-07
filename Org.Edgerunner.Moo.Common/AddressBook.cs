@@ -35,7 +35,9 @@
 #endregion
 
 using System.Collections;
-using UniversalSerializerLib3;
+using System.Runtime.Serialization;
+using System.Xml;
+using System.Xml.Serialization;
 
 namespace Org.Edgerunner.Moo.Common;
 
@@ -75,17 +77,24 @@ public class AddressBook
    /// <param name="filePath">The file path to save to.</param>
    public static void SaveToFile(AddressBook book, string filePath)
     {
-        using var s = new UniversalSerializer(filePath, SerializerFormatters.XmlSerializationFormatter);
-        s.Serialize(book);
+        XmlWriterSettings xmlWriterSettings = new()
+                                              {
+                                                  Indent = true,
+                                                  CloseOutput = true
+                                              };
+        XmlSerializer serializer = new(typeof(AddressBook));
+        using (XmlWriter xmlWriter = XmlWriter.Create(filePath, xmlWriterSettings))
+            serializer.Serialize(xmlWriter, book);
     }
 
     /// <summary>
     /// Saves this <see cref="AddressBook"/> to a file.
     /// </summary>
     /// <param name="filePath">The file path to save to.</param>
-    public static AddressBook LoadFromFile(string filePath)
+    public static AddressBook? LoadFromFile(string filePath)
     {
-        using var s = new UniversalSerializer(filePath, SerializerFormatters.XmlSerializationFormatter);
-        return s.Deserialize<AddressBook>();
+        var serializer = new XmlSerializer(typeof(AddressBook));
+        using (FileStream fs = new FileStream(filePath, FileMode.Open))
+            return serializer.Deserialize(fs) as AddressBook;
     }
 }

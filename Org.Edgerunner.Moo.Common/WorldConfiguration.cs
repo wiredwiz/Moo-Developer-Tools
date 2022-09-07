@@ -49,6 +49,14 @@ public class WorldConfiguration
     /// <summary>
     /// Initializes a new instance of the <see cref="WorldConfiguration"/> class.
     /// </summary>
+    public WorldConfiguration()
+        : this(Empty, Empty, 0)
+    {
+    }
+
+    /// <summary>
+    /// Initializes a new instance of the <see cref="WorldConfiguration"/> class.
+    /// </summary>
     /// <param name="name">The world name.</param>
     /// <param name="hostAddress">The host world address.</param>
     /// <param name="portNumber">The port world number.</param>
@@ -63,6 +71,7 @@ public class WorldConfiguration
         ColorEnabled = true;
         UserInfo = new UserLogin(Empty, Empty);
         ShowAsMenuShortcut = false;
+        UseTls = false;
     }
 
     /// <summary>
@@ -85,6 +94,15 @@ public class WorldConfiguration
     /// <value>The port number.</value>
     [XmlAttribute(AttributeName ="port")]
     public int PortNumber { get; set; }
+
+    /// <summary>
+    /// Gets or sets a value indicating whether to use TLS.
+    /// </summary>
+    /// <value>
+    ///   <c>true</c> if [use TLS]; otherwise, <c>false</c>.
+    /// </value>
+    [XmlElement("UseTLS")]
+    public bool UseTls { get; set; }
 
     /// <summary>
     /// Gets or sets a value indicating whether echo is enabled.
@@ -124,6 +142,6 @@ public class WorldConfiguration
     /// Gets or sets a value indicating whether world is shown as terminal menu shortcut.
     /// </summary>
     /// <value><c>true</c> if [show as menu shortcut]; otherwise, <c>false</c>.</value>
-    [XmlElement(ElementName = "ShowInMenu")]
+    [XmlElement(ElementName = "ShowAsMenuShortcut")]
     public bool ShowAsMenuShortcut { get; set; }
 }

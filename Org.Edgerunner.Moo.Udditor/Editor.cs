@@ -179,6 +179,38 @@ public partial class Editor : Form
       ErrorDisplay = messageDisplay.MessageDisplay;
       messageDisplay.DoubleClick += MessageDisplay_DoubleClick;
       UpdateMenus();
+      BuildTerminalShortcutMenu();
+   }
+
+   void BuildTerminalShortcutMenu()
+   {
+      while (mnuItemTerminal.DropDownItems.Count > 5)
+         mnuItemTerminal.DropDownItems.RemoveAt(5);
+      var book = GetWorldsAddressBook();
+      if (book.Worlds.Count(world => world.ShowAsMenuShortcut) != 0)
+      {
+         mnuItemTerminal.DropDownItems.Add(new ToolStripSeparator());
+         foreach (var world in book.Worlds)
+         {
+            if (world.ShowAsMenuShortcut)
+            {
+               var item = new ToolStripMenuItem();
+               item.Text = $"Open {world.Name}";
+               item.Tag = world;
+               item.Click += WorldShortcut_Click;
+               mnuItemTerminal.DropDownItems.Add(item);
+            }
+         }
+      }
+   }
+
+   private async void WorldShortcut_Click(object sender, EventArgs e)
+   {
+      if (sender is ToolStripMenuItem { Tag: WorldConfiguration world })
+      {
+         Debug.WriteLine($"World {world.Name} clicked");
+         await OpenTerminalConnection(world);
+      }
    }
 
    private void WindowManager_EditorParsingComplete(object sender, MooCodeEditorPage e)
@@ -408,29 +440,65 @@ public partial class Editor : Form
       var result = prompt.ShowDialog();
       if (result == DialogResult.OK)
       {
-         var host = prompt.HostAddress;
-         var port = prompt.HostPort;
-         var world = $"{host}:{port}";
-         TerminalPage page = CurrentPage as TerminalPage;
-         if (page == null || page.Terminal.IsConnected)
-         {
-            page = WindowManager.CreateTerminalPage(host);
-         }
+         var world = $"{prompt.HostAddress}:{prompt.HostPort}";
+         await OpenTerminalConnection(prompt.HostAddress, prompt.HostPort, world, prompt.UseTls);
+      }
+   }
 
-         WindowManager.ShowPage(page);
-         try
+   private async Task OpenTerminalConnection(string host,int port, string world, bool useTls = false)
+   {
+      TerminalPage page = CurrentPage as TerminalPage;
+      if (page == null || page.Terminal.IsConnected)
+      {
+         page = WindowManager.CreateTerminalPage(host);
+      }
+
+      WindowManager.ShowPage(page);
+      try
+      {
+         page.Terminal.FocusOnInput();
+         UpdateTerminalMenu();
+         await page.Terminal.ConnectAsync(world, host, port, useTls);
+      }
+      catch (Exception ex)
+      {
+         if (useTls && ex is IOException)
+            MessageBox.Show("This host address may not support TLS", "Unable to connect");
+         else
+            MessageBox.Show(ex.Message, "Unable to connect");
+      }
+   }
+
+   private async Task OpenTerminalConnection(WorldConfiguration world)
+   {
+      TerminalPage page = CurrentPage as TerminalPage;
+      if (page == null || page.Terminal.IsConnected)
+      {
+         page = WindowManager.CreateTerminalPage(world.HostAddress);
+      }
+
+      WindowManager.ShowPage(page);
+      try
+      {
+         page.Terminal.FocusOnInput();
+         UpdateTerminalMenu();
+         await page.Terminal.ConnectAsync(world.Name, world.HostAddress, world.PortNumber, world.UseTls);
+         page.Terminal.EchoEnabled = false;
+         if (world.UserInfo.AutomaticallyLogin && !string.IsNullOrEmpty(world.UserInfo.Name))
          {
-            page.Terminal.FocusOnInput();
-            UpdateTerminalMenu();
-            await page.Terminal.ConnectAsync(world, host, port, prompt.UseTls);
+            var loginText = world.UserInfo.ConnectionString
+                                 .Replace("%u", world.UserInfo.Name)
+                                 .Replace("%p", world.UserInfo.DecryptedPassword);
+            page.Terminal.SendTextLine(loginText);
          }
-         catch (Exception ex)
-         {
-            if (prompt.UseTls && ex is IOException)
-               MessageBox.Show("This host address may not support TLS", "Unable to connect");
-            else
-               MessageBox.Show(ex.Message, "Unable to connect");
-         }
+         page.Terminal.EchoEnabled = world.EchoEnabled;
+      }
+      catch (Exception ex)
+      {
+         if (world.UseTls && ex is IOException)
+            MessageBox.Show("This host address may not support TLS", "Unable to connect");
+         else
+            MessageBox.Show(ex.Message, "Unable to connect");
       }
    }
 
@@ -615,15 +683,22 @@ public partial class Editor : Form
    private void mnuItemWorldManager_Click(object sender, EventArgs e)
    {
       var manager = new WorldManager();
+      var book = GetWorldsAddressBook();
+      manager.LoadAddressBook(book);
+      manager.SourceFile = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Worlds.xml");
+      manager.ConnectToWorld += Manager_ConnectToWorld;
+      manager.ShowDialog(this);
+      BuildTerminalShortcutMenu();
+   }
+
+   private async void Manager_ConnectToWorld(object sender, WorldConfiguration e)
+   {
+      await OpenTerminalConnection(e);
+   }
+
+   private AddressBook GetWorldsAddressBook()
+   {
       var worldsFile = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Worlds.xml");
-      if (!File.Exists(worldsFile))
-      {
-         var book = new AddressBook();
-         manager.SourceFile = worldsFile;
-         manager.LoadAddressBook(book);
-      }
-      else
-         AddressBook.LoadFromFile(worldsFile);
-      manager.Show(this);
+      return !File.Exists(worldsFile) ? new AddressBook() : AddressBook.LoadFromFile(worldsFile);
    }
 }

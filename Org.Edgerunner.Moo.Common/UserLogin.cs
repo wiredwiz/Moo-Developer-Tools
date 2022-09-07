@@ -35,6 +35,8 @@
 #endregion
 
 using System.Xml.Serialization;
+using Org.Edgerunner.Moo.Common.Encryption;
+using static System.String;
 
 namespace Org.Edgerunner.Moo.Common;
 
@@ -42,6 +44,14 @@ namespace Org.Edgerunner.Moo.Common;
 [XmlType(TypeName = "User")]
 public class UserLogin
 {
+    /// <summary>
+    /// Initializes a new instance of the <see cref="UserLogin"/> class.
+    /// </summary>
+    protected UserLogin()
+        : this(Empty, Empty)
+    {
+    }
+
     /// <summary>
     /// Initializes a new instance of the <see cref="UserLogin"/> class.
     /// </summary>
@@ -55,6 +65,8 @@ public class UserLogin
         PromptForCredentials = false;
         AutomaticallyLogin = true;
     }
+
+    private const string _Key = "34avs#$%k7ikasS$564sdfaA%*12";
 
     /// <summary>
     /// Gets or sets the user name.
@@ -85,4 +97,17 @@ public class UserLogin
     /// </summary>
     /// <value><c>true</c> if [prompt for credentials]; otherwise, <c>false</c>.</value>
     public bool PromptForCredentials { get; set; }
+
+    /// <summary>
+    /// Gets the decrypted password.
+    /// </summary>
+    /// <value>
+    /// The decrypted password.
+    /// </value>
+    [XmlIgnore]
+    public string DecryptedPassword
+    {
+        get => AesCrypto.Decrypt(Password, _Key) ?? Empty;
+        set => Password = AesCrypto.Encrypt(value, _Key);
+    }
 }

@@ -8,6 +8,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
+using Org.Edgerunner.Moo.Common.Encryption;
 
 namespace Org.Edgerunner.Moo.Editor
 {
@@ -30,7 +31,7 @@ namespace Org.Edgerunner.Moo.Editor
             txtHost.Text = value.HostAddress;
             txtPort.Text = value.PortNumber.ToString();
             txtUser.Text = value.UserInfo.Name;
-            txtPassword.Text = value.UserInfo.Password;
+            txtPassword.Text = value.UserInfo.DecryptedPassword;
             txtConnection.Text = value.UserInfo.ConnectionString;
             chkAutoLogin.Checked = value.UserInfo.AutomaticallyLogin;
             chkPrompt.Checked = value.UserInfo.PromptForCredentials;
@@ -50,7 +51,7 @@ namespace Org.Edgerunner.Moo.Editor
 
       void UpdateButtons()
       {
-         btnOk.Enabled = !int.TryParse(txtPort.Text, out int port) &&
+         btnOk.Enabled = int.TryParse(txtPort.Text, out int port) &&
                          port > 0 &&
                          !string.IsNullOrEmpty(txtName.Text) &&
                          !string.IsNullOrEmpty(txtHost.Text);
@@ -64,25 +65,37 @@ namespace Org.Edgerunner.Moo.Editor
       private void btnOk_Click(object sender, EventArgs e)
       {
          DialogResult = DialogResult.OK;
+         UpdateWorld();
          Close();
       }
 
-      private void txtName_Validated(object sender, EventArgs e)
+      private void Text_Validated(object sender, EventArgs e)
+      {
+         UpdateButtons();
+      }
+
+      private void UpdateWorld()
       {
          World.Name = txtName.Text;
-         UpdateButtons();
-      }
-
-      private void txtHost_Validated(object sender, EventArgs e)
-      {
          World.HostAddress = txtHost.Text;
-         UpdateButtons();
+         World.PortNumber = int.Parse(txtPort.Text);
+         World.UserInfo.Name = txtUser.Text;
+         World.UserInfo.DecryptedPassword = txtPassword.Text;
+         World.UserInfo.ConnectionString = txtConnection.Text;
+         World.UserInfo.AutomaticallyLogin = chkAutoLogin.Checked;
+         World.UserInfo.PromptForCredentials = chkPrompt.Checked;
+         World.EchoEnabled = chkEnableEcho.Checked;
+         World.ColorEnabled = chkColor.Checked;
+         World.LocalEditEnabled = chkLocalEdit.Checked;
+         World.McpEnabled = chkMcp.Checked;
+         World.ShowAsMenuShortcut = chkShowOnMenu.Checked;
+         World.UseTls = chkUseTLS.Checked;
       }
 
-      private void txtPort_Validated(object sender, EventArgs e)
+      private void btnShowPassword_CheckedChanged(object sender, EventArgs e)
       {
-         World.PortNumber = int.Parse(txtPort.Text);
-         UpdateButtons();
+         txtPassword.UseSystemPasswordChar = !btnShowPassword.Checked;
+         txtPassword.Invalidate();
       }
    }
 }

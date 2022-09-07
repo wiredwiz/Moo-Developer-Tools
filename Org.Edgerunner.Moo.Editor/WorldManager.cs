@@ -27,19 +27,19 @@ namespace Org.Edgerunner.Moo.Editor
       /// Gets or sets the address book.
       /// </summary>
       /// <value>The address book.</value>
-      protected AddressBook AddressBook { get; set; }
+      protected virtual AddressBook AddressBook { get; set; }
 
       /// <summary>
       /// Gets or sets the source file path.
       /// </summary>
       /// <value>The source file.</value>
-      public string SourceFile { get; set; }
+      public virtual string SourceFile { get; set; }
 
       /// <summary>
       /// Loads an <see cref="AddressBook"/> from file.
       /// </summary>
       /// <param name="filePath">The file path.</param>
-      public void LoadFromFile(string filePath)
+      public virtual void LoadFromFile(string filePath)
       {
          SourceFile = filePath;
          var addressBook = AddressBook.LoadFromFile(SourceFile);
@@ -50,7 +50,7 @@ namespace Org.Edgerunner.Moo.Editor
       /// Saves the internal <see cref="AddressBook"/> to file.
       /// </summary>
       /// <param name="filePath">The file path.</param>
-      public void SaveToFile(string filePath)
+      public virtual void SaveToFile(string filePath)
       {
          AddressBook.SaveToFile(filePath);
       }
@@ -59,17 +59,28 @@ namespace Org.Edgerunner.Moo.Editor
       /// Loads the address book.
       /// </summary>
       /// <param name="addressBook">The address book.</param>
-      public void LoadAddressBook(AddressBook addressBook)
+      public virtual void LoadAddressBook(AddressBook addressBook)
       {
          AddressBook = addressBook;
          lstWorlds.DataSource = AddressBook.Worlds;
+      }
+
+      protected virtual void UpdateSourceData(AddressBook book)
+      {
+         lstWorlds.DataSource = null;
+         lstWorlds.SuspendLayout();
+         lstWorlds.Items.Clear();
+         lstWorlds.DataSource = book.Worlds;
+         lstWorlds.DisplayMember = "Name";
+         lstWorlds.ValueMember = "Name";
+         lstWorlds.ResumeLayout();
       }
 
       /// <summary>
       /// Gets the selected world.
       /// </summary>
       /// <returns>The selected <see cref="WorldConfiguration"/> instance.</returns>
-      protected WorldConfiguration GetSelectedWorld()
+      protected virtual WorldConfiguration GetSelectedWorld()
       {
          if (lstWorlds.SelectedIndex == -1)
             return null;
@@ -78,22 +89,6 @@ namespace Org.Edgerunner.Moo.Editor
       }
 
       private void btnMoveDown_Click(object sender, EventArgs e)
-      {
-         var selectedIndex = lstWorlds.SelectedIndex;
-         if (selectedIndex is -1 or 0)
-            return;
-
-         lstWorlds.SuspendLayout();
-         var selectedWorld = GetSelectedWorld();
-         var existing = AddressBook.Worlds[selectedIndex - 1];
-         AddressBook.Worlds[selectedIndex - 1] = selectedWorld;
-         AddressBook.Worlds[selectedIndex] = existing;
-         SaveToFile(SourceFile);
-         lstWorlds.SelectedIndex = selectedIndex - 1;
-         lstWorlds.ResumeLayout();
-      }
-
-      private void btnMoveUp_Click(object sender, EventArgs e)
       {
          var selectedIndex = lstWorlds.SelectedIndex;
          if (selectedIndex == -1 || selectedIndex == AddressBook.Worlds.Count - 1)
@@ -105,8 +100,25 @@ namespace Org.Edgerunner.Moo.Editor
          AddressBook.Worlds[selectedIndex + 1] = selectedWorld;
          AddressBook.Worlds[selectedIndex] = existing;
          SaveToFile(SourceFile);
-         lstWorlds.DataSource = AddressBook.Worlds;
+         UpdateSourceData(AddressBook);
          lstWorlds.SelectedIndex = selectedIndex + 1;
+         lstWorlds.ResumeLayout();
+      }
+
+      private void btnMoveUp_Click(object sender, EventArgs e)
+      {
+         var selectedIndex = lstWorlds.SelectedIndex;
+         if (selectedIndex is -1 or 0)
+            return;
+
+         lstWorlds.SuspendLayout();
+         var selectedWorld = GetSelectedWorld();
+         var existing = AddressBook.Worlds[selectedIndex - 1];
+         AddressBook.Worlds[selectedIndex - 1] = selectedWorld;
+         AddressBook.Worlds[selectedIndex] = existing;
+         SaveToFile(SourceFile);
+         UpdateSourceData(AddressBook);
+         lstWorlds.SelectedIndex = selectedIndex - 1;
          lstWorlds.ResumeLayout();
       }
 
@@ -119,9 +131,11 @@ namespace Org.Edgerunner.Moo.Editor
          lstWorlds.SuspendLayout();
          AddressBook.Worlds.RemoveAt(selectedIndex);
          SaveToFile(SourceFile);
-         lstWorlds.DataSource = AddressBook.Worlds;
-         selectedIndex = Math.Max(selectedIndex, AddressBook.Worlds.Count - 1);
-         lstWorlds.SelectedIndex = selectedIndex;
+         if (selectedIndex == AddressBook.Worlds.Count)
+            lstWorlds.SelectedIndex = selectedIndex - 1;
+         UpdateSourceData(AddressBook);
+         //selectedIndex = Math.Min(selectedIndex, AddressBook.Worlds.Count - 2);
+         //lstWorlds.SelectedIndex = selectedIndex;
          lstWorlds.ResumeLayout();
       }
 
@@ -140,7 +154,7 @@ namespace Org.Edgerunner.Moo.Editor
 
          lstWorlds.SuspendLayout();
          AddressBook.Worlds[selectedIndex] = configurator.World;
-         lstWorlds.DataSource = AddressBook.Worlds;
+         UpdateSourceData(AddressBook);
          lstWorlds.SelectedIndex = selectedIndex;
          SaveToFile(SourceFile);
          lstWorlds.ResumeLayout();
@@ -153,6 +167,7 @@ namespace Org.Edgerunner.Moo.Editor
             return;
 
          ConnectToWorld?.Invoke(this, GetSelectedWorld());
+         Close();
       }
 
       private void btnNew_Click(object sender, EventArgs e)
@@ -161,8 +176,7 @@ namespace Org.Edgerunner.Moo.Editor
          var config = new WorldConfiguration("New", string.Empty, 0);
          AddressBook.Worlds.Add(config);
          SaveToFile(SourceFile);
-         lstWorlds.SuspendLayout();
-         lstWorlds.DataSource = AddressBook.Worlds;
+         UpdateSourceData(AddressBook);
          if (selectedIndex != -1)
             lstWorlds.SelectedIndex = selectedIndex;
          lstWorlds.ResumeLayout();
