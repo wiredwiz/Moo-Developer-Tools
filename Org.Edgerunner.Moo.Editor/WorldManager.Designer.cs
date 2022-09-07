@@ -40,9 +40,9 @@
          // btnConnect
          // 
          this.btnConnect.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
-         this.btnConnect.Location = new System.Drawing.Point(257, 266);
+         this.btnConnect.Location = new System.Drawing.Point(251, 266);
          this.btnConnect.Name = "btnConnect";
-         this.btnConnect.Size = new System.Drawing.Size(116, 38);
+         this.btnConnect.Size = new System.Drawing.Size(130, 38);
          this.btnConnect.StateCommon.Content.LongText.Font = new System.Drawing.Font("Segoe UI", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
          this.btnConnect.StateCommon.Content.ShortText.Font = new System.Drawing.Font("Segoe UI", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
          this.btnConnect.TabIndex = 6;
@@ -52,9 +52,9 @@
          // btnEdit
          // 
          this.btnEdit.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
-         this.btnEdit.Location = new System.Drawing.Point(257, 160);
+         this.btnEdit.Location = new System.Drawing.Point(251, 160);
          this.btnEdit.Name = "btnEdit";
-         this.btnEdit.Size = new System.Drawing.Size(116, 38);
+         this.btnEdit.Size = new System.Drawing.Size(130, 38);
          this.btnEdit.StateCommon.Content.LongText.Font = new System.Drawing.Font("Segoe UI", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
          this.btnEdit.StateCommon.Content.ShortText.Font = new System.Drawing.Font("Segoe UI", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
          this.btnEdit.TabIndex = 4;
@@ -64,9 +64,9 @@
          // btnDelete
          // 
          this.btnDelete.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
-         this.btnDelete.Location = new System.Drawing.Point(257, 204);
+         this.btnDelete.Location = new System.Drawing.Point(251, 204);
          this.btnDelete.Name = "btnDelete";
-         this.btnDelete.Size = new System.Drawing.Size(116, 38);
+         this.btnDelete.Size = new System.Drawing.Size(130, 38);
          this.btnDelete.StateCommon.Content.LongText.Font = new System.Drawing.Font("Segoe UI", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
          this.btnDelete.StateCommon.Content.ShortText.Font = new System.Drawing.Font("Segoe UI", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
          this.btnDelete.TabIndex = 5;
@@ -76,9 +76,9 @@
          // btnMoveUp
          // 
          this.btnMoveUp.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
-         this.btnMoveUp.Location = new System.Drawing.Point(257, 13);
+         this.btnMoveUp.Location = new System.Drawing.Point(251, 13);
          this.btnMoveUp.Name = "btnMoveUp";
-         this.btnMoveUp.Size = new System.Drawing.Size(116, 38);
+         this.btnMoveUp.Size = new System.Drawing.Size(130, 38);
          this.btnMoveUp.StateCommon.Content.LongText.Font = new System.Drawing.Font("Segoe UI", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
          this.btnMoveUp.StateCommon.Content.ShortText.Font = new System.Drawing.Font("Segoe UI", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
          this.btnMoveUp.TabIndex = 1;
@@ -88,9 +88,9 @@
          // btnMoveDown
          // 
          this.btnMoveDown.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
-         this.btnMoveDown.Location = new System.Drawing.Point(257, 57);
+         this.btnMoveDown.Location = new System.Drawing.Point(251, 57);
          this.btnMoveDown.Name = "btnMoveDown";
-         this.btnMoveDown.Size = new System.Drawing.Size(116, 38);
+         this.btnMoveDown.Size = new System.Drawing.Size(130, 38);
          this.btnMoveDown.StateCommon.Content.LongText.Font = new System.Drawing.Font("Segoe UI", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
          this.btnMoveDown.StateCommon.Content.ShortText.Font = new System.Drawing.Font("Segoe UI", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
          this.btnMoveDown.TabIndex = 2;
@@ -100,9 +100,9 @@
          // btnNew
          // 
          this.btnNew.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
-         this.btnNew.Location = new System.Drawing.Point(257, 116);
+         this.btnNew.Location = new System.Drawing.Point(251, 116);
          this.btnNew.Name = "btnNew";
-         this.btnNew.Size = new System.Drawing.Size(116, 38);
+         this.btnNew.Size = new System.Drawing.Size(130, 38);
          this.btnNew.StateCommon.Content.LongText.Font = new System.Drawing.Font("Segoe UI", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
          this.btnNew.StateCommon.Content.ShortText.Font = new System.Drawing.Font("Segoe UI", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
          this.btnNew.TabIndex = 3;
@@ -117,7 +117,7 @@
          this.lstWorlds.DisplayMember = "Name";
          this.lstWorlds.Location = new System.Drawing.Point(12, 13);
          this.lstWorlds.Name = "lstWorlds";
-         this.lstWorlds.Size = new System.Drawing.Size(229, 292);
+         this.lstWorlds.Size = new System.Drawing.Size(221, 292);
          this.lstWorlds.StateCommon.Item.Content.LongText.Font = new System.Drawing.Font("Microsoft Sans Serif", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
          this.lstWorlds.StateCommon.Item.Content.ShortText.Font = new System.Drawing.Font("Microsoft Sans Serif", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
          this.lstWorlds.TabIndex = 0;
@@ -127,7 +127,7 @@
          // 
          this.AutoScaleDimensions = new System.Drawing.SizeF(8F, 20F);
          this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-         this.ClientSize = new System.Drawing.Size(385, 319);
+         this.ClientSize = new System.Drawing.Size(393, 319);
          this.Controls.Add(this.lstWorlds);
          this.Controls.Add(this.btnNew);
          this.Controls.Add(this.btnMoveDown);
