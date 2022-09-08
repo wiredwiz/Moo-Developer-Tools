@@ -471,6 +471,21 @@ public partial class Editor : Form
 
    private async Task OpenTerminalConnection(WorldConfiguration world)
    {
+      var userName = world.UserInfo.Name;
+      var password = world.UserInfo.DecryptedPassword;
+      if (world.UserInfo.PromptForCredentials)
+      {
+         var prompt = new CredentialsPrompt();
+         prompt.StartPosition = FormStartPosition.CenterParent;
+         prompt.UserName = userName;
+         prompt.Password = password;
+         if (prompt.ShowDialog(this) != DialogResult.OK)
+            return;
+
+         userName = prompt.UserName;
+         password = prompt.Password;
+      }
+
       TerminalPage page = CurrentPage as TerminalPage;
       if (page == null || page.Terminal.IsConnected)
       {
@@ -480,18 +495,18 @@ public partial class Editor : Form
       WindowManager.ShowPage(page);
       try
       {
-         page.Terminal.FocusOnInput();
          UpdateTerminalMenu();
          await page.Terminal.ConnectAsync(world.Name, world.HostAddress, world.PortNumber, world.UseTls);
          page.Terminal.EchoEnabled = false;
-         if (world.UserInfo.AutomaticallyLogin && !string.IsNullOrEmpty(world.UserInfo.Name))
+         if (world.UserInfo.AutomaticallyLogin && !string.IsNullOrEmpty(userName))
          {
             var loginText = world.UserInfo.ConnectionString
-                                 .Replace("%u", world.UserInfo.Name)
-                                 .Replace("%p", world.UserInfo.DecryptedPassword);
+                                 .Replace("%u", userName)
+                                 .Replace("%p", password);
             page.Terminal.SendTextLine(loginText);
          }
          page.Terminal.EchoEnabled = world.EchoEnabled;
+         page.Terminal.FocusOnInput();
       }
       catch (Exception ex)
       {

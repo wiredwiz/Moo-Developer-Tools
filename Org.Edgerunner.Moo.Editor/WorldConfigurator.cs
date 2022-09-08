@@ -95,8 +95,7 @@ namespace Org.Edgerunner.Moo.Editor
 
       private void btnShowPassword_CheckedChanged(object sender, EventArgs e)
       {
-         txtPassword.UseSystemPasswordChar = !btnShowPassword.Checked;
-         txtPassword.Invalidate();
+         txtPassword.PasswordChar = !btnShowPassword.Checked ? '●' : '\0';
       }
    }
 }
