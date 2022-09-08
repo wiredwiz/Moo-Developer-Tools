@@ -161,7 +161,8 @@ partial class AboutBox
          // lblProject
          // 
          this.lblProject.Cursor = System.Windows.Forms.Cursors.Hand;
-         this.lblProject.Location = new System.Drawing.Point(186, 41);
+         this.lblProject.Location = new System.Drawing.Point(191, 42);
+         this.lblProject.Margin = new System.Windows.Forms.Padding(8, 4, 4, 0);
          this.lblProject.Name = "lblProject";
          this.lblProject.Size = new System.Drawing.Size(73, 19);
          this.lblProject.StateCommon.ShortText.Color1 = System.Drawing.Color.Blue;
