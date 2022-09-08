@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.Diagnostics;
 using System.Drawing;
 using System.Linq;
 using System.Reflection;
@@ -16,6 +17,7 @@ partial class AboutBox : KryptonForm
         InitializeComponent();
         this.Text = String.Format("About {0}", AssemblyTitle);
         this.labelProductName.Text = AssemblyProduct;
+        this.lnkProject.Text = ProjectUrl;
         this.labelVersion.Text = String.Format("Version {0}", AssemblyVersion);
         this.labelCopyright.Text = AssemblyCopyright;
         this.labelCompanyName.Text = AssemblyCompany;
@@ -51,7 +53,9 @@ partial class AboutBox : KryptonForm
         }
     }
 
-    public string AssemblyDescription
+   public string ProjectUrl => "https://github.com/wiredwiz/Moo-Developer-Tools";
+
+   public string AssemblyDescription
     {
         get
         {
@@ -102,5 +106,14 @@ partial class AboutBox : KryptonForm
             return ((AssemblyCompanyAttribute)attributes[0]).Company;
         }
     }
-    #endregion
+   #endregion
+
+   private void lnkProject_LinkClicked(object sender, EventArgs e)
+   {
+      System.Diagnostics.Process.Start(new ProcessStartInfo
+                                       {
+                                          FileName = ProjectUrl,
+                                          UseShellExecute = true
+                                       });
+   }
 }
