@@ -59,86 +59,86 @@
          // kryptonLabel1
          // 
          this.kryptonLabel1.AutoSize = false;
-         this.kryptonLabel1.Location = new System.Drawing.Point(12, 192);
+         this.kryptonLabel1.Location = new System.Drawing.Point(12, 182);
          this.kryptonLabel1.Name = "kryptonLabel1";
-         this.kryptonLabel1.Size = new System.Drawing.Size(86, 55);
+         this.kryptonLabel1.Size = new System.Drawing.Size(86, 52);
          this.kryptonLabel1.TabIndex = 11;
          this.kryptonLabel1.Values.Text = "Connection\r\nString";
          // 
          // kryptonLabel2
          // 
-         this.kryptonLabel2.Location = new System.Drawing.Point(12, 16);
+         this.kryptonLabel2.Location = new System.Drawing.Point(12, 15);
          this.kryptonLabel2.Name = "kryptonLabel2";
-         this.kryptonLabel2.Size = new System.Drawing.Size(52, 24);
+         this.kryptonLabel2.Size = new System.Drawing.Size(49, 23);
          this.kryptonLabel2.TabIndex = 0;
          this.kryptonLabel2.Values.Text = "Name";
          // 
          // kryptonLabel3
          // 
-         this.kryptonLabel3.Location = new System.Drawing.Point(12, 49);
+         this.kryptonLabel3.Location = new System.Drawing.Point(12, 47);
          this.kryptonLabel3.Name = "kryptonLabel3";
-         this.kryptonLabel3.Size = new System.Drawing.Size(43, 24);
+         this.kryptonLabel3.Size = new System.Drawing.Size(41, 23);
          this.kryptonLabel3.TabIndex = 2;
          this.kryptonLabel3.Values.Text = "Host";
          // 
          // kryptonLabel4
          // 
-         this.kryptonLabel4.Location = new System.Drawing.Point(12, 83);
+         this.kryptonLabel4.Location = new System.Drawing.Point(12, 79);
          this.kryptonLabel4.Name = "kryptonLabel4";
-         this.kryptonLabel4.Size = new System.Drawing.Size(40, 24);
+         this.kryptonLabel4.Size = new System.Drawing.Size(38, 23);
          this.kryptonLabel4.TabIndex = 4;
          this.kryptonLabel4.Values.Text = "Port";
          // 
          // kryptonLabel5
          // 
-         this.kryptonLabel5.Location = new System.Drawing.Point(12, 127);
+         this.kryptonLabel5.Location = new System.Drawing.Point(12, 121);
          this.kryptonLabel5.Name = "kryptonLabel5";
-         this.kryptonLabel5.Size = new System.Drawing.Size(42, 24);
+         this.kryptonLabel5.Size = new System.Drawing.Size(40, 23);
          this.kryptonLabel5.TabIndex = 6;
          this.kryptonLabel5.Values.Text = "User";
          // 
          // kryptonLabel6
          // 
-         this.kryptonLabel6.Location = new System.Drawing.Point(12, 161);
+         this.kryptonLabel6.Location = new System.Drawing.Point(12, 153);
          this.kryptonLabel6.Name = "kryptonLabel6";
-         this.kryptonLabel6.Size = new System.Drawing.Size(76, 24);
+         this.kryptonLabel6.Size = new System.Drawing.Size(71, 23);
          this.kryptonLabel6.TabIndex = 8;
          this.kryptonLabel6.Values.Text = "Password";
          // 
          // txtConnection
          // 
          this.txtConnection.AccessibleName = "Connection string";
-         this.txtConnection.Location = new System.Drawing.Point(104, 192);
+         this.txtConnection.Location = new System.Drawing.Point(104, 182);
          this.txtConnection.Multiline = true;
          this.txtConnection.Name = "txtConnection";
-         this.txtConnection.Size = new System.Drawing.Size(156, 55);
+         this.txtConnection.Size = new System.Drawing.Size(156, 52);
          this.txtConnection.TabIndex = 12;
          this.txtConnection.Text = "kryptonTextBox1";
          // 
          // txtName
          // 
          this.txtName.AccessibleName = "World Name";
-         this.txtName.Location = new System.Drawing.Point(104, 13);
+         this.txtName.Location = new System.Drawing.Point(104, 12);
          this.txtName.Name = "txtName";
-         this.txtName.Size = new System.Drawing.Size(156, 27);
+         this.txtName.Size = new System.Drawing.Size(156, 26);
          this.txtName.TabIndex = 1;
          this.txtName.Validated += new System.EventHandler(this.Text_Validated);
          // 
          // txtHost
          // 
          this.txtHost.AccessibleName = "Host Address";
-         this.txtHost.Location = new System.Drawing.Point(104, 46);
+         this.txtHost.Location = new System.Drawing.Point(104, 44);
          this.txtHost.Name = "txtHost";
-         this.txtHost.Size = new System.Drawing.Size(156, 27);
+         this.txtHost.Size = new System.Drawing.Size(156, 26);
          this.txtHost.TabIndex = 3;
          this.txtHost.Validated += new System.EventHandler(this.Text_Validated);
          // 
          // txtPort
          // 
          this.txtPort.AccessibleName = "Port Number";
-         this.txtPort.Location = new System.Drawing.Point(104, 80);
+         this.txtPort.Location = new System.Drawing.Point(104, 76);
          this.txtPort.Name = "txtPort";
-         this.txtPort.Size = new System.Drawing.Size(156, 27);
+         this.txtPort.Size = new System.Drawing.Size(156, 26);
          this.txtPort.TabIndex = 5;
          this.txtPort.Validating += new System.ComponentModel.CancelEventHandler(this.txtPort_Validating);
          this.txtPort.Validated += new System.EventHandler(this.Text_Validated);
@@ -146,71 +146,71 @@
          // txtUser
          // 
          this.txtUser.AccessibleName = "Use Name";
-         this.txtUser.Location = new System.Drawing.Point(104, 124);
+         this.txtUser.Location = new System.Drawing.Point(104, 118);
          this.txtUser.Name = "txtUser";
-         this.txtUser.Size = new System.Drawing.Size(156, 27);
+         this.txtUser.Size = new System.Drawing.Size(156, 26);
          this.txtUser.TabIndex = 7;
          // 
          // txtPassword
          // 
          this.txtPassword.AccessibleName = "User Password";
-         this.txtPassword.Location = new System.Drawing.Point(104, 158);
+         this.txtPassword.Location = new System.Drawing.Point(104, 150);
          this.txtPassword.Name = "txtPassword";
          this.txtPassword.PasswordChar = '●';
-         this.txtPassword.Size = new System.Drawing.Size(156, 27);
+         this.txtPassword.Size = new System.Drawing.Size(156, 26);
          this.txtPassword.TabIndex = 9;
          // 
          // chkMcp
          // 
          this.chkMcp.AccessibleRole = System.Windows.Forms.AccessibleRole.CheckButton;
-         this.chkMcp.Location = new System.Drawing.Point(51, 418);
+         this.chkMcp.Location = new System.Drawing.Point(51, 397);
          this.chkMcp.Name = "chkMcp";
-         this.chkMcp.Size = new System.Drawing.Size(106, 24);
+         this.chkMcp.Size = new System.Drawing.Size(100, 23);
          this.chkMcp.TabIndex = 18;
          this.chkMcp.Values.Text = "Enable MCP";
          // 
          // chkColor
          // 
          this.chkColor.AccessibleRole = System.Windows.Forms.AccessibleRole.CheckButton;
-         this.chkColor.Location = new System.Drawing.Point(51, 448);
+         this.chkColor.Location = new System.Drawing.Point(51, 426);
          this.chkColor.Name = "chkColor";
-         this.chkColor.Size = new System.Drawing.Size(111, 24);
+         this.chkColor.Size = new System.Drawing.Size(105, 23);
          this.chkColor.TabIndex = 19;
          this.chkColor.Values.Text = "Enable Color";
          // 
          // chkShowOnMenu
          // 
          this.chkShowOnMenu.AccessibleRole = System.Windows.Forms.AccessibleRole.CheckButton;
-         this.chkShowOnMenu.Location = new System.Drawing.Point(51, 479);
+         this.chkShowOnMenu.Location = new System.Drawing.Point(51, 455);
          this.chkShowOnMenu.Name = "chkShowOnMenu";
-         this.chkShowOnMenu.Size = new System.Drawing.Size(188, 24);
+         this.chkShowOnMenu.Size = new System.Drawing.Size(177, 23);
          this.chkShowOnMenu.TabIndex = 20;
          this.chkShowOnMenu.Values.Text = "Show As Menu Shortcut";
          // 
          // chkLocalEdit
          // 
          this.chkLocalEdit.AccessibleRole = System.Windows.Forms.AccessibleRole.CheckButton;
-         this.chkLocalEdit.Location = new System.Drawing.Point(51, 387);
+         this.chkLocalEdit.Location = new System.Drawing.Point(51, 368);
          this.chkLocalEdit.Name = "chkLocalEdit";
-         this.chkLocalEdit.Size = new System.Drawing.Size(205, 24);
+         this.chkLocalEdit.Size = new System.Drawing.Size(193, 23);
          this.chkLocalEdit.TabIndex = 17;
          this.chkLocalEdit.Values.Text = "Enable Old Style Local Edit";
          // 
          // btnCancel
          // 
          this.btnCancel.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
-         this.btnCancel.Location = new System.Drawing.Point(35, 529);
+         this.btnCancel.Location = new System.Drawing.Point(35, 503);
          this.btnCancel.Name = "btnCancel";
-         this.btnCancel.Size = new System.Drawing.Size(90, 26);
+         this.btnCancel.Size = new System.Drawing.Size(90, 25);
          this.btnCancel.TabIndex = 21;
          this.btnCancel.Values.Text = "&Cancel";
          // 
          // btnOk
          // 
          this.btnOk.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
-         this.btnOk.Location = new System.Drawing.Point(170, 529);
+         this.btnOk.Location = new System.Drawing.Point(170, 503);
          this.btnOk.Name = "btnOk";
-         this.btnOk.Size = new System.Drawing.Size(90, 26);
+         this.btnOk.Size = new System.Drawing.Size(90, 25);
          this.btnOk.TabIndex = 22;
          this.btnOk.Values.Text = "Ok";
          this.btnOk.Click += new System.EventHandler(this.btnOk_Click);
@@ -220,9 +220,9 @@
          this.btnShowPassword.AccessibleDescription = "Displays or hides the password text";
          this.btnShowPassword.AccessibleName = "Show password button";
          this.btnShowPassword.AccessibleRole = System.Windows.Forms.AccessibleRole.PushButton;
-         this.btnShowPassword.Location = new System.Drawing.Point(266, 158);
+         this.btnShowPassword.Location = new System.Drawing.Point(266, 150);
          this.btnShowPassword.Name = "btnShowPassword";
-         this.btnShowPassword.Size = new System.Drawing.Size(24, 27);
+         this.btnShowPassword.Size = new System.Drawing.Size(23, 26);
          this.btnShowPassword.TabIndex = 10;
          this.btnShowPassword.ToolTipValues.Description = "Show password";
          this.btnShowPassword.ToolTipValues.EnableToolTips = true;
@@ -233,36 +233,36 @@
          // chkEnableEcho
          // 
          this.chkEnableEcho.AccessibleRole = System.Windows.Forms.AccessibleRole.CheckButton;
-         this.chkEnableEcho.Location = new System.Drawing.Point(51, 356);
+         this.chkEnableEcho.Location = new System.Drawing.Point(51, 338);
          this.chkEnableEcho.Name = "chkEnableEcho";
-         this.chkEnableEcho.Size = new System.Drawing.Size(166, 24);
+         this.chkEnableEcho.Size = new System.Drawing.Size(156, 23);
          this.chkEnableEcho.TabIndex = 16;
          this.chkEnableEcho.Values.Text = "Enable Console Echo";
          // 
          // chkAutoLogin
          // 
          this.chkAutoLogin.AccessibleRole = System.Windows.Forms.AccessibleRole.CheckButton;
-         this.chkAutoLogin.Location = new System.Drawing.Point(51, 295);
+         this.chkAutoLogin.Location = new System.Drawing.Point(51, 280);
          this.chkAutoLogin.Name = "chkAutoLogin";
-         this.chkAutoLogin.Size = new System.Drawing.Size(160, 24);
+         this.chkAutoLogin.Size = new System.Drawing.Size(150, 23);
          this.chkAutoLogin.TabIndex = 14;
          this.chkAutoLogin.Values.Text = "Automatically Login";
          // 
          // chkPrompt
          // 
          this.chkPrompt.AccessibleRole = System.Windows.Forms.AccessibleRole.CheckButton;
-         this.chkPrompt.Location = new System.Drawing.Point(51, 325);
+         this.chkPrompt.Location = new System.Drawing.Point(51, 309);
          this.chkPrompt.Name = "chkPrompt";
-         this.chkPrompt.Size = new System.Drawing.Size(182, 24);
+         this.chkPrompt.Size = new System.Drawing.Size(171, 23);
          this.chkPrompt.TabIndex = 15;
          this.chkPrompt.Values.Text = "Prompt For Credentials";
          // 
          // chkUseTLS
          // 
          this.chkUseTLS.AccessibleRole = System.Windows.Forms.AccessibleRole.CheckButton;
-         this.chkUseTLS.Location = new System.Drawing.Point(51, 264);
+         this.chkUseTLS.Location = new System.Drawing.Point(51, 251);
          this.chkUseTLS.Name = "chkUseTLS";
-         this.chkUseTLS.Size = new System.Drawing.Size(78, 24);
+         this.chkUseTLS.Size = new System.Drawing.Size(74, 23);
          this.chkUseTLS.TabIndex = 13;
          this.chkUseTLS.Values.Text = "Use TLS";
          // 
@@ -294,17 +294,17 @@
          this.kryptonPanel1.Dock = System.Windows.Forms.DockStyle.Fill;
          this.kryptonPanel1.Location = new System.Drawing.Point(0, 0);
          this.kryptonPanel1.Name = "kryptonPanel1";
-         this.kryptonPanel1.Size = new System.Drawing.Size(322, 568);
+         this.kryptonPanel1.Size = new System.Drawing.Size(322, 540);
          this.kryptonPanel1.TabIndex = 0;
          // 
          // WorldConfigurator
          // 
          this.AccessibleDescription = "Form for configurating world information";
          this.AccessibleName = "World configuration page";
-         this.AutoScaleDimensions = new System.Drawing.SizeF(8F, 20F);
+         this.AutoScaleDimensions = new System.Drawing.SizeF(8F, 19F);
          this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
          this.CancelButton = this.btnCancel;
-         this.ClientSize = new System.Drawing.Size(322, 568);
+         this.ClientSize = new System.Drawing.Size(322, 540);
          this.Controls.Add(this.kryptonPanel1);
          this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedToolWindow;
          this.Name = "WorldConfigurator";
