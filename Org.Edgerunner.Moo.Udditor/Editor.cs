@@ -22,7 +22,7 @@ using Org.Edgerunner.Moo.Common;
 
 namespace Org.Edgerunner.Moo.Udditor;
 
-public partial class Editor : Form
+public partial class Editor : KryptonForm
 {
    public Editor()
    {
