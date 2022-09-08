@@ -209,7 +209,7 @@ public partial class Editor : KryptonForm
       if (sender is ToolStripMenuItem { Tag: WorldConfiguration world })
       {
          Debug.WriteLine($"World {world.Name} clicked");
-         await OpenTerminalConnection(world);
+         await OpenTerminalConnectionAsync(world);
       }
    }
 
@@ -441,11 +441,11 @@ public partial class Editor : KryptonForm
       if (result == DialogResult.OK)
       {
          var world = $"{prompt.HostAddress}:{prompt.HostPort}";
-         await OpenTerminalConnection(prompt.HostAddress, prompt.HostPort, world, prompt.UseTls);
+         await OpenTerminalConnectionAsync(prompt.HostAddress, prompt.HostPort, world, prompt.UseTls);
       }
    }
 
-   private async Task OpenTerminalConnection(string host,int port, string world, bool useTls = false)
+   private async Task OpenTerminalConnectionAsync(string host,int port, string world, bool useTls = false)
    {
       TerminalPage page = CurrentPage as TerminalPage;
       if (page == null || page.Terminal.IsConnected)
@@ -458,7 +458,7 @@ public partial class Editor : KryptonForm
       {
          page.Terminal.FocusOnInput();
          UpdateTerminalMenu();
-         await page.Terminal.ConnectAsync(world, host, port, useTls);
+         await page.Terminal.ConnectAsync(world, host, port, useTls).ConfigureAwait(true);
       }
       catch (Exception ex)
       {
@@ -469,22 +469,13 @@ public partial class Editor : KryptonForm
       }
    }
 
-   private async Task OpenTerminalConnection(WorldConfiguration world)
+   private async Task OpenTerminalConnectionAsync(WorldConfiguration world)
    {
       var userName = world.UserInfo.Name;
       var password = world.UserInfo.DecryptedPassword;
       if (world.UserInfo.PromptForCredentials)
-      {
-         var prompt = new CredentialsPrompt();
-         prompt.StartPosition = FormStartPosition.CenterParent;
-         prompt.UserName = userName;
-         prompt.Password = password;
-         if (prompt.ShowDialog(this) != DialogResult.OK)
+         if (!PromptForCredentials(ref userName, ref password))
             return;
-
-         userName = prompt.UserName;
-         password = prompt.Password;
-      }
 
       TerminalPage page = CurrentPage as TerminalPage;
       if (page == null || page.Terminal.IsConnected)
@@ -496,7 +487,7 @@ public partial class Editor : KryptonForm
       try
       {
          UpdateTerminalMenu();
-         await page.Terminal.ConnectAsync(world.Name, world.HostAddress, world.PortNumber, world.UseTls);
+         await page.Terminal.ConnectAsync(world.Name, world.HostAddress, world.PortNumber, world.UseTls).ConfigureAwait(true);
          page.Terminal.EchoEnabled = false;
          if (world.UserInfo.AutomaticallyLogin && !string.IsNullOrEmpty(userName))
          {
@@ -515,6 +506,20 @@ public partial class Editor : KryptonForm
          else
             MessageBox.Show(ex.Message, "Unable to connect");
       }
+   }
+
+   private bool PromptForCredentials(ref string userName, ref string password)
+   {
+      var prompt = new CredentialsPrompt();
+      prompt.StartPosition = FormStartPosition.CenterParent;
+      prompt.UserName = userName;
+      prompt.Password = password;
+      if (prompt.ShowDialog(this) != DialogResult.OK)
+         return false;
+
+      userName = prompt.UserName;
+      password = prompt.Password;
+      return true;
    }
 
    private void tlMnuItemCloseConnection_Click(object sender, EventArgs e)
@@ -708,7 +713,7 @@ public partial class Editor : KryptonForm
 
    private async void Manager_ConnectToWorld(object sender, WorldConfiguration e)
    {
-      await OpenTerminalConnection(e);
+      await OpenTerminalConnectionAsync(e);
    }
 
    private AddressBook GetWorldsAddressBook()

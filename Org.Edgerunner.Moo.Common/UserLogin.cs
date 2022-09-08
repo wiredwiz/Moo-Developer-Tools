@@ -108,6 +108,6 @@ public class UserLogin
     public string DecryptedPassword
     {
         get => !IsNullOrEmpty(Password) ? AesCrypto.Decrypt(Password, _Key) ?? Empty : Empty;
-        set => Password = AesCrypto.Encrypt(value, _Key);
+        set => Password = IsNullOrEmpty(value) ? Empty : AesCrypto.Encrypt(value, _Key);
     }
 }
