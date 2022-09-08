@@ -622,13 +622,19 @@ public partial class Editor : KryptonForm
    private void mnuItemPrevEditor_Click(object sender, EventArgs e)
    {
       if (WindowManager.RecentEditor != null)
+      {
          WindowManager.ShowPage(WindowManager.RecentEditor);
+         WindowManager.RecentEditor.Editor.Select();
+      }
    }
 
    private void mnuItemPrevTerminal_Click(object sender, EventArgs e)
    {
       if (WindowManager.RecentTerminal != null)
+      {
          WindowManager.ShowPage(WindowManager.RecentTerminal);
+         WindowManager.RecentTerminal.Terminal.Select();
+      }
    }
 
    private void mnuItemEchoCommands_CheckStateChanged(object sender, EventArgs e)
