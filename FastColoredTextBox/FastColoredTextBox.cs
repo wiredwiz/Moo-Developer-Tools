@@ -208,6 +208,7 @@ namespace FastColoredTextBoxNS
          VirtualSpace = false;
          bookmarks = new Bookmarks(this);
          BookmarkColor = Color.PowderBlue;
+         FoldingHighlightColor = Color.LightGray;
          ToolTip = new ToolTip();
          timer3.Interval = 100;
          blinkTimer.Interval = 100;
@@ -347,6 +348,22 @@ namespace FastColoredTextBoxNS
       [Browsable(true)]
       [Description("ToolTip component.")]
       public ToolTip ToolTip { get; set; }
+
+      /// <summary>
+      /// Determines whether folding block highlighting is enabled
+      /// </summary>
+      [Browsable(true)]
+      [DefaultValue(true)]
+      [Description("Determines whether folding block highlighting is enabled.")]
+      public bool FoldingHighlightEnabled { get; set; }
+
+      /// <summary>
+      /// Color of current folding block
+      /// </summary>
+      [Browsable(true)]
+      [DefaultValue(typeof(Color), "AliceBlue")]
+      [Description("Highlight color of current selected folding block.")]
+      public Color FoldingHighlightColor { get; set; }
 
       /// <summary>
       /// Color of bookmarks
@@ -5112,6 +5129,7 @@ namespace FastColoredTextBoxNS
          //
          var servicePen = new Pen(ServiceLinesColor);
          Brush changedLineBrush = new SolidBrush(ChangedLineColor);
+         Brush foldingHighlightBrush = new SolidBrush(FoldingHighlightColor);
          Brush indentBrush = new SolidBrush(IndentBackColor);
          Brush paddingBrush = new SolidBrush(PaddingBackColor);
          Brush currentLineBrush =
@@ -5181,13 +5199,27 @@ namespace FastColoredTextBoxNS
             int y = lineInfo.startY - VerticalScroll.Value;
             //
             e.Graphics.SmoothingMode = SmoothingMode.None;
-            //draw line background
+            // draw line background
             if (lineInfo.VisibleState == VisibleState.Visible)
                if (line.BackgroundBrush != null)
                   e.Graphics.FillRectangle(line.BackgroundBrush,
                                            new Rectangle(textAreaRect.Left, y, textAreaRect.Width,
                                                          CharHeight * lineInfo.WordWrapStringsCount));
-            //draw current line background
+            // draw folding highlights
+            if (FoldingHighlightEnabled && FoldingHighlightColor != Color.Transparent)
+               if (endFoldingLine < LineInfos.Count)
+                  if (iLine >= startFoldingLine && iLine <= endFoldingLine)
+                  {
+                     //folding highlight indicator
+                     e.Graphics.FillRectangle(foldingHighlightBrush,
+                                              new Rectangle(
+                                                            textAreaRect.Left,
+                                                            y,
+                                                            textAreaRect.Width,
+                                                            CharHeight * lineInfo.WordWrapStringsCount));
+                  }
+
+            // draw current line background
             if (CurrentLineColor != Color.Transparent && iLine == Selection.Start.iLine)
                if (Selection.IsEmpty)
                   e.Graphics.FillRectangle(currentLineBrush,
@@ -5199,12 +5231,12 @@ namespace FastColoredTextBoxNS
             //
             e.Graphics.SmoothingMode = SmoothingMode.AntiAlias;
             //
-            //draw bookmark
+            // draw bookmark
             if (bookmarksByLineIndex.ContainsKey(iLine))
                bookmarksByLineIndex[iLine].Paint(e.Graphics,
                                                  new Rectangle(LeftIndent, y, Width,
                                                                CharHeight * lineInfo.WordWrapStringsCount));
-            //OnPaintLine event
+            // OnPaintLine event
             if (lineInfo.VisibleState == VisibleState.Visible)
                OnPaintLine(new PaintLineEventArgs(iLine,
                                                   new Rectangle(LeftIndent, y, Width,
@@ -5238,7 +5270,7 @@ namespace FastColoredTextBoxNS
                                    LeftIndentLine + 4, y + CharHeight * lineInfo.WordWrapStringsCount - 1);
 
             var startingIndent = LeftIndent;
-            //draw wordwrap strings of line
+            // draw wordwrap strings of line
             for (int iWordWrapLine = 0; iWordWrapLine < lineInfo.WordWrapStringsCount; iWordWrapLine++)
             {
                y = lineInfo.startY + iWordWrapLine * CharHeight - VerticalScroll.Value;
@@ -5297,7 +5329,7 @@ namespace FastColoredTextBoxNS
          }
          //
          e.Graphics.SmoothingMode = SmoothingMode.None;
-         //draw folding indicator
+         // draw folding indicator
          if ((startFoldingLine >= 0 || endFoldingLine >= 0) && Selection.Start == Selection.End)
             if (endFoldingLine < LineInfos.Count)
             {
@@ -5312,11 +5344,11 @@ namespace FastColoredTextBoxNS
                using var indicatorPen = new Pen(Color.FromArgb(100, FoldingIndicatorColor), 4);
                e.Graphics.DrawLine(indicatorPen, LeftIndent - 5, startFoldingY, LeftIndent - 5, endFoldingY);
             }
-         //draw hint's brackets
+         // draw hint's brackets
          PaintHintBrackets(e.Graphics);
-         //draw markers
+         // draw markers
          DrawMarkers(e, servicePen);
-         //draw caret
+         // draw caret
          Point car = PlaceToPoint(Selection.Start);
          var caretHeight = CharHeight - lineInterval;
          car.Offset(0, lineInterval / 2);
