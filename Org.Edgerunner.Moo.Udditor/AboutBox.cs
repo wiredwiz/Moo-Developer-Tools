@@ -1,12 +1,6 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel;
 using System.Diagnostics;
-using System.Drawing;
-using System.Linq;
 using System.Reflection;
-using System.Threading.Tasks;
-using System.Windows.Forms;
 using Krypton.Toolkit;
 
 namespace Org.Edgerunner.Moo.Udditor;
@@ -15,16 +9,16 @@ partial class AboutBox : KryptonForm
    public AboutBox()
    {
       InitializeComponent();
-      this.Text = String.Format("About {0}", AssemblyTitle);
+      this.Text = $"About {AssemblyTitle}";
       this.labelProductName.Text = AssemblyProduct;
       this.lblProject.Text = ProjectUrl;
-      this.labelVersion.Text = String.Format("Version {0}", AssemblyVersion);
+      this.labelVersion.Text = $"Version {AssemblyVersion}";
       this.labelCopyright.Text = AssemblyCopyright;
       this.labelCompanyName.Text = AssemblyCompany;
       this.textBoxDescription.Text = AssemblyDescription;
    }
 
-   public static AboutBox Instance { get; set; } = new AboutBox();
+   public static AboutBox Instance { get; set; } = new();
 
    #region Assembly Attribute Accessors
 
@@ -41,7 +35,7 @@ partial class AboutBox : KryptonForm
                return titleAttribute.Title;
             }
          }
-         return System.IO.Path.GetFileNameWithoutExtension(Assembly.GetExecutingAssembly().CodeBase);
+         return Path.GetFileNameWithoutExtension(Assembly.GetExecutingAssembly().Location);
       }
    }
 
