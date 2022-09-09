@@ -40,7 +40,7 @@
 using System.Security.Cryptography;
 using System.Text;
 
-namespace Org.Edgerunner.Moo.Common.Encryption;
+namespace Org.Edgerunner.Moo.Common.Cryptography;
 
 /// <summary>
 /// Class that performs AES encryption/decryption.
