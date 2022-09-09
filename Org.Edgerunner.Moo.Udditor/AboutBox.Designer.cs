@@ -33,10 +33,10 @@ partial class AboutBox
          this.labelVersion = new Krypton.Toolkit.KryptonLabel();
          this.labelCopyright = new Krypton.Toolkit.KryptonLabel();
          this.labelCompanyName = new Krypton.Toolkit.KryptonLabel();
-         this.textBoxDescription = new Krypton.Toolkit.KryptonTextBox();
          this.okButton = new Krypton.Toolkit.KryptonButton();
          this.labelProductName = new Krypton.Toolkit.KryptonLabel();
          this.lblProject = new Krypton.Toolkit.KryptonLabel();
+         this.lblDescription = new Krypton.Toolkit.KryptonWrapLabel();
          this.kryptonPanel1 = new Krypton.Toolkit.KryptonPanel();
          this.tableLayoutPanel.SuspendLayout();
          ((System.ComponentModel.ISupportInitialize)(this.logoPictureBox)).BeginInit();
@@ -55,10 +55,10 @@ partial class AboutBox
          this.tableLayoutPanel.Controls.Add(this.labelVersion, 1, 2);
          this.tableLayoutPanel.Controls.Add(this.labelCopyright, 1, 3);
          this.tableLayoutPanel.Controls.Add(this.labelCompanyName, 1, 4);
-         this.tableLayoutPanel.Controls.Add(this.textBoxDescription, 1, 5);
          this.tableLayoutPanel.Controls.Add(this.okButton, 1, 6);
          this.tableLayoutPanel.Controls.Add(this.labelProductName, 1, 0);
          this.tableLayoutPanel.Controls.Add(this.lblProject, 1, 1);
+         this.tableLayoutPanel.Controls.Add(this.lblDescription, 1, 5);
          this.tableLayoutPanel.Dock = System.Windows.Forms.DockStyle.Fill;
          this.tableLayoutPanel.Location = new System.Drawing.Point(12, 14);
          this.tableLayoutPanel.Margin = new System.Windows.Forms.Padding(4, 5, 4, 5);
@@ -124,20 +124,6 @@ partial class AboutBox
          this.labelCompanyName.TabIndex = 22;
          this.labelCompanyName.Values.Text = "Company Name";
          // 
-         // textBoxDescription
-         // 
-         this.textBoxDescription.Dock = System.Windows.Forms.DockStyle.Fill;
-         this.textBoxDescription.Location = new System.Drawing.Point(191, 205);
-         this.textBoxDescription.Margin = new System.Windows.Forms.Padding(8, 5, 4, 5);
-         this.textBoxDescription.Multiline = true;
-         this.textBoxDescription.Name = "textBoxDescription";
-         this.textBoxDescription.ReadOnly = true;
-         this.textBoxDescription.Size = new System.Drawing.Size(361, 152);
-         this.textBoxDescription.StateCommon.Back.Color1 = System.Drawing.Color.Transparent;
-         this.textBoxDescription.TabIndex = 23;
-         this.textBoxDescription.TabStop = false;
-         this.textBoxDescription.Text = "Description";
-         // 
          // okButton
          // 
          this.okButton.AccessibleRole = System.Windows.Forms.AccessibleRole.PushButton;
@@ -174,6 +160,16 @@ partial class AboutBox
          this.lblProject.TabIndex = 25;
          this.lblProject.Values.Text = "Project Url";
          this.lblProject.Click += new System.EventHandler(this.lnkProject_LinkClicked);
+         // 
+         // lblDescription
+         // 
+         this.lblDescription.Font = new System.Drawing.Font("Segoe UI", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
+         this.lblDescription.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(30)))), ((int)(((byte)(57)))), ((int)(((byte)(91)))));
+         this.lblDescription.LabelStyle = Krypton.Toolkit.LabelStyle.NormalControl;
+         this.lblDescription.Location = new System.Drawing.Point(186, 200);
+         this.lblDescription.Name = "lblDescription";
+         this.lblDescription.Size = new System.Drawing.Size(85, 20);
+         this.lblDescription.Text = "Description";
          // 
          // kryptonPanel1
          // 
@@ -219,8 +215,8 @@ partial class AboutBox
     private Krypton.Toolkit.KryptonLabel labelVersion;
     private Krypton.Toolkit.KryptonLabel labelCopyright;
     private Krypton.Toolkit.KryptonLabel labelCompanyName;
-    private Krypton.Toolkit.KryptonTextBox textBoxDescription;
     private Krypton.Toolkit.KryptonButton okButton;
    private Krypton.Toolkit.KryptonPanel kryptonPanel1;
     private Krypton.Toolkit.KryptonLabel lblProject;
+    private Krypton.Toolkit.KryptonWrapLabel lblDescription;
 }
