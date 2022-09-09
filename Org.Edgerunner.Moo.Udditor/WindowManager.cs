@@ -55,322 +55,323 @@ namespace Org.Edgerunner.Moo.Udditor;
 // ReSharper disable once HollowTypeName
 public class WindowManager
 {
-    /// <summary>
-    /// Initializes a new instance of the <see cref="WindowManager" /> class.
-    /// </summary>
-    /// <param name="workspace">The workspace.</param>
-    /// <param name="owner">The form that owns this instance.</param>
-    public WindowManager(KryptonDockingWorkspace workspace, Form owner)
-    {
-        Workspace = workspace;
-        _Owner = owner;
-    }
+   /// <summary>
+   /// Initializes a new instance of the <see cref="WindowManager" /> class.
+   /// </summary>
+   /// <param name="workspace">The workspace.</param>
+   /// <param name="owner">The form that owns this instance.</param>
+   public WindowManager(KryptonDockingWorkspace workspace, Form owner)
+   {
+      Workspace = workspace;
+      _Owner = owner;
+   }
 
-    public KryptonDockingWorkspace Workspace { get; set; }
+   public KryptonDockingWorkspace Workspace { get; set; }
 
-    public TerminalPage RecentTerminal { get; set; }
+   public TerminalPage RecentTerminal { get; set; }
 
-    public MooCodeEditorPage RecentEditor { get; set; }
+   public MooCodeEditorPage RecentEditor { get; set; }
 
-    protected Dictionary<string, ManagedPage> Pages { get; } = new();
+   protected Dictionary<string, ManagedPage> Pages { get; } = new();
 
-    protected Form _Owner;
+   protected Form _Owner;
 
-    protected string _EditorWorkspaceName = "Workspace";
+   protected string _EditorWorkspaceName = "Workspace";
 
-    public KryptonWorkspaceCell LastEditorCell { get; set; }
+   public KryptonWorkspaceCell LastEditorCell { get; set; }
 
-    public event EventHandler<MooEditorPage> EditorCursorUpdated;
+   public event EventHandler<MooEditorPage> EditorCursorUpdated;
 
-    public event EventHandler<MooCodeEditorPage> EditorParsingComplete;
+   public event EventHandler<MooCodeEditorPage> EditorParsingComplete;
 
-    /// <summary>
-    /// Registers the page.
-    /// </summary>
-    /// <param name="key">The unique key for the page.</param>
-    /// <param name="page">The page.</param>
-    /// <returns>The registered <see cref="KryptonPage"/>.</returns>
-    public ManagedPage RegisterPage(string key, ManagedPage page)
-    {
-        Pages[key] = page;
-        return page;
-    }
+   /// <summary>
+   /// Registers the page.
+   /// </summary>
+   /// <param name="key">The unique key for the page.</param>
+   /// <param name="page">The page.</param>
+   /// <returns>The registered <see cref="KryptonPage"/>.</returns>
+   public ManagedPage RegisterPage(string key, ManagedPage page)
+   {
+      Pages[key] = page;
+      return page;
+   }
 
-    /// <summary>
-    /// Registers the page.
-    /// </summary>
-    /// <param name="page">The page.</param>
-    /// <returns>The registered <see cref="KryptonPage"/>.</returns>
-    public ManagedPage RegisterPage(ManagedPage page)
-    {
-        Pages[page.UniqueName] = page;
-        return page;
-    }
+   /// <summary>
+   /// Registers the page.
+   /// </summary>
+   /// <param name="page">The page.</param>
+   /// <returns>The registered <see cref="KryptonPage"/>.</returns>
+   public ManagedPage RegisterPage(ManagedPage page)
+   {
+      Pages[page.UniqueName] = page;
+      return page;
+   }
 
-    /// <summary>
-    /// Uns the register page.
-    /// </summary>
-    /// <param name="key">The key.</param>
-    /// <returns>The un-registered <see cref="ManagedPage"/>.</returns>
-    public ManagedPage UnRegisterPage(string key)
-    {
-        if (Pages.TryGetValue(key, out ManagedPage page))
-        {
-            Pages.Remove(key);
-            return page;
-        }
+   /// <summary>
+   /// Uns the register page.
+   /// </summary>
+   /// <param name="key">The key.</param>
+   /// <returns>The un-registered <see cref="ManagedPage"/>.</returns>
+   public ManagedPage UnRegisterPage(string key)
+   {
+      if (Pages.TryGetValue(key, out ManagedPage page))
+      {
+         Pages.Remove(key);
+         return page;
+      }
 
-        return null;
-    }
+      return null;
+   }
 
-    /// <summary>
-    /// Window manager knows about page.
-    /// </summary>
-    /// <param name="key">The key for the page.</param>
-    /// <returns><c>true</c> if this manager instance knows about the page, <c>false</c> otherwise.</returns>
-    public bool KnowsAboutPage(string key)
-    {
-        return Pages.ContainsKey(key);
-    }
+   /// <summary>
+   /// Window manager knows about page.
+   /// </summary>
+   /// <param name="key">The key for the page.</param>
+   /// <returns><c>true</c> if this manager instance knows about the page, <c>false</c> otherwise.</returns>
+   public bool KnowsAboutPage(string key)
+   {
+      return Pages.ContainsKey(key);
+   }
 
-    /// <summary>
-    /// Creates a new editor page and registers it.
-    /// </summary>
-    /// <param name="dialect">The dialect.</param>
-    /// <returns>A new see<see cref="MooCodeEditorPage"/> instance.</returns>
-    public MooCodeEditorPage CreateMooCodeEditorPage(GrammarDialect dialect)
-    {
-        MooCodeEditorPage CreatePage()
-        {
-            var page = new MooCodeEditorPage(this, dialect);
-            RegisterPage(page);
-            page.CursorPositionChanged += Page_CursorPositionChanged;
-            page.ParsingComplete += Page_ParsingComplete;
-            page.DockChanged += EditorPage_DockChanged;
-            if (LastEditorCell != null)
-                LastEditorCell.Pages.Add(page);
-            else
-                Workspace.DockingManager.AddToWorkspace(_EditorWorkspaceName, new KryptonPage[] { page });
-            return page;
-        }
-
-        return _Owner.InvokeRequired ? _Owner.Invoke(CreatePage) : CreatePage();
-    }
-
-    /// <summary>
-    /// Creates a new editor page and registers it.
-    /// </summary>
-    /// <param name="dialect">The dialect.</param>
-    /// <param name="filePath">The file path.</param>
-    /// <returns>A new see<see cref="MooCodeEditorPage"/> instance.</returns>
-    public MooCodeEditorPage CreateMooCodeEditorPage(GrammarDialect dialect, string filePath)
-    {
-        MooCodeEditorPage CreatePage()
-        {
-            var page = new MooCodeEditorPage(this, dialect, filePath);
-            RegisterPage(page);
-            page.CursorPositionChanged += Page_CursorPositionChanged;
-            page.ParsingComplete += Page_ParsingComplete;
-            page.DockChanged += EditorPage_DockChanged;
-            if (LastEditorCell != null)
-                LastEditorCell.Pages.Add(page);
-            else
-                Workspace.DockingManager.AddToWorkspace(_EditorWorkspaceName, new KryptonPage[] { page });
-            return page;
-        }
-
-        return _Owner.InvokeRequired ? _Owner.Invoke(CreatePage) : CreatePage();
-    }
-
-    /// <summary>
-    /// Creates a new editor page and registers it.
-    /// </summary>
-    /// <param name="verbName">Name of the verb.</param>
-    /// <param name="worldName">Name of the world.</param>
-    /// <param name="dialect">The dialect.</param>
-    /// <param name="source">The source.</param>
-    /// <returns>A new see<see cref="MooCodeEditorPage"/> instance.</returns>
-    public MooCodeEditorPage CreateMooCodeEditorPage(string verbName, string worldName, GrammarDialect dialect, string source)
-    {
-        MooCodeEditorPage CreatePage()
-        {
-            var page = new MooCodeEditorPage(this, verbName, worldName, dialect, source);
-            RegisterPage(page);
-            page.CursorPositionChanged += Page_CursorPositionChanged;
-            page.ParsingComplete += Page_ParsingComplete;
-            page.DockChanged += EditorPage_DockChanged;
-            if (LastEditorCell != null)
-                LastEditorCell.Pages.Add(page);
-            else
-                Workspace.DockingManager.AddToWorkspace(_EditorWorkspaceName, new KryptonPage[] { page });
-            return page;
-        }
-
-        return _Owner.InvokeRequired ? _Owner.Invoke(CreatePage) : CreatePage();
-    }
-
-    /// <summary>
-    /// Creates a new document editor page and registers it.
-    /// </summary>
-    /// <param name="documentName">Name of the document.</param>
-    /// <param name="worldName">Name of the world.</param>
-    /// <param name="source">The source.</param>
-    /// <returns>A new see<see cref="MooDocumentEditorPage"/> instance.</returns>
-    public MooDocumentEditorPage CreateDocumentEditorPage(string documentName, string worldName, string source)
-    {
-        MooDocumentEditorPage CreatePage()
-        {
-            var page = new MooDocumentEditorPage(this, documentName, worldName, source);
-            RegisterPage(page);
-            page.Editor.PreviewPaneBackgroundColor = Color.Black;
-            page.Editor.PreviewPaneForegroundColor = Color.White;
-            page.CursorPositionChanged += Page_CursorPositionChanged;
-            page.DockChanged += EditorPage_DockChanged;
-            if (LastEditorCell != null)
-                LastEditorCell.Pages.Add(page);
-            else
-                Workspace.DockingManager.AddToWorkspace(_EditorWorkspaceName, new KryptonPage[] { page });
-            return page;
-        }
-
-        return _Owner.InvokeRequired ? _Owner.Invoke(CreatePage) : CreatePage();
-    }
-
-    private void EditorPage_DockChanged(object sender, EventArgs e)
-    {
-        if ((sender as MooCodeEditorPage)?.KryptonParentContainer is KryptonWorkspaceCell cell)
-            LastEditorCell = cell;
-        else if ((sender as MooDocumentEditorPage)?.KryptonParentContainer is KryptonWorkspaceCell cell2)
-            LastEditorCell = cell2;
-    }
-
-    /// <summary>
-    /// Creates a parser message display page and registers it.
-    /// </summary>
-    /// <returns>A new <see cref="ParserMessageDisplayPage"/> instance.</returns>
-    public ParserMessageDisplayPage CreateParserMessageDisplayPage()
-    {
-        var page = new ParserMessageDisplayPage(this);
-        RegisterPage(page);
-        Workspace.DockingManager.AddDockspace("FooterControls", DockingEdge.Bottom, new KryptonPage[] { page });
-        return page;
-    }
-
-    /// <summary>
-    /// Creates a new terminal page and registers it.
-    /// </summary>
-    /// <param name="world">The world.</param>
-    /// <param name="useTls">if set to <c>true</c> [use TLS].</param>
-    /// <returns>
-    /// A new <see cref="TerminalPage" /> instance.
-    /// </returns>
-    public TerminalPage CreateTerminalPage(string world, bool useTls = false)
-    {
-        TerminalPage CreatePage()
-        {
-            var oobHandler = new OutOfBandMessageProcessor();
-            oobHandler.RegisterHandler(new LocalEditHandler(this));
-            var processor = new RootMessageProcessor("#$#", oobHandler);
-            processor.OutOfBandMessagingTimeout = 500000;
-            var page = new TerminalPage(this, processor, world, useTls);
-            RegisterPage(page);
+   /// <summary>
+   /// Creates a new editor page and registers it.
+   /// </summary>
+   /// <param name="dialect">The dialect.</param>
+   /// <returns>A new see<see cref="MooCodeEditorPage"/> instance.</returns>
+   public MooCodeEditorPage CreateMooCodeEditorPage(GrammarDialect dialect)
+   {
+      MooCodeEditorPage CreatePage()
+      {
+         var page = new MooCodeEditorPage(this, dialect);
+         RegisterPage(page);
+         page.CursorPositionChanged += Page_CursorPositionChanged;
+         page.ParsingComplete += Page_ParsingComplete;
+         page.DockChanged += EditorPage_DockChanged;
+         if (LastEditorCell != null)
+            LastEditorCell.Pages.Add(page);
+         else
             Workspace.DockingManager.AddToWorkspace(_EditorWorkspaceName, new KryptonPage[] { page });
+         return page;
+      }
+
+      return _Owner.InvokeRequired ? _Owner.Invoke(CreatePage) : CreatePage();
+   }
+
+   /// <summary>
+   /// Creates a new editor page and registers it.
+   /// </summary>
+   /// <param name="dialect">The dialect.</param>
+   /// <param name="filePath">The file path.</param>
+   /// <returns>A new see<see cref="MooCodeEditorPage"/> instance.</returns>
+   public MooCodeEditorPage CreateMooCodeEditorPage(GrammarDialect dialect, string filePath)
+   {
+      MooCodeEditorPage CreatePage()
+      {
+         var page = new MooCodeEditorPage(this, dialect, filePath);
+         RegisterPage(page);
+         page.CursorPositionChanged += Page_CursorPositionChanged;
+         page.ParsingComplete += Page_ParsingComplete;
+         page.DockChanged += EditorPage_DockChanged;
+         if (LastEditorCell != null)
+            LastEditorCell.Pages.Add(page);
+         else
+            Workspace.DockingManager.AddToWorkspace(_EditorWorkspaceName, new KryptonPage[] { page });
+         return page;
+      }
+
+      return _Owner.InvokeRequired ? _Owner.Invoke(CreatePage) : CreatePage();
+   }
+
+   /// <summary>
+   /// Creates a new editor page and registers it.
+   /// </summary>
+   /// <param name="verbName">Name of the verb.</param>
+   /// <param name="worldName">Name of the world.</param>
+   /// <param name="dialect">The dialect.</param>
+   /// <param name="source">The source.</param>
+   /// <returns>A new see<see cref="MooCodeEditorPage"/> instance.</returns>
+   public MooCodeEditorPage CreateMooCodeEditorPage(string verbName, string worldName, GrammarDialect dialect, string source)
+   {
+      MooCodeEditorPage CreatePage()
+      {
+         var page = new MooCodeEditorPage(this, verbName, worldName, dialect, source);
+         RegisterPage(page);
+         page.CursorPositionChanged += Page_CursorPositionChanged;
+         page.ParsingComplete += Page_ParsingComplete;
+         page.DockChanged += EditorPage_DockChanged;
+         if (LastEditorCell != null)
+            LastEditorCell.Pages.Add(page);
+         else
+            Workspace.DockingManager.AddToWorkspace(_EditorWorkspaceName, new KryptonPage[] { page });
+         return page;
+      }
+
+      return _Owner.InvokeRequired ? _Owner.Invoke(CreatePage) : CreatePage();
+   }
+
+   /// <summary>
+   /// Creates a new document editor page and registers it.
+   /// </summary>
+   /// <param name="documentName">Name of the document.</param>
+   /// <param name="worldName">Name of the world.</param>
+   /// <param name="source">The source.</param>
+   /// <returns>A new see<see cref="MooDocumentEditorPage"/> instance.</returns>
+   public MooDocumentEditorPage CreateDocumentEditorPage(string documentName, string worldName, string source)
+   {
+      MooDocumentEditorPage CreatePage()
+      {
+         var page = new MooDocumentEditorPage(this, documentName, worldName, source);
+         RegisterPage(page);
+         page.Editor.PreviewPaneBackgroundColor = Color.Black;
+         page.Editor.PreviewPaneForegroundColor = Color.White;
+         page.CursorPositionChanged += Page_CursorPositionChanged;
+         page.DockChanged += EditorPage_DockChanged;
+         if (LastEditorCell != null)
+            LastEditorCell.Pages.Add(page);
+         else
+            Workspace.DockingManager.AddToWorkspace(_EditorWorkspaceName, new KryptonPage[] { page });
+         return page;
+      }
+
+      return _Owner.InvokeRequired ? _Owner.Invoke(CreatePage) : CreatePage();
+   }
+
+   private void EditorPage_DockChanged(object sender, EventArgs e)
+   {
+      if ((sender as MooCodeEditorPage)?.KryptonParentContainer is KryptonWorkspaceCell cell)
+         LastEditorCell = cell;
+      else if ((sender as MooDocumentEditorPage)?.KryptonParentContainer is KryptonWorkspaceCell cell2)
+         LastEditorCell = cell2;
+   }
+
+   /// <summary>
+   /// Creates a parser message display page and registers it.
+   /// </summary>
+   /// <returns>A new <see cref="ParserMessageDisplayPage"/> instance.</returns>
+   public ParserMessageDisplayPage CreateParserMessageDisplayPage()
+   {
+      var page = new ParserMessageDisplayPage(this);
+      RegisterPage(page);
+      Workspace.DockingManager.AddDockspace("FooterControls", DockingEdge.Bottom, new KryptonPage[] { page });
+      return page;
+   }
+
+   /// <summary>
+   /// Creates a new terminal page and registers it.
+   /// </summary>
+   /// <param name="world">The world.</param>
+   /// <param name="useTls">if set to <c>true</c> [use TLS].</param>
+   /// <returns>
+   /// A new <see cref="TerminalPage" /> instance.
+   /// </returns>
+   public TerminalPage CreateTerminalPage(string world, bool useTls = false)
+   {
+      TerminalPage CreatePage()
+      {
+         var oobHandler = new OutOfBandMessageProcessor();
+         oobHandler.RegisterHandler(new LocalEditHandler(this));
+         var processor = new RootMessageProcessor("#$#", oobHandler);
+         processor.OutOfBandMessagingTimeout = 500000;
+         var page = new TerminalPage(this, processor, world, useTls);
+         RegisterPage(page);
+         Workspace.DockingManager.AddToWorkspace(_EditorWorkspaceName, new KryptonPage[] { page });
+         return page;
+      }
+
+      return _Owner.InvokeRequired ? _Owner.Invoke(CreatePage) : CreatePage();
+   }
+
+   private void Page_CursorPositionChanged(object sender, EventArgs e)
+   {
+      OnEditorCursorUpdated(sender as MooEditorPage);
+   }
+
+   private void Page_ParsingComplete(object sender, ParsingCompleteEventArgs e)
+   {
+      MooCodeEditor codeEditor = sender as MooCodeEditor;
+      var page = codeEditor.Parent;
+      OnEditorParsingCompleted(page as MooCodeEditorPage);
+   }
+
+   /// <summary>
+   /// Gets the page referenced by the supplied key.
+   /// </summary>
+   /// <param name="key">The key.</param>
+   /// <returns>The related page or null if not found.</returns>
+   [CanBeNull]
+   public ManagedPage GetPage(string key)
+   {
+      if (Pages.TryGetValue(key, out var page))
+         return page;
+
+      return null;
+   }
+
+   /// <summary>
+   /// Shows the page with the specified key.
+   /// </summary>
+   /// <param name="key">The key.</param>
+   /// <returns>The <see cref="KryptonPage"/> instance.</returns>
+   [CanBeNull]
+   public ManagedPage ShowPage(string key)
+   {
+      ManagedPage DoShowPage()
+      {
+         if (Pages.TryGetValue(key, out ManagedPage page))
+         {
+            Workspace.SelectPage(key);
+            page.Focus();
             return page;
-        }
+         }
 
-        return _Owner.InvokeRequired ? _Owner.Invoke(CreatePage) : CreatePage();
-    }
+         return null;
+      }
 
-    private void Page_CursorPositionChanged(object sender, EventArgs e)
-    {
-        OnEditorCursorUpdated(sender as MooEditorPage);
-    }
+      return _Owner.InvokeRequired ? _Owner.Invoke(DoShowPage) : DoShowPage();
+   }
 
-    private void Page_ParsingComplete(object sender, ParsingCompleteEventArgs e)
-    {
-        MooCodeEditor codeEditor = sender as MooCodeEditor;
-        var page = codeEditor.Parent;
-        OnEditorParsingCompleted(page as MooCodeEditorPage);
-    }
+   /// <summary>
+   /// Shows the page.
+   /// </summary>
+   /// <param name="page">The page to show.</param>
+   /// <returns>
+   /// The <see cref="KryptonPage" /> instance.
+   /// </returns>
+   [CanBeNull]
+   public ManagedPage ShowPage(ManagedPage page)
+   {
+      return ShowPage(page.UniqueName);
+   }
 
-    /// <summary>
-    /// Gets the page referenced by the supplied key.
-    /// </summary>
-    /// <param name="key">The key.</param>
-    /// <returns>The related page or null if not found.</returns>
-    [CanBeNull]
-    public ManagedPage GetPage(string key)
-    {
-        if (Pages.TryGetValue(key, out var page))
-            return page;
+   /// <summary>
+   /// Closes the page.
+   /// </summary>
+   /// <param name="key">The key.</param>
+   public void ClosePage(string key)
+   {
+      void DoClosePage()
+      {
+         if (Pages.TryGetValue(key, out ManagedPage page))
+         {
+            Workspace.DockingManager.CloseRequest(new[] { key });
+            if (!Workspace.DockingManager.ContainsPage(page))
+               UnRegisterPage(page.UniqueName);
+         }
+      }
 
-        return null;
-    }
+      if (_Owner.InvokeRequired)
+         _Owner.Invoke(DoClosePage);
+      else
+         DoClosePage();
+   }
 
-    /// <summary>
-    /// Shows the page with the specified key.
-    /// </summary>
-    /// <param name="key">The key.</param>
-    /// <returns>The <see cref="KryptonPage"/> instance.</returns>
-    [CanBeNull]
-    public ManagedPage ShowPage(string key)
-    {
-        ManagedPage DoShowPage()
-        {
-            if (Pages.TryGetValue(key, out ManagedPage page))
-            {
-                Workspace.SelectPage(key);
-                page.Focus();
-                return page;
-            }
+   protected virtual void OnEditorCursorUpdated(MooEditorPage e)
+   {
+      EditorCursorUpdated?.Invoke(this, e);
+   }
 
-            return null;
-        }
-
-        return _Owner.InvokeRequired ? _Owner.Invoke(DoShowPage) : DoShowPage();
-    }
-
-    /// <summary>
-    /// Shows the page.
-    /// </summary>
-    /// <param name="page">The page to show.</param>
-    /// <returns>
-    /// The <see cref="KryptonPage" /> instance.
-    /// </returns>
-    [CanBeNull]
-    public ManagedPage ShowPage(ManagedPage page)
-    {
-        return ShowPage(page.UniqueName);
-    }
-
-    /// <summary>
-    /// Closes the page.
-    /// </summary>
-    /// <param name="key">The key.</param>
-    void ClosePage(string key)
-    {
-        void DoClosePage()
-        {
-            if (Pages.TryGetValue(key, out ManagedPage page))
-            {
-                Workspace.DockingManager.CloseRequest(new[] { key });
-                Workspace.DockingManager.RemovePage(page, true);
-            }
-        }
-
-        if (_Owner.InvokeRequired)
-            _Owner.Invoke(DoClosePage);
-        else
-            DoClosePage();
-    }
-
-    protected virtual void OnEditorCursorUpdated(MooEditorPage e)
-    {
-        EditorCursorUpdated?.Invoke(this, e);
-    }
-
-    protected virtual void OnEditorParsingCompleted(MooCodeEditorPage e)
-    {
-        EditorParsingComplete?.Invoke(this, e);
-    }
+   protected virtual void OnEditorParsingCompleted(MooCodeEditorPage e)
+   {
+      EditorParsingComplete?.Invoke(this, e);
+   }
 }

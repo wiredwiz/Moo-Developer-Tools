@@ -119,6 +119,7 @@ public partial class Editor : KryptonForm
       mnuItemIndentationGuides.Enabled = isMooCodeEditor;
       mnuItemMarkdown.Enabled = isDocumentEditor;
       mnuItemMooText.Enabled = isDocumentEditor;
+      mnuItemShowPreviewPane.Enabled = isDocumentEditor;
       UpdateEditMenu();
       UpdateTerminalMenu();
       UpdateViewMenu();
@@ -323,7 +324,7 @@ public partial class Editor : KryptonForm
    private void tlMnuItemClose_Click(object sender, EventArgs e)
    {
       if (CurrentPage != null)
-         kryptonDockingManager.RemovePage(CurrentPage, true);
+         WindowManager.ClosePage(CurrentPage.UniqueName);
    }
 
    private void mnuItemFormat_Click(object sender, EventArgs e)
