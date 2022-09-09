@@ -126,6 +126,7 @@ partial class AboutBox
          // 
          // okButton
          // 
+         this.okButton.AccessibleDescription = "";
          this.okButton.AccessibleRole = System.Windows.Forms.AccessibleRole.PushButton;
          this.okButton.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
          this.okButton.DialogResult = System.Windows.Forms.DialogResult.Cancel;
@@ -184,6 +185,8 @@ partial class AboutBox
          // AboutBox
          // 
          this.AcceptButton = this.okButton;
+         this.AccessibleDescription = "";
+         this.AccessibleName = resources.GetString("$this.AccessibleName");
          this.AutoScaleDimensions = new System.Drawing.SizeF(8F, 20F);
          this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
          this.CancelButton = this.okButton;

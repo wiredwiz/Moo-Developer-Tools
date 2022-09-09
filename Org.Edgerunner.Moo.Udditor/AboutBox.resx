@@ -93,4 +93,7 @@
         AQDyhAUAyBMWACBPWACAPGEBAPKEBQDIExYAIE9YAIC42Q/VPWCBP9S5cQAAAABJRU5ErkJggg==
 </value>
   </data>
+  <data name="$this.AccessibleName" xml:space="preserve">
+    <value>About Box - Moo Udditor is a Moo IDE designed by Thaddeus Ryker.  It is intended to help Moo developers to write faster and better code.  For more information go to https://github.com/wiredwiz/Moo-Developer-Tools</value>
+  </data>
 </root>

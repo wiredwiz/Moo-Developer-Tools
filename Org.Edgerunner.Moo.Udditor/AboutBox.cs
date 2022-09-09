@@ -15,7 +15,6 @@ partial class AboutBox : KryptonForm
       this.labelVersion.Text = $"Version {AssemblyVersion}";
       this.labelCopyright.Text = AssemblyCopyright;
       this.labelCompanyName.Text = AssemblyCompany;
-      //this.textBoxDescription.Text = AssemblyDescription;
       this.lblDescription.Text = AssemblyDescription;
    }
 
