@@ -148,7 +148,16 @@ namespace Org.Edgerunner.Moo.Editor
 
          var world = GetSelectedWorld();
          var configurator = new WorldConfigurator();
-         configurator.World = world;
+         try
+         {
+            configurator.World = world;
+         }
+         catch (InvalidOperationException)
+         {
+            MessageBox.Show("Unable to decrypt world password.\nEncryption key is probably missing from the registry.\n" +
+                            "World cannot be edited (try restarting Udditor)", "Password Error");
+            return;
+         }
          var result = configurator.ShowDialog(this);
          if (result != DialogResult.OK)
             return;

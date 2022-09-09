@@ -79,7 +79,7 @@ partial class ConnectionInfoPrompt
          this.chkTls.AccessibleRole = System.Windows.Forms.AccessibleRole.CheckButton;
          this.chkTls.Location = new System.Drawing.Point(12, 71);
          this.chkTls.Name = "chkTls";
-         this.chkTls.Size = new System.Drawing.Size(78, 24);
+         this.chkTls.Size = new System.Drawing.Size(79, 21);
          this.chkTls.TabIndex = 4;
          this.chkTls.Values.Text = "Use TLS";
          // 

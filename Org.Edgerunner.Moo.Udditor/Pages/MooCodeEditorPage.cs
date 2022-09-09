@@ -238,6 +238,8 @@ public class MooCodeEditorPage : MooEditorPage
         codeEditor.ShowCodeFolding = Settings.Instance.EditorShowCodeFolding;
         codeEditor.ShowTextBlockIndentationGuides = Settings.Instance.EditorShowTextIndentGuides;
         codeEditor.Zoom = Settings.Instance.EditorZoomFactor;
+        codeEditor.FoldingHighlightColor = Settings.Instance.EditorFoldingHighlightColor;
+        codeEditor.FoldingHighlightEnabled = Settings.Instance.EditorShowFoldingBlockHighlights;
         BuildAutocompleteMenu(codeEditor);
     }
 

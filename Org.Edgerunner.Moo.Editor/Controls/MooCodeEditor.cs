@@ -82,6 +82,7 @@ namespace Org.Edgerunner.Moo.Editor.Controls
          AutoCompleteBracketsList = new[] { '(', ')', '{', '}', '[', ']', '"', '"' };
          AutoIndentChars = false;
          WordWrapAutoIndent = true;
+         FoldingHighlightEnabled = true;
          AutoIndentNeeded += MooEditor_AutoIndentNeeded;
          TextChanged += MooEditor_TextChanged;
          TextChangedDelayed += MooEditor_TextChangedDelayed;

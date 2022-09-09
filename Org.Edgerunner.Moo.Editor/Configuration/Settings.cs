@@ -430,6 +430,20 @@ namespace Org.Edgerunner.Moo.Editor.Configuration
       public Color EditorServiceLineColor { get; set; }
 
       /// <summary>
+      /// Gets or sets a value that determines whether to show the current folding block highlight.
+      /// </summary>
+      /// <value><c>true</c> if folding block highlights are enabled; otherwise, <c>false</c>.</value>
+      public bool EditorShowFoldingBlockHighlights { get; set; }
+
+      /// <summary>
+      /// Gets or sets the color of the current folding block in the editor.
+      /// </summary>
+      /// <value>
+      /// The color of the current folding block in the editor.
+      /// </value>
+      public Color EditorFoldingHighlightColor { get; set; }
+
+      /// <summary>
       /// Gets or sets the editor default zoom factor.
       /// </summary>
       /// <value>The editor zoom factor.</value>
@@ -627,6 +641,7 @@ namespace Org.Edgerunner.Moo.Editor.Configuration
          var defIndentBackColor = Color.WhiteSmoke;
          var defBookmarkColor = Color.PowderBlue;
          var defServiceLineColor = Color.Silver;
+         var defFoldingBlockHighlightColor = Color.AliceBlue;
 
          if (appSettings == null)
          {
@@ -642,6 +657,7 @@ namespace Org.Edgerunner.Moo.Editor.Configuration
             EditorIndentBackColor = defIndentBackColor;
             EditorBookmarkColor = defBookmarkColor;
             EditorServiceLineColor = defServiceLineColor;
+            EditorFoldingHighlightColor = defFoldingBlockHighlightColor;
             return;
          }
 
@@ -776,6 +792,17 @@ namespace Org.Edgerunner.Moo.Editor.Configuration
          {
             EditorServiceLineColor = defServiceLineColor;
          }
+
+         // Fetch FoldingHighlightColor setting
+         result = appSettings["EditorFoldingHighlightColor"]?.Value ?? string.Empty;
+         try
+         {
+            EditorFoldingHighlightColor = !string.IsNullOrEmpty(result) ? ColorTranslator.FromHtml(result) : defFoldingBlockHighlightColor;
+         }
+         catch (Exception)
+         {
+            EditorFoldingHighlightColor = defFoldingBlockHighlightColor;
+         }
       }
 
       [SuppressMessage("ReSharper", "ConditionIsAlwaysTrueOrFalse", Justification = "better to centralize defaults")]
@@ -790,6 +817,7 @@ namespace Org.Edgerunner.Moo.Editor.Configuration
          var defAutocompleteDelay = 50;
          var defGrammarDialect = GrammarDialect.Edgerunner;
          var defCodeFolding = true;
+         var defShowFoldingBlockHighlights = true;
          var defIndentationGuides = true;
          var defEditorZoomFactor = 0;
          var defDarkTheme = false;
@@ -806,6 +834,7 @@ namespace Org.Edgerunner.Moo.Editor.Configuration
             DefaultGrammarDialect = defGrammarDialect;
             EditorShowTextIndentGuides = defIndentationGuides;
             EditorShowCodeFolding = defCodeFolding;
+            EditorShowFoldingBlockHighlights = defShowFoldingBlockHighlights;
             EditorZoomFactor = defEditorZoomFactor;
             EditorDarkTheme = defDarkTheme;
             return;
@@ -834,6 +863,10 @@ namespace Org.Edgerunner.Moo.Editor.Configuration
          // Fetch EditorShowCodeFolding setting
          result = appSettings["EditorShowCodeFolding"]?.Value ?? string.Empty;
          EditorShowCodeFolding = !bool.TryParse(result, out settingValueBoolean) ? defCodeFolding : settingValueBoolean;
+
+         // Fetch EditorShowCodeFolding setting
+         result = appSettings["EditorShowFoldingBlockHighlights"]?.Value ?? string.Empty;
+         EditorShowFoldingBlockHighlights = !bool.TryParse(result, out settingValueBoolean) ? defShowFoldingBlockHighlights : settingValueBoolean;
 
          // Fetch EditorAutoBrackets settings
          result = appSettings["EditorAutoBrackets"]?.Value ?? string.Empty;

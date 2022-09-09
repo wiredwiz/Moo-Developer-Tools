@@ -145,7 +145,7 @@ namespace Org.Edgerunner.Moo.Udditor
          // 
          this.tlMnuNew.Name = "tlMnuNew";
          this.tlMnuNew.ShortcutKeys = ((System.Windows.Forms.Keys)((System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.N)));
-         this.tlMnuNew.Size = new System.Drawing.Size(224, 26);
+         this.tlMnuNew.Size = new System.Drawing.Size(215, 26);
          this.tlMnuNew.Text = "&New";
          this.tlMnuNew.Click += new System.EventHandler(this.tlMnuNew_Click);
          // 
@@ -153,7 +153,7 @@ namespace Org.Edgerunner.Moo.Udditor
          // 
          this.mnuItemOpenFile.Name = "mnuItemOpenFile";
          this.mnuItemOpenFile.ShortcutKeys = ((System.Windows.Forms.Keys)((System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.O)));
-         this.mnuItemOpenFile.Size = new System.Drawing.Size(224, 26);
+         this.mnuItemOpenFile.Size = new System.Drawing.Size(215, 26);
          this.mnuItemOpenFile.Text = "&Open";
          this.mnuItemOpenFile.Click += new System.EventHandler(this.mnuItemOpenFile_Click);
          // 
@@ -162,7 +162,7 @@ namespace Org.Edgerunner.Moo.Udditor
          this.mnuItemSend.Name = "mnuItemSend";
          this.mnuItemSend.ShortcutKeys = ((System.Windows.Forms.Keys)(((System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.Shift) 
             | System.Windows.Forms.Keys.S)));
-         this.mnuItemSend.Size = new System.Drawing.Size(224, 26);
+         this.mnuItemSend.Size = new System.Drawing.Size(215, 26);
          this.mnuItemSend.Text = "Send";
          this.mnuItemSend.Click += new System.EventHandler(this.mnuItemSend_Click);
          // 
@@ -170,33 +170,33 @@ namespace Org.Edgerunner.Moo.Udditor
          // 
          this.mnuItemFileSave.Name = "mnuItemFileSave";
          this.mnuItemFileSave.ShortcutKeys = ((System.Windows.Forms.Keys)((System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.S)));
-         this.mnuItemFileSave.Size = new System.Drawing.Size(224, 26);
+         this.mnuItemFileSave.Size = new System.Drawing.Size(215, 26);
          this.mnuItemFileSave.Text = "&Save";
          this.mnuItemFileSave.Click += new System.EventHandler(this.mnuItemSave_Click);
          // 
          // mnuItemSaveAsFile
          // 
          this.mnuItemSaveAsFile.Name = "mnuItemSaveAsFile";
-         this.mnuItemSaveAsFile.Size = new System.Drawing.Size(224, 26);
+         this.mnuItemSaveAsFile.Size = new System.Drawing.Size(215, 26);
          this.mnuItemSaveAsFile.Text = "Save &As";
          this.mnuItemSaveAsFile.Click += new System.EventHandler(this.mnuItemSaveAsFile_Click);
          // 
          // tlMnuItemClose
          // 
          this.tlMnuItemClose.Name = "tlMnuItemClose";
-         this.tlMnuItemClose.Size = new System.Drawing.Size(224, 26);
+         this.tlMnuItemClose.Size = new System.Drawing.Size(215, 26);
          this.tlMnuItemClose.Text = "&Close";
          this.tlMnuItemClose.Click += new System.EventHandler(this.tlMnuItemClose_Click);
          // 
          // toolStripSeparator1
          // 
          this.toolStripSeparator1.Name = "toolStripSeparator1";
-         this.toolStripSeparator1.Size = new System.Drawing.Size(221, 6);
+         this.toolStripSeparator1.Size = new System.Drawing.Size(212, 6);
          // 
          // mnuItemExit
          // 
          this.mnuItemExit.Name = "mnuItemExit";
-         this.mnuItemExit.Size = new System.Drawing.Size(224, 26);
+         this.mnuItemExit.Size = new System.Drawing.Size(215, 26);
          this.mnuItemExit.Text = "E&xit";
          this.mnuItemExit.Click += new System.EventHandler(this.mnuItemExit_Click);
          // 

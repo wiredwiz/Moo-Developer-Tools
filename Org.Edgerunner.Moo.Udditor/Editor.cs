@@ -19,6 +19,7 @@ using Org.Edgerunner.Moo.Editor.Controls;
 using Org.Edgerunner.Moo.Udditor.Pages;
 using static System.Windows.Forms.VisualStyles.VisualStyleElement;
 using Org.Edgerunner.Moo.Common;
+using Org.Edgerunner.Moo.Common.Cryptography;
 
 namespace Org.Edgerunner.Moo.Udditor;
 
@@ -49,6 +50,8 @@ public partial class Editor : KryptonForm
          allErrors.AddRange(Errors[eKey]);
       ErrorDisplay.PopulateErrors(allErrors);
    }
+
+   private bool _WorldManagerEnabled;
 
    private ErrorDisplay ErrorDisplay { get; set; }
 
@@ -120,6 +123,7 @@ public partial class Editor : KryptonForm
       mnuItemMarkdown.Enabled = isDocumentEditor;
       mnuItemMooText.Enabled = isDocumentEditor;
       mnuItemShowPreviewPane.Enabled = isDocumentEditor;
+      mnuItemWorldManager.Enabled = _WorldManagerEnabled;
       UpdateEditMenu();
       UpdateTerminalMenu();
       UpdateViewMenu();
@@ -179,14 +183,47 @@ public partial class Editor : KryptonForm
       var messageDisplay = WindowManager.CreateParserMessageDisplayPage();
       ErrorDisplay = messageDisplay.MessageDisplay;
       messageDisplay.DoubleClick += MessageDisplay_DoubleClick;
+      ConfigureMasterKey();
       UpdateMenus();
       BuildTerminalShortcutMenu();
+   }
+
+   private void ConfigureMasterKey()
+   {
+      _WorldManagerEnabled = true;
+      string key = String.Empty;
+      try
+      {
+         KeyManager.RetrieveMasterKey(out key);
+      }
+      catch (Exception)
+      {
+      }
+      if (string.IsNullOrEmpty(key))
+      {
+         var setup = new Setup();
+         setup.StartPosition = FormStartPosition.CenterParent;
+         if (setup.ShowDialog(this) != DialogResult.OK)
+         {
+            MessageBox.Show("Without a proper master key, the world manager will be disabled.", "World Manager Disabled");
+            _WorldManagerEnabled = false;
+         }
+         else
+         {
+            _WorldManagerEnabled = true;
+            key = Hash.Sha256(setup.Password);
+            KeyManager.SaveMasterKey(key);
+         }
+      }
    }
 
    void BuildTerminalShortcutMenu()
    {
       while (mnuItemTerminal.DropDownItems.Count > 5)
          mnuItemTerminal.DropDownItems.RemoveAt(5);
+      if (!_WorldManagerEnabled)
+         return;
+
       var book = GetWorldsAddressBook();
       if (book.Worlds.Count(world => world.ShowAsMenuShortcut) != 0)
       {

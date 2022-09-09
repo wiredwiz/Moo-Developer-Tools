@@ -9,7 +9,6 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 using Krypton.Toolkit;
-using Org.Edgerunner.Moo.Common.Encryption;
 
 namespace Org.Edgerunner.Moo.Editor
 {

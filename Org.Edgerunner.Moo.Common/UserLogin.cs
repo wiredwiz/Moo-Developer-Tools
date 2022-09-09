@@ -35,7 +35,7 @@
 #endregion
 
 using System.Xml.Serialization;
-using Org.Edgerunner.Moo.Common.Encryption;
+using Org.Edgerunner.Moo.Common.Cryptography;
 using static System.String;
 
 namespace Org.Edgerunner.Moo.Common;
@@ -65,8 +65,6 @@ public class UserLogin
         PromptForCredentials = false;
         AutomaticallyLogin = true;
     }
-
-    private const string _Key = "34avs#$%k7ikasS$564sdfaA%*12";
 
     /// <summary>
     /// Gets or sets the user name.
@@ -107,7 +105,19 @@ public class UserLogin
     [XmlIgnore]
     public string DecryptedPassword
     {
-        get => !IsNullOrEmpty(Password) ? AesCrypto.Decrypt(Password, _Key) ?? Empty : Empty;
-        set => Password = IsNullOrEmpty(value) ? Empty : AesCrypto.Encrypt(value, _Key);
+        get
+        {
+            if (!KeyManager.RetrieveMasterKey(out var key) || IsNullOrEmpty(key))
+                throw new InvalidOperationException("Unable to retrieve encryption key.");
+
+            return !IsNullOrEmpty(Password) ? AesCrypto.Decrypt(Password, key) ?? Empty : Empty;
+        }
+        set
+        {
+            if (!KeyManager.RetrieveMasterKey(out var key) || IsNullOrEmpty(key))
+                throw new InvalidOperationException("Unable to retrieve encryption key.");
+
+            Password = IsNullOrEmpty(value) ? Empty : AesCrypto.Encrypt(value, key);
+        }
     }
 }
