@@ -351,12 +351,12 @@ public class WindowManager
    {
       void DoClosePage()
       {
-         if (Pages.TryGetValue(key, out ManagedPage page))
-         {
-            Workspace.DockingManager.CloseRequest(new[] { key });
-            if (!Workspace.DockingManager.ContainsPage(page))
-               UnRegisterPage(page.UniqueName);
-         }
+         if (!Pages.TryGetValue(key, out ManagedPage page))
+            return;
+
+         Workspace.DockingManager.CloseRequest(new[] { key });
+         if (!Workspace.DockingManager.ContainsPage(page))
+            UnRegisterPage(page.UniqueName);
       }
 
       if (_Owner.InvokeRequired)
