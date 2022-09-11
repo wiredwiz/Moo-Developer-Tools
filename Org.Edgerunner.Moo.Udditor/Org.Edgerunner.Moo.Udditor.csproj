@@ -19,6 +19,7 @@ Udditor is intended to allow Moo programmers to work faster, waste less time and
     <Title>MooUdditor</Title>
     <PackageProjectUrl>https://github.com/wiredwiz/Moo-Developer-Tools</PackageProjectUrl>
     <RepositoryUrl>https://github.com/wiredwiz/Moo-Developer-Tools</RepositoryUrl>
+    <Company>Edgerunner.org</Company>
   </PropertyGroup>
 
   <ItemGroup>
