@@ -83,7 +83,7 @@ partial class Setup
          this.txtPassword.Size = new System.Drawing.Size(222, 27);
          this.txtPassword.TabIndex = 1;
          this.txtPassword.UseSystemPasswordChar = true;
-         this.txtPassword.Validated += new System.EventHandler(this.txtPassword_Validated);
+         this.txtPassword.TextChanged += new System.EventHandler(this.txtPassword_TextChanged);
          // 
          // kryptonLabel1
          // 

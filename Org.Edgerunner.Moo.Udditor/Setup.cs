@@ -34,8 +34,8 @@ public partial class Setup : KryptonForm
       DialogResult = DialogResult.OK;
    }
 
-    private void txtPassword_Validated(object sender, EventArgs e)
-    {
-       btnOk.Enabled = !string.IsNullOrEmpty(txtPassword.Text);
-    }
+   private void txtPassword_TextChanged(object sender, EventArgs e)
+   {
+      btnOk.Enabled = !string.IsNullOrEmpty(txtPassword.Text);
+   }
 }

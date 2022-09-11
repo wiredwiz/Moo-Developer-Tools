@@ -1,13 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Data;
-using System.Drawing;
-using System.Linq;
-using System.Runtime.CompilerServices;
-using System.Text;
-using System.Threading.Tasks;
-using System.Windows.Forms;
 using Krypton.Toolkit;
 
 namespace Org.Edgerunner.Moo.Udditor;
@@ -42,8 +33,8 @@ public partial class ConnectionInfoPrompt : KryptonForm
       Close();
    }
 
-   private void ConnectInfo_Validating(object sender, CancelEventArgs e)
+   private void ConnectInfo_TextChanged(object sender, EventArgs e)
    {
-      btnConnect.Enabled = !string.IsNullOrEmpty(txtHost.Text) && int.TryParse(txtPort.Text, out var port);
+      btnConnect.Enabled = !string.IsNullOrEmpty(txtHost.Text) && int.TryParse(txtPort.Text, out _);
    }
 }

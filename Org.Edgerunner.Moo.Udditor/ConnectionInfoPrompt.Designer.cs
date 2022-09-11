@@ -63,7 +63,7 @@ partial class ConnectionInfoPrompt
          this.txtPort.Name = "txtPort";
          this.txtPort.Size = new System.Drawing.Size(46, 27);
          this.txtPort.TabIndex = 3;
-         this.txtPort.Validating += new System.ComponentModel.CancelEventHandler(this.ConnectInfo_Validating);
+         this.txtPort.TextChanged += new System.EventHandler(this.ConnectInfo_TextChanged);
          // 
          // txtHost
          // 
@@ -72,14 +72,14 @@ partial class ConnectionInfoPrompt
          this.txtHost.Name = "txtHost";
          this.txtHost.Size = new System.Drawing.Size(209, 27);
          this.txtHost.TabIndex = 1;
-         this.txtHost.Validating += new System.ComponentModel.CancelEventHandler(this.ConnectInfo_Validating);
+         this.txtHost.TextChanged += new System.EventHandler(this.ConnectInfo_TextChanged);
          // 
          // chkTls
          // 
          this.chkTls.AccessibleRole = System.Windows.Forms.AccessibleRole.CheckButton;
          this.chkTls.Location = new System.Drawing.Point(12, 71);
          this.chkTls.Name = "chkTls";
-         this.chkTls.Size = new System.Drawing.Size(79, 21);
+         this.chkTls.Size = new System.Drawing.Size(78, 24);
          this.chkTls.TabIndex = 4;
          this.chkTls.Values.Text = "Use TLS";
          // 
