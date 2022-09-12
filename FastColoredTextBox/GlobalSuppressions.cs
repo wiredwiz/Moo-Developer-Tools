@@ -5,4 +5,5 @@
 
 using System.Diagnostics.CodeAnalysis;
 
-[assembly: SuppressMessage("Interoperability", "CA1416:Validate platform compatibility", Justification = "<Pending>", Scope = "member", Target = "~M:FastColoredTextBoxNS.FastColoredTextBox.OnPaint(System.Windows.Forms.PaintEventArgs)")]
+// ReSharper disable once StringLiteralTypo
+[assembly: SuppressMessage("Interoperability", "CA1416:Validate platform compatibility", Justification = "It is well known that a custom winforms user control will only work on Windows.", Scope = "namespaceanddescendants", Target = "~M:FastColoredTextBoxNS")]
