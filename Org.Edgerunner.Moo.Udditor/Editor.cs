@@ -490,6 +490,12 @@ public partial class Editor : KryptonForm
       {
          page = WindowManager.CreateTerminalPage(host);
       }
+      else
+      {
+         page.Text = world;
+         page.TextTitle = world;
+         page.TextDescription = world;
+      }
 
       WindowManager.ShowPage(page);
       try
@@ -518,7 +524,13 @@ public partial class Editor : KryptonForm
       TerminalPage page = CurrentPage as TerminalPage;
       if (page == null || page.Terminal.IsConnected)
       {
-         page = WindowManager.CreateTerminalPage(world.HostAddress);
+         page = WindowManager.CreateTerminalPage(world.Name);
+      }
+      else
+      {
+         page.Text = world.Name;
+         page.TextTitle = world.Name;
+         page.TextDescription = world.Name;
       }
 
       WindowManager.ShowPage(page);
