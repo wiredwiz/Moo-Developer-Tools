@@ -18,8 +18,8 @@ using Org.Edgerunner.Moo.Editor.Configuration;
 using Org.Edgerunner.Moo.Editor.Controls;
 using Org.Edgerunner.Moo.Udditor.Pages;
 using static System.Windows.Forms.VisualStyles.VisualStyleElement;
-using Org.Edgerunner.Moo.Common;
-using Org.Edgerunner.Moo.Common.Cryptography;
+using Org.Edgerunner.Mud.Common;
+using Org.Edgerunner.Mud.Common.Cryptography;
 
 namespace Org.Edgerunner.Moo.Udditor;
 
@@ -544,7 +544,7 @@ public partial class Editor : KryptonForm
             var loginText = world.UserInfo.ConnectionString
                                  .Replace("%u", userName)
                                  .Replace("%p", password);
-            page.Terminal.SendTextLine(loginText);
+            page.Terminal.SendLoginTextLine(loginText);
          }
          page.Terminal.EchoEnabled = world.EchoEnabled;
          page.Terminal.FocusOnInput();

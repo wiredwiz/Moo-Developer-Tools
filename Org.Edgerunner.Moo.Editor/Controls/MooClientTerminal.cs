@@ -12,9 +12,9 @@ using System.Threading.Tasks;
 using System.Windows.Forms;
 using FastColoredTextBoxNS.Types;
 using Org.Edgerunner.Common.Extensions;
-using Org.Edgerunner.Moo.Communication;
-using Org.Edgerunner.Moo.Communication.Buffers;
-using Org.Edgerunner.Moo.Communication.Interfaces;
+using Org.Edgerunner.Mud.Communication;
+using Org.Edgerunner.Mud.Communication.Buffers;
+using Org.Edgerunner.Mud.Communication.Interfaces;
 using Org.Edgerunner.Mud.MCP;
 using Org.Edgerunner.Mud.MCP.Exceptions;
 using Org.Edgerunner.Mud.MCP.Interfaces;
@@ -25,7 +25,7 @@ namespace Org.Edgerunner.Moo.Editor.Controls
 {
     public partial class MooClientTerminal : UserControl, IClientTerminal
    {
-      private IMooClientSession _Session;
+      private IMudClientSession _Session;
 
       private int _ReadingCommands;
 
@@ -35,11 +35,11 @@ namespace Org.Edgerunner.Moo.Editor.Controls
 
       private bool _UserInteraction;
 
-      private bool _LastCommandAppearedToBeALogin;
-
       private int _LastAttemptedLoginScreenLines;
 
       private string _OutOfBandPrefix = "#$#";
+
+      private bool _LastCommandIsLogin;
 
       protected McpClientSessionManager McpSessionManager { get; set; }
 
@@ -48,6 +48,17 @@ namespace Org.Edgerunner.Moo.Editor.Controls
       public int Port => _Session.Port;
 
       public string World => _Session.World;
+
+      protected bool LastCommandIsLogin
+      {
+         get => _LastCommandIsLogin;
+         set
+         {
+            if (value)
+               _LastAttemptedLoginScreenLines = consoleSim.Lines.Count;
+            _LastCommandIsLogin = value;
+         }
+      }
 
       public ConsoleWindowEmulator Output => consoleSim;
 
@@ -103,6 +114,40 @@ namespace Org.Edgerunner.Moo.Editor.Controls
          set => consoleSim.AnsiManager.EchoEnabled = value;
       }
 
+      /// <summary>
+      /// Gets or sets a value indicating whether to enable ANSI color.
+      /// </summary>
+      /// <value><c>true</c> if [ANSI color enabled]; otherwise, <c>false</c>.</value>
+      public bool AnsiColorEnabled
+      {
+         get => consoleSim.AnsiColorEnabled;
+         set => consoleSim.AnsiColorEnabled = value;
+      }
+
+      /// <summary>
+      /// Gets or sets a value indicating whether to enable blinking text.
+      /// </summary>
+      /// <value><c>true</c> if [blinking text enabled]; otherwise, <c>false</c>.</value>
+      public bool BlinkingTextEnabled
+      {
+         get => consoleSim.BlinkingTextEnabled;
+         set => consoleSim.BlinkingTextEnabled = value;
+      }
+
+      /// <summary>
+      /// Gets or sets a value indicating whether to enable ascii bell.
+      /// </summary>
+      /// <value><c>true</c> if [bell enabled]; otherwise, <c>false</c>.</value>
+      public bool AsciiBellEnabled
+      {
+         get => consoleSim.AsciiBellEnabled;
+         set => consoleSim.AsciiBellEnabled = value;
+      }
+
+      /// <summary>
+      /// Gets a value indicating whether this instance is connected.
+      /// </summary>
+      /// <value><c>true</c> if this instance is connected; otherwise, <c>false</c>.</value>
       public bool IsConnected => _Session?.IsOpen ?? false;
 
       /// <summary>
@@ -118,7 +163,7 @@ namespace Org.Edgerunner.Moo.Editor.Controls
          _ReadingCommands = 0;
          _InputCommandBuffer = new CommandBuffer(15);
          _UserInteraction = false;
-         _LastCommandAppearedToBeALogin = false;
+         LastCommandIsLogin = false;
          McpSessionManager = new McpClientSessionManager(new Version(2,1), new Version(2,1), new List<IMcpPackage>());
          ActiveControl = txtInput;
          splitContainer1.SplitterDistance = splitContainer1.ClientSize.Height - txtInput.Height;
@@ -155,9 +200,9 @@ namespace Org.Edgerunner.Moo.Editor.Controls
          {
             if (_LoggedInConnection || !IsConnecting(txtInput.Text))
             {
+               LastCommandIsLogin = false;
                SendTextLines(txtInput.Text.Split('\n'));
 
-               _LastCommandAppearedToBeALogin = false;
                if (!_InputCommandBuffer.IsEmpty && _InputCommandBuffer[0] != txtInput.Text)
                   _InputCommandBuffer.PushFront(txtInput.Text);
                else if (_InputCommandBuffer.IsEmpty)
@@ -167,13 +212,14 @@ namespace Org.Edgerunner.Moo.Editor.Controls
             }
             else
             {
+               _UserInteraction = true;
+               LastCommandIsLogin = true;
+
                var existing = consoleSim.AnsiManager.EchoEnabled;
                consoleSim.AnsiManager.EchoEnabled = false;
                SendTextLines(txtInput.Text.Split('\n'));
                consoleSim.AnsiManager.EchoEnabled = existing;
-               _UserInteraction = true;
-               _LastCommandAppearedToBeALogin = true;
-               _LastAttemptedLoginScreenLines = consoleSim.Lines.Count;
+               
                txtInput.Text = string.Empty;
                txtInput.UseSystemPasswordChar = true;
             }
@@ -229,8 +275,8 @@ namespace Org.Edgerunner.Moo.Editor.Controls
             else
                txtInput.UseSystemPasswordChar = string.IsNullOrEmpty(txtInput.Text) || !IsConnecting(txtInput.Text);
 
-            if (txtInput.Text != null)
-               txtInput.SelectionStart = txtInput.Text.Length;
+            //if (txtInput.Text != null)
+            //   txtInput.SelectionStart = txtInput.Text.Length;
          }
          else
          {
@@ -270,6 +316,28 @@ namespace Org.Edgerunner.Moo.Editor.Controls
       {
          foreach (var line in text)
             SendTextLine(line);
+      }
+
+      /// <summary>
+      /// Sends the text line to the client connection.
+      /// </summary>
+      /// <param name="text">The text to send.</param>
+      public void SendLoginTextLine(string text)
+      {
+         void SafeWrite()
+         {
+            var atBottom = consoleSim.VerticalScrollbarPositionedAtBottom;
+
+            LastCommandIsLogin = true;
+            _Session.SendLine(text);
+            if (atBottom)
+               consoleSim.GoEnd();
+         }
+
+         if (InvokeRequired)
+            Invoke(SafeWrite);
+         else
+            SafeWrite();
       }
 
       /// <summary>
@@ -560,7 +628,7 @@ namespace Org.Edgerunner.Moo.Editor.Controls
       public async Task ConnectAsync(string world, string host, int port, bool useTls = false)
       {
          Tls = useTls;
-         _Session = Tls ? MooClient.Create<TlsMooClientSession>(world, host, port) : MooClient.Create<MooClientSession>(world, host, port);
+         _Session = Tls ? MudClient.Create<TlsMudClientSession>(world, host, port) : MudClient.Create<MudClientSession>(world, host, port);
          _Session.Closed += Session_Closed;
          _Session.MessageReceived += SessionMessageReceived;
          _Session.DataDropped += Session_DataDropped;
@@ -645,7 +713,7 @@ namespace Org.Edgerunner.Moo.Editor.Controls
             // We are assuming that if we see more than 2 new lines printed to screen
             // after the user types a command, the appears to be a login command
             // We can mark the connection as being logged in.
-            if (!_LoggedInConnection && _UserInteraction && _LastCommandAppearedToBeALogin)
+            if (!_LoggedInConnection && _UserInteraction && LastCommandIsLogin)
                if (consoleSim.Invoke(GetLineCount) - _LastAttemptedLoginScreenLines > 2)
                   _LoggedInConnection = true;
          }

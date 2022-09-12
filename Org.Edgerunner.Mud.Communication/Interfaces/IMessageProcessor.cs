@@ -1,5 +1,5 @@
 ﻿#region BSD 3-Clause License
-// <copyright company="Edgerunner.org" file="IMcpProtocolHandler.cs">
+// <copyright company="Edgerunner.org" file="IMessageProcessor.cs">
 // Copyright (c)  2022
 // </copyright>
 //
@@ -34,26 +34,28 @@
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #endregion
 
-using Org.Edgerunner.Mud.Communication;
-
-namespace Org.Edgerunner.Mud.MCP.Interfaces;
+namespace Org.Edgerunner.Mud.Communication.Interfaces;
 
 /// <summary>
-/// An interface representing an object capable of processing and MCP protocol message.
+/// Class responsible for processing messages and determining what to do with them.
 /// </summary>
-public interface IMcpProtocolHandler
+public interface IMessageProcessor
 {
-    /// <summary>
-    /// Determines whether this instance can handle the message.
-    /// </summary>
-    /// <param name="message">The message to analyze.</param>
-    /// <returns></returns>
-    public bool CanHandleMessage(Message message);
+   /// <summary>
+   /// Processes the message determining what action to take.
+   /// </summary>
+   /// <param name="client">The client terminal.</param>
+   /// <param name="message">The message.</param>
+   /// <returns>
+   ///   <c>true</c> if successfully processed; otherwise <c>false</c>.
+   /// </returns>
+   bool ProcessMessage(IClientTerminal client, string message);
 
    /// <summary>
-   /// Processes the message.
+   /// Gets or sets the prefix for out of band messages.
    /// </summary>
-   /// <param name="message">The message to process.</param>
-   /// <returns><c>true</c> if successfully processed; otherwise <c>false</c>.</returns>
-   public bool ProcessMessage(Message message);
+   /// <value>
+   /// The prefix for out of band messages.
+   /// </value>
+   public string OutOfBandPrefix { get; set; }
 }

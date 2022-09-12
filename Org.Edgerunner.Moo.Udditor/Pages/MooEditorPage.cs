@@ -36,7 +36,7 @@
 
 using FastColoredTextBoxNS.Types;
 using Org.Edgerunner.ANTLR4.Tools.Common;
-using Org.Edgerunner.Moo.Communication.Interfaces;
+using Org.Edgerunner.Mud.Communication.Interfaces;
 
 namespace Org.Edgerunner.Moo.Udditor.Pages;
 

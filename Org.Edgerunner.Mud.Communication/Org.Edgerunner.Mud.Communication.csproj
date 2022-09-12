@@ -8,15 +8,19 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Compile Remove="Types\**" />
-    <EmbeddedResource Remove="Types\**" />
-    <None Remove="Types\**" />
+    <Compile Remove="MCP\**" />
+    <EmbeddedResource Remove="MCP\**" />
+    <None Remove="MCP\**" />
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Org.Edgerunner.Moo.Communication\Org.Edgerunner.Moo.Communication.csproj" />
+    <ProjectReference Include="..\Org.Edgerunner.Common\Org.Edgerunner.Common.csproj" />
+    <ProjectReference Include="..\Org.Edgerunner.Messaging\Org.Edgerunner.Messaging.csproj" />
     <ProjectReference Include="..\Org.Edgerunner.Mud.Common\Org.Edgerunner.Mud.Common.csproj" />
-    <ProjectReference Include="..\Org.Edgerunner.Mud.Communication\Org.Edgerunner.Mud.Communication.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="Exceptions\" />
   </ItemGroup>
 
 </Project>

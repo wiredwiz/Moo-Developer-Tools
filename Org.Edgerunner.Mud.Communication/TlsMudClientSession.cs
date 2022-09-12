@@ -1,5 +1,5 @@
 ﻿#region BSD 3-Clause License
-// <copyright company="Edgerunner.org" file="IMcpProtocolHandler.cs">
+// <copyright company="Edgerunner.org" file="TlsMudClientSession.cs">
 // Copyright (c)  2022
 // </copyright>
 //
@@ -34,26 +34,27 @@
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #endregion
 
-using Org.Edgerunner.Mud.Communication;
+using System.Net.Security;
+using System.Net.Sockets;
 
-namespace Org.Edgerunner.Mud.MCP.Interfaces;
+namespace Org.Edgerunner.Mud.Communication;
 
 /// <summary>
-/// An interface representing an object capable of processing and MCP protocol message.
+/// Class representing a TLS client session.
 /// </summary>
-public interface IMcpProtocolHandler
+/// <seealso cref="MudClientSession" />
+public class TlsMudClientSession : MudClientSession
 {
-    /// <summary>
-    /// Determines whether this instance can handle the message.
-    /// </summary>
-    /// <param name="message">The message to analyze.</param>
-    /// <returns></returns>
-    public bool CanHandleMessage(Message message);
+   public TlsMudClientSession(string world, string host, int port, string outOfBandPrefix = "#$#")
+      : base(world, host, port, outOfBandPrefix)
+   {
+   }
 
-   /// <summary>
-   /// Processes the message.
-   /// </summary>
-   /// <param name="message">The message to process.</param>
-   /// <returns><c>true</c> if successfully processed; otherwise <c>false</c>.</returns>
-   public bool ProcessMessage(Message message);
+   protected override Stream GetStream(TcpClient client)
+   {
+      var sslStream = new SslStream(base.GetStream(client));
+      sslStream.AuthenticateAsClient(Host);
+      IsAuthenticated = sslStream.IsAuthenticated;
+      return sslStream;
+   }
 }

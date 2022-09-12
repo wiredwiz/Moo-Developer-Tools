@@ -52,6 +52,8 @@
          this.chkPrompt = new Krypton.Toolkit.KryptonCheckBox();
          this.chkUseTLS = new Krypton.Toolkit.KryptonCheckBox();
          this.kryptonPanel1 = new Krypton.Toolkit.KryptonPanel();
+         this.chkBlink = new Krypton.Toolkit.KryptonCheckBox();
+         this.chkAudio = new Krypton.Toolkit.KryptonCheckBox();
          ((System.ComponentModel.ISupportInitialize)(this.kryptonPanel1)).BeginInit();
          this.kryptonPanel1.SuspendLayout();
          this.SuspendLayout();
@@ -174,14 +176,14 @@
          this.chkColor.AccessibleRole = System.Windows.Forms.AccessibleRole.CheckButton;
          this.chkColor.Location = new System.Drawing.Point(51, 426);
          this.chkColor.Name = "chkColor";
-         this.chkColor.Size = new System.Drawing.Size(105, 23);
+         this.chkColor.Size = new System.Drawing.Size(171, 23);
          this.chkColor.TabIndex = 19;
-         this.chkColor.Values.Text = "Enable Color";
+         this.chkColor.Values.Text = "Enable ANSI Color Text";
          // 
          // chkShowOnMenu
          // 
          this.chkShowOnMenu.AccessibleRole = System.Windows.Forms.AccessibleRole.CheckButton;
-         this.chkShowOnMenu.Location = new System.Drawing.Point(51, 455);
+         this.chkShowOnMenu.Location = new System.Drawing.Point(51, 513);
          this.chkShowOnMenu.Name = "chkShowOnMenu";
          this.chkShowOnMenu.Size = new System.Drawing.Size(177, 23);
          this.chkShowOnMenu.TabIndex = 20;
@@ -199,7 +201,7 @@
          // btnCancel
          // 
          this.btnCancel.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
-         this.btnCancel.Location = new System.Drawing.Point(35, 503);
+         this.btnCancel.Location = new System.Drawing.Point(35, 553);
          this.btnCancel.Name = "btnCancel";
          this.btnCancel.Size = new System.Drawing.Size(90, 25);
          this.btnCancel.TabIndex = 21;
@@ -208,7 +210,7 @@
          // btnOk
          // 
          this.btnOk.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
-         this.btnOk.Location = new System.Drawing.Point(170, 503);
+         this.btnOk.Location = new System.Drawing.Point(170, 553);
          this.btnOk.Name = "btnOk";
          this.btnOk.Size = new System.Drawing.Size(90, 25);
          this.btnOk.TabIndex = 22;
@@ -268,6 +270,8 @@
          // 
          // kryptonPanel1
          // 
+         this.kryptonPanel1.Controls.Add(this.chkAudio);
+         this.kryptonPanel1.Controls.Add(this.chkBlink);
          this.kryptonPanel1.Controls.Add(this.btnShowPassword);
          this.kryptonPanel1.Controls.Add(this.chkEnableEcho);
          this.kryptonPanel1.Controls.Add(this.txtPassword);
@@ -294,8 +298,26 @@
          this.kryptonPanel1.Dock = System.Windows.Forms.DockStyle.Fill;
          this.kryptonPanel1.Location = new System.Drawing.Point(0, 0);
          this.kryptonPanel1.Name = "kryptonPanel1";
-         this.kryptonPanel1.Size = new System.Drawing.Size(322, 540);
+         this.kryptonPanel1.Size = new System.Drawing.Size(322, 590);
          this.kryptonPanel1.TabIndex = 0;
+         // 
+         // chkBlink
+         // 
+         this.chkBlink.AccessibleRole = System.Windows.Forms.AccessibleRole.CheckButton;
+         this.chkBlink.Location = new System.Drawing.Point(51, 455);
+         this.chkBlink.Name = "chkBlink";
+         this.chkBlink.Size = new System.Drawing.Size(152, 23);
+         this.chkBlink.TabIndex = 23;
+         this.chkBlink.Values.Text = "Enable Blinking Text";
+         // 
+         // chkAudio
+         // 
+         this.chkAudio.AccessibleRole = System.Windows.Forms.AccessibleRole.CheckButton;
+         this.chkAudio.Location = new System.Drawing.Point(51, 484);
+         this.chkAudio.Name = "chkAudio";
+         this.chkAudio.Size = new System.Drawing.Size(108, 23);
+         this.chkAudio.TabIndex = 24;
+         this.chkAudio.Values.Text = "Enable Audio";
          // 
          // WorldConfigurator
          // 
@@ -304,7 +326,7 @@
          this.AutoScaleDimensions = new System.Drawing.SizeF(8F, 19F);
          this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
          this.CancelButton = this.btnCancel;
-         this.ClientSize = new System.Drawing.Size(322, 540);
+         this.ClientSize = new System.Drawing.Size(322, 590);
          this.Controls.Add(this.kryptonPanel1);
          this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedToolWindow;
          this.Name = "WorldConfigurator";
@@ -343,5 +365,7 @@
         private Krypton.Toolkit.KryptonCheckBox chkPrompt;
         private Krypton.Toolkit.KryptonCheckBox chkUseTLS;
         private Krypton.Toolkit.KryptonPanel kryptonPanel1;
+        private Krypton.Toolkit.KryptonCheckBox chkAudio;
+        private Krypton.Toolkit.KryptonCheckBox chkBlink;
     }
 }

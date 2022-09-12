@@ -1,4 +1,4 @@
-﻿using Org.Edgerunner.Moo.Common;
+﻿using Org.Edgerunner.Mud.Common;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -39,6 +39,8 @@ namespace Org.Edgerunner.Moo.Editor
             chkLocalEdit.Checked = value.LocalEditEnabled;
             chkMcp.Checked = value.McpEnabled;
             chkColor.Checked = value.ColorEnabled;
+            chkAudio.Checked = value.AudioEnabled;
+            chkBlink.Checked = value.BlinkEnabled;
             chkShowOnMenu.Checked = value.ShowAsMenuShortcut;
          }
       }
@@ -86,6 +88,8 @@ namespace Org.Edgerunner.Moo.Editor
          World.UserInfo.PromptForCredentials = chkPrompt.Checked;
          World.EchoEnabled = chkEnableEcho.Checked;
          World.ColorEnabled = chkColor.Checked;
+         World.BlinkEnabled = chkBlink.Checked;
+         World.AudioEnabled = chkAudio.Checked;
          World.LocalEditEnabled = chkLocalEdit.Checked;
          World.McpEnabled = chkMcp.Checked;
          World.ShowAsMenuShortcut = chkShowOnMenu.Checked;

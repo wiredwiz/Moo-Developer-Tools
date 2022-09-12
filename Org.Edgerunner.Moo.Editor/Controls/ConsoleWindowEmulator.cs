@@ -53,6 +53,24 @@ namespace Org.Edgerunner.Moo.Editor.Controls
          }
       }
 
+      /// <summary>
+      /// Gets or sets a value indicating whether to enable ANSI color.
+      /// </summary>
+      /// <value><c>true</c> if [ANSI color enabled]; otherwise, <c>false</c>.</value>
+      public bool AnsiColorEnabled { get; set; } = true;
+
+      /// <summary>
+      /// Gets or sets a value indicating whether to enable blinking text.
+      /// </summary>
+      /// <value><c>true</c> if [blinking text enabled]; otherwise, <c>false</c>.</value>
+      public bool BlinkingTextEnabled { get; set; } = true;
+
+      /// <summary>
+      /// Gets or sets a value indicating whether to enable ascii bell.
+      /// </summary>
+      /// <value><c>true</c> if [bell enabled]; otherwise, <c>false</c>.</value>
+      public bool AsciiBellEnabled { get; set; } = true;
+
       public ConsoleWindowEmulator()
       {
          InitializeComponent();
@@ -150,10 +168,15 @@ namespace Org.Edgerunner.Moo.Editor.Controls
                var codes = match.Groups["codes"].Value;
                if (match.Index != 0)
                {
-                  if (AnsiManager.Blinking)
-                     WriteWithStyles(text[..(match.Index)], new Style[] { CurrentStyle, DefaultBlinkingStyle });
+                  if (AnsiColorEnabled)
+                  {
+                     if (AnsiManager.Blinking && BlinkingTextEnabled)
+                        WriteWithStyles(text[..(match.Index)], new Style[] { CurrentStyle, DefaultBlinkingStyle });
+                     else
+                        Write(text[..(match.Index)], CurrentStyle);
+                  }
                   else
-                     Write(text[..(match.Index)], CurrentStyle);
+                     Write(text[..(match.Index)]);
                }
                CurrentStyle = AnsiManager.ProcessCodes(codes.Split(';').ToList().Select(int.Parse).ToList());
                text = match.Index + match.Length < text.Length ? text[(match.Index + match.Length)..] : string.Empty;
@@ -161,10 +184,15 @@ namespace Org.Edgerunner.Moo.Editor.Controls
             }
 
             if (!string.IsNullOrEmpty(text))
-               if (AnsiManager.Blinking)
-                  WriteWithStyles(text, new Style[] { CurrentStyle, DefaultBlinkingStyle });
+               if (AnsiColorEnabled)
+               {
+                  if (AnsiManager.Blinking && BlinkingTextEnabled)
+                     WriteWithStyles(text, new Style[] { CurrentStyle, DefaultBlinkingStyle });
+                  else
+                     Write(text, CurrentStyle);
+               }
                else
-                  Write(text, CurrentStyle);
+                  Write(text);
          }
          finally
          {
@@ -190,7 +218,7 @@ namespace Org.Edgerunner.Moo.Editor.Controls
       public void Write(string text, Style style)
       {
          var newText = text.Replace("\u0007", "");
-         if (newText.Length != text.Length)
+         if (newText.Length != text.Length && AsciiBellEnabled)
             SystemSounds.Beep.Play();
 
          try
@@ -216,7 +244,7 @@ namespace Org.Edgerunner.Moo.Editor.Controls
       public void WriteWithStyles(string text, IEnumerable<Style> styles)
       {
          var newText = text.Replace("\u0007", "");
-         if (newText.Length != text.Length)
+         if (newText.Length != text.Length && AsciiBellEnabled)
             SystemSounds.Beep.Play();
 
          try

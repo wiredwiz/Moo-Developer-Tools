@@ -9,6 +9,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Org.Edgerunner.Moo.Common\Org.Edgerunner.Moo.Common.csproj" />
+    <ProjectReference Include="..\Org.Edgerunner.Mud.Common\Org.Edgerunner.Mud.Common.csproj" />
   </ItemGroup>
 
 </Project>

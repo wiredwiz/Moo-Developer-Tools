@@ -34,14 +34,14 @@
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #endregion
 
-using Org.Edgerunner.Moo.Communication.Interfaces;
+using Org.Edgerunner.Mud.Communication.Interfaces;
 
 namespace Org.Edgerunner.Moo.Udditor.Communication.OutOfBand;
 
 /// <summary>
 /// Class responsible for handling local edit protocol uploads.
 /// </summary>
-/// <seealso cref="Org.Edgerunner.Moo.Communication.Interfaces.IClientUploader" />
+/// <seealso cref="Org.Edgerunner.Mud.Communication.Interfaces.IClientUploader" />
 public sealed class LocalEditUploader : IClientUploader
 {
     /// <summary>

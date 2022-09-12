@@ -35,9 +35,9 @@
 #endregion
 
 using System.Text;
-using Org.Edgerunner.Moo.Communication;
-using Org.Edgerunner.Moo.Communication.Interfaces;
-using Org.Edgerunner.Moo.Communication.OutOfBand;
+using Org.Edgerunner.Mud.Communication;
+using Org.Edgerunner.Mud.Communication.Interfaces;
+using Org.Edgerunner.Mud.Communication.OutOfBand;
 using Org.Edgerunner.Moo.Editor.Configuration;
 using Org.Edgerunner.Moo.Udditor.Pages;
 

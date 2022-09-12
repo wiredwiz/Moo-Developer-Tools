@@ -1,5 +1,5 @@
 ﻿#region BSD 3-Clause License
-// <copyright company="Edgerunner.org" file="IMcpProtocolHandler.cs">
+// <copyright company="Edgerunner.org" file="Hashing.cs">
 // Copyright (c)  2022
 // </copyright>
 //
@@ -34,26 +34,38 @@
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #endregion
 
-using Org.Edgerunner.Mud.Communication;
+using System.Security.Cryptography;
+using System.Text;
 
-namespace Org.Edgerunner.Mud.MCP.Interfaces;
+namespace Org.Edgerunner.Mud.Common.Cryptography;
 
 /// <summary>
-/// An interface representing an object capable of processing and MCP protocol message.
+/// Class that handles various hashes
 /// </summary>
-public interface IMcpProtocolHandler
+public static class Hash
 {
-    /// <summary>
-    /// Determines whether this instance can handle the message.
-    /// </summary>
-    /// <param name="message">The message to analyze.</param>
-    /// <returns></returns>
-    public bool CanHandleMessage(Message message);
-
    /// <summary>
-   /// Processes the message.
+   /// Hashes the value using the Sha256 hashing algorithm.
    /// </summary>
-   /// <param name="message">The message to process.</param>
-   /// <returns><c>true</c> if successfully processed; otherwise <c>false</c>.</returns>
-   public bool ProcessMessage(Message message);
+   /// <param name="value">The value to hash.</param>
+   /// <returns></returns>
+   /// <exception cref="System.ArgumentNullException">value</exception>
+   public static string Sha256(string value)
+   {
+      if (string.IsNullOrEmpty(value))
+         throw new ArgumentNullException(nameof(value));
+
+      var sb = new StringBuilder();
+
+      using (var hash = SHA256.Create())
+      {
+         var enc = Encoding.UTF8;
+         var result = hash.ComputeHash(enc.GetBytes(value));
+
+         foreach (byte b in result)
+            sb.Append(b.ToString("x2"));
+      }
+
+      return sb.ToString();
+   }
 }

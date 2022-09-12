@@ -40,8 +40,8 @@ using Krypton.Navigator;
 using Org.Edgerunner.Moo.Editor;
 using Org.Edgerunner.Moo.Udditor.Pages;
 using System;
-using Org.Edgerunner.Moo.Communication;
-using Org.Edgerunner.Moo.Communication.OutOfBand;
+using Org.Edgerunner.Mud.Communication;
+using Org.Edgerunner.Mud.Communication.OutOfBand;
 using Org.Edgerunner.Moo.Editor.Controls;
 using Org.Edgerunner.Moo.Udditor.Communication.OutOfBand;
 using Antlr4.Runtime.Misc;
@@ -268,13 +268,15 @@ public class WindowManager
    {
       TerminalPage CreatePage()
       {
+         var oobPrefix = "#$#";
          var oobHandler = new OutOfBandMessageProcessor();
          oobHandler.RegisterHandler(new LocalEditHandler(this));
-         var processor = new RootMessageProcessor("#$#", oobHandler);
+         var processor = new RootMessageProcessor(oobPrefix, oobHandler);
          processor.OutOfBandMessagingTimeout = 500000;
          var page = new TerminalPage(this, processor, world, useTls);
          RegisterPage(page);
          Workspace.DockingManager.AddToWorkspace(_EditorWorkspaceName, new KryptonPage[] { page });
+         page.OutOfBandPrefix = oobPrefix;
          return page;
       }
 

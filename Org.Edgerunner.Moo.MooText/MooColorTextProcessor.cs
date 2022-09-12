@@ -151,7 +151,7 @@ public class MooColorTextProcessor : MooTextPipeline
             }
             else
             {
-               var color = Moo.Common.ColorConverter.ConvertStandardAnsiMooColorName(tag, BrightMode);
+               var color = Mud.Common.ColorConverter.ConvertStandardAnsiMooColorName(tag, BrightMode);
                if (tag.StartsWith("b:") || tag.StartsWith("bg"))
                   CurrentBgColor = color;
                else

@@ -34,12 +34,10 @@
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #endregion
 
-using Krypton.Navigator;
 using Org.Edgerunner.Moo.Editor.Controls;
 using System;
 using JetBrains.Annotations;
-using Org.Edgerunner.Moo.Communication;
-using Org.Edgerunner.Moo.Communication.Interfaces;
+using Org.Edgerunner.Mud.Communication.Interfaces;
 using Krypton.Toolkit;
 
 namespace Org.Edgerunner.Moo.Udditor.Pages;
@@ -109,5 +107,35 @@ public class TerminalPage : ManagedPage
     {
         get => Terminal.WordWrap;
         set => Terminal.WordWrap = value;
+    }
+
+    /// <summary>
+    /// Gets or sets a value indicating whether to enable ANSI color.
+    /// </summary>
+    /// <value><c>true</c> if [ANSI color enabled]; otherwise, <c>false</c>.</value>
+    public bool AnsiColorEnabled
+    {
+       get => Terminal.AnsiColorEnabled;
+       set => Terminal.AnsiColorEnabled = value;
+    }
+
+    /// <summary>
+    /// Gets or sets a value indicating whether to enable blinking text.
+    /// </summary>
+    /// <value><c>true</c> if [blinking text enabled]; otherwise, <c>false</c>.</value>
+    public bool BlinkingTextEnabled
+    {
+       get => Terminal.BlinkingTextEnabled;
+       set => Terminal.BlinkingTextEnabled = value;
+    }
+
+    /// <summary>
+    /// Gets or sets a value indicating whether to enable ascii bell.
+    /// </summary>
+    /// <value><c>true</c> if [bell enabled]; otherwise, <c>false</c>.</value>
+    public bool AsciiBellEnabled
+    {
+       get => Terminal.AsciiBellEnabled;
+       set => Terminal.AsciiBellEnabled = value;
     }
 }

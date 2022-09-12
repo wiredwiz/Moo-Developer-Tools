@@ -22,13 +22,13 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Org.Edgerunner.Mud.MCP", "O
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Org.Edgerunner.Messaging", "Org.Edgerunner.Messaging\Org.Edgerunner.Messaging.csproj", "{771FCA3E-7245-4DC7-9F74-67739E4963D1}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Org.Edgerunner.Moo.Communication", "Org.Edgerunner.Moo.Communication\Org.Edgerunner.Moo.Communication.csproj", "{5EED186E-8DB0-4909-BC37-1E64899A1925}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Org.Edgerunner.Mud.Communication", "Org.Edgerunner.Mud.Communication\Org.Edgerunner.Mud.Communication.csproj", "{5EED186E-8DB0-4909-BC37-1E64899A1925}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Org.Edgerunner.Common", "Org.Edgerunner.Common\Org.Edgerunner.Common.csproj", "{686803D5-A5A2-4F8C-946B-778E1BA82318}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Org.Edgerunner.Moo.MooText", "Org.Edgerunner.Moo.MooText\Org.Edgerunner.Moo.MooText.csproj", "{56D66241-2AE5-4F08-B12E-EE41132D29B7}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Org.Edgerunner.Moo.Common", "Org.Edgerunner.Moo.Common\Org.Edgerunner.Moo.Common.csproj", "{45F00600-4D7C-4376-A673-27A958DD1F4E}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Org.Edgerunner.Mud.Common", "Org.Edgerunner.Mud.Common\Org.Edgerunner.Mud.Common.csproj", "{45F00600-4D7C-4376-A673-27A958DD1F4E}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

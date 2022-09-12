@@ -1,6 +1,6 @@
 ﻿#region BSD 3-Clause License
-// <copyright company="Edgerunner.org" file="IMcpProtocolHandler.cs">
-// Copyright (c)  2022
+// <copyright company="Edgerunner.org" file="IMessageProtocolProcessor.cs">
+// Copyright (c) Thaddeus Ryker 2022
 // </copyright>
 //
 // BSD 3-Clause License
@@ -34,26 +34,30 @@
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #endregion
 
-using Org.Edgerunner.Mud.Communication;
+using Org.Edgerunner.Mud.Communication.Exceptions;
+using Org.Edgerunner.Mud.Communication.Interfaces;
 
-namespace Org.Edgerunner.Mud.MCP.Interfaces;
+namespace Org.Edgerunner.Mud.Communication;
 
 /// <summary>
-/// An interface representing an object capable of processing and MCP protocol message.
+/// Interface representing an instance capable of processing messages.
 /// </summary>
-public interface IMcpProtocolHandler
+public interface IMessageProtocolProcessor
 {
-    /// <summary>
-    /// Determines whether this instance can handle the message.
-    /// </summary>
-    /// <param name="message">The message to analyze.</param>
-    /// <returns></returns>
-    public bool CanHandleMessage(Message message);
-
    /// <summary>
    /// Processes the message.
    /// </summary>
-   /// <param name="message">The message to process.</param>
-   /// <returns><c>true</c> if successfully processed; otherwise <c>false</c>.</returns>
-   public bool ProcessMessage(Message message);
+   /// <param name="client">The client terminal emulator.</param>
+   /// <param name="message">The message.</param>
+   /// <param name="state">The current message processing state.</param>
+   /// <returns>
+   ///   <c>true</c> if was processed, <c>false</c> otherwise.
+   /// </returns>
+   /// <exception cref="MessagingException">An error occurred during the processing of the message.</exception>
+   bool ProcessMessage(IClientTerminal client, string message, ref MessageProcessingState state);
+
+    /// <summary>
+    /// Resets this instance.
+    /// </summary>
+    void Reset();
 }

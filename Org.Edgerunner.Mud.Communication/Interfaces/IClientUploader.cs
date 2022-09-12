@@ -1,5 +1,5 @@
 ﻿#region BSD 3-Clause License
-// <copyright company="Edgerunner.org" file="IMcpProtocolHandler.cs">
+// <copyright company="Edgerunner.org" file="IClientUploader.cs">
 // Copyright (c)  2022
 // </copyright>
 //
@@ -34,26 +34,21 @@
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #endregion
 
-using Org.Edgerunner.Mud.Communication;
-
-namespace Org.Edgerunner.Mud.MCP.Interfaces;
+namespace Org.Edgerunner.Mud.Communication.Interfaces;
 
 /// <summary>
-/// An interface representing an object capable of processing and MCP protocol message.
+/// Interface representing an object capable of uploading content back to a parent connection.
 /// </summary>
-public interface IMcpProtocolHandler
+public interface IClientUploader
 {
-    /// <summary>
-    /// Determines whether this instance can handle the message.
-    /// </summary>
-    /// <param name="message">The message to analyze.</param>
-    /// <returns></returns>
-    public bool CanHandleMessage(Message message);
+   IClientTerminal ClientTerminal { get; }
 
    /// <summary>
-   /// Processes the message.
+   /// Uploads the content of this instance.
    /// </summary>
-   /// <param name="message">The message to process.</param>
-   /// <returns><c>true</c> if successfully processed; otherwise <c>false</c>.</returns>
-   public bool ProcessMessage(Message message);
+   /// <param name="sourceCode">The source code.</param>
+   /// <returns>
+   ///   <c>true</c> if upload is successful; <c>false</c> otherwise.
+   /// </returns>
+   bool Upload(string sourceCode);
 }

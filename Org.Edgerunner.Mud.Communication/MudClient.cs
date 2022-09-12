@@ -1,5 +1,5 @@
 ﻿#region BSD 3-Clause License
-// <copyright company="Edgerunner.org" file="IMcpProtocolHandler.cs">
+// <copyright company="Edgerunner.org" file="MudClient.cs">
 // Copyright (c)  2022
 // </copyright>
 //
@@ -34,26 +34,34 @@
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #endregion
 
-using Org.Edgerunner.Mud.Communication;
+using Org.Edgerunner.Mud.Communication.Interfaces;
 
-namespace Org.Edgerunner.Mud.MCP.Interfaces;
+namespace Org.Edgerunner.Mud.Communication;
 
 /// <summary>
-/// An interface representing an object capable of processing and MCP protocol message.
+/// Class handling mud client operations.
 /// </summary>
-public interface IMcpProtocolHandler
+public static class MudClient
 {
-    /// <summary>
-    /// Determines whether this instance can handle the message.
-    /// </summary>
-    /// <param name="message">The message to analyze.</param>
-    /// <returns></returns>
-    public bool CanHandleMessage(Message message);
-
    /// <summary>
-   /// Processes the message.
+   /// Creates a session for the specified Mud (includes Mud/Muck/Mush/Muse/Mu*) world.
    /// </summary>
-   /// <param name="message">The message to process.</param>
-   /// <returns><c>true</c> if successfully processed; otherwise <c>false</c>.</returns>
-   public bool ProcessMessage(Message message);
+   /// <typeparam name="T">The IMudClientSession type to use.</typeparam>
+   /// <param name="world">The Mud world name.</param>
+   /// <param name="host">The Mud host address.</param>
+   /// <param name="port">The Mud port address.</param>
+   /// <param name="outOfBandPrefix">The out of band prefix.</param>
+   /// <returns>
+   /// A new client session.
+   /// </returns>
+   /// <exception cref="System.ArgumentNullException">world or host are null; or port in a non-positive integer</exception>
+   /// <exception cref="System.ArgumentOutOfRangeException">port</exception>
+   public static IMudClientSession Create<T>(string world, string host, int port, string outOfBandPrefix = "#$#") where T : IMudClientSession
+   {
+      if (world == null) throw new ArgumentNullException(nameof(world));
+      if (host == null) throw new ArgumentNullException(nameof(host));
+      if (port <= 0) throw new ArgumentOutOfRangeException(nameof(port));
+
+      return (Activator.CreateInstance(typeof(T), world, host, port, outOfBandPrefix) as IMudClientSession)!;
+   }
 }
