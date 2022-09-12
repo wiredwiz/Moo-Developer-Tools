@@ -1,5 +1,5 @@
 ﻿#region BSD 3-Clause License
-// <copyright company="Edgerunner.org" file="KeyManager.cs">
+// <copyright company="Edgerunner.org" file="ApplicationKeyManager.cs">
 // Copyright (c)  2022
 // </copyright>
 //
@@ -34,11 +34,16 @@
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #endregion
 
+using System.Security;
 using Microsoft.Win32;
 
 namespace Org.Edgerunner.Moo.Common;
 
-public static class KeyManager
+/// <summary>
+/// Class for managing application keys.
+/// </summary>
+// ReSharper disable once HollowTypeName
+public static class ApplicationKeyManager
 {
    /// <summary>
    /// Retrieves the master key from the registry.
@@ -47,10 +52,19 @@ public static class KeyManager
    /// <returns>
    /// <c>true</c> if the key was retrieved; <c>false</c> otherwise.
    /// </returns>
+   /// <exception cref="SecurityException">The user does not have the permissions required to create or open the registry key.</exception>
+   /// <exception cref="UnauthorizedAccessException">The <see cref="RegistryKey" /> cannot be written to; for example, it was not opened as a writable key , or the user does not have the necessary access rights.</exception>
+   /// <exception cref="IOException">The nesting level exceeds 510.  
+   ///  -or-  
+   ///  A system error occurred, such as deletion of the key, or an attempt to create a key in the <see cref="Microsoft.Win32.Registry.LocalMachine" /> root.</exception>
    public static bool RetrieveMasterKey(out string? key)
    {
+#pragma warning disable CA1416 // Validate platform compatibility
+      // ReSharper disable once ExceptionNotDocumentedOptional
       RegistryKey registryKey = Registry.CurrentUser.CreateSubKey(@"SOFTWARE\Udditor");
       key = registryKey.GetValue("Key")?.ToString();
+      registryKey.Close();
+#pragma warning restore CA1416 // Validate platform compatibility
       if (string.IsNullOrEmpty(key))
          return false;
 
@@ -61,9 +75,18 @@ public static class KeyManager
    /// Saves the master key to the registry.
    /// </summary>
    /// <param name="key">The key to store.</param>
+   /// <exception cref="UnauthorizedAccessException">The <see cref="RegistryKey" /> cannot be written to; for example, it was not opened as a writable key , or the user does not have the necessary access rights.</exception>
+   /// <exception cref="SecurityException">The user does not have the permissions required to create or open the registry key.</exception>
+   /// <exception cref="IOException">The nesting level exceeds 510.  
+   ///  -or-  
+   ///  A system error occurred, such as deletion of the key, or an attempt to create a key in the <see cref="Microsoft.Win32.Registry.LocalMachine" /> root.</exception>
    public static void SaveMasterKey(string key)
    {
+#pragma warning disable CA1416 // Validate platform compatibility
+      // ReSharper disable once ExceptionNotDocumentedOptional
       RegistryKey registryKey = Registry.CurrentUser.CreateSubKey(@"SOFTWARE\Udditor");
       registryKey.SetValue("Key", key);
+      registryKey.Close();
+#pragma warning restore CA1416 // Validate platform compatibility
    }
 }

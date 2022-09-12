@@ -107,14 +107,14 @@ public class UserLogin
     {
         get
         {
-            if (!KeyManager.RetrieveMasterKey(out var key) || IsNullOrEmpty(key))
+            if (!ApplicationKeyManager.RetrieveMasterKey(out var key) || IsNullOrEmpty(key))
                 throw new InvalidOperationException("Unable to retrieve encryption key.");
 
             return !IsNullOrEmpty(Password) ? AesCrypto.Decrypt(Password, key) ?? Empty : Empty;
         }
         set
         {
-            if (!KeyManager.RetrieveMasterKey(out var key) || IsNullOrEmpty(key))
+            if (!ApplicationKeyManager.RetrieveMasterKey(out var key) || IsNullOrEmpty(key))
                 throw new InvalidOperationException("Unable to retrieve encryption key.");
 
             Password = IsNullOrEmpty(value) ? Empty : AesCrypto.Encrypt(value, key);

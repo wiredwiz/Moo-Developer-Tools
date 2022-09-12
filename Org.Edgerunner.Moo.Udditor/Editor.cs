@@ -194,7 +194,7 @@ public partial class Editor : KryptonForm
       string key = String.Empty;
       try
       {
-         KeyManager.RetrieveMasterKey(out key);
+         ApplicationKeyManager.RetrieveMasterKey(out key);
       }
       catch (Exception)
       {
@@ -212,7 +212,7 @@ public partial class Editor : KryptonForm
          {
             _WorldManagerEnabled = true;
             key = Hash.Sha256(setup.Password);
-            KeyManager.SaveMasterKey(key);
+            ApplicationKeyManager.SaveMasterKey(key);
          }
       }
    }
