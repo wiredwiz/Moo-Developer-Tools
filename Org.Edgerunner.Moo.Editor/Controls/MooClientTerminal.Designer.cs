@@ -77,13 +77,13 @@
         '\''};
          this.consoleSim.AutoIndentCharsPatterns = "^\\s*[\\w\\.]+(\\s\\w+)?\\s*(?<range>=)\\s*(?<range>[^;=]+);\r\n^\\s*(case|default)\\s*[^:]*" +
     "(?<range>:)\\s*(?<range>[^;]+);";
-         this.consoleSim.AutoScrollMinSize = new System.Drawing.Size(0, 18);
+         this.consoleSim.AutoScrollMinSize = new System.Drawing.Size(0, 22);
          this.consoleSim.BackBrush = null;
          this.consoleSim.BackColor = System.Drawing.Color.Black;
          this.consoleSim.CaretBlinking = false;
          this.consoleSim.CaretColor = System.Drawing.Color.Transparent;
-         this.consoleSim.CharHeight = 18;
-         this.consoleSim.CharWidth = 10;
+         this.consoleSim.CharHeight = 22;
+         this.consoleSim.CharWidth = 12;
          this.consoleSim.ConsoleBackgroundColor = System.Drawing.Color.Black;
          this.consoleSim.ConsoleFontStyle = System.Drawing.FontStyle.Regular;
          this.consoleSim.ConsoleForeColor = System.Drawing.Color.WhiteSmoke;
@@ -91,9 +91,12 @@
          this.consoleSim.DisabledColor = System.Drawing.Color.FromArgb(((int)(((byte)(100)))), ((int)(((byte)(180)))), ((int)(((byte)(180)))), ((int)(((byte)(180)))));
          this.consoleSim.Dock = System.Windows.Forms.DockStyle.Fill;
          this.consoleSim.FindForm = null;
-         this.consoleSim.Font = new System.Drawing.Font("Courier New", 9.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
+         this.consoleSim.FoldingHighlightColor = System.Drawing.Color.LightGray;
+         this.consoleSim.FoldingHighlightEnabled = false;
+         this.consoleSim.Font = new System.Drawing.Font("Courier New", 10F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
          this.consoleSim.ForeColor = System.Drawing.Color.WhiteSmoke;
          this.consoleSim.GoToForm = null;
+         this.consoleSim.HighlightFoldingIndicator = false;
          this.consoleSim.Hotkeys = resources.GetString("consoleSim.Hotkeys");
          this.consoleSim.IsReplaceMode = false;
          this.consoleSim.Location = new System.Drawing.Point(0, 0);

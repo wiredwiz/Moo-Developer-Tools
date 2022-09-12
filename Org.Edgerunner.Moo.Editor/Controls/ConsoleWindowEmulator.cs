@@ -62,6 +62,7 @@ namespace Org.Edgerunner.Moo.Editor.Controls
          ConsoleBackgroundColor = Color.Black;
          ConsoleFontStyle = FontStyle.Regular;
          CurrentStyle = AnsiManager.CurrentStyle;
+         LineInterval = 5;
       }
 
       protected override void OnLoad(EventArgs e)
