@@ -10,6 +10,7 @@
     <Authors>wiredwiz</Authors>
     <Description>A library of common tools for use with the ANTLR4 runtime.</Description>
     <PackageTags>ANTLR</PackageTags>
+    <Platforms>AnyCPU;x64;x86</Platforms>
   </PropertyGroup>
 
   <ItemGroup>
