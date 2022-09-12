@@ -121,7 +121,7 @@ namespace Org.Edgerunner.Moo.Editor.Controls
          _LastCommandAppearedToBeALogin = false;
          McpSessionManager = new McpClientSessionManager(new Version(2,1), new Version(2,1), new List<IMcpPackage>());
          ActiveControl = txtInput;
-         splitContainer1.Panel2.Height = txtInput.Height;
+         splitContainer1.SplitterDistance = splitContainer1.ClientSize.Height - txtInput.Height;
          splitContainer1.ActiveControl = txtInput;
          Tls = useTls;
       }
