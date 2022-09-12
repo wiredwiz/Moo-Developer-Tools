@@ -76,6 +76,9 @@ namespace Org.Edgerunner.Moo.Editor.Controls
          WordWrapMode = WordWrapMode.WordWrapControlWidth;
          PreferredLineWidth = 0;
          ReadOnly = true;
+         FoldingHighlightEnabled = false;
+         HighlightFoldingIndicator = false;
+         ShowFoldingLines = false;
          var testStyle = new TextStyle(new SolidBrush(Color.Red), null, FontStyle.Regular);
       }
 
@@ -137,28 +140,36 @@ namespace Org.Edgerunner.Moo.Editor.Controls
       public void WriteAnsi(string text)
       {
          // Match Ansi color codes and process them
-         var match = Regex.Match(text, @"\e\[(?<codes>(\d+;)*\d+);*m");
-         while (match.Captures.Count != 0)
+         try
          {
-            var codes = match.Groups["codes"].Value;
-            if (match.Index != 0)
+            SuspendLayout();
+            var match = Regex.Match(text, @"\e\[(?<codes>(\d+;)*\d+);*m");
+            while (match.Captures.Count != 0)
             {
-               if (AnsiManager.Blinking)
-                  WriteWithStyles(text[..(match.Index)], new Style[] {CurrentStyle, DefaultBlinkingStyle });
-               else
-                  Write(text[..(match.Index)], CurrentStyle);
-               Application.DoEvents();
+               var codes = match.Groups["codes"].Value;
+               if (match.Index != 0)
+               {
+                  if (AnsiManager.Blinking)
+                     WriteWithStyles(text[..(match.Index)], new Style[] { CurrentStyle, DefaultBlinkingStyle });
+                  else
+                     Write(text[..(match.Index)], CurrentStyle);
+               }
+               CurrentStyle = AnsiManager.ProcessCodes(codes.Split(';').ToList().Select(int.Parse).ToList());
+               text = match.Index + match.Length < text.Length ? text[(match.Index + match.Length)..] : string.Empty;
+               match = Regex.Match(text, @"\e\[(?<codes>(\d+;)*\d+);*m");
             }
-            CurrentStyle = AnsiManager.ProcessCodes(codes.Split(';').ToList().Select(int.Parse).ToList());
-            text = match.Index + match.Length < text.Length ? text[(match.Index + match.Length)..] : string.Empty;
-            match = Regex.Match(text, @"\e\[(?<codes>(\d+;)*\d+);*m");
-         }
 
-         if (!string.IsNullOrEmpty(text))
-            if (AnsiManager.Blinking)
-               WriteWithStyles(text, new Style[] {CurrentStyle, DefaultBlinkingStyle });
-            else
-               Write(text, CurrentStyle);
+            if (!string.IsNullOrEmpty(text))
+               if (AnsiManager.Blinking)
+                  WriteWithStyles(text, new Style[] { CurrentStyle, DefaultBlinkingStyle });
+               else
+                  Write(text, CurrentStyle);
+         }
+         finally
+         {
+            ResumeLayout();
+            Application.DoEvents();
+         }
       }
 
       /// <summary>

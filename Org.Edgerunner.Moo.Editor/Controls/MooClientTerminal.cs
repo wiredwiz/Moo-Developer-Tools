@@ -623,7 +623,15 @@ namespace Org.Edgerunner.Moo.Editor.Controls
                            consoleSim.GoEnd();
                      }
 
-                     Invoke(SafeWrite);
+                     try
+                     {
+                        Invoke(SafeWrite);
+                     }
+                     catch (InvalidOperationException)
+                     {
+                        Debug.WriteLine("Our terminal was disposed of");
+                        return;
+                     }
                   }
 
                   NewMessageReceived?.InvokeOnUI(new object[] { this, EventArgs.Empty });
