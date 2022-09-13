@@ -4266,6 +4266,17 @@ namespace FastColoredTextBoxNS
       }
 
       /// <summary>
+      /// Toggles a Bookmark for the current line
+      /// </summary>
+      public virtual void ToggleBookmark(int iLine)
+      {
+         if (!bookmarks.Contains(iLine))
+            bookmarks.Add(iLine);
+         else
+            bookmarks.Remove(iLine);
+      }
+
+      /// <summary>
       /// Clones current line
       /// </summary>
       public virtual void CloneLine(TextSelectionRange selection)
