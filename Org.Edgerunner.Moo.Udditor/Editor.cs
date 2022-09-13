@@ -438,7 +438,7 @@ public partial class Editor : KryptonForm
    private void tlMnuItemToggleBookmark_Click(object sender, EventArgs e)
    {
       if (CurrentPage is MooCodeEditorPage page)
-         page.Editor.BookmarkLine(page.Editor.Selection.Start.iLine);
+         page.Editor.ToggleBookmark(page.Editor.Selection.Start.iLine);
    }
 
    private void tlMnuItemNextBookmark_Click(object sender, EventArgs e)
