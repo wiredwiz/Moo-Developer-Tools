@@ -313,7 +313,7 @@ public class MudClientSession : IMudClientSession, IDisposable
 
    protected async void ReadFromConnection()
    {
-      var buffer = new byte[2048];
+      var buffer = new byte[10240];
       while (IsOpen)
       {
          Thread.Sleep(5);
@@ -322,7 +322,7 @@ public class MudClientSession : IMudClientSession, IDisposable
             while (_Stream != null && Client.Available > 0)
             {
                // ReSharper disable ExceptionNotDocumented
-               var bytes = _Stream.Read(buffer, 0, buffer.Length);
+               var bytes = await _Stream.ReadAsync(buffer, 0, buffer.Length, TokenSource.Token);
                // ReSharper restore ExceptionNotDocumented
                await ProcessReadBuffer(buffer, bytes);
             }
@@ -367,7 +367,6 @@ public class MudClientSession : IMudClientSession, IDisposable
             }
 
             await CommandChannel.Writer.WriteAsync(data, TokenSource.Token);
-            //CommandChannel.Enqueue(data);
             OnMessageReceived(data);
          }
          else
@@ -389,7 +388,6 @@ public class MudClientSession : IMudClientSession, IDisposable
          decoder.GetChars(dataBuffer, 0, dataBuffer.Length, chars, 0);
          var data = new string(chars);
          await CommandChannel.Writer.WriteAsync(data, TokenSource.Token);
-         //CommandChannel.Enqueue(data);
          OnMessageReceived(data);
       }
    }
