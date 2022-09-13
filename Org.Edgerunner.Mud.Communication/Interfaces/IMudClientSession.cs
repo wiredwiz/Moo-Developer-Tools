@@ -38,18 +38,19 @@
 
 using System;
 using System.Collections.Concurrent;
+using System.Threading.Channels;
 
 namespace Org.Edgerunner.Mud.Communication.Interfaces;
 
 public interface IMudClientSession
 {
    /// <summary>
-   ///    Gets the command queue.
+   ///    Gets the command channel.
    /// </summary>
    /// <value>
-   ///    The command queue.
+   ///    The command channel.
    /// </value>
-   ConcurrentQueue<string> CommandQueue { get; }
+   Channel<string> CommandChannel { get; }
 
    /// <summary>
    ///    Gets the host address.

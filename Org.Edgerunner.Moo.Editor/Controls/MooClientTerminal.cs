@@ -60,6 +60,8 @@ namespace Org.Edgerunner.Moo.Editor.Controls
          }
       }
 
+      protected readonly CancellationTokenSource TokenSource;
+
       public ConsoleWindowEmulator Output => consoleSim;
 
       public TextBox Input => txtInput;
@@ -168,6 +170,7 @@ namespace Org.Edgerunner.Moo.Editor.Controls
          ActiveControl = txtInput;
          splitContainer1.SplitterDistance = splitContainer1.ClientSize.Height - txtInput.Height;
          splitContainer1.ActiveControl = txtInput;
+         TokenSource = new CancellationTokenSource();
          Tls = useTls;
       }
 
@@ -219,7 +222,7 @@ namespace Org.Edgerunner.Moo.Editor.Controls
                consoleSim.AnsiManager.EchoEnabled = false;
                SendTextLines(txtInput.Text.Split('\n'));
                consoleSim.AnsiManager.EchoEnabled = existing;
-               
+
                txtInput.Text = string.Empty;
                txtInput.UseSystemPasswordChar = true;
             }
@@ -328,6 +331,7 @@ namespace Org.Edgerunner.Moo.Editor.Controls
          {
             var atBottom = consoleSim.VerticalScrollbarPositionedAtBottom;
 
+            _UserInteraction = true;
             LastCommandIsLogin = true;
             _Session.SendLine(text);
             if (atBottom)
@@ -651,6 +655,7 @@ namespace Org.Edgerunner.Moo.Editor.Controls
             }
 
          _Session.BeginReadingDataTillClose();
+         ReadFromChannel();
          _LoggedInConnection = false;
       }
 
@@ -669,24 +674,27 @@ namespace Org.Edgerunner.Moo.Editor.Controls
 
       private void SessionMessageReceived(object sender, string e)
       {
-         // While other client events are executed on the UI thread
-         // This one is not, because it may perform long running operations.
-         var reading = Interlocked.Exchange(ref _ReadingCommands, 1);
-         if (reading == 1)
-            return;
+      }
 
+      private void ReadFromChannel()
+      {
+         Task.Run(PerformReadFromChannel);
+      }
+
+      private async void PerformReadFromChannel()
+      {
          try
          {
-            while (!_Session.CommandQueue.IsEmpty)
+            while (await _Session.CommandChannel.Reader.WaitToReadAsync(TokenSource.Token))
             {
-               if (_Session.CommandQueue.TryDequeue(out var message))
+               while (_Session.CommandChannel.Reader.TryRead(out var text))
                {
-                  if (MessageProcessor == null || !MessageProcessor.ProcessMessage(this, message))
+                  if (MessageProcessor == null || !MessageProcessor.ProcessMessage(this, text))
                   {
                      void SafeWrite()
                      {
                         var atBottom = consoleSim.VerticalScrollbarPositionedAtBottom;
-                        consoleSim.WriteAnsi(message);
+                        consoleSim.WriteAnsi(text);
                         if (atBottom)
                            consoleSim.GoEnd();
                      }
@@ -704,22 +712,26 @@ namespace Org.Edgerunner.Moo.Editor.Controls
 
                   NewMessageReceived?.InvokeOnUI(new object[] { this, EventArgs.Empty });
                }
+
+               // We define a local function to fetch the console line count to be used via thread invocation
+               int GetLineCount() => consoleSim.Lines.Count;
+
+               // This logic is a bit ugly, but it kind of works.
+               // We are assuming that if we see more than 2 new lines printed to screen
+               // after the user types a command, the appears to be a login command
+               // We can mark the connection as being logged in.
+               if (!_LoggedInConnection && _UserInteraction && LastCommandIsLogin)
+                  if (consoleSim.Invoke(GetLineCount) - _LastAttemptedLoginScreenLines > 2)
+                     _LoggedInConnection = true;
+
+               if (TokenSource.IsCancellationRequested)
+                  return;
             }
-
-            // We define a local function to fetch the console line count to be used via thread invocation
-            int GetLineCount() => consoleSim.Lines.Count;
-
-            // This logic is a bit ugly, but it kind of works.
-            // We are assuming that if we see more than 2 new lines printed to screen
-            // after the user types a command, the appears to be a login command
-            // We can mark the connection as being logged in.
-            if (!_LoggedInConnection && _UserInteraction && LastCommandIsLogin)
-               if (consoleSim.Invoke(GetLineCount) - _LastAttemptedLoginScreenLines > 2)
-                  _LoggedInConnection = true;
          }
-         finally
+         catch (OperationCanceledException)
          {
-            _ReadingCommands = 0;
+            // We are probably shutting down
+            return;
          }
       }
 
@@ -735,6 +747,7 @@ namespace Org.Edgerunner.Moo.Editor.Controls
          _LoggedInConnection = false;
          try
          {
+            TokenSource.Cancel();
             _Session?.Close();
          }
          catch (SocketException ex)

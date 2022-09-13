@@ -42,6 +42,7 @@ namespace Org.Edgerunner.Moo.Editor
             chkAudio.Checked = value.AudioEnabled;
             chkBlink.Checked = value.BlinkEnabled;
             chkShowOnMenu.Checked = value.ShowAsMenuShortcut;
+            chkUseTLS.Checked = value.UseTls;
          }
       }
 

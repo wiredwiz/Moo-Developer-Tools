@@ -39,6 +39,7 @@ using System.Collections.Concurrent;
 using System.Diagnostics;
 using System.Net.Sockets;
 using System.Text;
+using System.Threading.Channels;
 using Org.Edgerunner.Common.Extensions;
 using Org.Edgerunner.Mud.Communication.Buffers;
 using Org.Edgerunner.Mud.Communication.Interfaces;
@@ -59,7 +60,7 @@ public class MudClientSession : IMudClientSession, IDisposable
    {
       Client = new TcpClient();
       CommandBuffer = new CommunicationBuffer(2048);
-      CommandQueue = new ConcurrentQueue<string>();
+      CommandChannel = Channel.CreateUnbounded<string>(new UnboundedChannelOptions() { SingleReader = true, SingleWriter = true });
       World = world;
       Host = host;
       Port = port;
@@ -135,6 +136,10 @@ public class MudClientSession : IMudClientSession, IDisposable
          {
             return false;
          }
+         catch (NullReferenceException)
+         {
+            return false;
+         }
       }
    }
 
@@ -161,7 +166,7 @@ public class MudClientSession : IMudClientSession, IDisposable
    /// <value>
    /// The command queue.
    /// </value>
-   public ConcurrentQueue<string> CommandQueue { get; }
+   public Channel<string> CommandChannel { get; }
 
    /// <summary>
    /// Gets the command buffer.
@@ -306,7 +311,7 @@ public class MudClientSession : IMudClientSession, IDisposable
       DataDropped?.InvokeOnUI(new object[] { this, droppedBytes });
    }
 
-   protected void ReadFromConnection()
+   protected async void ReadFromConnection()
    {
       var buffer = new byte[2048];
       while (IsOpen)
@@ -319,10 +324,10 @@ public class MudClientSession : IMudClientSession, IDisposable
                // ReSharper disable ExceptionNotDocumented
                var bytes = _Stream.Read(buffer, 0, buffer.Length);
                // ReSharper restore ExceptionNotDocumented
-               ProcessReadBuffer(buffer, bytes);
+               await ProcessReadBuffer(buffer, bytes);
             }
 
-            FlushCommandBuffer();
+            await FlushCommandBuffer();
          }
          catch (ObjectDisposedException)
          {
@@ -336,7 +341,7 @@ public class MudClientSession : IMudClientSession, IDisposable
       OnClosed();
    }
 
-   private void ProcessReadBuffer(byte[] buffer, int bytes)
+   private async Task ProcessReadBuffer(byte[] buffer, int bytes)
    {
       var droppedBytes = 0;
       for (int i = 0; i < bytes; i++)
@@ -361,7 +366,8 @@ public class MudClientSession : IMudClientSession, IDisposable
                data = new string(chars);
             }
 
-            CommandQueue.Enqueue(data);
+            await CommandChannel.Writer.WriteAsync(data, TokenSource.Token);
+            //CommandChannel.Enqueue(data);
             OnMessageReceived(data);
          }
          else
@@ -371,7 +377,7 @@ public class MudClientSession : IMudClientSession, IDisposable
          OnDataDropped(droppedBytes);
    }
 
-   private void FlushCommandBuffer()
+   private async Task FlushCommandBuffer()
    {
       if (!CommandBuffer.IsEmpty)
       {
@@ -382,7 +388,8 @@ public class MudClientSession : IMudClientSession, IDisposable
          var chars = new char[decoder.GetCharCount(dataBuffer, 0, dataBuffer.Length)];
          decoder.GetChars(dataBuffer, 0, dataBuffer.Length, chars, 0);
          var data = new string(chars);
-         CommandQueue.Enqueue(data);
+         await CommandChannel.Writer.WriteAsync(data, TokenSource.Token);
+         //CommandChannel.Enqueue(data);
          OnMessageReceived(data);
       }
    }

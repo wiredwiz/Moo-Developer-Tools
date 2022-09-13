@@ -536,6 +536,10 @@ public partial class Editor : KryptonForm
       WindowManager.ShowPage(page);
       try
       {
+         page.AnsiColorEnabled = world.ColorEnabled;
+         page.AsciiBellEnabled = world.AudioEnabled;
+         page.Terminal.EchoEnabled = world.EchoEnabled;
+         page.BlinkingTextEnabled = world.BlinkEnabled;
          UpdateTerminalMenu();
          await page.Terminal.ConnectAsync(world.Name, world.HostAddress, world.PortNumber, world.UseTls).ConfigureAwait(true);
          page.Terminal.EchoEnabled = false;
@@ -546,7 +550,6 @@ public partial class Editor : KryptonForm
                                  .Replace("%p", password);
             page.Terminal.SendLoginTextLine(loginText);
          }
-         page.Terminal.EchoEnabled = world.EchoEnabled;
          page.Terminal.FocusOnInput();
       }
       catch (Exception ex)
