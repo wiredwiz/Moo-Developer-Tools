@@ -277,6 +277,8 @@ public class WindowManager
          RegisterPage(page);
          Workspace.DockingManager.AddToWorkspace(_EditorWorkspaceName, new KryptonPage[] { page });
          page.OutOfBandPrefix = oobPrefix;
+         page.ClearFlags(KryptonPageFlags.DockingAllowAutoHidden);
+         page.ClearFlags(KryptonPageFlags.DockingAllowClose);
          return page;
       }
 
