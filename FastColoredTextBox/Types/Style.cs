@@ -114,7 +114,7 @@ namespace FastColoredTextBoxNS.Types {
 					// Paint the text using the foreground brush for a half second
 					// and use the background the other half, to achieve a blink
 					// Our blink render task will handle the rest.
-               if (line[i].Blinking)
+               if (line[i].Blinking && range.tb.EnableBlinkingStyle)
                   renderText = DateTime.Now.Second % 2 == 0;
                else
                   renderText = true;
@@ -141,7 +141,7 @@ namespace FastColoredTextBoxNS.Types {
                // Paint the text using the foreground brush for a half second
                // and use the background the other half, to achieve a blink
                // Our blink render task will handle the rest.
-               if (line[i].Blinking)
+               if (line[i].Blinking && range.tb.EnableBlinkingStyle)
                   renderText = DateTime.Now.Second % 2 == 0;
                else
                   renderText = true;

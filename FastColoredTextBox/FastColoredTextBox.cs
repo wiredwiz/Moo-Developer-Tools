@@ -220,6 +220,7 @@ namespace FastColoredTextBoxNS
          HotkeysMapping = new HotkeysMapping();
          HotkeysMapping.InitDefault();
          WordWrapAutoIndent = true;
+         EnableBlinkingStyle = true;
          FoldedBlocks = new Dictionary<int, int>();
          AutoCompleteBrackets = false;
          AutoIndentCharsPatterns = @"^\s*[\w\.]+(\s\w+)?\s*(?<range>=)\s*(?<range>[^;=]+);
@@ -246,6 +247,24 @@ namespace FastColoredTextBoxNS
       {
          get { return autoCompleteBracketsList; }
          set { autoCompleteBracketsList = value; }
+      }
+
+      /// <summary>
+      /// AutoComplete brackets
+      /// </summary>
+      [DefaultValue(true)]
+      [Description("Enable a blinking style on text.")]
+      public bool EnableBlinkingStyle
+      {
+         get => _EnableBlinkingStyle;
+         set
+         {
+            _EnableBlinkingStyle = value;
+            if (value)
+               StartBlinkRenderTask();
+            else
+               Invalidate();
+         }
       }
 
       /// <summary>
@@ -7789,7 +7808,7 @@ window.status = ""#print"";
       private void BlinkTimer_Tick(object sender, EventArgs e)
       {
          // Do our blink render check
-         if (BlinkSet.IsEmpty)
+         if (BlinkSet.IsEmpty || !EnableBlinkingStyle)
          {
             blinkTimer.Enabled = false;
             return;
@@ -8068,6 +8087,7 @@ window.status = ""#print"";
       private Point middleClickScrollingOriginScroll;
       private readonly Timer middleClickScrollingTimer = new();
       private ScrollDirection middleClickScollDirection = ScrollDirection.None;
+      private bool _EnableBlinkingStyle;
 
       /// <summary>
       /// Activates the scrolling mode (middle click button).

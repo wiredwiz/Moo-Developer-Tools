@@ -779,7 +779,7 @@ namespace FastColoredTextBoxNS.Types
                tb[y][x] = c;
             }
          }
-         if (style is BlinkingStyle)
+         if (style is BlinkingStyle && tb.EnableBlinkingStyle)
             tb.StartBlinkRenderTask();
       }
 
