@@ -44,7 +44,6 @@ using Org.Edgerunner.Mud.Communication;
 using Org.Edgerunner.Mud.Communication.OutOfBand;
 using Org.Edgerunner.Moo.Editor.Controls;
 using Org.Edgerunner.Moo.Udditor.Communication.OutOfBand;
-using Antlr4.Runtime.Misc;
 using Krypton.Workspace;
 
 namespace Org.Edgerunner.Moo.Udditor;
@@ -292,9 +291,8 @@ public class WindowManager
 
    private void Page_ParsingComplete(object sender, ParsingCompleteEventArgs e)
    {
-      MooCodeEditor codeEditor = sender as MooCodeEditor;
-      var page = codeEditor.Parent;
-      OnEditorParsingCompleted(page as MooCodeEditorPage);
+      if (sender is MooCodeEditor editor)
+         OnEditorParsingCompleted(editor.Parent as MooCodeEditorPage);
    }
 
    /// <summary>

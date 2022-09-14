@@ -117,6 +117,9 @@ public partial class Editor : KryptonForm
       mnuItemCloseConnection.Enabled = isTerminal;
       mnuItemSend.Enabled = isEditor && editPage.CanUpload;
       mnuItemEchoCommands.Enabled = isTerminal;
+      mnuItemEnableColor.Enabled = isTerminal;
+      mnuItemEnableBlinking.Enabled = isTerminal;
+      mnuItemEnableAudio.Enabled = isTerminal;
       mnuItemWordWrap.Enabled = isTerminal || isEditor;
       mnuItemShowLineNumbers.Enabled = isEditor;
       mnuItemIndentationGuides.Enabled = isMooCodeEditor;
@@ -166,6 +169,10 @@ public partial class Editor : KryptonForm
       var terminalPage = CurrentPage as TerminalPage;
       var isTerminal = terminalPage != null;
       mnuItemEchoCommands.CheckState = isTerminal && terminalPage.Terminal.EchoEnabled ? CheckState.Checked : CheckState.Unchecked;
+      mnuItemEnableAudio.CheckState = isTerminal && terminalPage.AsciiBellEnabled ? CheckState.Checked : CheckState.Unchecked;
+      mnuItemEnableBlinking.CheckState =
+         isTerminal && terminalPage.BlinkingTextEnabled ? CheckState.Checked : CheckState.Unchecked;
+      mnuItemEnableColor.CheckState = isTerminal && terminalPage.AnsiColorEnabled ? CheckState.Checked : CheckState.Unchecked;
    }
 
    private void Editor_Load(object sender, EventArgs e)
@@ -219,8 +226,8 @@ public partial class Editor : KryptonForm
 
    void BuildTerminalShortcutMenu()
    {
-      while (mnuItemTerminal.DropDownItems.Count > 5)
-         mnuItemTerminal.DropDownItems.RemoveAt(5);
+      while (mnuItemTerminal.DropDownItems.Count > 8)
+         mnuItemTerminal.DropDownItems.RemoveAt(8);
       if (!_WorldManagerEnabled)
          return;
 
@@ -542,9 +549,9 @@ public partial class Editor : KryptonForm
          page.BlinkingTextEnabled = world.BlinkEnabled;
          UpdateTerminalMenu();
          await page.Terminal.ConnectAsync(world.Name, world.HostAddress, world.PortNumber, world.UseTls).ConfigureAwait(true);
-         page.Terminal.EchoEnabled = false;
          if (world.UserInfo.AutomaticallyLogin && !string.IsNullOrEmpty(userName))
          {
+            // ReSharper disable once TooManyChainedReferences
             var loginText = world.UserInfo.ConnectionString
                                  .Replace("%u", userName)
                                  .Replace("%p", password);
@@ -779,5 +786,23 @@ public partial class Editor : KryptonForm
    {
       var worldsFile = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Worlds.xml");
       return !File.Exists(worldsFile) ? new AddressBook() : AddressBook.LoadFromFile(worldsFile);
+   }
+
+   private void mnuItemEnableColor_CheckStateChanged(object sender, EventArgs e)
+   {
+      if (CurrentPage is TerminalPage page)
+         page.AnsiColorEnabled = mnuItemEnableColor.CheckState == CheckState.Checked;
+   }
+
+   private void mnuItemEnableBlinking_CheckStateChanged(object sender, EventArgs e)
+   {
+      if (CurrentPage is TerminalPage page)
+         page.BlinkingTextEnabled = mnuItemEnableBlinking.CheckState == CheckState.Checked;
+   }
+
+   private void mnuItemEnableAudio_CheckStateChanged(object sender, EventArgs e)
+   {
+      if (CurrentPage is TerminalPage page)
+         page.AsciiBellEnabled = mnuItemEnableAudio.CheckState == CheckState.Checked;
    }
 }

@@ -132,8 +132,8 @@ namespace Org.Edgerunner.Moo.Editor.Controls
       /// <value><c>true</c> if [blinking text enabled]; otherwise, <c>false</c>.</value>
       public bool BlinkingTextEnabled
       {
-         get => consoleSim.BlinkingTextEnabled;
-         set => consoleSim.BlinkingTextEnabled = value;
+         get => consoleSim.EnableBlinkingStyle;
+         set => consoleSim.EnableBlinkingStyle = value;
       }
 
       /// <summary>

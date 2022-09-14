@@ -58,13 +58,7 @@ namespace Org.Edgerunner.Moo.Editor.Controls
       /// </summary>
       /// <value><c>true</c> if [ANSI color enabled]; otherwise, <c>false</c>.</value>
       public bool AnsiColorEnabled { get; set; } = true;
-
-      /// <summary>
-      /// Gets or sets a value indicating whether to enable blinking text.
-      /// </summary>
-      /// <value><c>true</c> if [blinking text enabled]; otherwise, <c>false</c>.</value>
-      public bool BlinkingTextEnabled { get; set; } = true;
-
+      
       /// <summary>
       /// Gets or sets a value indicating whether to enable ascii bell.
       /// </summary>
@@ -170,7 +164,7 @@ namespace Org.Edgerunner.Moo.Editor.Controls
                {
                   if (AnsiColorEnabled)
                   {
-                     if (AnsiManager.Blinking && BlinkingTextEnabled)
+                     if (AnsiManager.Blinking)
                         WriteWithStyles(text[..(match.Index)], new Style[] { CurrentStyle, DefaultBlinkingStyle });
                      else
                         Write(text[..(match.Index)], CurrentStyle);
@@ -186,7 +180,7 @@ namespace Org.Edgerunner.Moo.Editor.Controls
             if (!string.IsNullOrEmpty(text))
                if (AnsiColorEnabled)
                {
-                  if (AnsiManager.Blinking && BlinkingTextEnabled)
+                  if (AnsiManager.Blinking)
                      WriteWithStyles(text, new Style[] { CurrentStyle, DefaultBlinkingStyle });
                   else
                      Write(text, CurrentStyle);
