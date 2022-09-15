@@ -45,6 +45,7 @@ using Org.Edgerunner.Mud.Communication.OutOfBand;
 using Org.Edgerunner.Moo.Editor.Controls;
 using Org.Edgerunner.Moo.Udditor.Communication.OutOfBand;
 using Krypton.Workspace;
+using NLog;
 
 namespace Org.Edgerunner.Moo.Udditor;
 
@@ -54,6 +55,8 @@ namespace Org.Edgerunner.Moo.Udditor;
 // ReSharper disable once HollowTypeName
 public class WindowManager
 {
+   protected static ILogger Logger = LogManager.GetCurrentClassLogger();
+
    /// <summary>
    /// Initializes a new instance of the <see cref="WindowManager" /> class.
    /// </summary>
@@ -277,7 +280,6 @@ public class WindowManager
          Workspace.DockingManager.AddToWorkspace(_EditorWorkspaceName, new KryptonPage[] { page });
          page.OutOfBandPrefix = oobPrefix;
          page.ClearFlags(KryptonPageFlags.DockingAllowAutoHidden);
-         page.ClearFlags(KryptonPageFlags.DockingAllowClose);
          return page;
       }
 

@@ -501,6 +501,7 @@ public partial class Editor : KryptonForm
 
    private async Task OpenTerminalConnectionAsync(string host,int port, string world, bool useTls = false)
    {
+      Logger.Trace($"Opening address {host} via terminal menu {(useTls ? "with" : "without")} TLS");
       TerminalPage page = CurrentPage as TerminalPage;
       if (page == null || page.Terminal.IsConnected)
       {
@@ -522,6 +523,7 @@ public partial class Editor : KryptonForm
       }
       catch (Exception ex)
       {
+         Logger.Error(ex, "Failed to open connection");
          if (useTls && ex is IOException)
             MessageBox.Show("This host address may not support TLS", "Unable to connect");
          else
@@ -531,6 +533,7 @@ public partial class Editor : KryptonForm
 
    private async Task OpenTerminalConnectionAsync(WorldConfiguration world)
    {
+      Logger.Trace($"Opening world {world.Name} via terminal menu {(world.UseTls ? "with" : "without")} TLS");
       var userName = world.UserInfo.Name;
       var password = world.UserInfo.DecryptedPassword;
       if (world.UserInfo.PromptForCredentials)
@@ -570,6 +573,7 @@ public partial class Editor : KryptonForm
       }
       catch (Exception ex)
       {
+         Logger.Error(ex, "Failed to open connection");
          if (world.UseTls && ex is IOException)
             MessageBox.Show("This host address may not support TLS", "Unable to connect");
          else
@@ -599,6 +603,7 @@ public partial class Editor : KryptonForm
 
    private void kryptonDockableWorkspace_ActivePageChanged(object sender, Krypton.Workspace.ActivePageChangedEventArgs e)
    {
+      Logger.Trace($"Page {e.NewPage.TextTitle} activated");
       CurrentPage = e.NewPage as ManagedPage;
 
       if (e.NewPage is MooCodeEditorPage editorPage && WindowManager.RecentEditor == null)
@@ -629,6 +634,7 @@ public partial class Editor : KryptonForm
    {
       var key = e.UniqueName;
       var entry = WindowManager.GetPage(key);
+      Logger.Trace($"Page \"{entry?.TextTitle}\" close requested");
       if (entry is MooCodeEditorPage page)
       {
          e.CloseRequest = PromptForSave(page, e.CloseRequest);
@@ -646,6 +652,7 @@ public partial class Editor : KryptonForm
    {
       var key = e.UniqueName;
       var entry = WindowManager.GetPage(key);
+      Logger.Trace($"Page \"{entry?.TextTitle}\" close clicked");
       if (entry is MooCodeEditorPage page)
       {
          PromptForSave(page, DockingCloseRequest.RemovePageAndDispose);
