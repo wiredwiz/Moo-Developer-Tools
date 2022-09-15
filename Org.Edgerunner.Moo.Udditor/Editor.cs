@@ -2,6 +2,7 @@
 using System.Diagnostics;
 using System.IO;
 using System.Net.Sockets;
+using System.Reflection;
 using System.Text;
 using System.Windows.Forms;
 using System.Xml.Linq;
@@ -10,6 +11,7 @@ using FastColoredTextBoxNS;
 using FastColoredTextBoxNS.Types;
 using Krypton.Toolkit;
 using Krypton.Workspace;
+using NLog;
 using Org.Edgerunner.ANTLR4.Tools.Common;
 using Org.Edgerunner.ANTLR4.Tools.Common.Grammar.Errors;
 using Org.Edgerunner.Moo.Editor;
@@ -25,6 +27,8 @@ namespace Org.Edgerunner.Moo.Udditor;
 
 public partial class Editor : KryptonForm
 {
+   protected static ILogger Logger = LogManager.GetCurrentClassLogger();
+
    public Editor()
    {
       InitializeComponent();
@@ -193,6 +197,7 @@ public partial class Editor : KryptonForm
       ConfigureMasterKey();
       UpdateMenus();
       BuildTerminalShortcutMenu();
+      Logger.Trace($"Loading {Assembly.GetExecutingAssembly().GetName()}");
    }
 
    private void ConfigureMasterKey()
@@ -202,24 +207,28 @@ public partial class Editor : KryptonForm
       try
       {
          ApplicationKeyManager.RetrieveMasterKey(out key);
+         Logger.Trace("Master key loaded successfully");
       }
       catch (Exception)
       {
       }
       if (string.IsNullOrEmpty(key))
       {
+         Logger.Trace("No master key found");
          var setup = new Setup();
          setup.StartPosition = FormStartPosition.CenterParent;
          if (setup.ShowDialog(this) != DialogResult.OK)
          {
             MessageBox.Show("Without a proper master key, the world manager will be disabled.", "World Manager Disabled");
             _WorldManagerEnabled = false;
+            Logger.Trace("Master key entry cancelled");
          }
          else
          {
             _WorldManagerEnabled = true;
             key = Hash.Sha256(setup.Password);
             ApplicationKeyManager.SaveMasterKey(key);
+            Logger.Trace("A new master key was successfully set");
          }
       }
    }
