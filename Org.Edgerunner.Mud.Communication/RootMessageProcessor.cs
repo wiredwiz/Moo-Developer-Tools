@@ -34,6 +34,7 @@
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #endregion
 
+using NLog;
 using Org.Edgerunner.Mud.Communication.Exceptions;
 using Org.Edgerunner.Mud.Communication.Interfaces;
 
@@ -45,6 +46,8 @@ namespace Org.Edgerunner.Mud.Communication;
 // ReSharper disable once HollowTypeName
 public class RootMessageProcessor : IMessageProcessor
 {
+    protected static  ILogger Logger = LogManager.GetCurrentClassLogger();
+
     /// <summary>
     /// The current state.
     /// </summary>
@@ -97,6 +100,8 @@ public class RootMessageProcessor : IMessageProcessor
         // we reset the state along with all out of band processors.
         if (_State.Finished || _State.CurrentState == MessagingState.OUtOfBand && (DateTime.UtcNow - _State.LastMessageReceived).Milliseconds >= OutOfBandMessagingTimeout)
         {
+            if (_State.CurrentState == MessagingState.OUtOfBand)
+                Logger.Trace("Resetting message processor");
             OutOfBandMessageProcessor?.Reset();
             _State.Reset();
         }
@@ -107,6 +112,7 @@ public class RootMessageProcessor : IMessageProcessor
         // If the message is an out of band message, modify the message and our state
         if (message.StartsWith(OutOfBandPrefix))
         {
+            Logger.Trace($"Received OOB command: {message}");
             message = message.Length > OutOfBandPrefix.Length ? message.Remove(0, OutOfBandPrefix.Length) : String.Empty;
             _State.CurrentState = MessagingState.OUtOfBand;
         }

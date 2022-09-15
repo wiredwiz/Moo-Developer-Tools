@@ -35,6 +35,7 @@
 #endregion
 
 using System.Text;
+using NLog;
 using Org.Edgerunner.Mud.Communication;
 using Org.Edgerunner.Mud.Communication.Interfaces;
 using Org.Edgerunner.Mud.Communication.OutOfBand;
@@ -51,110 +52,122 @@ namespace Org.Edgerunner.Moo.Udditor.Communication.OutOfBand;
 /// <seealso cref="IOutOfBandMessageHandler" />
 public class LocalEditHandler : IOutOfBandMessageHandler
 {
-    public LocalEditHandler(WindowManager windowManager)
-    {
-        DocumentSource = new StringBuilder();
-        _WindowManager = windowManager;
-    }
+   protected static ILogger Logger = LogManager.GetCurrentClassLogger();
 
-    /// <summary>
-    /// Gets or sets the name of the verb.
-    /// </summary>
-    /// <value>
-    /// The name of the verb.
-    /// </value>
-    public string DocumentName { get; protected set; }
+   public LocalEditHandler(WindowManager windowManager)
+   {
+      DocumentSource = new StringBuilder();
+      _WindowManager = windowManager;
+   }
 
-    /// <summary>
-    /// Gets or sets the upload command.
-    /// </summary>
-    /// <value>
-    /// The upload command.
-    /// </value>
-    public string UploadCommand { get; protected set; }
+   /// <summary>
+   /// Gets or sets the name of the verb.
+   /// </summary>
+   /// <value>
+   /// The name of the verb.
+   /// </value>
+   public string DocumentName { get; protected set; }
 
-    /// <summary>
-    /// Gets or sets the verb source code.
-    /// </summary>
-    /// <value>
-    /// The verb source.
-    /// </value>
-    public StringBuilder DocumentSource { get; set; }
+   /// <summary>
+   /// Gets or sets the upload command.
+   /// </summary>
+   /// <value>
+   /// The upload command.
+   /// </value>
+   public string UploadCommand { get; protected set; }
 
-    private WindowManager _WindowManager;
+   /// <summary>
+   /// Gets or sets the verb source code.
+   /// </summary>
+   /// <value>
+   /// The verb source.
+   /// </value>
+   public StringBuilder DocumentSource { get; set; }
 
-    /// <summary>
-    /// Processes the message.
-    /// </summary>
-    /// <param name="client">The client terminal emulator.</param>
-    /// <param name="message">The message.</param>
-    /// <param name="state">The current message processing state.</param>
-    /// <returns>
-    ///   <c>true</c> if was processed, <c>false</c> otherwise.
-    /// </returns>
-    public bool ProcessMessage(IClientTerminal client, string message, ref MessageProcessingState state)
-    {
-        // We are already reading local edit source code
-        if (state.CurrentProcessor == this && !state.Finished)
-        {
-            if (message.Trim() == ".")
+   private WindowManager _WindowManager;
+
+   /// <summary>
+   /// Processes the message.
+   /// </summary>
+   /// <param name="client">The client terminal emulator.</param>
+   /// <param name="message">The message.</param>
+   /// <param name="state">The current message processing state.</param>
+   /// <returns>
+   ///   <c>true</c> if was processed, <c>false</c> otherwise.
+   /// </returns>
+   public bool ProcessMessage(IClientTerminal client, string message, ref MessageProcessingState state)
+   {
+      // We are already reading local edit source code
+      if (state.CurrentProcessor == this && !state.Finished)
+      {
+         if (message.Trim() == ".")
+         {
+            Logger.Trace("Local edit: .");
+            // The reset will clean up anyway, but I like to be paranoid
+            state.Finished = true;
+            state.CurrentProcessor = null;
+
+            // Open editor window
+            MooEditorPage page;
+            if (DocumentName.Contains(":"))
             {
-                // The reset will clean up anyway, but I like to be paranoid
-                state.Finished = true;
-                state.CurrentProcessor = null;
-
-                // Open editor window
-                MooEditorPage page;
-                if (DocumentName.Contains(":"))
-                    page = _WindowManager.CreateMooCodeEditorPage(DocumentName,
-                                                           client.World,
-                                                           Settings.Instance.DefaultGrammarDialect,
-                                                           DocumentSource.ToString().Trim());
-                else
-                    page = _WindowManager.CreateDocumentEditorPage(DocumentName, client.World, DocumentSource.ToString().Trim());
-                // Uploader must be configured before showing the page
-                page.Uploader = new LocalEditUploader(UploadCommand, client);
-                _WindowManager.ShowPage(page);
-                state.Reset();
-
-                return true;
+               Logger.Trace("Opening code editor");
+               page = _WindowManager.CreateMooCodeEditorPage(DocumentName,
+                                                      client.World,
+                                                      Settings.Instance.DefaultGrammarDialect,
+                                                      DocumentSource.ToString().Trim());
             }
+            else
+            {
+               Logger.Trace("Opening document editor");
+               page = _WindowManager.CreateDocumentEditorPage(DocumentName, client.World, DocumentSource.ToString().Trim());
+            }
+            // Uploader must be configured before showing the page
+            page.Uploader = new LocalEditUploader(UploadCommand, client);
+            _WindowManager.ShowPage(page);
+            state.Reset();
 
-            DocumentSource.Append(message);
             return true;
-        }
+         }
 
-        message = message.Trim();
-        var lower = message.ToLowerInvariant();
-        var uploadStart = lower.LastIndexOf("upload:", StringComparison.Ordinal);
-        if (!lower.StartsWith("edit name:") || uploadStart == -1)
-            return false;
+         DocumentSource.Append(message);
+         Logger.Trace($"Local edit: {message}");
+         return true;
+      }
 
-        if (uploadStart == 10)
-            return false;
+      message = message.Trim();
+      var lower = message.ToLowerInvariant();
+      var uploadStart = lower.LastIndexOf("upload:", StringComparison.Ordinal);
+      if (!lower.StartsWith("edit name:") || uploadStart == -1)
+         return false;
 
-        if (uploadStart + 7 > message.Length)
-            return false;
+      if (uploadStart == 10)
+         return false;
 
-        var name = message.Substring(10, uploadStart - 10);
-        if (string.IsNullOrEmpty(name))
-            return false;
+      if (uploadStart + 7 > message.Length)
+         return false;
 
-        var upload = message.Substring(uploadStart + 7);
-        if (string.IsNullOrEmpty(upload))
-            return false;
+      var name = message.Substring(10, uploadStart - 10);
+      if (string.IsNullOrEmpty(name))
+         return false;
 
-        DocumentSource.Clear();
-        DocumentName = name.Trim();
-        UploadCommand = upload.Trim();
+      var upload = message.Substring(uploadStart + 7);
+      if (string.IsNullOrEmpty(upload))
+         return false;
 
-        return true;
-    }
+      DocumentSource.Clear();
+      DocumentName = name.Trim();
+      UploadCommand = upload.Trim();
+      Logger.Trace($"Edit Name: {DocumentName}");
+      Logger.Trace($"Edit Command: {UploadCommand}");
 
-    public void Reset()
-    {
-        UploadCommand = string.Empty;
-        DocumentName = string.Empty;
-        DocumentSource.Clear();
-    }
+      return true;
+   }
+
+   public void Reset()
+   {
+      UploadCommand = string.Empty;
+      DocumentName = string.Empty;
+      DocumentSource.Clear();
+   }
 }
