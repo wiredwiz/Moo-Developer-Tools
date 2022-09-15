@@ -43,7 +43,7 @@ partial class AboutBox : KryptonForm
    {
       get
       {
-         return $"{Assembly.GetExecutingAssembly().GetName().Version?.ToString() ?? new Version(0,0).ToString()} Alpha";
+         return $"{Assembly.GetExecutingAssembly().GetName().Version?.ToString() ?? new Version(0,0).ToString()} Beta";
       }
    }
 
