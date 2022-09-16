@@ -181,6 +181,21 @@ public partial class Editor : KryptonForm
 
    private void Editor_Load(object sender, EventArgs e)
    {
+      var logFile = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Moo Udditor.log");
+      try
+      {
+         if (File.Exists(logFile))
+            File.Delete(logFile);
+      }
+      catch (UnauthorizedAccessException)
+      {
+         Debug.WriteLine("Unable to access log file");
+         MessageBox.Show("Unable to access log file", "File Access Denied");
+      }
+      catch (IOException)
+      {
+         Debug.WriteLine("Error accessing log file");
+      }
       if (Settings.Instance.EditorDarkTheme)
          kryptonManager.GlobalPalette = kryptonPalette1;
       // Setup docking functionality
@@ -194,10 +209,10 @@ public partial class Editor : KryptonForm
       var messageDisplay = WindowManager.CreateParserMessageDisplayPage();
       ErrorDisplay = messageDisplay.MessageDisplay;
       messageDisplay.DoubleClick += MessageDisplay_DoubleClick;
+      Logger.Trace($"Loading {Assembly.GetExecutingAssembly().GetName()}");
       ConfigureMasterKey();
       UpdateMenus();
       BuildTerminalShortcutMenu();
-      Logger.Trace($"Loading {Assembly.GetExecutingAssembly().GetName()}");
    }
 
    private void ConfigureMasterKey()

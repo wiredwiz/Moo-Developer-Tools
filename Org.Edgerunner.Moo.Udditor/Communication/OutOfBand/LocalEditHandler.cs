@@ -125,13 +125,14 @@ public class LocalEditHandler : IOutOfBandMessageHandler
             // Uploader must be configured before showing the page
             page.Uploader = new LocalEditUploader(UploadCommand, client);
             _WindowManager.ShowPage(page);
+            Logger.Trace("Local edit: Session Complete");
             state.Reset();
 
             return true;
          }
 
          DocumentSource.Append(message);
-         Logger.Trace($"Local edit: {message}");
+         Logger.Trace($"Local edit: {message.TrimEnd()}");
          return true;
       }
 

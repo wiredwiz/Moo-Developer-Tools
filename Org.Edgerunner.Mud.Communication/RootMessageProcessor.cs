@@ -112,7 +112,7 @@ public class RootMessageProcessor : IMessageProcessor
         // If the message is an out of band message, modify the message and our state
         if (message.StartsWith(OutOfBandPrefix))
         {
-            Logger.Trace($"Received OOB command: {message}");
+            Logger.Trace($"Received OOB command: {message.TrimEnd()}");
             message = message.Length > OutOfBandPrefix.Length ? message.Remove(0, OutOfBandPrefix.Length) : String.Empty;
             _State.CurrentState = MessagingState.OUtOfBand;
         }
