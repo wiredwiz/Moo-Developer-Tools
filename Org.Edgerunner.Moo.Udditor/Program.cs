@@ -14,6 +14,6 @@ internal static class Program
         // see https://aka.ms/applicationconfiguration.
         ApplicationConfiguration.Initialize();
         Settings.Instance.LoadFrom(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Moo.Editor.config"));
-        Application.Run(new Editor());
+        Application.Run(new Main.Editor());
     }
 }

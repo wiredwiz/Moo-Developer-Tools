@@ -41,6 +41,7 @@ using Krypton.Navigator;
 using Org.Edgerunner.ANTLR4.Tools.Common.Grammar.Errors;
 using Org.Edgerunner.Moo.Editor.Configuration;
 using Org.Edgerunner.Moo.Editor.Controls;
+using Org.Edgerunner.Moo.Udditor.Events;
 
 namespace Org.Edgerunner.Moo.Udditor.Pages;
 
