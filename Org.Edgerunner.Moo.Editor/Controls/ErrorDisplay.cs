@@ -1,20 +1,16 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Data;
-using System.Drawing;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Windows.Forms;
-using Org.Edgerunner.ANTLR4.Tools.Common;
 using Org.Edgerunner.ANTLR4.Tools.Common.Grammar.Errors;
-using Org.Edgerunner.Moo.Editor.Configuration;
 
 namespace Org.Edgerunner.Moo.Editor.Controls
 {
+   /// <summary>
+   /// Class that displays a list of lexer/parser feedback messages.
+   /// Implements the <see cref="System.Windows.Forms.ListView" />
+   /// </summary>
+   /// <seealso cref="System.Windows.Forms.ListView" />
    public partial class ErrorDisplay : ListView
    {
+      /// <summary>Initializes a new instance of the <see cref="T:Org.Edgerunner.Moo.Editor.Controls.ErrorDisplay" /> class.</summary>
       public ErrorDisplay()
       {
          InitializeComponent();
@@ -31,6 +27,10 @@ namespace Org.Edgerunner.Moo.Editor.Controls
          //ConfigureDisplay();
       }
 
+      /// <summary>
+      /// Populates the the display with the specified errors.
+      /// </summary>
+      /// <param name="errorMessages">The error messages to display.</param>
       public void PopulateErrors(List<ParseMessage> errorMessages)
       {
          Items.Clear();
@@ -49,12 +49,6 @@ namespace Org.Edgerunner.Moo.Editor.Controls
             Items.Add(error);
          }
          Refresh();
-      }
-
-      private void ConfigureDisplay()
-      {
-         var font = new Font(Settings.Instance.EditorFontFamily, Settings.Instance.EditorFontSize);
-         Font = font;
       }
    }
 }
