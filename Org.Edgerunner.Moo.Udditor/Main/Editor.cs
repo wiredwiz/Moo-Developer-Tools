@@ -175,7 +175,9 @@ public partial class Editor : KryptonForm
 
    private void kryptonDockableWorkspace_ActivePageChanged(object sender, Krypton.Workspace.ActivePageChangedEventArgs e)
    {
-      Logger.Trace($"Page {e.NewPage.TextTitle} activated");
+      if (e.NewPage != null)
+         Logger.Trace($"Page {e.NewPage.TextTitle} activated");
+
       CurrentPage = e.NewPage as ManagedPage;
 
       if (e.NewPage is MooCodeEditorPage editorPage && WindowManager.RecentEditor == null)
