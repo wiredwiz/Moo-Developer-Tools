@@ -1,5 +1,7 @@
 # Moo Developer Tools
 
+[![.NET](https://github.com/wiredwiz/Moo-Developer-Tools/actions/workflows/dotnet.yml/badge.svg)](https://github.com/wiredwiz/Moo-Developer-Tools/actions/workflows/dotnet.yml)
+
 These are a set of tools to aid Moo developers in writing and debugging code faster as well as 
 creating higher quality code.  The primary focus of this library is the Moo Udditor cilent.
 
