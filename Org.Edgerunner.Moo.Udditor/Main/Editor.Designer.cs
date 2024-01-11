@@ -30,797 +30,728 @@ namespace Org.Edgerunner.Moo.Udditor.Main
       /// </summary>
       private void InitializeComponent()
       {
-         this.components = new System.ComponentModel.Container();
-         System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(Editor));
-         this.menuStrip1 = new System.Windows.Forms.MenuStrip();
-         this.fileToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-         this.tlMnuNew = new System.Windows.Forms.ToolStripMenuItem();
-         this.mnuItemOpenFile = new System.Windows.Forms.ToolStripMenuItem();
-         this.mnuItemUpload = new System.Windows.Forms.ToolStripMenuItem();
-         this.mnuItemUpload2 = new System.Windows.Forms.ToolStripMenuItem();
-         this.mnuItemFileSave = new System.Windows.Forms.ToolStripMenuItem();
-         this.mnuItemSaveAsFile = new System.Windows.Forms.ToolStripMenuItem();
-         this.tlMnuItemClose = new System.Windows.Forms.ToolStripMenuItem();
-         this.toolStripSeparator1 = new System.Windows.Forms.ToolStripSeparator();
-         this.mnuItemExit = new System.Windows.Forms.ToolStripMenuItem();
-         this.editToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-         this.mnuItemFormat = new System.Windows.Forms.ToolStripMenuItem();
-         this.toolStripSeparator2 = new System.Windows.Forms.ToolStripSeparator();
-         this.mnuItemCut = new System.Windows.Forms.ToolStripMenuItem();
-         this.mnuItemCopy = new System.Windows.Forms.ToolStripMenuItem();
-         this.mnuItemCutPaste = new System.Windows.Forms.ToolStripMenuItem();
-         this.toolStripSeparator3 = new System.Windows.Forms.ToolStripSeparator();
-         this.mnuItemFind = new System.Windows.Forms.ToolStripMenuItem();
-         this.toolStripSeparator4 = new System.Windows.Forms.ToolStripSeparator();
-         this.mnuItemBookmarks = new System.Windows.Forms.ToolStripMenuItem();
-         this.tlMnuItemToggleBookmark = new System.Windows.Forms.ToolStripMenuItem();
-         this.tlMnuItemNextBookmark = new System.Windows.Forms.ToolStripMenuItem();
-         this.tlMnuItemPrevBookmark = new System.Windows.Forms.ToolStripMenuItem();
-         this.mnuItemFolding = new System.Windows.Forms.ToolStripMenuItem();
-         this.mnuItemEnableCodeFolding = new System.Windows.Forms.ToolStripMenuItem();
-         this.tlMnuItemToggleFolding = new System.Windows.Forms.ToolStripMenuItem();
-         this.tlMnuItemExpandAll = new System.Windows.Forms.ToolStripMenuItem();
-         this.tlMnuItemCollapseAll = new System.Windows.Forms.ToolStripMenuItem();
-         this.toolStripSeparator7 = new System.Windows.Forms.ToolStripSeparator();
-         this.mnuItemMarkdown = new System.Windows.Forms.ToolStripMenuItem();
-         this.mnuItemMarkdownSupport = new System.Windows.Forms.ToolStripMenuItem();
-         this.mnuItemMooText = new System.Windows.Forms.ToolStripMenuItem();
-         this.mnuItemMooTextColor = new System.Windows.Forms.ToolStripMenuItem();
-         this.mnuItemView = new System.Windows.Forms.ToolStripMenuItem();
-         this.mnuItemZoomIn = new System.Windows.Forms.ToolStripMenuItem();
-         this.mnuItemZoomOut = new System.Windows.Forms.ToolStripMenuItem();
-         this.toolStripSeparator6 = new System.Windows.Forms.ToolStripSeparator();
-         this.mnuItemWordWrap = new System.Windows.Forms.ToolStripMenuItem();
-         this.mnuItemShowLineNumbers = new System.Windows.Forms.ToolStripMenuItem();
-         this.mnuItemIndentationGuides = new System.Windows.Forms.ToolStripMenuItem();
-         this.mnuItemShowPreviewPane = new System.Windows.Forms.ToolStripMenuItem();
-         this.mnuItemTerminal = new System.Windows.Forms.ToolStripMenuItem();
-         this.mnuItemWorldManager = new System.Windows.Forms.ToolStripMenuItem();
-         this.tlMnuItemOpenConnection = new System.Windows.Forms.ToolStripMenuItem();
-         this.mnuItemCloseConnection = new System.Windows.Forms.ToolStripMenuItem();
-         this.toolStripSeparator5 = new System.Windows.Forms.ToolStripSeparator();
-         this.mnuItemEchoCommands = new System.Windows.Forms.ToolStripMenuItem();
-         this.mnuItemEnableColor = new System.Windows.Forms.ToolStripMenuItem();
-         this.mnuItemEnableBlinking = new System.Windows.Forms.ToolStripMenuItem();
-         this.mnuItemEnableAudio = new System.Windows.Forms.ToolStripMenuItem();
-         this.grammarToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-         this.tlMnuLanguageMoo = new System.Windows.Forms.ToolStripMenuItem();
-         this.tlMnuLanguageTsMoo = new System.Windows.Forms.ToolStripMenuItem();
-         this.tlMnuLanguageEdgeMoo = new System.Windows.Forms.ToolStripMenuItem();
-         this.mnuItemWindow = new System.Windows.Forms.ToolStripMenuItem();
-         this.mnuItemPrevEditor = new System.Windows.Forms.ToolStripMenuItem();
-         this.mnuItemPrevTerminal = new System.Windows.Forms.ToolStripMenuItem();
-         this.helpToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-         this.tlMnuHelp = new System.Windows.Forms.ToolStripMenuItem();
-         this.statusStrip1 = new System.Windows.Forms.StatusStrip();
-         this.tlLblLine = new System.Windows.Forms.ToolStripStatusLabel();
-         this.tlStatusLine = new System.Windows.Forms.ToolStripStatusLabel();
-         this.tlLblColumn = new System.Windows.Forms.ToolStripStatusLabel();
-         this.tlStatusColumn = new System.Windows.Forms.ToolStripStatusLabel();
-         this.openFileDialog = new System.Windows.Forms.OpenFileDialog();
-         this.saveFileDialog = new System.Windows.Forms.SaveFileDialog();
-         this.kryptonDockingManager = new Krypton.Docking.KryptonDockingManager();
-         this.kryptonManager = new Krypton.Toolkit.KryptonManager(this.components);
-         this.kryptonPalette1 = new Krypton.Toolkit.KryptonPalette(this.components);
-         this.kryptonPanel = new Krypton.Toolkit.KryptonPanel();
-         this.kryptonDockableWorkspace = new Krypton.Docking.KryptonDockableWorkspace();
-         this.menuStrip1.SuspendLayout();
-         this.statusStrip1.SuspendLayout();
-         ((System.ComponentModel.ISupportInitialize)(this.kryptonPanel)).BeginInit();
-         this.kryptonPanel.SuspendLayout();
-         ((System.ComponentModel.ISupportInitialize)(this.kryptonDockableWorkspace)).BeginInit();
-         this.SuspendLayout();
+         components = new System.ComponentModel.Container();
+         var resources = new System.ComponentModel.ComponentResourceManager(typeof(Editor));
+         menuStrip1 = new MenuStrip();
+         fileToolStripMenuItem = new ToolStripMenuItem();
+         tlMnuNew = new ToolStripMenuItem();
+         mnuItemOpenFile = new ToolStripMenuItem();
+         mnuItemUpload = new ToolStripMenuItem();
+         mnuItemUpload2 = new ToolStripMenuItem();
+         mnuItemFileSave = new ToolStripMenuItem();
+         mnuItemSaveAsFile = new ToolStripMenuItem();
+         tlMnuItemClose = new ToolStripMenuItem();
+         toolStripSeparator1 = new ToolStripSeparator();
+         mnuItemExit = new ToolStripMenuItem();
+         editToolStripMenuItem = new ToolStripMenuItem();
+         mnuItemFormat = new ToolStripMenuItem();
+         toolStripSeparator2 = new ToolStripSeparator();
+         mnuItemCut = new ToolStripMenuItem();
+         mnuItemCopy = new ToolStripMenuItem();
+         mnuItemCutPaste = new ToolStripMenuItem();
+         toolStripSeparator3 = new ToolStripSeparator();
+         mnuItemFind = new ToolStripMenuItem();
+         toolStripSeparator4 = new ToolStripSeparator();
+         mnuItemBookmarks = new ToolStripMenuItem();
+         tlMnuItemToggleBookmark = new ToolStripMenuItem();
+         tlMnuItemNextBookmark = new ToolStripMenuItem();
+         tlMnuItemPrevBookmark = new ToolStripMenuItem();
+         mnuItemFolding = new ToolStripMenuItem();
+         mnuItemEnableCodeFolding = new ToolStripMenuItem();
+         tlMnuItemToggleFolding = new ToolStripMenuItem();
+         tlMnuItemExpandAll = new ToolStripMenuItem();
+         tlMnuItemCollapseAll = new ToolStripMenuItem();
+         toolStripSeparator7 = new ToolStripSeparator();
+         mnuItemMarkdown = new ToolStripMenuItem();
+         mnuItemMarkdownSupport = new ToolStripMenuItem();
+         mnuItemMooText = new ToolStripMenuItem();
+         mnuItemMooTextColor = new ToolStripMenuItem();
+         mnuItemView = new ToolStripMenuItem();
+         mnuItemZoomIn = new ToolStripMenuItem();
+         mnuItemZoomOut = new ToolStripMenuItem();
+         toolStripSeparator6 = new ToolStripSeparator();
+         mnuItemWordWrap = new ToolStripMenuItem();
+         mnuItemShowLineNumbers = new ToolStripMenuItem();
+         mnuItemIndentationGuides = new ToolStripMenuItem();
+         mnuItemShowPreviewPane = new ToolStripMenuItem();
+         mnuItemTerminal = new ToolStripMenuItem();
+         mnuItemWorldManager = new ToolStripMenuItem();
+         tlMnuItemOpenConnection = new ToolStripMenuItem();
+         mnuItemCloseConnection = new ToolStripMenuItem();
+         toolStripSeparator5 = new ToolStripSeparator();
+         mnuItemEchoCommands = new ToolStripMenuItem();
+         mnuItemEnableColor = new ToolStripMenuItem();
+         mnuItemEnableBlinking = new ToolStripMenuItem();
+         mnuItemEnableAudio = new ToolStripMenuItem();
+         grammarToolStripMenuItem = new ToolStripMenuItem();
+         tlMnuLanguageMoo = new ToolStripMenuItem();
+         tlMnuLanguageTsMoo = new ToolStripMenuItem();
+         tlMnuLanguageEdgeMoo = new ToolStripMenuItem();
+         mnuItemWindow = new ToolStripMenuItem();
+         mnuItemPrevEditor = new ToolStripMenuItem();
+         mnuItemPrevTerminal = new ToolStripMenuItem();
+         helpToolStripMenuItem = new ToolStripMenuItem();
+         tlMnuHelp = new ToolStripMenuItem();
+         statusStrip1 = new StatusStrip();
+         tlLblLine = new ToolStripStatusLabel();
+         tlStatusLine = new ToolStripStatusLabel();
+         tlLblColumn = new ToolStripStatusLabel();
+         tlStatusColumn = new ToolStripStatusLabel();
+         openFileDialog = new OpenFileDialog();
+         saveFileDialog = new SaveFileDialog();
+         kryptonDockingManager = new KryptonDockingManager();
+         kryptonManager = new Krypton.Toolkit.KryptonManager(components);
+         kryptonPalette1 = new Krypton.Toolkit.KryptonPalette(components);
+         kryptonPanel = new Krypton.Toolkit.KryptonPanel();
+         kryptonDockableWorkspace = new KryptonDockableWorkspace();
+         menuStrip1.SuspendLayout();
+         statusStrip1.SuspendLayout();
+         ((System.ComponentModel.ISupportInitialize)kryptonPanel).BeginInit();
+         kryptonPanel.SuspendLayout();
+         ((System.ComponentModel.ISupportInitialize)kryptonDockableWorkspace).BeginInit();
+         SuspendLayout();
          // 
          // menuStrip1
          // 
-         this.menuStrip1.Font = new System.Drawing.Font("Segoe UI", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
-         this.menuStrip1.ImageScalingSize = new System.Drawing.Size(20, 20);
-         this.menuStrip1.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
-            this.fileToolStripMenuItem,
-            this.editToolStripMenuItem,
-            this.mnuItemView,
-            this.mnuItemTerminal,
-            this.grammarToolStripMenuItem,
-            this.mnuItemWindow,
-            this.helpToolStripMenuItem});
-         this.menuStrip1.Location = new System.Drawing.Point(0, 0);
-         this.menuStrip1.Name = "menuStrip1";
-         this.menuStrip1.Size = new System.Drawing.Size(957, 28);
-         this.menuStrip1.TabIndex = 0;
-         this.menuStrip1.Text = "menuStrip1";
+         menuStrip1.Font = new Font("Segoe UI", 9F, FontStyle.Regular, GraphicsUnit.Point);
+         menuStrip1.ImageScalingSize = new Size(20, 20);
+         menuStrip1.Items.AddRange(new ToolStripItem[] { fileToolStripMenuItem, editToolStripMenuItem, mnuItemView, mnuItemTerminal, grammarToolStripMenuItem, mnuItemWindow, helpToolStripMenuItem });
+         menuStrip1.Location = new Point(0, 0);
+         menuStrip1.Name = "menuStrip1";
+         menuStrip1.Size = new Size(957, 28);
+         menuStrip1.TabIndex = 0;
+         menuStrip1.Text = "menuStrip1";
          // 
          // fileToolStripMenuItem
          // 
-         this.fileToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
-            this.tlMnuNew,
-            this.mnuItemOpenFile,
-            this.mnuItemUpload,
-            this.mnuItemUpload2,
-            this.mnuItemFileSave,
-            this.mnuItemSaveAsFile,
-            this.tlMnuItemClose,
-            this.toolStripSeparator1,
-            this.mnuItemExit});
-         this.fileToolStripMenuItem.Name = "fileToolStripMenuItem";
-         this.fileToolStripMenuItem.Size = new System.Drawing.Size(46, 24);
-         this.fileToolStripMenuItem.Text = "&File";
+         fileToolStripMenuItem.DropDownItems.AddRange(new ToolStripItem[] { tlMnuNew, mnuItemOpenFile, mnuItemUpload, mnuItemUpload2, mnuItemFileSave, mnuItemSaveAsFile, tlMnuItemClose, toolStripSeparator1, mnuItemExit });
+         fileToolStripMenuItem.Name = "fileToolStripMenuItem";
+         fileToolStripMenuItem.Size = new Size(46, 24);
+         fileToolStripMenuItem.Text = "&File";
          // 
          // tlMnuNew
          // 
-         this.tlMnuNew.Name = "tlMnuNew";
-         this.tlMnuNew.ShortcutKeys = ((System.Windows.Forms.Keys)((System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.N)));
-         this.tlMnuNew.Size = new System.Drawing.Size(231, 26);
-         this.tlMnuNew.Text = "&New";
-         this.tlMnuNew.Click += new System.EventHandler(this.tlMnuNew_Click);
+         tlMnuNew.Name = "tlMnuNew";
+         tlMnuNew.ShortcutKeys = Keys.Control | Keys.N;
+         tlMnuNew.Size = new Size(231, 26);
+         tlMnuNew.Text = "&New";
+         tlMnuNew.Click += tlMnuNew_Click;
          // 
          // mnuItemOpenFile
          // 
-         this.mnuItemOpenFile.Name = "mnuItemOpenFile";
-         this.mnuItemOpenFile.ShortcutKeys = ((System.Windows.Forms.Keys)((System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.O)));
-         this.mnuItemOpenFile.Size = new System.Drawing.Size(231, 26);
-         this.mnuItemOpenFile.Text = "&Open";
-         this.mnuItemOpenFile.Click += new System.EventHandler(this.mnuItemOpenFile_Click);
+         mnuItemOpenFile.Name = "mnuItemOpenFile";
+         mnuItemOpenFile.ShortcutKeys = Keys.Control | Keys.O;
+         mnuItemOpenFile.Size = new Size(231, 26);
+         mnuItemOpenFile.Text = "&Open";
+         mnuItemOpenFile.Click += mnuItemOpenFile_Click;
          // 
          // mnuItemUpload
          // 
-         this.mnuItemUpload.Name = "mnuItemUpload";
-         this.mnuItemUpload.ShortcutKeys = ((System.Windows.Forms.Keys)(((System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.Shift) 
-            | System.Windows.Forms.Keys.S)));
-         this.mnuItemUpload.Size = new System.Drawing.Size(231, 26);
-         this.mnuItemUpload.Text = "Upload";
-         this.mnuItemUpload.Click += new System.EventHandler(this.mnuItemUpload_Click);
+         mnuItemUpload.Name = "mnuItemUpload";
+         mnuItemUpload.ShortcutKeys = Keys.Control | Keys.Shift | Keys.S;
+         mnuItemUpload.Size = new Size(231, 26);
+         mnuItemUpload.Text = "Upload";
+         mnuItemUpload.Click += mnuItemUpload_Click;
          // 
          // mnuItemUpload2
          // 
-         this.mnuItemUpload2.Name = "mnuItemUpload2";
-         this.mnuItemUpload2.ShortcutKeys = System.Windows.Forms.Keys.F7;
-         this.mnuItemUpload2.Size = new System.Drawing.Size(231, 26);
-         this.mnuItemUpload2.Text = "Upload 2";
-         this.mnuItemUpload2.Visible = false;
-         this.mnuItemUpload2.Click += new System.EventHandler(this.mnuItemUpload_Click);
+         mnuItemUpload2.Name = "mnuItemUpload2";
+         mnuItemUpload2.ShortcutKeys = Keys.F7;
+         mnuItemUpload2.Size = new Size(231, 26);
+         mnuItemUpload2.Text = "Upload 2";
+         mnuItemUpload2.Visible = false;
+         mnuItemUpload2.Click += mnuItemUpload_Click;
          // 
          // mnuItemFileSave
          // 
-         this.mnuItemFileSave.Name = "mnuItemFileSave";
-         this.mnuItemFileSave.ShortcutKeys = ((System.Windows.Forms.Keys)((System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.S)));
-         this.mnuItemFileSave.Size = new System.Drawing.Size(231, 26);
-         this.mnuItemFileSave.Text = "&Save";
-         this.mnuItemFileSave.Click += new System.EventHandler(this.mnuItemSave_Click);
+         mnuItemFileSave.Name = "mnuItemFileSave";
+         mnuItemFileSave.ShortcutKeys = Keys.Control | Keys.S;
+         mnuItemFileSave.Size = new Size(231, 26);
+         mnuItemFileSave.Text = "&Save";
+         mnuItemFileSave.Click += mnuItemSave_Click;
          // 
          // mnuItemSaveAsFile
          // 
-         this.mnuItemSaveAsFile.Name = "mnuItemSaveAsFile";
-         this.mnuItemSaveAsFile.Size = new System.Drawing.Size(231, 26);
-         this.mnuItemSaveAsFile.Text = "Save &As";
-         this.mnuItemSaveAsFile.Click += new System.EventHandler(this.mnuItemSaveAsFile_Click);
+         mnuItemSaveAsFile.Name = "mnuItemSaveAsFile";
+         mnuItemSaveAsFile.Size = new Size(231, 26);
+         mnuItemSaveAsFile.Text = "Save &As";
+         mnuItemSaveAsFile.Click += mnuItemSaveAsFile_Click;
          // 
          // tlMnuItemClose
          // 
-         this.tlMnuItemClose.Name = "tlMnuItemClose";
-         this.tlMnuItemClose.Size = new System.Drawing.Size(231, 26);
-         this.tlMnuItemClose.Text = "&Close";
-         this.tlMnuItemClose.Click += new System.EventHandler(this.tlMnuItemClose_Click);
+         tlMnuItemClose.Name = "tlMnuItemClose";
+         tlMnuItemClose.Size = new Size(231, 26);
+         tlMnuItemClose.Text = "&Close";
+         tlMnuItemClose.Click += tlMnuItemClose_Click;
          // 
          // toolStripSeparator1
          // 
-         this.toolStripSeparator1.Name = "toolStripSeparator1";
-         this.toolStripSeparator1.Size = new System.Drawing.Size(228, 6);
+         toolStripSeparator1.Name = "toolStripSeparator1";
+         toolStripSeparator1.Size = new Size(228, 6);
          // 
          // mnuItemExit
          // 
-         this.mnuItemExit.Name = "mnuItemExit";
-         this.mnuItemExit.Size = new System.Drawing.Size(231, 26);
-         this.mnuItemExit.Text = "E&xit";
-         this.mnuItemExit.Click += new System.EventHandler(this.mnuItemExit_Click);
+         mnuItemExit.Name = "mnuItemExit";
+         mnuItemExit.Size = new Size(231, 26);
+         mnuItemExit.Text = "E&xit";
+         mnuItemExit.Click += mnuItemExit_Click;
          // 
          // editToolStripMenuItem
          // 
-         this.editToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
-            this.mnuItemFormat,
-            this.toolStripSeparator2,
-            this.mnuItemCut,
-            this.mnuItemCopy,
-            this.mnuItemCutPaste,
-            this.toolStripSeparator3,
-            this.mnuItemFind,
-            this.toolStripSeparator4,
-            this.mnuItemBookmarks,
-            this.mnuItemFolding,
-            this.toolStripSeparator7,
-            this.mnuItemMarkdown,
-            this.mnuItemMooText});
-         this.editToolStripMenuItem.Name = "editToolStripMenuItem";
-         this.editToolStripMenuItem.Size = new System.Drawing.Size(49, 24);
-         this.editToolStripMenuItem.Text = "&Edit";
+         editToolStripMenuItem.DropDownItems.AddRange(new ToolStripItem[] { mnuItemFormat, toolStripSeparator2, mnuItemCut, mnuItemCopy, mnuItemCutPaste, toolStripSeparator3, mnuItemFind, toolStripSeparator4, mnuItemBookmarks, mnuItemFolding, toolStripSeparator7, mnuItemMarkdown, mnuItemMooText });
+         editToolStripMenuItem.Name = "editToolStripMenuItem";
+         editToolStripMenuItem.Size = new Size(49, 24);
+         editToolStripMenuItem.Text = "&Edit";
          // 
          // mnuItemFormat
          // 
-         this.mnuItemFormat.Name = "mnuItemFormat";
-         this.mnuItemFormat.Size = new System.Drawing.Size(169, 26);
-         this.mnuItemFormat.Text = "Format";
-         this.mnuItemFormat.Click += new System.EventHandler(this.mnuItemFormat_Click);
+         mnuItemFormat.Name = "mnuItemFormat";
+         mnuItemFormat.Size = new Size(224, 26);
+         mnuItemFormat.Text = "Format";
+         mnuItemFormat.Click += mnuItemFormat_Click;
          // 
          // toolStripSeparator2
          // 
-         this.toolStripSeparator2.Name = "toolStripSeparator2";
-         this.toolStripSeparator2.Size = new System.Drawing.Size(166, 6);
+         toolStripSeparator2.Name = "toolStripSeparator2";
+         toolStripSeparator2.Size = new Size(221, 6);
          // 
          // mnuItemCut
          // 
-         this.mnuItemCut.Name = "mnuItemCut";
-         this.mnuItemCut.Size = new System.Drawing.Size(169, 26);
-         this.mnuItemCut.Text = "Cut";
-         this.mnuItemCut.Click += new System.EventHandler(this.mnuItemCut_Click);
+         mnuItemCut.Name = "mnuItemCut";
+         mnuItemCut.Size = new Size(224, 26);
+         mnuItemCut.Text = "Cut";
+         mnuItemCut.Click += mnuItemCut_Click;
          // 
          // mnuItemCopy
          // 
-         this.mnuItemCopy.Name = "mnuItemCopy";
-         this.mnuItemCopy.Size = new System.Drawing.Size(169, 26);
-         this.mnuItemCopy.Text = "Copy";
-         this.mnuItemCopy.Click += new System.EventHandler(this.mnuItemCopy_Click);
+         mnuItemCopy.Name = "mnuItemCopy";
+         mnuItemCopy.Size = new Size(224, 26);
+         mnuItemCopy.Text = "Copy";
+         mnuItemCopy.Click += mnuItemCopy_Click;
          // 
          // mnuItemCutPaste
          // 
-         this.mnuItemCutPaste.Name = "mnuItemCutPaste";
-         this.mnuItemCutPaste.Size = new System.Drawing.Size(169, 26);
-         this.mnuItemCutPaste.Text = "Paste";
-         this.mnuItemCutPaste.Click += new System.EventHandler(this.mnuItemCutPaste_Click);
+         mnuItemCutPaste.Name = "mnuItemCutPaste";
+         mnuItemCutPaste.Size = new Size(224, 26);
+         mnuItemCutPaste.Text = "Paste";
+         mnuItemCutPaste.Click += mnuItemCutPaste_Click;
          // 
          // toolStripSeparator3
          // 
-         this.toolStripSeparator3.Name = "toolStripSeparator3";
-         this.toolStripSeparator3.Size = new System.Drawing.Size(166, 6);
+         toolStripSeparator3.Name = "toolStripSeparator3";
+         toolStripSeparator3.Size = new Size(221, 6);
          // 
          // mnuItemFind
          // 
-         this.mnuItemFind.Name = "mnuItemFind";
-         this.mnuItemFind.ShortcutKeys = ((System.Windows.Forms.Keys)((System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.F)));
-         this.mnuItemFind.Size = new System.Drawing.Size(169, 26);
-         this.mnuItemFind.Text = "Find";
-         this.mnuItemFind.Click += new System.EventHandler(this.mnuItemFind_Click);
+         mnuItemFind.Name = "mnuItemFind";
+         mnuItemFind.ShortcutKeys = Keys.Control | Keys.F;
+         mnuItemFind.Size = new Size(224, 26);
+         mnuItemFind.Text = "Find";
+         mnuItemFind.Click += mnuItemFind_Click;
          // 
          // toolStripSeparator4
          // 
-         this.toolStripSeparator4.Name = "toolStripSeparator4";
-         this.toolStripSeparator4.Size = new System.Drawing.Size(166, 6);
+         toolStripSeparator4.Name = "toolStripSeparator4";
+         toolStripSeparator4.Size = new Size(221, 6);
          // 
          // mnuItemBookmarks
          // 
-         this.mnuItemBookmarks.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
-            this.tlMnuItemToggleBookmark,
-            this.tlMnuItemNextBookmark,
-            this.tlMnuItemPrevBookmark});
-         this.mnuItemBookmarks.Name = "mnuItemBookmarks";
-         this.mnuItemBookmarks.Size = new System.Drawing.Size(169, 26);
-         this.mnuItemBookmarks.Text = "Bookmarks";
+         mnuItemBookmarks.DropDownItems.AddRange(new ToolStripItem[] { tlMnuItemToggleBookmark, tlMnuItemNextBookmark, tlMnuItemPrevBookmark });
+         mnuItemBookmarks.Name = "mnuItemBookmarks";
+         mnuItemBookmarks.Size = new Size(224, 26);
+         mnuItemBookmarks.Text = "Bookmarks";
          // 
          // tlMnuItemToggleBookmark
          // 
-         this.tlMnuItemToggleBookmark.Name = "tlMnuItemToggleBookmark";
-         this.tlMnuItemToggleBookmark.ShortcutKeys = ((System.Windows.Forms.Keys)((System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.K)));
-         this.tlMnuItemToggleBookmark.Size = new System.Drawing.Size(319, 26);
-         this.tlMnuItemToggleBookmark.Text = "Toggle Bookmark";
-         this.tlMnuItemToggleBookmark.Click += new System.EventHandler(this.tlMnuItemToggleBookmark_Click);
+         tlMnuItemToggleBookmark.Name = "tlMnuItemToggleBookmark";
+         tlMnuItemToggleBookmark.ShortcutKeys = Keys.Control | Keys.K;
+         tlMnuItemToggleBookmark.Size = new Size(319, 26);
+         tlMnuItemToggleBookmark.Text = "Toggle Bookmark";
+         tlMnuItemToggleBookmark.Click += tlMnuItemToggleBookmark_Click;
          // 
          // tlMnuItemNextBookmark
          // 
-         this.tlMnuItemNextBookmark.Name = "tlMnuItemNextBookmark";
-         this.tlMnuItemNextBookmark.ShortcutKeys = ((System.Windows.Forms.Keys)(((System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.Shift) 
-            | System.Windows.Forms.Keys.Down)));
-         this.tlMnuItemNextBookmark.Size = new System.Drawing.Size(319, 26);
-         this.tlMnuItemNextBookmark.Text = "Next Bookmark";
-         this.tlMnuItemNextBookmark.Click += new System.EventHandler(this.tlMnuItemNextBookmark_Click);
+         tlMnuItemNextBookmark.Name = "tlMnuItemNextBookmark";
+         tlMnuItemNextBookmark.ShortcutKeys = Keys.Control | Keys.Shift | Keys.Down;
+         tlMnuItemNextBookmark.Size = new Size(319, 26);
+         tlMnuItemNextBookmark.Text = "Next Bookmark";
+         tlMnuItemNextBookmark.Click += tlMnuItemNextBookmark_Click;
          // 
          // tlMnuItemPrevBookmark
          // 
-         this.tlMnuItemPrevBookmark.Name = "tlMnuItemPrevBookmark";
-         this.tlMnuItemPrevBookmark.ShortcutKeys = ((System.Windows.Forms.Keys)(((System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.Shift) 
-            | System.Windows.Forms.Keys.Up)));
-         this.tlMnuItemPrevBookmark.Size = new System.Drawing.Size(319, 26);
-         this.tlMnuItemPrevBookmark.Text = "Previous Bookmark";
-         this.tlMnuItemPrevBookmark.Click += new System.EventHandler(this.tlMnuItemPrevBookmark_Click);
+         tlMnuItemPrevBookmark.Name = "tlMnuItemPrevBookmark";
+         tlMnuItemPrevBookmark.ShortcutKeys = Keys.Control | Keys.Shift | Keys.Up;
+         tlMnuItemPrevBookmark.Size = new Size(319, 26);
+         tlMnuItemPrevBookmark.Text = "Previous Bookmark";
+         tlMnuItemPrevBookmark.Click += tlMnuItemPrevBookmark_Click;
          // 
          // mnuItemFolding
          // 
-         this.mnuItemFolding.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
-            this.mnuItemEnableCodeFolding,
-            this.tlMnuItemToggleFolding,
-            this.tlMnuItemExpandAll,
-            this.tlMnuItemCollapseAll});
-         this.mnuItemFolding.Name = "mnuItemFolding";
-         this.mnuItemFolding.Size = new System.Drawing.Size(169, 26);
-         this.mnuItemFolding.Text = "Folding";
+         mnuItemFolding.DropDownItems.AddRange(new ToolStripItem[] { mnuItemEnableCodeFolding, tlMnuItemToggleFolding, tlMnuItemExpandAll, tlMnuItemCollapseAll });
+         mnuItemFolding.Name = "mnuItemFolding";
+         mnuItemFolding.Size = new Size(224, 26);
+         mnuItemFolding.Text = "Folding";
          // 
          // mnuItemEnableCodeFolding
          // 
-         this.mnuItemEnableCodeFolding.Checked = true;
-         this.mnuItemEnableCodeFolding.CheckOnClick = true;
-         this.mnuItemEnableCodeFolding.CheckState = System.Windows.Forms.CheckState.Checked;
-         this.mnuItemEnableCodeFolding.Name = "mnuItemEnableCodeFolding";
-         this.mnuItemEnableCodeFolding.Size = new System.Drawing.Size(326, 26);
-         this.mnuItemEnableCodeFolding.Text = "Enable folding";
-         this.mnuItemEnableCodeFolding.CheckStateChanged += new System.EventHandler(this.mnuItemEnableCodeFolding_CheckStateChanged);
+         mnuItemEnableCodeFolding.Checked = true;
+         mnuItemEnableCodeFolding.CheckOnClick = true;
+         mnuItemEnableCodeFolding.CheckState = CheckState.Checked;
+         mnuItemEnableCodeFolding.Name = "mnuItemEnableCodeFolding";
+         mnuItemEnableCodeFolding.Size = new Size(326, 26);
+         mnuItemEnableCodeFolding.Text = "Enable folding";
+         mnuItemEnableCodeFolding.CheckStateChanged += mnuItemEnableCodeFolding_CheckStateChanged;
          // 
          // tlMnuItemToggleFolding
          // 
-         this.tlMnuItemToggleFolding.Name = "tlMnuItemToggleFolding";
-         this.tlMnuItemToggleFolding.ShortcutKeys = ((System.Windows.Forms.Keys)(((System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.Shift) 
-            | System.Windows.Forms.Keys.Space)));
-         this.tlMnuItemToggleFolding.Size = new System.Drawing.Size(326, 26);
-         this.tlMnuItemToggleFolding.Text = "Expand/Collapse";
-         this.tlMnuItemToggleFolding.Click += new System.EventHandler(this.tlMnuItemToggleFolding_Click);
+         tlMnuItemToggleFolding.Name = "tlMnuItemToggleFolding";
+         tlMnuItemToggleFolding.ShortcutKeys = Keys.Control | Keys.Shift | Keys.Space;
+         tlMnuItemToggleFolding.Size = new Size(326, 26);
+         tlMnuItemToggleFolding.Text = "Expand/Collapse";
+         tlMnuItemToggleFolding.Click += tlMnuItemToggleFolding_Click;
          // 
          // tlMnuItemExpandAll
          // 
-         this.tlMnuItemExpandAll.Name = "tlMnuItemExpandAll";
-         this.tlMnuItemExpandAll.Size = new System.Drawing.Size(326, 26);
-         this.tlMnuItemExpandAll.Text = "Expand all Blocks";
-         this.tlMnuItemExpandAll.Click += new System.EventHandler(this.tlMnuItemExpandAll_Click);
+         tlMnuItemExpandAll.Name = "tlMnuItemExpandAll";
+         tlMnuItemExpandAll.Size = new Size(326, 26);
+         tlMnuItemExpandAll.Text = "Expand all Blocks";
+         tlMnuItemExpandAll.Click += tlMnuItemExpandAll_Click;
          // 
          // tlMnuItemCollapseAll
          // 
-         this.tlMnuItemCollapseAll.Name = "tlMnuItemCollapseAll";
-         this.tlMnuItemCollapseAll.Size = new System.Drawing.Size(326, 26);
-         this.tlMnuItemCollapseAll.Text = "Collapse All Blocks";
-         this.tlMnuItemCollapseAll.Click += new System.EventHandler(this.tlMnuItemCollapseAll_Click);
+         tlMnuItemCollapseAll.Name = "tlMnuItemCollapseAll";
+         tlMnuItemCollapseAll.Size = new Size(326, 26);
+         tlMnuItemCollapseAll.Text = "Collapse All Blocks";
+         tlMnuItemCollapseAll.Click += tlMnuItemCollapseAll_Click;
          // 
          // toolStripSeparator7
          // 
-         this.toolStripSeparator7.Name = "toolStripSeparator7";
-         this.toolStripSeparator7.Size = new System.Drawing.Size(166, 6);
+         toolStripSeparator7.Name = "toolStripSeparator7";
+         toolStripSeparator7.Size = new Size(221, 6);
          // 
          // mnuItemMarkdown
          // 
-         this.mnuItemMarkdown.Checked = true;
-         this.mnuItemMarkdown.CheckState = System.Windows.Forms.CheckState.Checked;
-         this.mnuItemMarkdown.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
-            this.mnuItemMarkdownSupport});
-         this.mnuItemMarkdown.Name = "mnuItemMarkdown";
-         this.mnuItemMarkdown.Size = new System.Drawing.Size(169, 26);
-         this.mnuItemMarkdown.Text = "Markdown";
+         mnuItemMarkdown.Checked = true;
+         mnuItemMarkdown.CheckState = CheckState.Checked;
+         mnuItemMarkdown.DropDownItems.AddRange(new ToolStripItem[] { mnuItemMarkdownSupport });
+         mnuItemMarkdown.Name = "mnuItemMarkdown";
+         mnuItemMarkdown.Size = new Size(224, 26);
+         mnuItemMarkdown.Text = "Markdown";
          // 
          // mnuItemMarkdownSupport
          // 
-         this.mnuItemMarkdownSupport.Checked = true;
-         this.mnuItemMarkdownSupport.CheckOnClick = true;
-         this.mnuItemMarkdownSupport.CheckState = System.Windows.Forms.CheckState.Checked;
-         this.mnuItemMarkdownSupport.Name = "mnuItemMarkdownSupport";
-         this.mnuItemMarkdownSupport.Size = new System.Drawing.Size(192, 26);
-         this.mnuItemMarkdownSupport.Text = "Enable support";
-         this.mnuItemMarkdownSupport.CheckStateChanged += new System.EventHandler(this.mnuItemMarkdownSupport_CheckStateChanged);
+         mnuItemMarkdownSupport.Checked = true;
+         mnuItemMarkdownSupport.CheckOnClick = true;
+         mnuItemMarkdownSupport.CheckState = CheckState.Checked;
+         mnuItemMarkdownSupport.Name = "mnuItemMarkdownSupport";
+         mnuItemMarkdownSupport.Size = new Size(192, 26);
+         mnuItemMarkdownSupport.Text = "Enable support";
+         mnuItemMarkdownSupport.CheckStateChanged += mnuItemMarkdownSupport_CheckStateChanged;
          // 
          // mnuItemMooText
          // 
-         this.mnuItemMooText.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
-            this.mnuItemMooTextColor});
-         this.mnuItemMooText.Name = "mnuItemMooText";
-         this.mnuItemMooText.Size = new System.Drawing.Size(169, 26);
-         this.mnuItemMooText.Text = "Moo Text";
+         mnuItemMooText.DropDownItems.AddRange(new ToolStripItem[] { mnuItemMooTextColor });
+         mnuItemMooText.Name = "mnuItemMooText";
+         mnuItemMooText.Size = new Size(224, 26);
+         mnuItemMooText.Text = "Moo Text";
          // 
          // mnuItemMooTextColor
          // 
-         this.mnuItemMooTextColor.Checked = true;
-         this.mnuItemMooTextColor.CheckOnClick = true;
-         this.mnuItemMooTextColor.CheckState = System.Windows.Forms.CheckState.Checked;
-         this.mnuItemMooTextColor.Name = "mnuItemMooTextColor";
-         this.mnuItemMooTextColor.Size = new System.Drawing.Size(230, 26);
-         this.mnuItemMooTextColor.Text = "Enable color support";
-         this.mnuItemMooTextColor.CheckStateChanged += new System.EventHandler(this.mnuItemMooTextColor_CheckStateChanged);
+         mnuItemMooTextColor.Checked = true;
+         mnuItemMooTextColor.CheckOnClick = true;
+         mnuItemMooTextColor.CheckState = CheckState.Checked;
+         mnuItemMooTextColor.Name = "mnuItemMooTextColor";
+         mnuItemMooTextColor.Size = new Size(230, 26);
+         mnuItemMooTextColor.Text = "Enable color support";
+         mnuItemMooTextColor.CheckStateChanged += mnuItemMooTextColor_CheckStateChanged;
          // 
          // mnuItemView
          // 
-         this.mnuItemView.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
-            this.mnuItemZoomIn,
-            this.mnuItemZoomOut,
-            this.toolStripSeparator6,
-            this.mnuItemWordWrap,
-            this.mnuItemShowLineNumbers,
-            this.mnuItemIndentationGuides,
-            this.mnuItemShowPreviewPane});
-         this.mnuItemView.Name = "mnuItemView";
-         this.mnuItemView.Size = new System.Drawing.Size(55, 24);
-         this.mnuItemView.Text = "&View";
+         mnuItemView.DropDownItems.AddRange(new ToolStripItem[] { mnuItemZoomIn, mnuItemZoomOut, toolStripSeparator6, mnuItemWordWrap, mnuItemShowLineNumbers, mnuItemIndentationGuides, mnuItemShowPreviewPane });
+         mnuItemView.Name = "mnuItemView";
+         mnuItemView.Size = new Size(55, 24);
+         mnuItemView.Text = "&View";
          // 
          // mnuItemZoomIn
          // 
-         this.mnuItemZoomIn.Name = "mnuItemZoomIn";
-         this.mnuItemZoomIn.ShortcutKeys = ((System.Windows.Forms.Keys)((System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.Oemplus)));
-         this.mnuItemZoomIn.Size = new System.Drawing.Size(271, 26);
-         this.mnuItemZoomIn.Text = "Zoom in";
-         this.mnuItemZoomIn.Click += new System.EventHandler(this.mnuItemZoomIn_Click);
+         mnuItemZoomIn.Name = "mnuItemZoomIn";
+         mnuItemZoomIn.ShortcutKeyDisplayString = "Ctrl+Plus";
+         mnuItemZoomIn.ShortcutKeys = Keys.Control | Keys.Oemplus;
+         mnuItemZoomIn.Size = new Size(244, 26);
+         mnuItemZoomIn.Text = "Zoom in";
+         mnuItemZoomIn.Click += mnuItemZoomIn_Click;
          // 
          // mnuItemZoomOut
          // 
-         this.mnuItemZoomOut.Name = "mnuItemZoomOut";
-         this.mnuItemZoomOut.ShortcutKeys = ((System.Windows.Forms.Keys)((System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.OemMinus)));
-         this.mnuItemZoomOut.Size = new System.Drawing.Size(271, 26);
-         this.mnuItemZoomOut.Text = "Zoom out";
-         this.mnuItemZoomOut.Click += new System.EventHandler(this.mnuItemZoomOut_Click);
+         mnuItemZoomOut.Name = "mnuItemZoomOut";
+         mnuItemZoomOut.ShortcutKeyDisplayString = "Ctrl+Minus";
+         mnuItemZoomOut.ShortcutKeys = Keys.Control | Keys.OemMinus;
+         mnuItemZoomOut.Size = new Size(244, 26);
+         mnuItemZoomOut.Text = "Zoom out";
+         mnuItemZoomOut.Click += mnuItemZoomOut_Click;
          // 
          // toolStripSeparator6
          // 
-         this.toolStripSeparator6.Name = "toolStripSeparator6";
-         this.toolStripSeparator6.Size = new System.Drawing.Size(268, 6);
+         toolStripSeparator6.Name = "toolStripSeparator6";
+         toolStripSeparator6.Size = new Size(241, 6);
          // 
          // mnuItemWordWrap
          // 
-         this.mnuItemWordWrap.Checked = true;
-         this.mnuItemWordWrap.CheckOnClick = true;
-         this.mnuItemWordWrap.CheckState = System.Windows.Forms.CheckState.Checked;
-         this.mnuItemWordWrap.Name = "mnuItemWordWrap";
-         this.mnuItemWordWrap.Size = new System.Drawing.Size(271, 26);
-         this.mnuItemWordWrap.Text = "Word wrap";
-         this.mnuItemWordWrap.CheckStateChanged += new System.EventHandler(this.mnuItemWordWrap_CheckStateChanged);
+         mnuItemWordWrap.Checked = true;
+         mnuItemWordWrap.CheckOnClick = true;
+         mnuItemWordWrap.CheckState = CheckState.Checked;
+         mnuItemWordWrap.Name = "mnuItemWordWrap";
+         mnuItemWordWrap.Size = new Size(244, 26);
+         mnuItemWordWrap.Text = "Word wrap";
+         mnuItemWordWrap.CheckStateChanged += mnuItemWordWrap_CheckStateChanged;
          // 
          // mnuItemShowLineNumbers
          // 
-         this.mnuItemShowLineNumbers.Checked = true;
-         this.mnuItemShowLineNumbers.CheckOnClick = true;
-         this.mnuItemShowLineNumbers.CheckState = System.Windows.Forms.CheckState.Checked;
-         this.mnuItemShowLineNumbers.Name = "mnuItemShowLineNumbers";
-         this.mnuItemShowLineNumbers.Size = new System.Drawing.Size(271, 26);
-         this.mnuItemShowLineNumbers.Text = "Show line numbers";
-         this.mnuItemShowLineNumbers.CheckStateChanged += new System.EventHandler(this.mnuItemShowLineNumbers_CheckStateChanged);
+         mnuItemShowLineNumbers.Checked = true;
+         mnuItemShowLineNumbers.CheckOnClick = true;
+         mnuItemShowLineNumbers.CheckState = CheckState.Checked;
+         mnuItemShowLineNumbers.Name = "mnuItemShowLineNumbers";
+         mnuItemShowLineNumbers.Size = new Size(244, 26);
+         mnuItemShowLineNumbers.Text = "Show line numbers";
+         mnuItemShowLineNumbers.CheckStateChanged += mnuItemShowLineNumbers_CheckStateChanged;
          // 
          // mnuItemIndentationGuides
          // 
-         this.mnuItemIndentationGuides.Checked = true;
-         this.mnuItemIndentationGuides.CheckOnClick = true;
-         this.mnuItemIndentationGuides.CheckState = System.Windows.Forms.CheckState.Checked;
-         this.mnuItemIndentationGuides.Name = "mnuItemIndentationGuides";
-         this.mnuItemIndentationGuides.Size = new System.Drawing.Size(271, 26);
-         this.mnuItemIndentationGuides.Text = "Indentation guide lines";
-         this.mnuItemIndentationGuides.CheckStateChanged += new System.EventHandler(this.mnuItemIndentationGuides_CheckStateChanged);
+         mnuItemIndentationGuides.Checked = true;
+         mnuItemIndentationGuides.CheckOnClick = true;
+         mnuItemIndentationGuides.CheckState = CheckState.Checked;
+         mnuItemIndentationGuides.Name = "mnuItemIndentationGuides";
+         mnuItemIndentationGuides.Size = new Size(244, 26);
+         mnuItemIndentationGuides.Text = "Indentation guide lines";
+         mnuItemIndentationGuides.CheckStateChanged += mnuItemIndentationGuides_CheckStateChanged;
          // 
          // mnuItemShowPreviewPane
          // 
-         this.mnuItemShowPreviewPane.Checked = true;
-         this.mnuItemShowPreviewPane.CheckOnClick = true;
-         this.mnuItemShowPreviewPane.CheckState = System.Windows.Forms.CheckState.Checked;
-         this.mnuItemShowPreviewPane.Name = "mnuItemShowPreviewPane";
-         this.mnuItemShowPreviewPane.Size = new System.Drawing.Size(271, 26);
-         this.mnuItemShowPreviewPane.Text = "Show Preview Pane";
-         this.mnuItemShowPreviewPane.CheckStateChanged += new System.EventHandler(this.mnuItemShowPreviewPane_CheckStateChanged);
+         mnuItemShowPreviewPane.Checked = true;
+         mnuItemShowPreviewPane.CheckOnClick = true;
+         mnuItemShowPreviewPane.CheckState = CheckState.Checked;
+         mnuItemShowPreviewPane.Name = "mnuItemShowPreviewPane";
+         mnuItemShowPreviewPane.Size = new Size(244, 26);
+         mnuItemShowPreviewPane.Text = "Show Preview Pane";
+         mnuItemShowPreviewPane.CheckStateChanged += mnuItemShowPreviewPane_CheckStateChanged;
          // 
          // mnuItemTerminal
          // 
-         this.mnuItemTerminal.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
-            this.mnuItemWorldManager,
-            this.tlMnuItemOpenConnection,
-            this.mnuItemCloseConnection,
-            this.toolStripSeparator5,
-            this.mnuItemEchoCommands,
-            this.mnuItemEnableColor,
-            this.mnuItemEnableBlinking,
-            this.mnuItemEnableAudio});
-         this.mnuItemTerminal.Name = "mnuItemTerminal";
-         this.mnuItemTerminal.Size = new System.Drawing.Size(80, 24);
-         this.mnuItemTerminal.Text = "&Terminal";
+         mnuItemTerminal.DropDownItems.AddRange(new ToolStripItem[] { mnuItemWorldManager, tlMnuItemOpenConnection, mnuItemCloseConnection, toolStripSeparator5, mnuItemEchoCommands, mnuItemEnableColor, mnuItemEnableBlinking, mnuItemEnableAudio });
+         mnuItemTerminal.Name = "mnuItemTerminal";
+         mnuItemTerminal.Size = new Size(80, 24);
+         mnuItemTerminal.Text = "&Terminal";
          // 
          // mnuItemWorldManager
          // 
-         this.mnuItemWorldManager.Name = "mnuItemWorldManager";
-         this.mnuItemWorldManager.Size = new System.Drawing.Size(298, 26);
-         this.mnuItemWorldManager.Text = "World Manager";
-         this.mnuItemWorldManager.Click += new System.EventHandler(this.mnuItemWorldManager_Click);
+         mnuItemWorldManager.Name = "mnuItemWorldManager";
+         mnuItemWorldManager.Size = new Size(298, 26);
+         mnuItemWorldManager.Text = "World Manager";
+         mnuItemWorldManager.Click += mnuItemWorldManager_Click;
          // 
          // tlMnuItemOpenConnection
          // 
-         this.tlMnuItemOpenConnection.Name = "tlMnuItemOpenConnection";
-         this.tlMnuItemOpenConnection.ShortcutKeys = ((System.Windows.Forms.Keys)(((System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.Shift) 
-            | System.Windows.Forms.Keys.O)));
-         this.tlMnuItemOpenConnection.Size = new System.Drawing.Size(298, 26);
-         this.tlMnuItemOpenConnection.Text = "Open connection";
-         this.tlMnuItemOpenConnection.Click += new System.EventHandler(this.tlMnuItemOpenConnection_Click);
+         tlMnuItemOpenConnection.Name = "tlMnuItemOpenConnection";
+         tlMnuItemOpenConnection.ShortcutKeys = Keys.Control | Keys.Shift | Keys.O;
+         tlMnuItemOpenConnection.Size = new Size(298, 26);
+         tlMnuItemOpenConnection.Text = "Open connection";
+         tlMnuItemOpenConnection.Click += tlMnuItemOpenConnection_Click;
          // 
          // mnuItemCloseConnection
          // 
-         this.mnuItemCloseConnection.Name = "mnuItemCloseConnection";
-         this.mnuItemCloseConnection.ShortcutKeys = ((System.Windows.Forms.Keys)(((System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.Shift) 
-            | System.Windows.Forms.Keys.D)));
-         this.mnuItemCloseConnection.Size = new System.Drawing.Size(298, 26);
-         this.mnuItemCloseConnection.Text = "Close connection";
-         this.mnuItemCloseConnection.Click += new System.EventHandler(this.tlMnuItemCloseConnection_Click);
+         mnuItemCloseConnection.Name = "mnuItemCloseConnection";
+         mnuItemCloseConnection.ShortcutKeys = Keys.Control | Keys.Shift | Keys.D;
+         mnuItemCloseConnection.Size = new Size(298, 26);
+         mnuItemCloseConnection.Text = "Close connection";
+         mnuItemCloseConnection.Click += tlMnuItemCloseConnection_Click;
          // 
          // toolStripSeparator5
          // 
-         this.toolStripSeparator5.Name = "toolStripSeparator5";
-         this.toolStripSeparator5.Size = new System.Drawing.Size(295, 6);
+         toolStripSeparator5.Name = "toolStripSeparator5";
+         toolStripSeparator5.Size = new Size(295, 6);
          // 
          // mnuItemEchoCommands
          // 
-         this.mnuItemEchoCommands.Checked = true;
-         this.mnuItemEchoCommands.CheckOnClick = true;
-         this.mnuItemEchoCommands.CheckState = System.Windows.Forms.CheckState.Checked;
-         this.mnuItemEchoCommands.Name = "mnuItemEchoCommands";
-         this.mnuItemEchoCommands.Size = new System.Drawing.Size(298, 26);
-         this.mnuItemEchoCommands.Text = "Echo commands";
-         this.mnuItemEchoCommands.CheckStateChanged += new System.EventHandler(this.mnuItemEchoCommands_CheckStateChanged);
+         mnuItemEchoCommands.Checked = true;
+         mnuItemEchoCommands.CheckOnClick = true;
+         mnuItemEchoCommands.CheckState = CheckState.Checked;
+         mnuItemEchoCommands.Name = "mnuItemEchoCommands";
+         mnuItemEchoCommands.Size = new Size(298, 26);
+         mnuItemEchoCommands.Text = "Echo commands";
+         mnuItemEchoCommands.CheckStateChanged += mnuItemEchoCommands_CheckStateChanged;
          // 
          // mnuItemEnableColor
          // 
-         this.mnuItemEnableColor.Checked = true;
-         this.mnuItemEnableColor.CheckOnClick = true;
-         this.mnuItemEnableColor.CheckState = System.Windows.Forms.CheckState.Checked;
-         this.mnuItemEnableColor.Name = "mnuItemEnableColor";
-         this.mnuItemEnableColor.Size = new System.Drawing.Size(298, 26);
-         this.mnuItemEnableColor.Text = "Enable color";
-         this.mnuItemEnableColor.CheckStateChanged += new System.EventHandler(this.mnuItemEnableColor_CheckStateChanged);
+         mnuItemEnableColor.Checked = true;
+         mnuItemEnableColor.CheckOnClick = true;
+         mnuItemEnableColor.CheckState = CheckState.Checked;
+         mnuItemEnableColor.Name = "mnuItemEnableColor";
+         mnuItemEnableColor.Size = new Size(298, 26);
+         mnuItemEnableColor.Text = "Enable color";
+         mnuItemEnableColor.CheckStateChanged += mnuItemEnableColor_CheckStateChanged;
          // 
          // mnuItemEnableBlinking
          // 
-         this.mnuItemEnableBlinking.Checked = true;
-         this.mnuItemEnableBlinking.CheckOnClick = true;
-         this.mnuItemEnableBlinking.CheckState = System.Windows.Forms.CheckState.Checked;
-         this.mnuItemEnableBlinking.Name = "mnuItemEnableBlinking";
-         this.mnuItemEnableBlinking.Size = new System.Drawing.Size(298, 26);
-         this.mnuItemEnableBlinking.Text = "Enable blinking";
-         this.mnuItemEnableBlinking.CheckStateChanged += new System.EventHandler(this.mnuItemEnableBlinking_CheckStateChanged);
+         mnuItemEnableBlinking.Checked = true;
+         mnuItemEnableBlinking.CheckOnClick = true;
+         mnuItemEnableBlinking.CheckState = CheckState.Checked;
+         mnuItemEnableBlinking.Name = "mnuItemEnableBlinking";
+         mnuItemEnableBlinking.Size = new Size(298, 26);
+         mnuItemEnableBlinking.Text = "Enable blinking";
+         mnuItemEnableBlinking.CheckStateChanged += mnuItemEnableBlinking_CheckStateChanged;
          // 
          // mnuItemEnableAudio
          // 
-         this.mnuItemEnableAudio.Checked = true;
-         this.mnuItemEnableAudio.CheckOnClick = true;
-         this.mnuItemEnableAudio.CheckState = System.Windows.Forms.CheckState.Checked;
-         this.mnuItemEnableAudio.Name = "mnuItemEnableAudio";
-         this.mnuItemEnableAudio.Size = new System.Drawing.Size(298, 26);
-         this.mnuItemEnableAudio.Text = "Enable audio";
-         this.mnuItemEnableAudio.CheckStateChanged += new System.EventHandler(this.mnuItemEnableAudio_CheckStateChanged);
+         mnuItemEnableAudio.Checked = true;
+         mnuItemEnableAudio.CheckOnClick = true;
+         mnuItemEnableAudio.CheckState = CheckState.Checked;
+         mnuItemEnableAudio.Name = "mnuItemEnableAudio";
+         mnuItemEnableAudio.Size = new Size(298, 26);
+         mnuItemEnableAudio.Text = "Enable audio";
+         mnuItemEnableAudio.CheckStateChanged += mnuItemEnableAudio_CheckStateChanged;
          // 
          // grammarToolStripMenuItem
          // 
-         this.grammarToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
-            this.tlMnuLanguageMoo,
-            this.tlMnuLanguageTsMoo,
-            this.tlMnuLanguageEdgeMoo});
-         this.grammarToolStripMenuItem.Name = "grammarToolStripMenuItem";
-         this.grammarToolStripMenuItem.Size = new System.Drawing.Size(136, 24);
-         this.grammarToolStripMenuItem.Text = "Grammar Dialect";
+         grammarToolStripMenuItem.DropDownItems.AddRange(new ToolStripItem[] { tlMnuLanguageMoo, tlMnuLanguageTsMoo, tlMnuLanguageEdgeMoo });
+         grammarToolStripMenuItem.Name = "grammarToolStripMenuItem";
+         grammarToolStripMenuItem.Size = new Size(136, 24);
+         grammarToolStripMenuItem.Text = "Grammar Dialect";
          // 
          // tlMnuLanguageMoo
          // 
-         this.tlMnuLanguageMoo.Name = "tlMnuLanguageMoo";
-         this.tlMnuLanguageMoo.Size = new System.Drawing.Size(177, 26);
-         this.tlMnuLanguageMoo.Text = "LambdaMoo";
-         this.tlMnuLanguageMoo.Click += new System.EventHandler(this.tlMnuLanguageMoo_Click);
+         tlMnuLanguageMoo.Name = "tlMnuLanguageMoo";
+         tlMnuLanguageMoo.Size = new Size(224, 26);
+         tlMnuLanguageMoo.Text = "LambdaMoo";
+         tlMnuLanguageMoo.Click += tlMnuLanguageMoo_Click;
          // 
          // tlMnuLanguageTsMoo
          // 
-         this.tlMnuLanguageTsMoo.Name = "tlMnuLanguageTsMoo";
-         this.tlMnuLanguageTsMoo.Size = new System.Drawing.Size(177, 26);
-         this.tlMnuLanguageTsMoo.Text = "ToastStunt";
-         this.tlMnuLanguageTsMoo.Click += new System.EventHandler(this.tlMnuLanguageTsMoo_Click);
+         tlMnuLanguageTsMoo.Name = "tlMnuLanguageTsMoo";
+         tlMnuLanguageTsMoo.Size = new Size(224, 26);
+         tlMnuLanguageTsMoo.Text = "ToastStunt";
+         tlMnuLanguageTsMoo.Click += tlMnuLanguageTsMoo_Click;
          // 
          // tlMnuLanguageEdgeMoo
          // 
-         this.tlMnuLanguageEdgeMoo.Checked = true;
-         this.tlMnuLanguageEdgeMoo.CheckState = System.Windows.Forms.CheckState.Checked;
-         this.tlMnuLanguageEdgeMoo.Name = "tlMnuLanguageEdgeMoo";
-         this.tlMnuLanguageEdgeMoo.Size = new System.Drawing.Size(177, 26);
-         this.tlMnuLanguageEdgeMoo.Text = "Edgerunner";
-         this.tlMnuLanguageEdgeMoo.Click += new System.EventHandler(this.tlMnuLanguageEdgeMoo_Click);
+         tlMnuLanguageEdgeMoo.Checked = true;
+         tlMnuLanguageEdgeMoo.CheckState = CheckState.Checked;
+         tlMnuLanguageEdgeMoo.Name = "tlMnuLanguageEdgeMoo";
+         tlMnuLanguageEdgeMoo.Size = new Size(224, 26);
+         tlMnuLanguageEdgeMoo.Text = "Edgerunner";
+         tlMnuLanguageEdgeMoo.Click += tlMnuLanguageEdgeMoo_Click;
          // 
          // mnuItemWindow
          // 
-         this.mnuItemWindow.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
-            this.mnuItemPrevEditor,
-            this.mnuItemPrevTerminal});
-         this.mnuItemWindow.Name = "mnuItemWindow";
-         this.mnuItemWindow.Size = new System.Drawing.Size(78, 24);
-         this.mnuItemWindow.Text = "Window";
+         mnuItemWindow.DropDownItems.AddRange(new ToolStripItem[] { mnuItemPrevEditor, mnuItemPrevTerminal });
+         mnuItemWindow.Name = "mnuItemWindow";
+         mnuItemWindow.Size = new Size(78, 24);
+         mnuItemWindow.Text = "Window";
          // 
          // mnuItemPrevEditor
          // 
-         this.mnuItemPrevEditor.Name = "mnuItemPrevEditor";
-         this.mnuItemPrevEditor.ShortcutKeys = ((System.Windows.Forms.Keys)((System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.E)));
-         this.mnuItemPrevEditor.Size = new System.Drawing.Size(258, 26);
-         this.mnuItemPrevEditor.Text = "Previous Editor";
-         this.mnuItemPrevEditor.Click += new System.EventHandler(this.mnuItemPrevEditor_Click);
+         mnuItemPrevEditor.Name = "mnuItemPrevEditor";
+         mnuItemPrevEditor.ShortcutKeys = Keys.Control | Keys.E;
+         mnuItemPrevEditor.Size = new Size(258, 26);
+         mnuItemPrevEditor.Text = "Previous Editor";
+         mnuItemPrevEditor.Click += mnuItemPrevEditor_Click;
          // 
          // mnuItemPrevTerminal
          // 
-         this.mnuItemPrevTerminal.Name = "mnuItemPrevTerminal";
-         this.mnuItemPrevTerminal.ShortcutKeys = ((System.Windows.Forms.Keys)((System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.T)));
-         this.mnuItemPrevTerminal.Size = new System.Drawing.Size(258, 26);
-         this.mnuItemPrevTerminal.Text = "Previous Terminal";
-         this.mnuItemPrevTerminal.Click += new System.EventHandler(this.mnuItemPrevTerminal_Click);
+         mnuItemPrevTerminal.Name = "mnuItemPrevTerminal";
+         mnuItemPrevTerminal.ShortcutKeys = Keys.Control | Keys.T;
+         mnuItemPrevTerminal.Size = new Size(258, 26);
+         mnuItemPrevTerminal.Text = "Previous Terminal";
+         mnuItemPrevTerminal.Click += mnuItemPrevTerminal_Click;
          // 
          // helpToolStripMenuItem
          // 
-         this.helpToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
-            this.tlMnuHelp});
-         this.helpToolStripMenuItem.Name = "helpToolStripMenuItem";
-         this.helpToolStripMenuItem.Size = new System.Drawing.Size(55, 24);
-         this.helpToolStripMenuItem.Text = "Help";
+         helpToolStripMenuItem.DropDownItems.AddRange(new ToolStripItem[] { tlMnuHelp });
+         helpToolStripMenuItem.Name = "helpToolStripMenuItem";
+         helpToolStripMenuItem.Size = new Size(55, 24);
+         helpToolStripMenuItem.Text = "Help";
          // 
          // tlMnuHelp
          // 
-         this.tlMnuHelp.Name = "tlMnuHelp";
-         this.tlMnuHelp.Size = new System.Drawing.Size(133, 26);
-         this.tlMnuHelp.Text = "About";
-         this.tlMnuHelp.Click += new System.EventHandler(this.tlMnuHelp_Click);
+         tlMnuHelp.Name = "tlMnuHelp";
+         tlMnuHelp.Size = new Size(224, 26);
+         tlMnuHelp.Text = "About";
+         tlMnuHelp.Click += tlMnuHelp_Click;
          // 
          // statusStrip1
          // 
-         this.statusStrip1.ImageScalingSize = new System.Drawing.Size(20, 20);
-         this.statusStrip1.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
-            this.tlLblLine,
-            this.tlStatusLine,
-            this.tlLblColumn,
-            this.tlStatusColumn});
-         this.statusStrip1.Location = new System.Drawing.Point(0, 741);
-         this.statusStrip1.Name = "statusStrip1";
-         this.statusStrip1.Size = new System.Drawing.Size(957, 26);
-         this.statusStrip1.TabIndex = 2;
-         this.statusStrip1.Text = "statusStrip1";
+         statusStrip1.ImageScalingSize = new Size(20, 20);
+         statusStrip1.Items.AddRange(new ToolStripItem[] { tlLblLine, tlStatusLine, tlLblColumn, tlStatusColumn });
+         statusStrip1.Location = new Point(0, 741);
+         statusStrip1.Name = "statusStrip1";
+         statusStrip1.Size = new Size(957, 26);
+         statusStrip1.TabIndex = 2;
+         statusStrip1.Text = "statusStrip1";
          // 
          // tlLblLine
          // 
-         this.tlLblLine.Name = "tlLblLine";
-         this.tlLblLine.Size = new System.Drawing.Size(36, 20);
-         this.tlLblLine.Text = "Line";
+         tlLblLine.Name = "tlLblLine";
+         tlLblLine.Size = new Size(36, 20);
+         tlLblLine.Text = "Line";
          // 
          // tlStatusLine
          // 
-         this.tlStatusLine.Name = "tlStatusLine";
-         this.tlStatusLine.Size = new System.Drawing.Size(17, 20);
-         this.tlStatusLine.Text = "1";
+         tlStatusLine.Name = "tlStatusLine";
+         tlStatusLine.Size = new Size(17, 20);
+         tlStatusLine.Text = "1";
          // 
          // tlLblColumn
          // 
-         this.tlLblColumn.Name = "tlLblColumn";
-         this.tlLblColumn.Padding = new System.Windows.Forms.Padding(15, 0, 0, 0);
-         this.tlLblColumn.Size = new System.Drawing.Size(75, 20);
-         this.tlLblColumn.Text = "Column";
+         tlLblColumn.Name = "tlLblColumn";
+         tlLblColumn.Padding = new Padding(15, 0, 0, 0);
+         tlLblColumn.Size = new Size(75, 20);
+         tlLblColumn.Text = "Column";
          // 
          // tlStatusColumn
          // 
-         this.tlStatusColumn.Name = "tlStatusColumn";
-         this.tlStatusColumn.Size = new System.Drawing.Size(17, 20);
-         this.tlStatusColumn.Text = "1";
+         tlStatusColumn.Name = "tlStatusColumn";
+         tlStatusColumn.Size = new Size(17, 20);
+         tlStatusColumn.Text = "1";
          // 
          // kryptonDockingManager
          // 
-         this.kryptonDockingManager.DefaultCloseRequest = Krypton.Docking.DockingCloseRequest.RemovePageAndDispose;
-         this.kryptonDockingManager.PageCloseRequest += new System.EventHandler<Krypton.Docking.CloseRequestEventArgs>(this.kryptonDockingManager_PageCloseRequest);
+         kryptonDockingManager.DefaultCloseRequest = DockingCloseRequest.RemovePageAndDispose;
+         kryptonDockingManager.PageCloseRequest += kryptonDockingManager_PageCloseRequest;
          // 
          // kryptonPalette1
          // 
-         this.kryptonPalette1.BasePaletteMode = Krypton.Toolkit.PaletteMode.Office365BlackDarkMode;
-         this.kryptonPalette1.TabStyles.TabCommon.StateCommon.Back.Color1 = System.Drawing.Color.DimGray;
-         this.kryptonPalette1.TabStyles.TabCommon.StateCommon.Back.Color2 = System.Drawing.Color.Gray;
-         this.kryptonPalette1.TabStyles.TabCommon.StateSelected.Back.Color1 = System.Drawing.Color.DarkGray;
-         this.kryptonPalette1.TabStyles.TabCommon.StateSelected.Back.Color2 = System.Drawing.Color.Silver;
+         kryptonPalette1.BasePaletteMode = Krypton.Toolkit.PaletteMode.Office365BlackDarkMode;
+         kryptonPalette1.TabStyles.TabCommon.StateCommon.Back.Color1 = Color.DimGray;
+         kryptonPalette1.TabStyles.TabCommon.StateCommon.Back.Color2 = Color.Gray;
+         kryptonPalette1.TabStyles.TabCommon.StateSelected.Back.Color1 = Color.DarkGray;
+         kryptonPalette1.TabStyles.TabCommon.StateSelected.Back.Color2 = Color.Silver;
          // 
          // kryptonPanel
          // 
-         this.kryptonPanel.Controls.Add(this.kryptonDockableWorkspace);
-         this.kryptonPanel.Dock = System.Windows.Forms.DockStyle.Fill;
-         this.kryptonPanel.Location = new System.Drawing.Point(0, 28);
-         this.kryptonPanel.Name = "kryptonPanel";
-         this.kryptonPanel.Size = new System.Drawing.Size(957, 713);
-         this.kryptonPanel.TabIndex = 5;
+         kryptonPanel.Controls.Add(kryptonDockableWorkspace);
+         kryptonPanel.Dock = DockStyle.Fill;
+         kryptonPanel.Location = new Point(0, 28);
+         kryptonPanel.Name = "kryptonPanel";
+         kryptonPanel.Size = new Size(957, 713);
+         kryptonPanel.TabIndex = 5;
          // 
          // kryptonDockableWorkspace
          // 
-         this.kryptonDockableWorkspace.ActivePage = null;
-         this.kryptonDockableWorkspace.AutoHiddenHost = false;
-         this.kryptonDockableWorkspace.CompactFlags = ((Krypton.Workspace.CompactFlags)(((Krypton.Workspace.CompactFlags.RemoveEmptyCells | Krypton.Workspace.CompactFlags.RemoveEmptySequences) 
-            | Krypton.Workspace.CompactFlags.PromoteLeafs)));
-         this.kryptonDockableWorkspace.ContainerBackStyle = Krypton.Toolkit.PaletteBackStyle.PanelClient;
-         this.kryptonDockableWorkspace.Dock = System.Windows.Forms.DockStyle.Fill;
-         this.kryptonDockableWorkspace.Location = new System.Drawing.Point(0, 0);
-         this.kryptonDockableWorkspace.Name = "kryptonDockableWorkspace";
+         kryptonDockableWorkspace.ActivePage = null;
+         kryptonDockableWorkspace.AutoHiddenHost = false;
+         kryptonDockableWorkspace.CompactFlags = Krypton.Workspace.CompactFlags.RemoveEmptyCells | Krypton.Workspace.CompactFlags.RemoveEmptySequences | Krypton.Workspace.CompactFlags.PromoteLeafs;
+         kryptonDockableWorkspace.ContainerBackStyle = Krypton.Toolkit.PaletteBackStyle.PanelClient;
+         kryptonDockableWorkspace.Dock = DockStyle.Fill;
+         kryptonDockableWorkspace.Location = new Point(0, 0);
+         kryptonDockableWorkspace.Name = "kryptonDockableWorkspace";
          // 
          // 
          // 
-         this.kryptonDockableWorkspace.Root.UniqueName = "1ca2dbc169f14bf7b554571d33e1fb83";
-         this.kryptonDockableWorkspace.Root.WorkspaceControl = this.kryptonDockableWorkspace;
-         this.kryptonDockableWorkspace.SeparatorStyle = Krypton.Toolkit.SeparatorStyle.LowProfile;
-         this.kryptonDockableWorkspace.ShowMaximizeButton = false;
-         this.kryptonDockableWorkspace.Size = new System.Drawing.Size(957, 713);
-         this.kryptonDockableWorkspace.SplitterWidth = 5;
-         this.kryptonDockableWorkspace.TabIndex = 0;
-         this.kryptonDockableWorkspace.TabStop = true;
-         this.kryptonDockableWorkspace.PageCloseClicked += new System.EventHandler<Krypton.Docking.UniqueNameEventArgs>(this.kryptonDockableWorkspace_PageCloseClicked);
-         this.kryptonDockableWorkspace.ActivePageChanged += new System.EventHandler<Krypton.Workspace.ActivePageChangedEventArgs>(this.kryptonDockableWorkspace_ActivePageChanged);
+         kryptonDockableWorkspace.Root.UniqueName = "1ca2dbc169f14bf7b554571d33e1fb83";
+         kryptonDockableWorkspace.Root.WorkspaceControl = kryptonDockableWorkspace;
+         kryptonDockableWorkspace.SeparatorStyle = Krypton.Toolkit.SeparatorStyle.LowProfile;
+         kryptonDockableWorkspace.ShowMaximizeButton = false;
+         kryptonDockableWorkspace.Size = new Size(957, 713);
+         kryptonDockableWorkspace.SplitterWidth = 5;
+         kryptonDockableWorkspace.TabIndex = 0;
+         kryptonDockableWorkspace.TabStop = true;
+         kryptonDockableWorkspace.PageCloseClicked += kryptonDockableWorkspace_PageCloseClicked;
+         kryptonDockableWorkspace.ActivePageChanged += kryptonDockableWorkspace_ActivePageChanged;
          // 
          // Editor
          // 
-         this.ClientSize = new System.Drawing.Size(957, 767);
-         this.Controls.Add(this.kryptonPanel);
-         this.Controls.Add(this.menuStrip1);
-         this.Controls.Add(this.statusStrip1);
-         this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
-         this.MainMenuStrip = this.menuStrip1;
-         this.Name = "Editor";
-         this.Text = "Moo Udditor - A Moo IDE";
-         this.Load += new System.EventHandler(this.Editor_Load);
-         this.menuStrip1.ResumeLayout(false);
-         this.menuStrip1.PerformLayout();
-         this.statusStrip1.ResumeLayout(false);
-         this.statusStrip1.PerformLayout();
-         ((System.ComponentModel.ISupportInitialize)(this.kryptonPanel)).EndInit();
-         this.kryptonPanel.ResumeLayout(false);
-         ((System.ComponentModel.ISupportInitialize)(this.kryptonDockableWorkspace)).EndInit();
-         this.ResumeLayout(false);
-         this.PerformLayout();
-
+         ClientSize = new Size(957, 767);
+         Controls.Add(kryptonPanel);
+         Controls.Add(menuStrip1);
+         Controls.Add(statusStrip1);
+         Icon = (Icon)resources.GetObject("$this.Icon");
+         MainMenuStrip = menuStrip1;
+         Name = "Editor";
+         Text = "Moo Udditor - A Moo IDE";
+         Load += Editor_Load;
+         menuStrip1.ResumeLayout(false);
+         menuStrip1.PerformLayout();
+         statusStrip1.ResumeLayout(false);
+         statusStrip1.PerformLayout();
+         ((System.ComponentModel.ISupportInitialize)kryptonPanel).EndInit();
+         kryptonPanel.ResumeLayout(false);
+         ((System.ComponentModel.ISupportInitialize)kryptonDockableWorkspace).EndInit();
+         ResumeLayout(false);
+         PerformLayout();
       }
 
-        #endregion
+      #endregion
 
-        private MenuStrip menuStrip1;
-        private ToolStripMenuItem fileToolStripMenuItem;
-        private ToolStripMenuItem mnuItemOpenFile;
-        private ToolStripMenuItem mnuItemSaveAsFile;
-        private ToolStripSeparator toolStripSeparator1;
-        private ToolStripMenuItem mnuItemExit;
-        private StatusStrip statusStrip1;
-        private ToolStripStatusLabel tlLblLine;
-        private ToolStripStatusLabel tlStatusLine;
-        private ToolStripStatusLabel tlLblColumn;
-        private ToolStripStatusLabel tlStatusColumn;
-        private OpenFileDialog openFileDialog;
-        private SaveFileDialog saveFileDialog;
-        private ToolStripMenuItem editToolStripMenuItem;
-        private ToolStripMenuItem mnuItemFormat;
-        private ToolStripSeparator toolStripSeparator2;
-        private ToolStripMenuItem mnuItemCut;
-        private ToolStripMenuItem mnuItemCopy;
-        private ToolStripMenuItem mnuItemCutPaste;
-        private ToolStripSeparator toolStripSeparator3;
-        private ToolStripMenuItem mnuItemFind;
-        private ToolStripMenuItem helpToolStripMenuItem;
-        private ToolStripMenuItem tlMnuHelp;
-        private ToolStripMenuItem grammarToolStripMenuItem;
-        private ToolStripMenuItem tlMnuLanguageMoo;
-        private ToolStripMenuItem tlMnuLanguageTsMoo;
-        private ToolStripMenuItem tlMnuLanguageEdgeMoo;
-        private KryptonDockingManager kryptonDockingManager;
-        private Krypton.Toolkit.KryptonManager kryptonManager;
-        private Krypton.Toolkit.KryptonPanel kryptonPanel;
-        private KryptonDockableWorkspace kryptonDockableWorkspace;
-        private ToolStripMenuItem tlMnuNew;
-        private ToolStripMenuItem mnuItemFileSave;
-        private ToolStripMenuItem tlMnuItemClose;
-        private ToolStripSeparator toolStripSeparator4;
-        private ToolStripMenuItem mnuItemBookmarks;
-        private ToolStripMenuItem tlMnuItemToggleBookmark;
-        private ToolStripMenuItem tlMnuItemNextBookmark;
-        private ToolStripMenuItem tlMnuItemPrevBookmark;
-        private ToolStripMenuItem mnuItemFolding;
-        private ToolStripMenuItem tlMnuItemToggleFolding;
-        private ToolStripMenuItem tlMnuItemExpandAll;
-        private ToolStripMenuItem tlMnuItemCollapseAll;
-        private ToolStripMenuItem mnuItemTerminal;
-        private ToolStripMenuItem tlMnuItemOpenConnection;
-        private ToolStripMenuItem mnuItemCloseConnection;
-        private ToolStripMenuItem mnuItemUpload;
-        private ToolStripMenuItem mnuItemWindow;
-        private ToolStripMenuItem mnuItemPrevEditor;
-        private ToolStripMenuItem mnuItemPrevTerminal;
-        private ToolStripSeparator toolStripSeparator5;
-        private ToolStripMenuItem mnuItemEchoCommands;
-        private ToolStripMenuItem mnuItemView;
-        private ToolStripMenuItem mnuItemWordWrap;
-        private ToolStripMenuItem mnuItemShowLineNumbers;
-        private ToolStripMenuItem mnuItemEnableCodeFolding;
-        private ToolStripMenuItem mnuItemIndentationGuides;
-        private ToolStripMenuItem mnuItemZoomIn;
-        private ToolStripMenuItem mnuItemZoomOut;
-        private ToolStripSeparator toolStripSeparator6;
-        private Krypton.Toolkit.KryptonPalette kryptonPalette1;
-        private ToolStripMenuItem mnuItemShowPreviewPane;
-        private ToolStripSeparator toolStripSeparator7;
-        private ToolStripMenuItem mnuItemMarkdown;
-        private ToolStripMenuItem mnuItemMarkdownSupport;
-        private ToolStripMenuItem mnuItemMooText;
-        private ToolStripMenuItem mnuItemMooTextColor;
-        private ToolStripMenuItem mnuItemWorldManager;
-        private ToolStripMenuItem mnuItemEnableColor;
-        private ToolStripMenuItem mnuItemEnableBlinking;
-        private ToolStripMenuItem mnuItemEnableAudio;
+      private MenuStrip menuStrip1;
+      private ToolStripMenuItem fileToolStripMenuItem;
+      private ToolStripMenuItem mnuItemOpenFile;
+      private ToolStripMenuItem mnuItemSaveAsFile;
+      private ToolStripSeparator toolStripSeparator1;
+      private ToolStripMenuItem mnuItemExit;
+      private StatusStrip statusStrip1;
+      private ToolStripStatusLabel tlLblLine;
+      private ToolStripStatusLabel tlStatusLine;
+      private ToolStripStatusLabel tlLblColumn;
+      private ToolStripStatusLabel tlStatusColumn;
+      private OpenFileDialog openFileDialog;
+      private SaveFileDialog saveFileDialog;
+      private ToolStripMenuItem editToolStripMenuItem;
+      private ToolStripMenuItem mnuItemFormat;
+      private ToolStripSeparator toolStripSeparator2;
+      private ToolStripMenuItem mnuItemCut;
+      private ToolStripMenuItem mnuItemCopy;
+      private ToolStripMenuItem mnuItemCutPaste;
+      private ToolStripSeparator toolStripSeparator3;
+      private ToolStripMenuItem mnuItemFind;
+      private ToolStripMenuItem helpToolStripMenuItem;
+      private ToolStripMenuItem tlMnuHelp;
+      private ToolStripMenuItem grammarToolStripMenuItem;
+      private ToolStripMenuItem tlMnuLanguageMoo;
+      private ToolStripMenuItem tlMnuLanguageTsMoo;
+      private ToolStripMenuItem tlMnuLanguageEdgeMoo;
+      private KryptonDockingManager kryptonDockingManager;
+      private Krypton.Toolkit.KryptonManager kryptonManager;
+      private Krypton.Toolkit.KryptonPanel kryptonPanel;
+      private KryptonDockableWorkspace kryptonDockableWorkspace;
+      private ToolStripMenuItem tlMnuNew;
+      private ToolStripMenuItem mnuItemFileSave;
+      private ToolStripMenuItem tlMnuItemClose;
+      private ToolStripSeparator toolStripSeparator4;
+      private ToolStripMenuItem mnuItemBookmarks;
+      private ToolStripMenuItem tlMnuItemToggleBookmark;
+      private ToolStripMenuItem tlMnuItemNextBookmark;
+      private ToolStripMenuItem tlMnuItemPrevBookmark;
+      private ToolStripMenuItem mnuItemFolding;
+      private ToolStripMenuItem tlMnuItemToggleFolding;
+      private ToolStripMenuItem tlMnuItemExpandAll;
+      private ToolStripMenuItem tlMnuItemCollapseAll;
+      private ToolStripMenuItem mnuItemTerminal;
+      private ToolStripMenuItem tlMnuItemOpenConnection;
+      private ToolStripMenuItem mnuItemCloseConnection;
+      private ToolStripMenuItem mnuItemUpload;
+      private ToolStripMenuItem mnuItemWindow;
+      private ToolStripMenuItem mnuItemPrevEditor;
+      private ToolStripMenuItem mnuItemPrevTerminal;
+      private ToolStripSeparator toolStripSeparator5;
+      private ToolStripMenuItem mnuItemEchoCommands;
+      private ToolStripMenuItem mnuItemView;
+      private ToolStripMenuItem mnuItemWordWrap;
+      private ToolStripMenuItem mnuItemShowLineNumbers;
+      private ToolStripMenuItem mnuItemEnableCodeFolding;
+      private ToolStripMenuItem mnuItemIndentationGuides;
+      private ToolStripMenuItem mnuItemZoomIn;
+      private ToolStripMenuItem mnuItemZoomOut;
+      private ToolStripSeparator toolStripSeparator6;
+      private Krypton.Toolkit.KryptonPalette kryptonPalette1;
+      private ToolStripMenuItem mnuItemShowPreviewPane;
+      private ToolStripSeparator toolStripSeparator7;
+      private ToolStripMenuItem mnuItemMarkdown;
+      private ToolStripMenuItem mnuItemMarkdownSupport;
+      private ToolStripMenuItem mnuItemMooText;
+      private ToolStripMenuItem mnuItemMooTextColor;
+      private ToolStripMenuItem mnuItemWorldManager;
+      private ToolStripMenuItem mnuItemEnableColor;
+      private ToolStripMenuItem mnuItemEnableBlinking;
+      private ToolStripMenuItem mnuItemEnableAudio;
       private ToolStripMenuItem mnuItemUpload2;
    }
 }
