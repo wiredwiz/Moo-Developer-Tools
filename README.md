@@ -1,6 +1,8 @@
 # Moo Developer Tools
 
-[![.NET](https://github.com/wiredwiz/Moo-Developer-Tools/actions/workflows/dotnet.yml/badge.svg)](https://github.com/wiredwiz/Moo-Developer-Tools/actions/workflows/dotnet.yml)
+[![Build Status](https://github.com/wiredwiz/Moo-Developer-Tools/actions/workflows/dotnet.yml/badge.svg)](https://github.com/wiredwiz/Moo-Developer-Tools/actions/workflows/dotnet.yml)
+[![License](https://img.shields.io/badge/license-BSD-blue.svg)](https://raw.githubusercontent.com/wiredwiz/Moo-Developer-Tools/master/LICENSE)
+[![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg?style=flat-square)](http://makeapullrequest.com)
 
 These are a set of tools to aid Moo developers in writing and debugging code faster as well as 
 creating higher quality code.  The primary focus of this library is the Moo Udditor cilent.
