@@ -83,6 +83,7 @@ namespace Org.Edgerunner.Moo.Editor.Controls
          AutoIndentChars = false;
          WordWrapAutoIndent = true;
          FoldingHighlightEnabled = true;
+         LineInterval = 2;
          AutoIndentNeeded += MooEditor_AutoIndentNeeded;
          TextChanged += MooEditor_TextChanged;
          TextChangedDelayed += MooEditor_TextChangedDelayed;
