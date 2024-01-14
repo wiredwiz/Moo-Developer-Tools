@@ -562,10 +562,18 @@ namespace Org.Edgerunner.Moo.Editor.Configuration
 
          if (File.Exists(filePath))
          {
-            var configMap = new ExeConfigurationFileMap { ExeConfigFilename = filePath };
-            var config = ConfigurationManager.OpenMappedExeConfiguration(configMap, ConfigurationUserLevel.None);
-            var appSettings = config.AppSettings.Settings;
-            LoadFrom(appSettings);
+            try
+            {
+               var configMap = new ExeConfigurationFileMap { ExeConfigFilename = filePath };
+               var config = ConfigurationManager.OpenMappedExeConfiguration(configMap, ConfigurationUserLevel.None);
+               var appSettings = config.AppSettings.Settings;
+               LoadFrom(appSettings);
+            }
+            catch (ConfigurationErrorsException)
+            {
+               LoadDefaults();
+               throw;
+            }
          }
          else
             LoadFrom(null as KeyValueConfigurationCollection);

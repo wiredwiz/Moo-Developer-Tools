@@ -112,6 +112,7 @@ public class MooCodeEditorPage : MooEditorPage
     private void InitializeEditor(GrammarDialect dialect, string id, string title, string description)
     {
         Editor = new MooCodeEditor();
+        Editor.LineInterval = 4;
         Editor.BorderStyle = BorderStyle.Fixed3D;
         Editor.Dock = DockStyle.Fill;
         Controls.Add(Editor);
