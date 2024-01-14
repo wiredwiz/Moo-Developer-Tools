@@ -101,7 +101,7 @@ namespace Org.Edgerunner.Moo.Udditor.Main
          saveFileDialog = new SaveFileDialog();
          kryptonDockingManager = new KryptonDockingManager();
          kryptonManager = new Krypton.Toolkit.KryptonManager(components);
-         kryptonPalette1 = new Krypton.Toolkit.KryptonPalette(components);
+         kryptonPalette1 = new Krypton.Toolkit.KryptonCustomPaletteBase(components);
          kryptonPanel = new Krypton.Toolkit.KryptonPanel();
          kryptonDockableWorkspace = new KryptonDockableWorkspace();
          menuStrip1.SuspendLayout();
@@ -619,7 +619,7 @@ namespace Org.Edgerunner.Moo.Udditor.Main
          // 
          // kryptonPalette1
          // 
-         kryptonPalette1.BasePaletteMode = Krypton.Toolkit.PaletteMode.Office365BlackDarkMode;
+         kryptonPalette1.BasePaletteMode = Krypton.Toolkit.PaletteMode.Microsoft365BlackDarkMode;
          kryptonPalette1.TabStyles.TabCommon.StateCommon.Back.Color1 = Color.DimGray;
          kryptonPalette1.TabStyles.TabCommon.StateCommon.Back.Color2 = Color.Gray;
          kryptonPalette1.TabStyles.TabCommon.StateSelected.Back.Color1 = Color.DarkGray;
@@ -741,7 +741,7 @@ namespace Org.Edgerunner.Moo.Udditor.Main
       private ToolStripMenuItem mnuItemZoomIn;
       private ToolStripMenuItem mnuItemZoomOut;
       private ToolStripSeparator toolStripSeparator6;
-      private Krypton.Toolkit.KryptonPalette kryptonPalette1;
+      private Krypton.Toolkit.KryptonCustomPaletteBase kryptonPalette1;
       private ToolStripMenuItem mnuItemShowPreviewPane;
       private ToolStripSeparator toolStripSeparator7;
       private ToolStripMenuItem mnuItemMarkdown;

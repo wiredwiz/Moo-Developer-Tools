@@ -44,8 +44,8 @@ Udditor is intended to allow Moo programmers to work faster, waste less time and
 
   <ItemGroup>
     <PackageReference Include="Antlr4.Runtime" Version="4.6.6" />
-    <PackageReference Include="Krypton.Docking" Version="65.22.6.152" />
-    <PackageReference Include="NLog" Version="5.0.4" />
+    <PackageReference Include="Krypton.Docking" Version="80.23.11.321" />
+    <PackageReference Include="NLog" Version="5.2.8" />
   </ItemGroup>
 
   <ItemGroup>

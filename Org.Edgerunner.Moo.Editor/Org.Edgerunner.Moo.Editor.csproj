@@ -14,8 +14,8 @@
     <PackageReference Include="Antlr4.Runtime" Version="4.6.6" />
     <PackageReference Include="HtmlRenderer.Core" Version="1.5.0.6" />
     <PackageReference Include="HtmlRenderer.WinForms" Version="1.5.0.6" />
-    <PackageReference Include="krypton.toolkit" Version="65.22.6.152" />
-    <PackageReference Include="Markdig.Signed" Version="0.30.3" />
+    <PackageReference Include="krypton.toolkit" Version="80.23.11.321" />
+    <PackageReference Include="Markdig.Signed" Version="0.34.0" />
     <PackageReference Include="System.Threading" Version="4.3.0" />
   </ItemGroup>
 
