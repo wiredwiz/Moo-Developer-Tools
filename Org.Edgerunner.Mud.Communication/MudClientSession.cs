@@ -59,7 +59,7 @@ public class MudClientSession : IMudClientSession, IDisposable
    public MudClientSession(string world, string host, int port, string outOfBandPrefix = "#$#")
    {
       Client = new TcpClient();
-      CommandBuffer = new CommunicationBuffer(2048);
+      CommandBuffer = new CommunicationBuffer(80000);
       CommandChannel = Channel.CreateUnbounded<string>(new UnboundedChannelOptions() { SingleReader = true, SingleWriter = true });
       World = world;
       Host = host;

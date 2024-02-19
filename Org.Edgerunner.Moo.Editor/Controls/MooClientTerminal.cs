@@ -669,6 +669,7 @@ namespace Org.Edgerunner.Moo.Editor.Controls
 
       private void Session_DataDropped(object sender, int e)
       {
+         consoleSim.WriteLine($"** {e} bytes dropped from buffer overflow **");
          Debug.WriteLine($"{e} bytes dropped from buffer overflow");
       }
 
