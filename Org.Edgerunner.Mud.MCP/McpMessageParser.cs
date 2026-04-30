@@ -148,7 +148,33 @@ public class McpMessageParser
 
    private McpParseState ProcessMultilineLine(string line)
    {
-      // Placeholder — multiline support added in a later task
+      var words = McpUtils.SplitMessageIntoWords(line);
+
+      if (words.Count >= 2 && words[0] == "*")
+      {
+         var tag = words[1];
+         var value = words.Count >= 4 ? words[3] : string.Empty;
+
+         if (_multilineBuffers.TryGetValue(tag, out var buffer))
+            buffer.Add(value);
+
+         return McpParseState.InProgress;
+      }
+
+      if (words.Count >= 1 && words[0] == ":")
+      {
+         var data = new Dictionary<string, string>(_simpleFields);
+         foreach (var (tag, lines) in _multilineBuffers)
+         {
+            if (_dataTagToKeyword.TryGetValue(tag, out var fieldName))
+               data[fieldName.ToLowerInvariant() + ":"] = string.Join("\n", lines);
+         }
+
+         Result = new Message(_name, _key, data);
+         _state = InternalState.Normal;
+         return McpParseState.Complete;
+      }
+
       return McpParseState.Error;
    }
 
