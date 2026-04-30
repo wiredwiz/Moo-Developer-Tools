@@ -15,9 +15,6 @@ using Org.Edgerunner.Common.Extensions;
 using Org.Edgerunner.Mud.Communication;
 using Org.Edgerunner.Mud.Communication.Buffers;
 using Org.Edgerunner.Mud.Communication.Interfaces;
-using Org.Edgerunner.Mud.MCP;
-using Org.Edgerunner.Mud.MCP.Exceptions;
-using Org.Edgerunner.Mud.MCP.Interfaces;
 using static System.Net.Mime.MediaTypeNames;
 using Application = System.Windows.Forms.Application;
 
@@ -40,8 +37,6 @@ namespace Org.Edgerunner.Moo.Editor.Controls
       private string _OutOfBandPrefix = "#$#";
 
       private bool _LastCommandIsLogin;
-
-      protected McpClientSessionManager McpSessionManager { get; set; }
 
       public string Host => _Session.Host;
 
@@ -166,7 +161,6 @@ namespace Org.Edgerunner.Moo.Editor.Controls
          _InputCommandBuffer = new CommandBuffer(15);
          _UserInteraction = false;
          LastCommandIsLogin = false;
-         McpSessionManager = new McpClientSessionManager(new Version(2,1), new Version(2,1), new List<IMcpPackage>());
          ActiveControl = txtInput;
          splitContainer1.SplitterDistance = splitContainer1.ClientSize.Height - txtInput.Height;
          splitContainer1.ActiveControl = txtInput;
