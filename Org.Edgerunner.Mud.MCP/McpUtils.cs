@@ -36,80 +36,11 @@
 
 using System.Text;
 using Org.Edgerunner.Common.Extensions;
-using Org.Edgerunner.Mud.MCP.Exceptions;
 
 namespace Org.Edgerunner.Mud.MCP;
 
 public static class McpUtils
 {
-   /// <summary>
-   /// Attempts to parse the string as a MCP message.
-   /// </summary>
-   /// <param name="message">The message to parse.</param>
-   /// <returns>A new <see cref="MCP.Message"/> instance.</returns>
-   /// <exception cref="InvalidMcpMessageFormatException">
-   /// The message does not resemble a properly formatted MCP message.
-   /// </exception>
-   public static MCP.Message? ParseMessage(string message)
-   {
-      var words = SplitMessageIntoWords(message);
-
-      // Invalid message
-      if (words.Count == 0)
-         throw new InvalidMcpMessageFormatException($"Message \"{message}\" does not resemble a properly formatted MCP message.");
-
-      var messageName = words[0];
-      var messageKey = string.Empty;
-      words.RemoveAt(0);
-
-      // Fetch the key if it exists
-      if (words.Count > 0 && !words[0].EndsWith(':'))
-      {
-         messageKey = words[1];
-         words.RemoveAt(0);
-      }
-
-      // We have no data, end of message
-      if (words.Count == 0)
-         return new Message(messageName, messageKey, new Dictionary<string, string>());
-
-      // Invalid message since we are not starting with a key
-      if (!words[0].EndsWith(':'))
-         throw new InvalidMcpMessageFormatException($"Message \"{message}\" does not resemble a properly formatted MCP message.\n" +
-                                                    $"Word \"{words[0]}\" should be a data key.");
-
-      var dataDictionary = new Dictionary<string, string>();
-      var key = string.Empty;
-      var value = string.Empty;
-      foreach (var word in words)
-      {
-         // Process a key pair
-         if (word.EndsWith(':'))
-         {
-            if (!string.IsNullOrEmpty(key))
-            {
-               dataDictionary[key.ToLowerInvariant()] = value;
-               value = string.Empty;
-               key = word;
-            }
-            else
-               key = word;
-         }
-         else if (string.IsNullOrEmpty(key))
-            throw new InvalidMcpMessageFormatException($"Message \"{message}\" does not resemble a properly formatted MCP message.\n" +
-                                                       $"Word \"{word}\" appears to be a second data value rather than a key.");
-         else
-         {
-            dataDictionary[key.ToLowerInvariant()] = word;
-            key = value = string.Empty;
-         }
-      }
-      if (!string.IsNullOrEmpty(key))
-         dataDictionary[key.ToLowerInvariant()] = value;
-
-      return new Message(messageName, messageKey, dataDictionary);
-   }
-
    /// <summary>
    /// Splits the message into words as normally recognized by the MCP protocol.
    /// </summary>
@@ -184,6 +115,45 @@ public static class McpUtils
 
       return words;
    }
+
+   /// <summary>
+   /// Formats an outbound MCP wire string (without the leading <c>#$#</c> prefix).
+   /// </summary>
+   /// <param name="name">The MCP message name.</param>
+   /// <param name="key">The authentication key, or <see cref="string.Empty"/> if none.</param>
+   /// <param name="data">The keyword/value pairs to append.</param>
+   /// <returns>The formatted MCP message string.</returns>
+   public static string FormatMessage(string name, string key, Dictionary<string, string> data)
+   {
+      var sb = new StringBuilder();
+      sb.Append(name);
+
+      if (!string.IsNullOrEmpty(key))
+      {
+         sb.Append(' ');
+         sb.Append(key);
+      }
+
+      foreach (var (k, v) in data)
+      {
+         sb.Append(' ');
+         sb.Append(k);
+         sb.Append(' ');
+         if (NeedsQuoting(v))
+         {
+            sb.Append('"');
+            sb.Append(v);
+            sb.Append('"');
+         }
+         else
+            sb.Append(v);
+      }
+
+      return sb.ToString();
+   }
+
+   private static bool NeedsQuoting(string value) =>
+      string.IsNullOrEmpty(value) || value.Any(c => c == ' ' || c == '\t');
 
    /// <summary>
    /// Generates a randomized session key.
