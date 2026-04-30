@@ -35,6 +35,7 @@
 #endregion
 
 using Org.Edgerunner.Mud.Communication.Interfaces;
+using Org.Edgerunner.Mud.MCP.Exceptions;
 using Org.Edgerunner.Mud.MCP.Interfaces;
 using Org.Edgerunner.Mud.MCP.Packages;
 
@@ -81,8 +82,9 @@ public class McpMessageDispatcher
       if (Session == null) return;
       if (message.Key != Session.Key) return;
 
+      var lowerName = message.Name.ToLowerInvariant();
       var packageName = _packages.Keys
-         .Where(k => message.Name.ToLowerInvariant().StartsWith(k))
+         .Where(k => lowerName.StartsWith(k))
          .OrderByDescending(k => k.Length)
          .FirstOrDefault();
 
@@ -93,7 +95,16 @@ public class McpMessageDispatcher
 
    private void ProcessHandshake(IClientTerminal client, Message message)
    {
-      var session = _sessionManager.NegotiationMcpSession(message);
+      IMcpSession? session;
+      try
+      {
+         session = _sessionManager.NegotiationMcpSession(message);
+      }
+      catch (InvalidMcpMessageFormatException)
+      {
+         // Malformed handshake — per MCP spec, drop silently
+         return;
+      }
       if (session == null) return;
 
       Session = (McpClientSession)session;
