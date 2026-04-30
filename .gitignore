@@ -200,6 +200,9 @@ PublishScripts/
 **/[Pp]ackages/*
 # except build/, which is used as an MSBuild target.
 !**/[Pp]ackages/build/
+# except source code in project Packages/ subdirectories.
+!Org.Edgerunner.Mud.MCP/Packages/
+!Org.Edgerunner.Mud.MCP/Packages/**
 # Uncomment if necessary however generally it will be regenerated when needed
 #!**/[Pp]ackages/repositories.config
 # NuGet v3's project.json files produces more ignorable files
