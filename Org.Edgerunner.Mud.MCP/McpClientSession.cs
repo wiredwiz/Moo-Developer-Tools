@@ -90,6 +90,14 @@ public class McpClientSession : IMcpSession
    /// </value>
    public Dictionary<string, IMcpPackage> SupportedPackages { get; }
 
+   /// <summary>
+   /// Gets or sets a value indicating whether negotiation is complete for this session.
+   /// </summary>
+   /// <value>
+   ///   <c>true</c> if negotiation is complete; otherwise, <c>false</c>.
+   /// </value>
+   public bool IsNegotiationComplete { get; set; }
+
    public string Handshake()
    {
       return $"mcp authentication-key: {Key} version: {Manager.MinimumVersion} to: {Manager.MaximumVersion}";

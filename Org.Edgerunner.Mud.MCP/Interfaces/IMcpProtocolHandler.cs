@@ -35,25 +35,12 @@
 #endregion
 
 using Org.Edgerunner.Mud.Communication;
+using Org.Edgerunner.Mud.Communication.Interfaces;
 
 namespace Org.Edgerunner.Mud.MCP.Interfaces;
 
-/// <summary>
-/// An interface representing an object capable of processing and MCP protocol message.
-/// </summary>
 public interface IMcpProtocolHandler
 {
-    /// <summary>
-    /// Determines whether this instance can handle the message.
-    /// </summary>
-    /// <param name="message">The message to analyze.</param>
-    /// <returns></returns>
     public bool CanHandleMessage(Message message);
-
-   /// <summary>
-   /// Processes the message.
-   /// </summary>
-   /// <param name="message">The message to process.</param>
-   /// <returns><c>true</c> if successfully processed; otherwise <c>false</c>.</returns>
-   public bool ProcessMessage(Message message);
+    public bool ProcessMessage(IClientTerminal client, Message message);
 }

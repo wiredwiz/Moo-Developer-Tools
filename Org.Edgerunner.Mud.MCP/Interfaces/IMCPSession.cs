@@ -37,46 +37,12 @@
 
 namespace Org.Edgerunner.Mud.MCP.Interfaces;
 
-/// <summary>
-/// Interface representing a specific MCP session.
-/// </summary>
 public interface IMcpSession
 {
-    /// <summary>
-    /// Gets or sets the manager for this session.
-    /// </summary>
-    /// <value>
-    /// The manager.
-    /// </value>
     McpClientSessionManager Manager { get; }
-
-    /// <summary>
-    /// Gets or sets the key negotiated for this session.
-    /// </summary>
-    /// <value>
-    /// The session key.
-    /// </value>
     string Key { get; }
-
-    /// <summary>
-    /// Gets or sets the protocol version being used for this session.
-    /// </summary>
-    /// <value>
-    /// The protocol version.
-    /// </value>
     Version ProtocolVersion { get; }
-
-    /// <summary>
-    /// Gets or sets the supported MCP packages for this session.
-    /// </summary>
-    /// <value>
-    /// The supported MCP packages.
-    /// </value>
     Dictionary<string, IMcpPackage> SupportedPackages { get; }
-
-    /// <summary>
-    /// Generates a handshakes reply from this instance.
-    /// </summary>
-    /// <returns>The handshake reply.</returns>
+    bool IsNegotiationComplete { get; set; }
     string Handshake();
 }
