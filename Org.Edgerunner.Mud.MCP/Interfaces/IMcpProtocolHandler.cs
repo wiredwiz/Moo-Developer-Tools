@@ -41,6 +41,18 @@ namespace Org.Edgerunner.Mud.MCP.Interfaces;
 
 public interface IMcpProtocolHandler
 {
+    /// <summary>
+    /// Determines whether this instance can handle the specified message.
+    /// </summary>
+    /// <param name="message">The message.</param>
+    /// <returns><c>true</c> if this instance can handle the message; otherwise, <c>false</c>.</returns>
     public bool CanHandleMessage(Message message);
+
+    /// <summary>
+    /// Processes the message.
+    /// </summary>
+    /// <param name="client">The client terminal.</param>
+    /// <param name="message">The message to process.</param>
+    /// <returns><c>true</c> if successfully processed; otherwise false.</returns>
     public bool ProcessMessage(IClientTerminal client, Message message);
 }

@@ -39,8 +39,33 @@ namespace Org.Edgerunner.Mud.MCP.Interfaces;
 
 public interface IMcpPackage : IMcpProtocolHandler
 {
+    /// <summary>
+    /// Gets or sets the name of the package.
+    /// </summary>
+    /// <value>
+    /// The name.
+    /// </value>
     string Name { get; set; }
+
+    /// <summary>
+    /// Gets or sets the minimum supported package version.
+    /// </summary>
+    /// <value>
+    /// The minimum version.
+    /// </value>
     double MinimumVersion { get; set; }
+
+    /// <summary>
+    /// Gets or sets the maximum supported package version.
+    /// </summary>
+    /// <value>
+    /// The maximum version.
+    /// </value>
     double MaximumVersion { get; set; }
+
+    /// <summary>
+    /// Sets the active MCP session on this package.
+    /// </summary>
+    /// <param name="session">The negotiated session.</param>
     void SetSession(McpClientSession session);
 }
