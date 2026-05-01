@@ -68,13 +68,28 @@ namespace FastColoredTextBoxNS
    {
       protected readonly FastColoredTextBox Tb;
 
-      // UIA pattern/property IDs used in IRawElementProviderSimple implementation
-      private const int UIA_TextPatternId                  = 10014;
-      private const int UIA_TextPattern2Id                 = 10024;
-      private const int UIA_ControlTypePropertyId          = 30003;
-      private const int UIA_LiveSettingPropertyId          = 30135;
+      // UIA pattern/property IDs
+      private const int UIA_TextPatternId                    = 10014;
+      private const int UIA_TextPattern2Id                   = 10024;
+      private const int UIA_ControlTypePropertyId            = 30003;
+      private const int UIA_IsControlElementPropertyId       = 30016;
+      private const int UIA_IsContentElementPropertyId       = 30017;
+      private const int UIA_LiveSettingPropertyId            = 30135;
       private const int UIA_IsTextPatternAvailablePropertyId = 30119;
-      private const int UIA_DocumentControlTypeId          = 50006;
+      private const int UIA_DocumentControlTypeId            = 50006;
+
+      // Reflection to forward property/pattern queries to AccessibleObject's
+      // internal implementation for properties we don't override ourselves.
+      private static readonly MethodInfo _baseGetPropertyValue =
+         typeof(AccessibleObject).GetMethod("GetPropertyValue",
+            BindingFlags.NonPublic | BindingFlags.Instance);
+      private static readonly MethodInfo _baseGetPatternProvider =
+         typeof(AccessibleObject).GetMethod("GetPatternProvider",
+            BindingFlags.NonPublic | BindingFlags.Instance);
+      private static Type _uiaEnumType;
+
+      private static Type UiaEnumType =>
+         _uiaEnumType ??= _baseGetPropertyValue?.GetParameters()[0].ParameterType;
 
       [DllImport("UIAutomationCore.dll", SetLastError = false)]
       private static extern int UiaHostProviderFromHwnd(IntPtr hwnd, out IRawElementProviderSimple provider);
@@ -90,7 +105,9 @@ namespace FastColoredTextBoxNS
 
       // ── IRawElementProviderSimple — expose ITextProvider to UIA ──────
       // Re-implemented explicitly because ControlAccessibleObject.GetPatternProvider
-      // (internal) does not discover ITextProvider in .NET 6 for custom UserControls.
+      // (internal) does not auto-discover ITextProvider in .NET 6.
+      // All properties and patterns we don't handle are forwarded to the base
+      // AccessibleObject implementation via reflection so Name, RuntimeId, etc. are correct.
 
       IRawElementProviderSimple IRawElementProviderSimple.HostRawElementProvider
       {
@@ -102,14 +119,14 @@ namespace FastColoredTextBoxNS
          }
       }
 
-      ProviderOptions IRawElementProviderSimple.ProviderOptions =>
-         ProviderOptions.ServerSideProvider | ProviderOptions.UseComThreading;
+      ProviderOptions IRawElementProviderSimple.ProviderOptions => ProviderOptions.ServerSideProvider;
 
       object IRawElementProviderSimple.GetPatternProvider(int patternId)
       {
          if (patternId == UIA_TextPatternId || patternId == UIA_TextPattern2Id)
             return this;
-         return null;
+         // Forward all other pattern queries to base
+         return ForwardToBase(_baseGetPatternProvider, patternId);
       }
 
       object IRawElementProviderSimple.GetPropertyValue(int propertyId)
@@ -117,10 +134,21 @@ namespace FastColoredTextBoxNS
          switch (propertyId)
          {
             case UIA_ControlTypePropertyId:             return UIA_DocumentControlTypeId;
+            case UIA_IsControlElementPropertyId:        return true;
+            case UIA_IsContentElementPropertyId:        return true;
             case UIA_LiveSettingPropertyId:             return (int)LiveSetting;
             case UIA_IsTextPatternAvailablePropertyId:  return true;
-            default:                                    return null; // Host provider fills the rest
+            default:
+               // Forward all standard property queries to base (Name, RuntimeId, Focus, etc.)
+               return ForwardToBase(_baseGetPropertyValue, propertyId);
          }
+      }
+
+      private object ForwardToBase(MethodInfo method, int id)
+      {
+         if (method == null || UiaEnumType == null) return null;
+         try { return method.Invoke(this, new[] { Enum.ToObject(UiaEnumType, id) }); }
+         catch (Exception) { return null; }
       }
 
       // ── ITextProvider ──────────────────────────────────────────────────
