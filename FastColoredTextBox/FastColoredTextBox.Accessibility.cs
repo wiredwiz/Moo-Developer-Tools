@@ -249,11 +249,133 @@ namespace FastColoredTextBoxNS
       public ITextRangeProvider FindAttribute(int attribute, object value, bool backward)
          => FindAttributeImpl(attribute, value, backward);
 
-      // Stubs — replaced in Tasks 5 and 6
-      protected virtual void ExpandToEnclosingUnitImpl(TextUnit unit) { }
-      protected virtual int MoveImpl(TextUnit unit, int count) => 0;
-      protected virtual int MoveEndpointByUnitImpl(TextPatternRangeEndpoint endpoint, TextUnit unit, int count) => 0;
-      protected virtual void MoveEndpointByRangeImpl(TextPatternRangeEndpoint endpoint, ITextRangeProvider targetRange, TextPatternRangeEndpoint targetEndpoint) { }
+      protected virtual void ExpandToEnclosingUnitImpl(TextUnit unit)
+      {
+         switch (unit)
+         {
+            case TextUnit.Character:
+               _end = _start;
+               if (_start.iChar < Tb.Lines[_start.iLine].Length)
+                  _end = new Place(_start.iChar + 1, _start.iLine);
+               break;
+
+            case TextUnit.Word:
+               var startRange = new TextSelectionRange(Tb, _start.iChar, _start.iLine, _start.iChar, _start.iLine);
+               startRange.GoWordLeft(false);
+               _start = startRange.Start;
+               var endRange = new TextSelectionRange(Tb, _start.iChar, _start.iLine, _start.iChar, _start.iLine);
+               endRange.GoWordRight(false);
+               _end = endRange.End;
+               break;
+
+            case TextUnit.Line:
+            case TextUnit.Paragraph:
+               _start = new Place(0, _start.iLine);
+               _end   = new Place(Tb.Lines[_start.iLine].Length, _start.iLine);
+               break;
+
+            case TextUnit.Page:
+            case TextUnit.Document:
+               _start = new Place(0, 0);
+               int lastLine = Tb.LinesCount > 0 ? Tb.LinesCount - 1 : 0;
+               _end   = new Place(Tb.LinesCount > 0 ? Tb.Lines[lastLine].Length : 0, lastLine);
+               break;
+         }
+      }
+
+      protected virtual int MoveImpl(TextUnit unit, int count)
+      {
+         int moved = MoveEndpointByUnitImpl(TextPatternRangeEndpoint.Start, unit, count);
+         _end = _start;
+         return moved;
+      }
+
+      protected virtual int MoveEndpointByUnitImpl(
+         TextPatternRangeEndpoint endpoint, TextUnit unit, int count)
+      {
+         int moved = 0;
+         int direction = count < 0 ? -1 : 1;
+         int steps = Math.Abs(count);
+
+         for (int i = 0; i < steps; i++)
+         {
+            bool advanced;
+            if (endpoint == TextPatternRangeEndpoint.Start)
+               advanced = AdvanceByUnit(ref _start, unit, direction);
+            else
+               advanced = AdvanceByUnit(ref _end, unit, direction);
+            if (!advanced) break;
+            moved += direction;
+         }
+         return moved;
+      }
+
+      private bool AdvanceByUnit(ref Place place, TextUnit unit, int direction)
+      {
+         switch (unit)
+         {
+            case TextUnit.Character:
+               if (direction > 0)
+               {
+                  if (place.iChar < Tb.Lines[place.iLine].Length)
+                     place = new Place(place.iChar + 1, place.iLine);
+                  else if (place.iLine < Tb.LinesCount - 1)
+                     place = new Place(0, place.iLine + 1);
+                  else return false;
+               }
+               else
+               {
+                  if (place.iChar > 0)
+                     place = new Place(place.iChar - 1, place.iLine);
+                  else if (place.iLine > 0)
+                     place = new Place(Tb.Lines[place.iLine - 1].Length, place.iLine - 1);
+                  else return false;
+               }
+               return true;
+
+            case TextUnit.Word:
+               var r = new TextSelectionRange(Tb, place.iChar, place.iLine, place.iChar, place.iLine);
+               if (direction > 0) r.GoWordRight(false);
+               else r.GoWordLeft(false);
+               var newPlace = direction > 0 ? r.End : r.Start;
+               if (newPlace.iLine == place.iLine && newPlace.iChar == place.iChar) return false;
+               place = newPlace;
+               return true;
+
+            case TextUnit.Line:
+            case TextUnit.Paragraph:
+               int newLine = place.iLine + direction;
+               if (newLine < 0 || newLine >= Tb.LinesCount) return false;
+               place = new Place(0, newLine);
+               return true;
+
+            case TextUnit.Page:
+            case TextUnit.Document:
+               if (direction > 0)
+               {
+                  int last = Tb.LinesCount > 0 ? Tb.LinesCount - 1 : 0;
+                  place = new Place(Tb.LinesCount > 0 ? Tb.Lines[last].Length : 0, last);
+               }
+               else
+                  place = new Place(0, 0);
+               return true;
+
+            default:
+               return false;
+         }
+      }
+
+      protected virtual void MoveEndpointByRangeImpl(
+         TextPatternRangeEndpoint endpoint,
+         ITextRangeProvider targetRange,
+         TextPatternRangeEndpoint targetEndpoint)
+      {
+         if (targetRange is not FctbTextRangeProvider other) return;
+         var source = targetEndpoint == TextPatternRangeEndpoint.Start ? other._start : other._end;
+         if (endpoint == TextPatternRangeEndpoint.Start) _start = source;
+         else _end = source;
+      }
+
       protected virtual object GetAttributeValueImpl(int attribute) => AutomationElementIdentifiers.NotSupported;
       protected virtual ITextRangeProvider FindTextImpl(string text, bool backward, bool ignoreCase) => null;
       protected virtual ITextRangeProvider FindAttributeImpl(int attribute, object value, bool backward) => null;
