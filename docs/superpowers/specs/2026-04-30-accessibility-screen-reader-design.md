@@ -175,39 +175,78 @@ Lives in `MooCodeEditor.Accessibility.cs`.
 **1. Editing echo (free from UIA)**
 Character-by-character echo comes naturally from `TextPatternOnTextChanged` events already fired by the base. No extra work needed.
 
-**2. Syntax error annotations on text spans**
-`GetAttributeValue(UIA_AnnotationTypesAttributeId)` returns `AnnotationType_GrammarError` for any range that overlaps an active parser error. The accessible object holds the current error list, updated via a method called from the existing `ParsingComplete` event:
+**2. Prerequisite: `ParseMessage.Severity` field**
+
+`ParseMessage` in `Org.Edgerunner.ANTLR4.Tools.Common` currently has no severity field — all messages are effectively treated as errors. A `ParseMessageSeverity` enum and `Severity` property must be added:
+
+```csharp
+// Org.Edgerunner.ANTLR4.Tools.Common/Grammar/Errors/ParseMessage.cs
+public enum ParseMessageSeverity { Error, Warning }
+
+// added to ParseMessage struct:
+public ParseMessageSeverity Severity { get; set; }
+```
+
+The `LexerErrorListener` and `ParserErrorListener` both set `Severity = ParseMessageSeverity.Error` for now (all current messages are errors). The field is available for future use when warnings are introduced.
+
+**3. Syntax error and warning annotations on text spans**
+
+`GetAttributeValue(UIA_AnnotationTypesAttributeId)` returns:
+- `AnnotationType_GrammarError` for ranges overlapping a `ParseMessageSeverity.Error` message
+- `AnnotationType_AdvancedProofingIssue` for ranges overlapping a `ParseMessageSeverity.Warning` message
+
+Screen readers announce "grammar error" or "proofing issue" respectively when the caret enters those spans. The full error/warning message text is returned via `GetAttributeValue(UIA_FullDescriptionAttributeId)`.
+
+The accessible object holds the current message list, split by severity, updated from the `ParsingComplete` event:
 
 ```csharp
 // MooCodeEditor.Accessibility.cs
-private IReadOnlyList<SyntaxError> _currentErrors = Array.Empty<SyntaxError>();
+private IReadOnlyList<ParseMessage> _currentErrors = Array.Empty<ParseMessage>();
+private IReadOnlyList<ParseMessage> _currentWarnings = Array.Empty<ParseMessage>();
 
-internal void UpdateErrors(IReadOnlyList<SyntaxError> errors) =>
-    _currentErrors = errors;
+internal void UpdateDiagnostics(List<ParseMessage> messages)
+{
+    _currentErrors   = messages.Where(m => m.Severity == ParseMessageSeverity.Error).ToList();
+    _currentWarnings = messages.Where(m => m.Severity == ParseMessageSeverity.Warning).ToList();
+}
 ```
 
-When the caret enters an error span, screen readers automatically announce "grammar error." The user can then request the error message text, which is surfaced through `GetAttributeValue(UIA_FullDescriptionAttributeId)` returning the parser error message for that position.
-
-**3. Debounced error count announcement (2-second idle)**
+**4. Debounced diagnostic count announcement (2-second idle)**
 
 A `System.Windows.Forms.Timer` (2000ms, single-shot) lives in the accessibility partial. It is reset on every `TextChanged` event. When it fires (user idle for 2 full seconds):
 
-- Compare current error count with `_lastAnnouncedErrorCount`
-- If changed: update `AccessibleDescription` to `"3 syntax errors"` or `"No errors"`, then fire `RaiseAutomationEvent(AutomationEvents.LiveRegionChanged)`
-- `LiveSetting` on `MooCodeEditorAccessibleObject` is `AutomationLiveSetting.Polite` — announcement waits for a screen-reader reading gap before speaking
+- Compare current error and warning counts against `_lastAnnouncedErrorCount` / `_lastAnnouncedWarningCount`
+- If either changed: build the announcement string, update `AccessibleDescription`, then fire `RaiseAutomationEvent(AutomationEvents.LiveRegionChanged)`
+- `LiveSetting` is `AutomationLiveSetting.Polite` — waits for a screen-reader gap before speaking
+
+**Announcement string rules:**
+
+| Errors | Warnings | Announcement |
+|---|---|---|
+| 0 | 0 | `"No errors"` |
+| N | 0 | `"N syntax error(s)"` |
+| 0 | M | `"M warning(s)"` |
+| N | M | `"N syntax error(s) and M warning(s)"` |
+
+Examples: `"3 syntax errors and 2 warnings"`, `"1 syntax error"`, `"No errors"`
 
 ```
 User types → TextChanged fires → resets 2-second timer
 ...
-2 seconds of no keystrokes → timer fires → error count changed?
-  Yes → update AccessibleDescription → fire LiveRegionChanged
-        → screen reader says "3 syntax errors" (politely)
+2 seconds of no keystrokes → timer fires → counts changed?
+  Yes → build announcement string → update AccessibleDescription → fire LiveRegionChanged
+        → screen reader says e.g. "3 syntax errors and 2 warnings" (politely)
   No  → do nothing
 
 User navigates caret into error span
   → GetAttributeValue returns AnnotationType_GrammarError
   → screen reader says "grammar error"
   → user requests detail → error message text is read
+
+User navigates caret into warning span
+  → GetAttributeValue returns AnnotationType_AdvancedProofingIssue
+  → screen reader says "proofing issue"
+  → user requests detail → warning message text is read
 ```
 
 The 2-second timer measures true keyboard idle (resets on `TextChanged`), independent of parser completion timing.
@@ -223,9 +262,10 @@ The 2-second timer measures true keyboard idle (resets on `TextChanged`), indepe
 | Navigate line by line | Screen reader reads each line as caret moves |
 | Navigate word by word | Screen reader reads each word |
 | Type a character | UIA text-change event → character echoed |
-| Pause 2 seconds with errors | Screen reader says "N syntax errors" |
-| Move caret to error line | Screen reader says "grammar error" |
-| Request error details | Full parser error message read aloud |
+| Pause 2 seconds with diagnostics | Screen reader says e.g. "3 syntax errors and 2 warnings" |
+| Move caret to error span | Screen reader says "grammar error" |
+| Move caret to warning span | Screen reader says "proofing issue" |
+| Request error/warning details | Full parser message read aloud |
 | Select text | Selection-change event → region described |
 | Scroll | Bounding rects update; screen reader follows focus |
 
@@ -249,7 +289,10 @@ The 2-second timer measures true keyboard idle (resets on `TextChanged`), indepe
 | `Org.Edgerunner.Moo.Editor/Controls/MooCodeEditor.Accessibility.cs` | New partial class |
 | `FastColoredTextBox/FastColoredTextBox.cs` | **Unchanged** (lazy init) |
 | `Org.Edgerunner.Moo.Editor/Controls/ConsoleWindowEmulator.cs` | **Unchanged** (TextChanged event used instead) |
-| `Org.Edgerunner.Moo.Editor/Controls/MooCodeEditor.cs` | Minimal: hook `ParsingComplete` to call `UpdateErrors()` |
+| `Org.Edgerunner.Moo.Editor/Controls/MooCodeEditor.cs` | Minimal: hook `ParsingComplete` to call `UpdateDiagnostics()` |
+| `Org.Edgerunner.ANTLR4.Tools.Common/Grammar/Errors/ParseMessage.cs` | Add `ParseMessageSeverity` enum and `Severity` property |
+| `Org.Edgerunner.ANTLR4.Tools.Common/Grammar/Errors/LexerErrorListener.cs` | Set `Severity = Error` when creating `ParseMessage` |
+| `Org.Edgerunner.ANTLR4.Tools.Common/Grammar/Errors/ParserErrorListener.cs` | Set `Severity = Error` when creating `ParseMessage` |
 
 ---
 
