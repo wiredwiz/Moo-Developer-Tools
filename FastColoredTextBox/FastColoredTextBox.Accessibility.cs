@@ -72,7 +72,7 @@ namespace FastColoredTextBoxNS
 
       public SupportedTextSelection SupportedTextSelection => SupportedTextSelection.Single;
 
-      public ITextRangeProvider[] GetSelection()
+      public virtual ITextRangeProvider[] GetSelection()
       {
          var sel = Tb.Selection;
          return new ITextRangeProvider[]
@@ -143,7 +143,7 @@ namespace FastColoredTextBoxNS
 
       // ── Simple members ─────────────────────────────────────────────────
 
-      public ITextRangeProvider Clone() =>
+      public virtual ITextRangeProvider Clone() =>
          new FctbTextRangeProvider(Tb, _start, _end);
 
       public bool Compare(ITextRangeProvider range)
