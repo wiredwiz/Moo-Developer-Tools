@@ -14,7 +14,9 @@ public partial class MooCodeEditor
    {
       if (!_editorAccessibilityInitialized)
          _editorAccessibilityInitialized = true;
-      return new MooCodeEditorAccessibleObject(this);
+      var acc = new MooCodeEditorAccessibleObject(this);
+      acc.InitializeTimer();
+      return acc;
    }
 
    internal void UpdateDiagnostics(List<ParseMessage> messages)
@@ -33,10 +35,53 @@ public class MooCodeEditorAccessibleObject : FctbAccessibleObject
    private readonly MooCodeEditor _editor;
    internal IReadOnlyList<ParseMessage> _errors   = Array.Empty<ParseMessage>();
    internal IReadOnlyList<ParseMessage> _warnings = Array.Empty<ParseMessage>();
+   private System.Windows.Forms.Timer _announcementTimer;
+   private int _lastAnnouncedErrorCount   = -1;
+   private int _lastAnnouncedWarningCount = -1;
 
    public MooCodeEditorAccessibleObject(MooCodeEditor editor) : base(editor)
    {
       _editor = editor;
+   }
+
+   internal void InitializeTimer()
+   {
+      _announcementTimer = new System.Windows.Forms.Timer { Interval = 2000 };
+      _announcementTimer.Tick += AnnouncementTimer_Tick;
+      _editor.TextChanged += (_, _) =>
+      {
+         _announcementTimer.Stop();
+         _announcementTimer.Start();
+      };
+   }
+
+   private void AnnouncementTimer_Tick(object sender, EventArgs e)
+   {
+      _announcementTimer.Stop();
+      int errors   = _errors.Count;
+      int warnings = _warnings.Count;
+      if (errors == _lastAnnouncedErrorCount && warnings == _lastAnnouncedWarningCount)
+         return;
+      _lastAnnouncedErrorCount   = errors;
+      _lastAnnouncedWarningCount = warnings;
+      _editor.AccessibleDescription = BuildAnnouncementString(errors, warnings);
+      RaiseAutomationEventForLiveRegion();
+   }
+
+   private static readonly System.Reflection.MethodInfo _raiseEventMethod =
+      typeof(System.Windows.Forms.AccessibleObject).GetMethod("RaiseAutomationEvent",
+         System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+
+   private void RaiseAutomationEventForLiveRegion()
+   {
+      if (_raiseEventMethod == null) return;
+      try
+      {
+         var param = _raiseEventMethod.GetParameters()[0];
+         var enumVal = System.Enum.ToObject(param.ParameterType, 19996); // UIA_LiveRegionChangedEventId
+         _raiseEventMethod.Invoke(this, new object[] { enumVal });
+      }
+      catch (Exception) { }
    }
 
    public override System.Windows.Forms.Automation.AutomationLiveSetting LiveSetting
