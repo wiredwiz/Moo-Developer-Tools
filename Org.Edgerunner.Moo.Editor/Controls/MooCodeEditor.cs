@@ -545,6 +545,7 @@ namespace Org.Edgerunner.Moo.Editor.Controls
       private void OnParsingComplete(MooCodeEditor mooCodeEditor, ParsingCompleteEventArgs parsingCompleteEventArgs)
       {
          ParsingComplete?.Invoke(mooCodeEditor, parsingCompleteEventArgs);
+         UpdateDiagnostics(parsingCompleteEventArgs.ErrorMessages);
       }
 
       public void ToggleFoldingBlock(int iLine)
