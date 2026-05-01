@@ -111,7 +111,9 @@ namespace Org.Edgerunner.ANTLR4.Tools.Common.Grammar.Errors
       // ReSharper disable once TooManyArguments
       public void SyntaxError(IRecognizer recognizer, int offendingSymbol, int line, int charPositionInLine, string msg, RecognitionException e)
       {
-         Errors.Add(new ParseMessage(Document, line, charPositionInLine + 1, "Lexer", msg, null));
+         var parseMessage = new ParseMessage(Document, line, charPositionInLine + 1, "Lexer", msg, null);
+         parseMessage.Severity = ParseMessageSeverity.Error;
+         Errors.Add(parseMessage);
       }
    }
 }

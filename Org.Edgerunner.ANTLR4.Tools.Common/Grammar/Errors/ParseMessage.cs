@@ -38,6 +38,13 @@ using Antlr4.Runtime;
 
 namespace Org.Edgerunner.ANTLR4.Tools.Common.Grammar.Errors
 {
+   /// <summary>Severity level of a parse message.</summary>
+   public enum ParseMessageSeverity
+   {
+      Error,
+      Warning
+   }
+
    /// <summary>
    /// Struct that represents a parsing error.
    /// </summary>
@@ -62,6 +69,7 @@ namespace Org.Edgerunner.ANTLR4.Tools.Common.Grammar.Errors
          Type = type;
          Message = message;
          Guide = guide;
+         Severity = ParseMessageSeverity.Error;
       }
 
       /// <summary>
@@ -109,5 +117,9 @@ namespace Org.Edgerunner.ANTLR4.Tools.Common.Grammar.Errors
       /// </summary>
       /// <value>The related syntax error guide.</value>
       public ISyntaxErrorGuide Guide { get; set; }
+
+      /// <summary>Gets or sets the severity of this message.</summary>
+      /// <value>The severity.</value>
+      public ParseMessageSeverity Severity { get; set; }
    }
 }
