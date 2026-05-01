@@ -18,6 +18,7 @@ namespace Org.Edgerunner.Moo.Editor.Controls
 
       protected override AccessibleObject CreateAccessibilityInstance()
       {
+         EnsureUiaEventHooks(); // text/selection UIA events from FastColoredTextBox base
          if (!_consoleAccessibilityInitialized)
          {
             TextChanged += (_, _) => FireLiveRegionChangedEvent();

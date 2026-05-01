@@ -12,6 +12,7 @@ public partial class MooCodeEditor
 
    protected override AccessibleObject CreateAccessibilityInstance()
    {
+      EnsureUiaEventHooks(); // text/selection UIA events from FastColoredTextBox base
       if (!_editorAccessibilityInitialized)
          _editorAccessibilityInitialized = true;
       var acc = new MooCodeEditorAccessibleObject(this);

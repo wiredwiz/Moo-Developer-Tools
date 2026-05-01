@@ -3096,6 +3096,17 @@ namespace FastColoredTextBoxNS
 
       protected override void WndProc(ref Message m)
       {
+         // Return our UIA provider for WM_GETOBJECT, bypassing WinForms's
+         // SupportsUiaProviders gate (which is false for custom UserControls).
+         if (m.Msg == WM_GETOBJECT && (int)(long)m.LParam == OBJID_CLIENT && IsHandleCreated)
+         {
+            if (AccessibilityObject is System.Windows.Automation.Provider.IRawElementProviderSimple uiaProvider)
+            {
+               m.Result = UiaReturnRawElementProvider(Handle, m.WParam, m.LParam, uiaProvider);
+               return;
+            }
+         }
+
          if (m.Msg == WM_HSCROLL || m.Msg == WM_VSCROLL)
             if (m.WParam.ToInt32() != SB_ENDSCROLL)
                Invalidate();

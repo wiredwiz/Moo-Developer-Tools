@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Reflection;
+using System.Runtime.InteropServices;
 using System.Windows.Automation;
 using System.Windows.Automation.Provider;
 using System.Windows.Automation.Text;
@@ -13,6 +14,13 @@ namespace FastColoredTextBoxNS
    {
       private bool _accessibilityInitialized;
 
+      private const int WM_GETOBJECT = 0x003D;
+      private const int OBJID_CLIENT = unchecked((int)0xFFFFFFFC);
+
+      [DllImport("UIAutomationCore.dll", SetLastError = false)]
+      private static extern IntPtr UiaReturnRawElementProvider(
+         IntPtr hwnd, IntPtr wParam, IntPtr lParam, IRawElementProviderSimple el);
+
       // UIA event IDs for text notifications (from UIAutomationClient constants).
       // UIA_Text_TextChangedEventId          = 20014
       // UIA_Text_TextSelectionChangedEventId = 20018
@@ -22,8 +30,6 @@ namespace FastColoredTextBoxNS
 
       private static void RaiseUiaEvent(AccessibleObject ao, int uiaEventId)
       {
-         // Convert the integer event ID to the internal UIA enum value via reflection.
-         // The internal method signature is: RaiseAutomationEvent(Interop.UiaCore.UIA)
          if (_raiseAutomationEventMethod == null || ao == null) return;
          try
          {
@@ -34,28 +40,87 @@ namespace FastColoredTextBoxNS
          catch (Exception) { /* best effort */ }
       }
 
+      // Called by CreateAccessibilityInstance overrides in this class and subclasses.
+      // Ensures text/selection UIA events are hooked exactly once per control lifetime.
+      protected void EnsureUiaEventHooks()
+      {
+         if (_accessibilityInitialized) return;
+         TextChanged     += (_, _) => RaiseUiaEvent(AccessibilityObject, 20014);
+         SelectionChanged += (_, _) => RaiseUiaEvent(AccessibilityObject, 20018);
+         _accessibilityInitialized = true;
+      }
+
       protected override AccessibleObject CreateAccessibilityInstance()
       {
-         if (!_accessibilityInitialized)
-         {
-            TextChanged += (_, _) => RaiseUiaEvent(AccessibilityObject, 20014);
-            SelectionChanged += (_, _) => RaiseUiaEvent(AccessibilityObject, 20018);
-            _accessibilityInitialized = true;
-         }
+         EnsureUiaEventHooks();
          return new FctbAccessibleObject(this);
       }
+
    }
 
    /// <summary>
    /// Accessibility object for FastColoredTextBox implementing the UIA Text Pattern.
    /// </summary>
-   public class FctbAccessibleObject : Control.ControlAccessibleObject, ITextProvider, System.Windows.Forms.Automation.IAutomationLiveRegion
+   public class FctbAccessibleObject : Control.ControlAccessibleObject,
+      ITextProvider,
+      System.Windows.Forms.Automation.IAutomationLiveRegion,
+      IRawElementProviderSimple
    {
       protected readonly FastColoredTextBox Tb;
+
+      // UIA pattern/property IDs used in IRawElementProviderSimple implementation
+      private const int UIA_TextPatternId                  = 10014;
+      private const int UIA_TextPattern2Id                 = 10024;
+      private const int UIA_ControlTypePropertyId          = 30003;
+      private const int UIA_LiveSettingPropertyId          = 30135;
+      private const int UIA_IsTextPatternAvailablePropertyId = 30119;
+      private const int UIA_DocumentControlTypeId          = 50006;
+
+      [DllImport("UIAutomationCore.dll", SetLastError = false)]
+      private static extern int UiaHostProviderFromHwnd(IntPtr hwnd, out IRawElementProviderSimple provider);
 
       public FctbAccessibleObject(FastColoredTextBox tb) : base(tb)
       {
          Tb = tb;
+      }
+
+      // ── AccessibleObject overrides ────────────────────────────────────
+
+      public override AccessibleRole Role => AccessibleRole.Document;
+
+      // ── IRawElementProviderSimple — expose ITextProvider to UIA ──────
+      // Re-implemented explicitly because ControlAccessibleObject.GetPatternProvider
+      // (internal) does not discover ITextProvider in .NET 6 for custom UserControls.
+
+      IRawElementProviderSimple IRawElementProviderSimple.HostRawElementProvider
+      {
+         get
+         {
+            if (!Tb.IsHandleCreated) return null;
+            UiaHostProviderFromHwnd(Tb.Handle, out var host);
+            return host;
+         }
+      }
+
+      ProviderOptions IRawElementProviderSimple.ProviderOptions =>
+         ProviderOptions.ServerSideProvider | ProviderOptions.UseComThreading;
+
+      object IRawElementProviderSimple.GetPatternProvider(int patternId)
+      {
+         if (patternId == UIA_TextPatternId || patternId == UIA_TextPattern2Id)
+            return this;
+         return null;
+      }
+
+      object IRawElementProviderSimple.GetPropertyValue(int propertyId)
+      {
+         switch (propertyId)
+         {
+            case UIA_ControlTypePropertyId:             return UIA_DocumentControlTypeId;
+            case UIA_LiveSettingPropertyId:             return (int)LiveSetting;
+            case UIA_IsTextPatternAvailablePropertyId:  return true;
+            default:                                    return null; // Host provider fills the rest
+         }
       }
 
       // ── ITextProvider ──────────────────────────────────────────────────
