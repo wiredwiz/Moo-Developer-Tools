@@ -124,6 +124,15 @@ namespace FastColoredTextBoxNS
          _end = end;
       }
 
+      private const int UIA_FontNameAttributeId        = 40005;
+      private const int UIA_FontSizeAttributeId        = 40006;
+      private const int UIA_ForegroundColorAttributeId = 40008;
+      private const int UIA_BackgroundColorAttributeId = 40009;
+      protected const int UIA_AnnotationTypesAttributeId         = 40031;
+      protected const int UIA_FullDescriptionAttributeId         = 40035;
+      protected const int AnnotationType_GrammarError            = 60002;
+      protected const int AnnotationType_AdvancedProofingIssue   = 60017;
+
       /// <summary>Returns (normalizedStart, normalizedEnd) — start always before end.</summary>
       private (Place s, Place e) Normalized()
       {
@@ -376,8 +385,76 @@ namespace FastColoredTextBoxNS
          else _end = source;
       }
 
-      protected virtual object GetAttributeValueImpl(int attribute) => AutomationElementIdentifiers.NotSupported;
-      protected virtual ITextRangeProvider FindTextImpl(string text, bool backward, bool ignoreCase) => null;
+      protected virtual object GetAttributeValueImpl(int attribute)
+      {
+         switch (attribute)
+         {
+            case UIA_FontNameAttributeId:
+               return Tb.Font.Name;
+
+            case UIA_FontSizeAttributeId:
+               return (double)Tb.Font.SizeInPoints;
+
+            case UIA_ForegroundColorAttributeId:
+               return (int)(((uint)Tb.ForeColor.R << 16) |
+                            ((uint)Tb.ForeColor.G << 8)  |
+                             (uint)Tb.ForeColor.B);
+
+            case UIA_BackgroundColorAttributeId:
+               return (int)(((uint)Tb.BackColor.R << 16) |
+                            ((uint)Tb.BackColor.G << 8)  |
+                             (uint)Tb.BackColor.B);
+
+            case UIA_AnnotationTypesAttributeId:
+               return AutomationElementIdentifiers.NotSupported;
+
+            case UIA_FullDescriptionAttributeId:
+               return AutomationElementIdentifiers.NotSupported;
+
+            default:
+               return AutomationElementIdentifiers.NotSupported;
+         }
+      }
+
+      protected virtual ITextRangeProvider FindTextImpl(string text, bool backward, bool ignoreCase)
+      {
+         if (string.IsNullOrEmpty(text)) return null;
+         var (s, e) = Normalized();
+         var comparison = ignoreCase ? StringComparison.OrdinalIgnoreCase : StringComparison.Ordinal;
+
+         if (!backward)
+         {
+            for (int line = s.iLine; line <= e.iLine && line < Tb.LinesCount; line++)
+            {
+               string lineText = Tb.Lines[line];
+               int startChar = line == s.iLine ? s.iChar : 0;
+               int searchLen = lineText.Length - startChar;
+               if (searchLen <= 0) continue;
+               int idx = lineText.IndexOf(text, startChar, searchLen, comparison);
+               if (idx >= 0 && (line < e.iLine || idx + text.Length <= e.iChar))
+                  return new FctbTextRangeProvider(Tb,
+                     new Place(idx, line),
+                     new Place(idx + text.Length, line));
+            }
+         }
+         else
+         {
+            for (int line = e.iLine; line >= s.iLine; line--)
+            {
+               string lineText = Tb.Lines[line];
+               int endChar = line == e.iLine ? Math.Min(e.iChar, lineText.Length) : lineText.Length;
+               int startChar = line == s.iLine ? s.iChar : 0;
+               if (endChar < text.Length) continue;
+               int idx = lineText.LastIndexOf(text, endChar - 1, endChar - startChar, comparison);
+               if (idx >= 0 && idx >= startChar)
+                  return new FctbTextRangeProvider(Tb,
+                     new Place(idx, line),
+                     new Place(idx + text.Length, line));
+            }
+         }
+         return null;
+      }
+
       protected virtual ITextRangeProvider FindAttributeImpl(int attribute, object value, bool backward) => null;
    }
 }
