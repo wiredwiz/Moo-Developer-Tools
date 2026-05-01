@@ -6,6 +6,7 @@
     <RootNamespace>FastColoredTextBoxNS</RootNamespace>
     <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
     <UseWindowsForms>true</UseWindowsForms>
+    <UseWPF>true</UseWPF>
     <ImportWindowsDesktopTargets>true</ImportWindowsDesktopTargets>
     <Platforms>AnyCPU;x64;x86</Platforms>
   </PropertyGroup>
@@ -52,6 +53,7 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <DefineConstants>$(DefineConstants)TRACE;Styles32</DefineConstants>
   </PropertyGroup>
+
   <ItemGroup>
     <None Include="$(SolutionDir)icon.png">
       <Pack>True</Pack>
@@ -68,18 +70,8 @@
   </ItemGroup>
   <ItemGroup>
     <Reference Include="System.Design" />
-    <Reference Include="UIAutomationProvider">
-      <HintPath>$([System.IO.Path]::Combine('$(ProgramFiles)', 'dotnet', 'packs', 'Microsoft.WindowsDesktop.App.Ref', '6.0.36', 'ref', 'net6.0', 'UIAutomationProvider.dll'))</HintPath>
-    </Reference>
-    <Reference Include="UIAutomationTypes">
-      <HintPath>$([System.IO.Path]::Combine('$(ProgramFiles)', 'dotnet', 'packs', 'Microsoft.WindowsDesktop.App.Ref', '6.0.36', 'ref', 'net6.0', 'UIAutomationTypes.dll'))</HintPath>
-    </Reference>
-    <Reference Include="UIAutomationClient">
-      <HintPath>$([System.IO.Path]::Combine('$(ProgramFiles)', 'dotnet', 'packs', 'Microsoft.WindowsDesktop.App.Ref', '6.0.36', 'ref', 'net6.0', 'UIAutomationClient.dll'))</HintPath>
-    </Reference>
-    <Reference Include="WindowsBase">
-      <HintPath>$([System.IO.Path]::Combine('$(ProgramFiles)', 'dotnet', 'packs', 'Microsoft.WindowsDesktop.App.Ref', '6.0.36', 'ref', 'net6.0', 'WindowsBase.dll'))</HintPath>
-    </Reference>
+    <Reference Include="UIAutomationProvider" />
+    <Reference Include="UIAutomationTypes" />
   </ItemGroup>
   <ItemGroup>
     <Compile Update="AutocompleteMenu.cs">

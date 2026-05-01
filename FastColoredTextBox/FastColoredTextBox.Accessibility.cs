@@ -5,7 +5,6 @@ using System.Windows.Automation;
 using System.Windows.Automation.Provider;
 using System.Windows.Automation.Text;
 using System.Windows.Forms;
-using System.Windows.Forms.Automation;
 using FastColoredTextBoxNS.Types;
 
 namespace FastColoredTextBoxNS
@@ -32,7 +31,7 @@ namespace FastColoredTextBoxNS
             var enumVal = Enum.ToObject(param.ParameterType, uiaEventId);
             _raiseAutomationEventMethod.Invoke(ao, new object[] { enumVal });
          }
-         catch { /* best effort */ }
+         catch (Exception) { /* best effort */ }
       }
 
       protected override AccessibleObject CreateAccessibilityInstance()
@@ -50,7 +49,7 @@ namespace FastColoredTextBoxNS
    /// <summary>
    /// Accessibility object for FastColoredTextBox implementing the UIA Text Pattern.
    /// </summary>
-   public class FctbAccessibleObject : Control.ControlAccessibleObject, ITextProvider
+   public class FctbAccessibleObject : Control.ControlAccessibleObject, ITextProvider, System.Windows.Forms.Automation.IAutomationLiveRegion
    {
       protected readonly FastColoredTextBox Tb;
 
@@ -61,10 +60,15 @@ namespace FastColoredTextBoxNS
 
       // ── ITextProvider ──────────────────────────────────────────────────
 
-      public virtual ITextRangeProvider DocumentRange =>
-         new FctbTextRangeProvider(Tb,
-            new Place(0, 0),
-            new Place(Tb.Lines[Tb.LinesCount - 1].Length, Tb.LinesCount - 1));
+      public virtual ITextRangeProvider DocumentRange
+      {
+         get
+         {
+            int lastLine = Tb.LinesCount > 0 ? Tb.LinesCount - 1 : 0;
+            int lastChar = Tb.LinesCount > 0 ? Tb.Lines[lastLine].Length : 0;
+            return new FctbTextRangeProvider(Tb, new Place(0, 0), new Place(lastChar, lastLine));
+         }
+      }
 
       public SupportedTextSelection SupportedTextSelection => SupportedTextSelection.Single;
 
@@ -96,8 +100,12 @@ namespace FastColoredTextBoxNS
          return new FctbTextRangeProvider(Tb, place, place);
       }
 
-      /// <summary>Gets the UIA live region setting. Virtual so subclasses can override.</summary>
-      public virtual AutomationLiveSetting LiveSetting => AutomationLiveSetting.Off;
+      /// <summary>Gets or sets the UIA live region setting. Virtual so subclasses can override.</summary>
+      public virtual System.Windows.Forms.Automation.AutomationLiveSetting LiveSetting
+      {
+         get => System.Windows.Forms.Automation.AutomationLiveSetting.Off;
+         set { /* read-only by design; setter required by IAutomationLiveRegion */ }
+      }
    }
 
    /// <summary>
@@ -168,6 +176,8 @@ namespace FastColoredTextBoxNS
             int fromChar = line == s.iLine ? s.iChar : 0;
             int toChar   = line == e.iLine ? e.iChar  : Tb.Lines[line].Length;
             toChar = Math.Min(toChar, Tb.Lines[line].Length);
+            if (fromChar >= toChar && line < e.iLine) { sb.Append('\n'); continue; }
+            if (fromChar >= toChar) break;
             if (line > s.iLine) sb.Append('\n');
             if (fromChar < toChar)
                sb.Append(Tb.Lines[line].Substring(fromChar, toChar - fromChar));
@@ -244,7 +254,7 @@ namespace FastColoredTextBoxNS
       protected virtual int MoveImpl(TextUnit unit, int count) => 0;
       protected virtual int MoveEndpointByUnitImpl(TextPatternRangeEndpoint endpoint, TextUnit unit, int count) => 0;
       protected virtual void MoveEndpointByRangeImpl(TextPatternRangeEndpoint endpoint, ITextRangeProvider targetRange, TextPatternRangeEndpoint targetEndpoint) { }
-      protected virtual object GetAttributeValueImpl(int attribute) => AutomationElement.NotSupported;
+      protected virtual object GetAttributeValueImpl(int attribute) => AutomationElementIdentifiers.NotSupported;
       protected virtual ITextRangeProvider FindTextImpl(string text, bool backward, bool ignoreCase) => null;
       protected virtual ITextRangeProvider FindAttributeImpl(int attribute, object value, bool backward) => null;
    }
