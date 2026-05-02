@@ -99,6 +99,8 @@ public class MooCodeEditorAccessibleObject : FctbAccessibleObject
 
    public override ITextRangeProvider[] GetSelection()
    {
+      if (Tb.InvokeRequired)
+         return (ITextRangeProvider[])Tb.Invoke(new Func<ITextRangeProvider[]>(GetSelection));
       var sel = Tb.Selection;
       return new ITextRangeProvider[]
       {
@@ -110,6 +112,8 @@ public class MooCodeEditorAccessibleObject : FctbAccessibleObject
    {
       get
       {
+         if (Tb.InvokeRequired)
+            return (ITextRangeProvider)Tb.Invoke(new Func<ITextRangeProvider>(() => DocumentRange));
          int lastLine = Tb.LinesCount > 0 ? Tb.LinesCount - 1 : 0;
          int lastChar = Tb.LinesCount > 0 ? Tb.Lines[lastLine].Length : 0;
          return new MooCodeEditorRangeProvider(Tb,

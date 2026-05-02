@@ -147,6 +147,8 @@ namespace FastColoredTextBoxNS
       private object ForwardToBase(MethodInfo method, int id)
       {
          if (method == null || UiaEnumType == null) return null;
+         if (Tb.InvokeRequired)
+            return Tb.Invoke(new Func<object>(() => ForwardToBase(method, id)));
          try { return method.Invoke(this, new[] { Enum.ToObject(UiaEnumType, id) }); }
          catch (Exception) { return null; }
       }
@@ -157,6 +159,8 @@ namespace FastColoredTextBoxNS
       {
          get
          {
+            if (Tb.InvokeRequired)
+               return (ITextRangeProvider)Tb.Invoke(new Func<ITextRangeProvider>(() => DocumentRange));
             int lastLine = Tb.LinesCount > 0 ? Tb.LinesCount - 1 : 0;
             int lastChar = Tb.LinesCount > 0 ? Tb.Lines[lastLine].Length : 0;
             return new FctbTextRangeProvider(Tb, new Place(0, 0), new Place(lastChar, lastLine));
@@ -167,6 +171,8 @@ namespace FastColoredTextBoxNS
 
       public virtual ITextRangeProvider[] GetSelection()
       {
+         if (Tb.InvokeRequired)
+            return (ITextRangeProvider[])Tb.Invoke(new Func<ITextRangeProvider[]>(GetSelection));
          var sel = Tb.Selection;
          return new ITextRangeProvider[]
          {
@@ -176,6 +182,8 @@ namespace FastColoredTextBoxNS
 
       public ITextRangeProvider[] GetVisibleRanges()
       {
+         if (Tb.InvokeRequired)
+            return (ITextRangeProvider[])Tb.Invoke(new Func<ITextRangeProvider[]>(GetVisibleRanges));
          var vis = Tb.VisibleRange;
          return new ITextRangeProvider[]
          {
@@ -187,6 +195,9 @@ namespace FastColoredTextBoxNS
 
       public ITextRangeProvider RangeFromPoint(System.Windows.Point screenLocation)
       {
+         if (Tb.InvokeRequired)
+            return (ITextRangeProvider)Tb.Invoke(
+               new Func<ITextRangeProvider>(() => RangeFromPoint(screenLocation)));
          var clientPt = Tb.PointToClient(
             new System.Drawing.Point((int)screenLocation.X, (int)screenLocation.Y));
          var place = Tb.PointToPlace(clientPt);
@@ -270,6 +281,8 @@ namespace FastColoredTextBoxNS
 
       public string GetText(int maxLength)
       {
+         if (Tb.InvokeRequired)
+            return (string)Tb.Invoke(new Func<string>(() => GetText(maxLength)));
          var (s, e) = Normalized();
          var sb = new System.Text.StringBuilder();
          for (int line = s.iLine; line <= e.iLine; line++)
@@ -293,6 +306,8 @@ namespace FastColoredTextBoxNS
       public double[] GetBoundingRectangles()
       {
          if (Tb.IsDisposed || !Tb.IsHandleCreated) return Array.Empty<double>();
+         if (Tb.InvokeRequired)
+            return (double[])Tb.Invoke(new Func<double[]>(GetBoundingRectangles));
          var (s, e) = Normalized();
          var rects = new List<double>();
          for (int line = s.iLine; line <= e.iLine && line < Tb.LinesCount; line++)
@@ -353,6 +368,7 @@ namespace FastColoredTextBoxNS
 
       protected virtual void ExpandToEnclosingUnitImpl(TextUnit unit)
       {
+         if (Tb.InvokeRequired) { Tb.Invoke(new Action(() => ExpandToEnclosingUnitImpl(unit))); return; }
          switch (unit)
          {
             case TextUnit.Character:
@@ -387,6 +403,8 @@ namespace FastColoredTextBoxNS
 
       protected virtual int MoveImpl(TextUnit unit, int count)
       {
+         if (Tb.InvokeRequired)
+            return (int)Tb.Invoke(new Func<int>(() => MoveImpl(unit, count)));
          int moved = MoveEndpointByUnitImpl(TextPatternRangeEndpoint.Start, unit, count);
          _end = _start;
          return moved;
@@ -395,6 +413,8 @@ namespace FastColoredTextBoxNS
       protected virtual int MoveEndpointByUnitImpl(
          TextPatternRangeEndpoint endpoint, TextUnit unit, int count)
       {
+         if (Tb.InvokeRequired)
+            return (int)Tb.Invoke(new Func<int>(() => MoveEndpointByUnitImpl(endpoint, unit, count)));
          int moved = 0;
          int direction = count < 0 ? -1 : 1;
          int steps = Math.Abs(count);
@@ -480,6 +500,8 @@ namespace FastColoredTextBoxNS
 
       protected virtual object GetAttributeValueImpl(int attribute)
       {
+         if (Tb.InvokeRequired)
+            return Tb.Invoke(new Func<object>(() => GetAttributeValueImpl(attribute)));
          switch (attribute)
          {
             case UIA_FontNameAttributeId:
@@ -511,6 +533,9 @@ namespace FastColoredTextBoxNS
 
       protected virtual ITextRangeProvider FindTextImpl(string text, bool backward, bool ignoreCase)
       {
+         if (Tb.InvokeRequired)
+            return (ITextRangeProvider)Tb.Invoke(
+               new Func<ITextRangeProvider>(() => FindTextImpl(text, backward, ignoreCase)));
          if (string.IsNullOrEmpty(text)) return null;
          var (s, e) = Normalized();
          var comparison = ignoreCase ? StringComparison.OrdinalIgnoreCase : StringComparison.Ordinal;
