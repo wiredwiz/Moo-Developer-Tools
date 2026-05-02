@@ -6601,6 +6601,8 @@ namespace FastColoredTextBoxNS
       /// </summary>
       public virtual void AdjustFolding()
       {
+         if (ScreenReader.IsRunning)
+            return;
          //collapse folded blocks
          for (int iLine = 0; iLine < LinesCount; iLine++)
             if (LineInfos[iLine].VisibleState == VisibleState.Visible)
@@ -6660,6 +6662,8 @@ namespace FastColoredTextBoxNS
       /// </summary>
       public virtual void CollapseAllFoldingBlocks()
       {
+         if (ScreenReader.IsRunning)
+            return;
          for (int i = 0; i < LinesCount; i++)
             if (lines.LineHasFoldingStartMarker(i))
             {
@@ -6696,6 +6700,8 @@ namespace FastColoredTextBoxNS
       /// <param name="iLine">Start folding line</param>
       public virtual void CollapseFoldingBlock(int iLine)
       {
+         if (ScreenReader.IsRunning)
+            return;
          if (iLine < 0 || iLine >= lines.Count)
             throw new ArgumentOutOfRangeException(nameof(iLine));
          if (string.IsNullOrEmpty(lines[iLine].FoldingStartMarker))
@@ -6834,6 +6840,8 @@ namespace FastColoredTextBoxNS
       /// </summary>
       public virtual void CollapseBlock(int fromLine, int toLine)
       {
+         if (ScreenReader.IsRunning)
+            return;
          int from = Math.Min(fromLine, toLine);
          int to = Math.Max(fromLine, toLine);
          if (from == to)
