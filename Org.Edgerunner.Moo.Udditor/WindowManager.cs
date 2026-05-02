@@ -67,6 +67,7 @@ public class WindowManager
    {
       Workspace = workspace;
       _Owner = owner;
+      workspace.DockingManager.PageCloseRequest += DockingManager_PageCloseRequest;
    }
 
    public KryptonDockingWorkspace Workspace { get; set; }
@@ -150,10 +151,13 @@ public class WindowManager
          page.CursorPositionChanged += Page_CursorPositionChanged;
          page.ParsingComplete += Page_ParsingComplete;
          page.DockChanged += EditorPage_DockChanged;
-         if (LastEditorCell != null)
+         if (IsLastEditorCellValid())
             LastEditorCell.Pages.Add(page);
          else
+         {
+            LastEditorCell = null;
             Workspace.DockingManager.AddToWorkspace(_EditorWorkspaceName, new KryptonPage[] { page });
+         }
          return page;
       }
 
@@ -175,10 +179,13 @@ public class WindowManager
          page.CursorPositionChanged += Page_CursorPositionChanged;
          page.ParsingComplete += Page_ParsingComplete;
          page.DockChanged += EditorPage_DockChanged;
-         if (LastEditorCell != null)
+         if (IsLastEditorCellValid())
             LastEditorCell.Pages.Add(page);
          else
+         {
+            LastEditorCell = null;
             Workspace.DockingManager.AddToWorkspace(_EditorWorkspaceName, new KryptonPage[] { page });
+         }
          return page;
       }
 
@@ -202,10 +209,13 @@ public class WindowManager
          page.CursorPositionChanged += Page_CursorPositionChanged;
          page.ParsingComplete += Page_ParsingComplete;
          page.DockChanged += EditorPage_DockChanged;
-         if (LastEditorCell != null)
+         if (IsLastEditorCellValid())
             LastEditorCell.Pages.Add(page);
          else
+         {
+            LastEditorCell = null;
             Workspace.DockingManager.AddToWorkspace(_EditorWorkspaceName, new KryptonPage[] { page });
+         }
          return page;
       }
 
@@ -229,14 +239,24 @@ public class WindowManager
          page.Editor.PreviewPaneForegroundColor = Color.White;
          page.CursorPositionChanged += Page_CursorPositionChanged;
          page.DockChanged += EditorPage_DockChanged;
-         if (LastEditorCell != null)
+         if (IsLastEditorCellValid())
             LastEditorCell.Pages.Add(page);
          else
+         {
+            LastEditorCell = null;
             Workspace.DockingManager.AddToWorkspace(_EditorWorkspaceName, new KryptonPage[] { page });
+         }
          return page;
       }
 
       return _Owner.InvokeRequired ? _Owner.Invoke(CreatePage) : CreatePage();
+   }
+
+   private bool IsLastEditorCellValid()
+   {
+      return LastEditorCell != null
+             && !LastEditorCell.IsDisposed
+             && LastEditorCell.Parent != null;
    }
 
    private void EditorPage_DockChanged(object sender, EventArgs e)
@@ -245,6 +265,12 @@ public class WindowManager
          LastEditorCell = cell;
       else if ((sender as MooDocumentEditorPage)?.KryptonParentContainer is KryptonWorkspaceCell cell2)
          LastEditorCell = cell2;
+   }
+
+   private void DockingManager_PageCloseRequest(object sender, CloseRequestEventArgs e)
+   {
+      if (!IsLastEditorCellValid())
+         LastEditorCell = null;
    }
 
    /// <summary>
