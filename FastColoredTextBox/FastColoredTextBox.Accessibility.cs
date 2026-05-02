@@ -575,4 +575,33 @@ namespace FastColoredTextBoxNS
 
       protected virtual ITextRangeProvider FindAttributeImpl(int attribute, object value, bool backward) => null;
    }
+
+   /// <summary>
+   /// Thin non-FTM wrapper passed to UiaReturnRawElementProvider.
+   /// FctbAccessibleObject inherits StandardOleMarshalObject (FTM via AccessibleObject),
+   /// which causes UIAutomationCore to discard the provider during cross-process setup.
+   /// This plain class uses standard STA COM apartment marshaling, allowing registration
+   /// to succeed. All calls are forwarded to the real FctbAccessibleObject.
+   /// </summary>
+   internal sealed class FctbUiaProviderBridge : IRawElementProviderSimple
+   {
+      private readonly FctbAccessibleObject _provider;
+
+      internal FctbUiaProviderBridge(FctbAccessibleObject provider)
+      {
+         _provider = provider;
+      }
+
+      ProviderOptions IRawElementProviderSimple.ProviderOptions =>
+         ((IRawElementProviderSimple)_provider).ProviderOptions;
+
+      IRawElementProviderSimple IRawElementProviderSimple.HostRawElementProvider =>
+         ((IRawElementProviderSimple)_provider).HostRawElementProvider;
+
+      object IRawElementProviderSimple.GetPatternProvider(int patternId) =>
+         ((IRawElementProviderSimple)_provider).GetPatternProvider(patternId);
+
+      object IRawElementProviderSimple.GetPropertyValue(int propertyId) =>
+         ((IRawElementProviderSimple)_provider).GetPropertyValue(propertyId);
+   }
 }
