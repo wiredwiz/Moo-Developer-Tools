@@ -93,7 +93,8 @@ public class WindowManager
          {
             _LastEditorCellSequence = seq;
             _LastEditorCellIndexInSequence = seq.Children.IndexOf(value);
-            Logger.Debug("LastEditorCell set: sequence={0}, index={1}", seq.GetType().Name, _LastEditorCellIndexInSequence);
+            _LastEditorCellStarSize = value.StarSize;
+            Logger.Debug("LastEditorCell set: sequence={0}, index={1}, starSize={2}", seq.GetType().Name, _LastEditorCellIndexInSequence, _LastEditorCellStarSize);
          }
          else
          {
@@ -106,6 +107,7 @@ public class WindowManager
 
    private KryptonWorkspaceSequence _LastEditorCellSequence;
    private int _LastEditorCellIndexInSequence;
+   private string _LastEditorCellStarSize;
 
    public event EventHandler<MooEditorPage> EditorCursorUpdated;
 
@@ -287,6 +289,7 @@ public class WindowManager
          {
             Logger.Debug("DockNewEditorPage: inserting new cell into saved sequence");
             var newCell = new KryptonWorkspaceCell();
+            newCell.StarSize = _LastEditorCellStarSize;
             var idx = Math.Min(_LastEditorCellIndexInSequence, _LastEditorCellSequence.Children.Count);
             _LastEditorCellSequence.Children.Insert(idx, newCell);
             LastEditorCell = newCell;
