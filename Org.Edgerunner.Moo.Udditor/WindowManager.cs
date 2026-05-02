@@ -82,7 +82,30 @@ public class WindowManager
 
    protected string _EditorWorkspaceName = "Workspace";
 
-   public KryptonWorkspaceCell LastEditorCell { get; set; }
+   private KryptonWorkspaceCell _lastEditorCell;
+   public KryptonWorkspaceCell LastEditorCell
+   {
+      get => _lastEditorCell;
+      set
+      {
+         _lastEditorCell = value;
+         if (value?.WorkspaceParent is KryptonWorkspaceSequence seq)
+         {
+            _LastEditorCellSequence = seq;
+            _LastEditorCellIndexInSequence = seq.Children.IndexOf(value);
+            Logger.Debug("LastEditorCell set: sequence={0}, index={1}", seq.GetType().Name, _LastEditorCellIndexInSequence);
+         }
+         else
+         {
+            Logger.Debug("LastEditorCell set: value={0}, WorkspaceParent={1}",
+               value?.GetType().Name ?? "null",
+               value?.WorkspaceParent?.GetType().Name ?? "null");
+         }
+      }
+   }
+
+   private KryptonWorkspaceSequence _LastEditorCellSequence;
+   private int _LastEditorCellIndexInSequence;
 
    public event EventHandler<MooEditorPage> EditorCursorUpdated;
 
@@ -151,13 +174,7 @@ public class WindowManager
          page.CursorPositionChanged += Page_CursorPositionChanged;
          page.ParsingComplete += Page_ParsingComplete;
          page.DockChanged += EditorPage_DockChanged;
-         if (IsLastEditorCellValid())
-            LastEditorCell.Pages.Add(page);
-         else
-         {
-            LastEditorCell = null;
-            Workspace.DockingManager.AddToWorkspace(_EditorWorkspaceName, new KryptonPage[] { page });
-         }
+         DockNewEditorPage(page);
          return page;
       }
 
@@ -179,13 +196,7 @@ public class WindowManager
          page.CursorPositionChanged += Page_CursorPositionChanged;
          page.ParsingComplete += Page_ParsingComplete;
          page.DockChanged += EditorPage_DockChanged;
-         if (IsLastEditorCellValid())
-            LastEditorCell.Pages.Add(page);
-         else
-         {
-            LastEditorCell = null;
-            Workspace.DockingManager.AddToWorkspace(_EditorWorkspaceName, new KryptonPage[] { page });
-         }
+         DockNewEditorPage(page);
          return page;
       }
 
@@ -209,13 +220,7 @@ public class WindowManager
          page.CursorPositionChanged += Page_CursorPositionChanged;
          page.ParsingComplete += Page_ParsingComplete;
          page.DockChanged += EditorPage_DockChanged;
-         if (IsLastEditorCellValid())
-            LastEditorCell.Pages.Add(page);
-         else
-         {
-            LastEditorCell = null;
-            Workspace.DockingManager.AddToWorkspace(_EditorWorkspaceName, new KryptonPage[] { page });
-         }
+         DockNewEditorPage(page);
          return page;
       }
 
@@ -239,13 +244,7 @@ public class WindowManager
          page.Editor.PreviewPaneForegroundColor = Color.White;
          page.CursorPositionChanged += Page_CursorPositionChanged;
          page.DockChanged += EditorPage_DockChanged;
-         if (IsLastEditorCellValid())
-            LastEditorCell.Pages.Add(page);
-         else
-         {
-            LastEditorCell = null;
-            Workspace.DockingManager.AddToWorkspace(_EditorWorkspaceName, new KryptonPage[] { page });
-         }
+         DockNewEditorPage(page);
          return page;
       }
 
@@ -256,20 +255,87 @@ public class WindowManager
    {
       return LastEditorCell != null
              && !LastEditorCell.IsDisposed
-             && LastEditorCell.Parent != null;
+             && LastEditorCell.Parent != null
+             && LastEditorCell.Pages.Count > 0;
+   }
+
+   // Dock a page to the remembered position.
+   // Case 1: cell is alive and has pages — add directly.
+   // Case 2: cell is gone but we saved the parent sequence — insert a fresh cell at the same index.
+   // Case 3: nothing remembered — fall back to default workspace placement.
+   private void DockNewEditorPage(KryptonPage page)
+   {
+      Logger.Debug("DockNewEditorPage: IsLastEditorCellValid={0}, LastEditorCell.Parent={1}, LastEditorCell.Pages.Count={2}",
+         IsLastEditorCellValid(),
+         LastEditorCell?.Parent?.GetType().Name ?? "null",
+         LastEditorCell?.Pages.Count.ToString() ?? "null");
+      Logger.Debug("DockNewEditorPage: _LastEditorCellSequence={0}, Children.Count={1}, index={2}",
+         _LastEditorCellSequence?.GetType().Name ?? "null",
+         _LastEditorCellSequence?.Children.Count.ToString() ?? "null",
+         _LastEditorCellIndexInSequence);
+
+      if (IsLastEditorCellValid())
+      {
+         Logger.Debug("DockNewEditorPage: adding to existing valid cell");
+         LastEditorCell.Pages.Add(page);
+         return;
+      }
+
+      if (_LastEditorCellSequence != null && _LastEditorCellSequence.Children.Count > 0)
+      {
+         try
+         {
+            Logger.Debug("DockNewEditorPage: inserting new cell into saved sequence");
+            var newCell = new KryptonWorkspaceCell();
+            var idx = Math.Min(_LastEditorCellIndexInSequence, _LastEditorCellSequence.Children.Count);
+            _LastEditorCellSequence.Children.Insert(idx, newCell);
+            LastEditorCell = newCell;
+            newCell.Pages.Add(page);
+            return;
+         }
+         catch (Exception ex)
+         {
+            Logger.Debug("DockNewEditorPage: sequence insert failed: {0}", ex.Message);
+            _LastEditorCellSequence = null;
+         }
+      }
+
+      Logger.Debug("DockNewEditorPage: falling back to AddToWorkspace");
+      LastEditorCell = null;
+      _LastEditorCellSequence = null;
+      Workspace.DockingManager.AddToWorkspace(_EditorWorkspaceName, new KryptonPage[] { page });
    }
 
    private void EditorPage_DockChanged(object sender, EventArgs e)
    {
-      if ((sender as MooCodeEditorPage)?.KryptonParentContainer is KryptonWorkspaceCell cell)
-         LastEditorCell = cell;
-      else if ((sender as MooDocumentEditorPage)?.KryptonParentContainer is KryptonWorkspaceCell cell2)
-         LastEditorCell = cell2;
+      KryptonWorkspaceCell cell = null;
+      if ((sender as MooCodeEditorPage)?.KryptonParentContainer is KryptonWorkspaceCell c1)
+         cell = c1;
+      else if ((sender as MooDocumentEditorPage)?.KryptonParentContainer is KryptonWorkspaceCell c2)
+         cell = c2;
+
+      Logger.Debug("EditorPage_DockChanged: cell={0}, WorkspaceParent type={1}",
+         cell?.GetType().Name ?? "null",
+         cell?.WorkspaceParent?.GetType().Name ?? "null");
+
+      if (cell == null) return;
+
+      LastEditorCell = cell;
+      if (cell.WorkspaceParent is KryptonWorkspaceSequence seq)
+      {
+         _LastEditorCellSequence = seq;
+         _LastEditorCellIndexInSequence = seq.Children.IndexOf(cell);
+         Logger.Debug("EditorPage_DockChanged: saved sequence, index={0}", _LastEditorCellIndexInSequence);
+      }
+      else
+      {
+         Logger.Debug("EditorPage_DockChanged: WorkspaceParent is not KryptonWorkspaceSequence, not saving sequence");
+      }
    }
 
    private void DockingManager_PageCloseRequest(object sender, CloseRequestEventArgs e)
    {
-      if (!IsLastEditorCellValid())
+      if (LastEditorCell != null && (LastEditorCell.IsDisposed || LastEditorCell.Parent == null))
          LastEditorCell = null;
    }
 
