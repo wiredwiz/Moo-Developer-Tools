@@ -245,8 +245,18 @@ public class WindowManager
    // Case 3: nothing remembered — fall back to default workspace placement.
    private void DockNewEditorPage(KryptonPage page)
    {
+      Logger.Debug("DockNewEditorPage: IsLastEditorCellValid={0}, LastEditorCell.Parent={1}, LastEditorCell.Pages.Count={2}",
+         IsLastEditorCellValid(),
+         LastEditorCell?.Parent?.GetType().Name ?? "null",
+         LastEditorCell?.Pages.Count.ToString() ?? "null");
+      Logger.Debug("DockNewEditorPage: _LastEditorCellSequence={0}, Children.Count={1}, index={2}",
+         _LastEditorCellSequence?.GetType().Name ?? "null",
+         _LastEditorCellSequence?.Children.Count.ToString() ?? "null",
+         _LastEditorCellIndexInSequence);
+
       if (IsLastEditorCellValid())
       {
+         Logger.Debug("DockNewEditorPage: adding to existing valid cell");
          LastEditorCell.Pages.Add(page);
          return;
       }
@@ -255,6 +265,7 @@ public class WindowManager
       {
          try
          {
+            Logger.Debug("DockNewEditorPage: inserting new cell into saved sequence");
             var newCell = new KryptonWorkspaceCell();
             var idx = Math.Min(_LastEditorCellIndexInSequence, _LastEditorCellSequence.Children.Count);
             _LastEditorCellSequence.Children.Insert(idx, newCell);
@@ -262,12 +273,14 @@ public class WindowManager
             newCell.Pages.Add(page);
             return;
          }
-         catch
+         catch (Exception ex)
          {
+            Logger.Debug("DockNewEditorPage: sequence insert failed: {0}", ex.Message);
             _LastEditorCellSequence = null;
          }
       }
 
+      Logger.Debug("DockNewEditorPage: falling back to AddToWorkspace");
       LastEditorCell = null;
       _LastEditorCellSequence = null;
       Workspace.DockingManager.AddToWorkspace(_EditorWorkspaceName, new KryptonPage[] { page });
@@ -281,15 +294,22 @@ public class WindowManager
       else if ((sender as MooDocumentEditorPage)?.KryptonParentContainer is KryptonWorkspaceCell c2)
          cell = c2;
 
+      Logger.Debug("EditorPage_DockChanged: cell={0}, WorkspaceParent type={1}",
+         cell?.GetType().Name ?? "null",
+         cell?.WorkspaceParent?.GetType().Name ?? "null");
+
       if (cell == null) return;
 
       LastEditorCell = cell;
-      // Save the parent sequence and index now, while the cell is live,
-      // so we can re-dock to the same position after all editors are closed.
       if (cell.WorkspaceParent is KryptonWorkspaceSequence seq)
       {
          _LastEditorCellSequence = seq;
          _LastEditorCellIndexInSequence = seq.Children.IndexOf(cell);
+         Logger.Debug("EditorPage_DockChanged: saved sequence, index={0}", _LastEditorCellIndexInSequence);
+      }
+      else
+      {
+         Logger.Debug("EditorPage_DockChanged: WorkspaceParent is not KryptonWorkspaceSequence, not saving sequence");
       }
    }
 
