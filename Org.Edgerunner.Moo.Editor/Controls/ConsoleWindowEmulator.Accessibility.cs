@@ -8,7 +8,9 @@ namespace Org.Edgerunner.Moo.Editor.Controls
 {
    public partial class ConsoleWindowEmulator
    {
-      private bool _consoleAccessibilityInitialized;
+      // Set to true once CreateAccessibilityInstance runs (screen reader has connected).
+      // Guards the live region TextChanged handler against firing before any reader is active.
+      private bool _liveRegionReady;
 
       // Reflection helper to call the internal RaiseAutomationEvent method on AccessibleObject.
       // UIA_LiveRegionChangedEventId = 19996
@@ -16,14 +18,23 @@ namespace Org.Edgerunner.Moo.Editor.Controls
          typeof(AccessibleObject).GetMethod("RaiseAutomationEvent",
             BindingFlags.NonPublic | BindingFlags.Instance);
 
+      // Live region hook is attached eagerly at handle creation so it is in place
+      // the moment a screen reader connects, not only after the user directly focuses
+      // this control with the screen reader.
+      protected override void OnHandleCreated(EventArgs e)
+      {
+         base.OnHandleCreated(e);
+         TextChanged += (_, _) =>
+         {
+            if (_liveRegionReady)
+               FireLiveRegionChangedEvent();
+         };
+      }
+
       protected override AccessibleObject CreateAccessibilityInstance()
       {
          EnsureUiaEventHooks(); // text/selection UIA events from FastColoredTextBox base
-         if (!_consoleAccessibilityInitialized)
-         {
-            TextChanged += (_, _) => FireLiveRegionChangedEvent();
-            _consoleAccessibilityInitialized = true;
-         }
+         _liveRegionReady = true;
          return new ConsoleAccessibleObject(this);
       }
 
