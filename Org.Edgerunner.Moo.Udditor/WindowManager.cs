@@ -82,7 +82,27 @@ public class WindowManager
 
    protected string _EditorWorkspaceName = "Workspace";
 
-   public KryptonWorkspaceCell LastEditorCell { get; set; }
+   private KryptonWorkspaceCell _lastEditorCell;
+   public KryptonWorkspaceCell LastEditorCell
+   {
+      get => _lastEditorCell;
+      set
+      {
+         _lastEditorCell = value;
+         if (value?.WorkspaceParent is KryptonWorkspaceSequence seq)
+         {
+            _LastEditorCellSequence = seq;
+            _LastEditorCellIndexInSequence = seq.Children.IndexOf(value);
+            Logger.Debug("LastEditorCell set: sequence={0}, index={1}", seq.GetType().Name, _LastEditorCellIndexInSequence);
+         }
+         else
+         {
+            Logger.Debug("LastEditorCell set: value={0}, WorkspaceParent={1}",
+               value?.GetType().Name ?? "null",
+               value?.WorkspaceParent?.GetType().Name ?? "null");
+         }
+      }
+   }
 
    private KryptonWorkspaceSequence _LastEditorCellSequence;
    private int _LastEditorCellIndexInSequence;
