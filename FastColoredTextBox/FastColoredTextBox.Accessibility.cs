@@ -151,7 +151,7 @@ namespace FastColoredTextBoxNS
          if (string.IsNullOrEmpty(text)) return;
          var provider = AccessibilityObject as IRawElementProviderSimple;
          if (provider == null) return;
-         try { UiaRaiseNotificationEvent(provider, 2, 1, text, "fctb-notify"); }
+         try { UiaRaiseNotificationEvent(provider, 2, 1, ExpandCommandSymbols(text), "fctb-notify"); }
          catch (Exception) { }
       }
 
@@ -171,9 +171,23 @@ namespace FastColoredTextBoxNS
          try
          {
             int processing = all ? 2 : 3;
-            UiaRaiseNotificationEvent(provider, 2, processing, text, "fctb-notify");
+            UiaRaiseNotificationEvent(provider, 2, processing, ExpandCommandSymbols(text), "fctb-notify");
          }
          catch (Exception) { /* UiaRaiseNotificationEvent unavailable on pre-1709 */ }
+      }
+
+      // Expands punctuation characters that Narrator skips at its default verbosity level
+      // ("Some") so screen reader users hear the correct command syntax.
+      // Applies only when the symbol directly precedes a word character (command context),
+      // leaving sentence-ending punctuation untouched.
+      private static string ExpandCommandSymbols(string text)
+      {
+         if (string.IsNullOrEmpty(text)) return text;
+         // "?command" → "question mark command"; "Is this right?" unchanged (? not before \w)
+         text = System.Text.RegularExpressions.Regex.Replace(text, @"\?(?=\w)", "question mark ");
+         // "@command" → "at command"
+         text = System.Text.RegularExpressions.Regex.Replace(text, @"@(?=\w)", "at ");
+         return text;
       }
 
       // Returns the last non-empty line — used as notification text for both
@@ -233,7 +247,7 @@ namespace FastColoredTextBoxNS
                if (string.IsNullOrEmpty(t)) return;
                var prov = AccessibilityObject as IRawElementProviderSimple;
                if (prov == null) return;
-               try { UiaRaiseNotificationEvent(prov, 2, 1, t, "fctb-notify"); }
+               try { UiaRaiseNotificationEvent(prov, 2, 1, ExpandCommandSymbols(t), "fctb-notify"); }
                catch (Exception) { }
             }
          };
