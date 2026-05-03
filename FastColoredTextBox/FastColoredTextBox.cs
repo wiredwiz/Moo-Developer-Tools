@@ -2505,6 +2505,7 @@ namespace FastColoredTextBoxNS
          timersToReset.Clear();
 
          OnScrollbarsUpdated();
+         RegisterUiaHwnd(); // register HWND in UIA callback table early
       }
 
       /// <summary>
@@ -3124,13 +3125,17 @@ namespace FastColoredTextBoxNS
                return;
             }
 
-            // OBJID_CLIENT (-4): let base.WndProc handle it so UIAutomationCore must use
-            // UiaRegisterProviderCallback instead of resolving our custom lresult.
-            // TEST: intentionally NOT handling OBJID_CLIENT here to see if our registered
-            // callback fires. If GetPropertyValue appears in the log via the callback path,
-            // we know the callback mechanism is the correct path for cross-process UIA.
+            // OBJID_CLIENT (-4): return 0 so UIAutomationCore MUST use our registered
+            // UiaProviderCallback instead of resolving a WM_GETOBJECT lresult.
+            // Both MSAA (via base.WndProc) and UIA (via ReturnRawElementProvider) lresults
+            // cause UIAutomationCore to bypass the provider callback entirely.
+            // Returning 0 forces UIAutomationCore to call our callback for cross-process access.
             if (lp == OBJID_CLIENT)
-               UiaLog($"  OBJID_CLIENT: letting base.WndProc handle (callback test)");
+            {
+               UiaLog($"  OBJID_CLIENT: returning 0 (forcing callback path)");
+               m.Result = IntPtr.Zero;
+               return;
+            }
          }
 
          if (m.Msg == WM_HSCROLL || m.Msg == WM_VSCROLL)

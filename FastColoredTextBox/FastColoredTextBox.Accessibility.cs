@@ -111,17 +111,10 @@ namespace FastColoredTextBoxNS
          return ao;
       }
 
-      // Called by CreateAccessibilityInstance overrides in this class and subclasses.
-      // Ensures text/selection UIA events are hooked exactly once per control lifetime,
-      // and registers the process-wide UIA provider callback for FCTB windows.
-      protected void EnsureUiaEventHooks()
+      // Called from OnHandleCreated to register the HWND early (before any WM_GETOBJECT arrives).
+      // Also called from EnsureUiaEventHooks so subclass CreateAccessibilityInstance calls cover it.
+      internal void RegisterUiaHwnd()
       {
-         if (_accessibilityInitialized) return;
-         TextChanged      += (_, _) => RaiseUiaEvent(AccessibilityObject, 20014);
-         SelectionChanged += (_, _) => RaiseUiaEvent(AccessibilityObject, 20018);
-         _accessibilityInitialized = true;
-
-         // Register this control's HWND so the provider callback can find it.
          if (!IsHandleCreated) return;
          var hwnd = Handle;
          lock (s_fctbByHwnd)
@@ -140,6 +133,17 @@ namespace FastColoredTextBoxNS
             UiaLog($"UiaRegisterProviderCallback → {ok}");
          }
          catch (Exception ex) { UiaLog($"UiaRegisterProviderCallback failed: {ex.Message}"); }
+      }
+
+      // Called by CreateAccessibilityInstance overrides in this class and subclasses.
+      // Ensures text/selection UIA events are hooked exactly once per control lifetime.
+      protected void EnsureUiaEventHooks()
+      {
+         if (_accessibilityInitialized) return;
+         TextChanged      += (_, _) => RaiseUiaEvent(AccessibilityObject, 20014);
+         SelectionChanged += (_, _) => RaiseUiaEvent(AccessibilityObject, 20018);
+         _accessibilityInitialized = true;
+         RegisterUiaHwnd();
       }
 
       protected override AccessibleObject CreateAccessibilityInstance()
