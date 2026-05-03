@@ -3108,27 +3108,36 @@ namespace FastColoredTextBoxNS
 
       protected override void WndProc(ref Message m)
       {
-         // Log ALL WM_GETOBJECT hits so we can see what lParam values arrive.
          if (m.Msg == WM_GETOBJECT)
          {
             int lp = (int)(long)m.LParam;
-            UiaLog($"WM_GETOBJECT lParam={m.LParam}(={lp}) Handle={Handle} m.HWnd={m.HWnd} IsHandleCreated={IsHandleCreated} type={GetType().Name}");
-         }
+            UiaLog($"WM_GETOBJECT lParam={m.LParam}(={lp}) Handle={Handle} IsHandleCreated={IsHandleCreated} type={GetType().Name}");
 
-         // Return our UIA provider for WM_GETOBJECT, bypassing WinForms's
-         // SupportsUiaProviders gate (which is false for custom UserControls).
-         if (m.Msg == WM_GETOBJECT && (int)(long)m.LParam == OBJID_CLIENT && IsHandleCreated)
-         {
-            if (AccessibilityObject is FctbAccessibleObject fctbProvider)
+            // OBJID_QUERYCLASSNAMEIDX (-12): return the WinForms UIA marker so UIAutomationCore
+            // uses the UIA path (our OBJID_CLIENT provider) instead of the MSAA bridge.
+            // Without this, UIAutomationCore sees 0, concludes "MSAA-only control", and never
+            // calls GetPropertyValue on our provider even after a successful OBJID_CLIENT response.
+            if (lp == OBJID_QUERYCLASSNAMEIDX)
             {
-               UiaLog($"  -> OBJID_CLIENT hit: Handle={Handle} m.HWnd={m.HWnd} match={Handle==m.HWnd} provider={fctbProvider.GetType().Name}");
-               m.Result = AutomationInteropProvider.ReturnRawElementProvider(m.HWnd, m.WParam, m.LParam, fctbProvider);
-               UiaLog($"  -> result={m.Result}");
+               m.Result = _uiaClassMarker;
+               UiaLog($"  OBJID_QUERYCLASSNAMEIDX: returning 0x{m.Result.ToInt64():X}");
                return;
             }
-            else
+
+            // OBJID_CLIENT (-4): return our custom UIA provider.
+            if (lp == OBJID_CLIENT && IsHandleCreated)
             {
-               UiaLog($"  -> OBJID_CLIENT: AccessibilityObject is {AccessibilityObject?.GetType().Name ?? "null"} — not FctbAccessibleObject, skipping");
+               if (AccessibilityObject is FctbAccessibleObject fctbProvider)
+               {
+                  UiaLog($"  -> OBJID_CLIENT hit: provider={fctbProvider.GetType().Name}");
+                  m.Result = AutomationInteropProvider.ReturnRawElementProvider(m.HWnd, m.WParam, m.LParam, fctbProvider);
+                  UiaLog($"  -> result={m.Result}");
+                  return;
+               }
+               else
+               {
+                  UiaLog($"  -> OBJID_CLIENT: AccessibilityObject={AccessibilityObject?.GetType().Name ?? "null"} — not FctbAccessibleObject");
+               }
             }
          }
 

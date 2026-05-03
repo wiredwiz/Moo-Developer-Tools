@@ -15,7 +15,33 @@ namespace FastColoredTextBoxNS
       private bool _accessibilityInitialized;
 
       private const int WM_GETOBJECT = 0x003D;
-      private const int OBJID_CLIENT = unchecked((int)0xFFFFFFFC);
+      private const int OBJID_CLIENT             = unchecked((int)0xFFFFFFFC); // -4
+      private const int OBJID_QUERYCLASSNAMEIDX  = unchecked((int)0xFFFFFFF4); // -12
+
+      // WinForms UIA marker: high word 0x10000 tells UIAutomationCore to use the UIA path.
+      // Without returning this for OBJID_QUERYCLASSNAMEIDX, UIAutomationCore sees 0 and
+      // falls back to the MSAA bridge, ignoring our custom OBJID_CLIENT provider entirely.
+      private static readonly IntPtr _uiaClassMarker = GetUiaClassMarker();
+
+      private static IntPtr GetUiaClassMarker()
+      {
+         // Try to read WinForms' registered class type ID via reflection.
+         foreach (var t in new[] { typeof(UserControl), typeof(ContainerControl), typeof(Control) })
+         {
+            try
+            {
+               var f = t.GetField("s_accessibilityClassTypeId",
+                  BindingFlags.NonPublic | BindingFlags.Static);
+               if (f != null)
+               {
+                  int id = (int)f.GetValue(null);
+                  if (id > 0) return (IntPtr)(0x10000 + id);
+               }
+            }
+            catch { }
+         }
+         return (IntPtr)0x10001; // fallback: WinForms UIA marker with placeholder type ID
+      }
 
       // UIA event IDs for text notifications (from UIAutomationClient constants).
       // UIA_Text_TextChangedEventId          = 20014
