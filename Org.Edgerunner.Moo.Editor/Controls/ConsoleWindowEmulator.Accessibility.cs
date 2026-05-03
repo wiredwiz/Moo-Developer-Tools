@@ -14,30 +14,39 @@ namespace Org.Edgerunner.Moo.Editor.Controls
          typeof(AccessibleObject).GetMethod("RaiseAutomationEvent",
             BindingFlags.NonPublic | BindingFlags.Instance);
 
-      // Index of the last line we have already announced. Initialized in OnHandleCreated
-      // to the current bottom so pre-existing content is not announced on connect.
-      private int _lastAnnouncedLine = -1;
+      // Line count at the last TextChanged scan. FCTB always keeps a trailing empty line, so
+      // new complete lines occupy indices [_prevLinesCount-1 .. LinesCount-2] after a change.
+      private int _prevLinesCount;
 
       protected override void OnHandleCreated(EventArgs e)
       {
          base.OnHandleCreated(e);
          TextChanged += (_, _) => FireLiveRegionChangedEvent();
 
-         // Seed the announced position at the current bottom so we only announce NEW text.
-         _lastAnnouncedLine = LinesCount - 1;
+         // Seed to current count so pre-existing buffer content is not re-announced.
+         _prevLinesCount = LinesCount;
 
-         // Announce every new non-empty line in arrival order using NotificationProcessing.All
-         // so Narrator reads the full stream, not just the last line.
+         // Announce every new non-empty complete line in arrival order.
+         // NotificationProcessing.All (all:true) queues each line so Narrator reads
+         // the full stream in sequence rather than only the last line.
          TextChanged += (_, _) =>
          {
             int count = LinesCount;
-            for (int i = _lastAnnouncedLine + 1; i < count; i++)
+            if (count <= _prevLinesCount) { _prevLinesCount = count; return; }
+
+            // New complete lines: from the old trailing-empty slot to the new trailing-empty.
+            // Old trailing empty was at index _prevLinesCount-1; it now holds real text.
+            // New trailing empty is at index count-1; we skip it.
+            int startLine = Math.Max(0, _prevLinesCount - 1);
+            int endLine   = count - 2;
+
+            for (int i = startLine; i <= endLine; i++)
             {
-               string line = i < count ? Lines[i] : string.Empty;
+               string line = Lines[i];
                if (!string.IsNullOrWhiteSpace(line))
                   FireAccessibilityNotification(line, all: true);
             }
-            _lastAnnouncedLine = count - 1;
+            _prevLinesCount = count;
          };
       }
 
