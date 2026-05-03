@@ -121,31 +121,54 @@ namespace FastColoredTextBoxNS
          [MarshalAs(UnmanagedType.BStr)] string activityId);
 
       private string _lastNotificationText;
+      private string _navPendingText;
+      private System.Windows.Forms.Timer _navDebounceTimer;
 
       // Makes Narrator (and other UIA screen readers) speak text via UiaRaiseNotificationEvent.
-      // interrupt=true  → ImportantMostRecent (0): cuts current speech; use for navigation.
-      // interrupt=false → MostRecent (3):          queued, only latest; use for single updates.
-      // all=true        → All (2):                 queued, every item read in order; use for
-      //                   streaming console output so every line gets read, not just the last.
-      // Deduplication is skipped in 'all' mode so the caller controls what gets announced.
+      // interrupt=true  → debounced ImportantMostRecent: waits 60ms for rapid SelectionChanged
+      //                   bursts (FCTB fires several per keypress) to settle, then announces once.
+      // interrupt=false → MostRecent (3): queued, only latest; for single status updates.
+      // all=true        → All (2): queued, every item in order; for streaming console output.
       protected internal void FireAccessibilityNotification(string text, bool interrupt = false, bool all = false)
       {
          if (string.IsNullOrEmpty(text)) return;
-         // Only deduplicate passive (non-interrupt, non-all) notifications.
-         // Navigation (interrupt=true) should always read even if the line was just announced.
-         // All-mode (all=true) handles its own queueing without deduplication.
-         if (!interrupt && !all)
+
+         if (interrupt)
+         {
+            // Store latest and (re)start the debounce timer. All rapid events within the
+            // window collapse into one notification using the most recent line text.
+            _navPendingText = text;
+            if (_navDebounceTimer == null)
+            {
+               _navDebounceTimer = new System.Windows.Forms.Timer { Interval = 60 };
+               _navDebounceTimer.Tick += (_, _) =>
+               {
+                  _navDebounceTimer.Stop();
+                  var t = _navPendingText;
+                  if (string.IsNullOrEmpty(t)) return;
+                  var provider = AccessibilityObject as IRawElementProviderSimple;
+                  if (provider == null) return;
+                  try { UiaRaiseNotificationEvent(provider, 2, 0, t, "fctb-nav"); }
+                  catch (Exception) { }
+               };
+            }
+            _navDebounceTimer.Stop();
+            _navDebounceTimer.Start();
+            return;
+         }
+
+         if (!all)
          {
             if (text == _lastNotificationText) return;
             _lastNotificationText = text;
          }
-         var provider = AccessibilityObject as IRawElementProviderSimple;
-         if (provider == null) return;
+         var prov = AccessibilityObject as IRawElementProviderSimple;
+         if (prov == null) return;
          try
          {
-            int processing = interrupt ? 0 : (all ? 2 : 3);
+            int processing = all ? 2 : 3;
             string activityId = all ? "fctb-live-text" : "fctb-text";
-            UiaRaiseNotificationEvent(provider, 2, processing, text, activityId);
+            UiaRaiseNotificationEvent(prov, 2, processing, text, activityId);
          }
          catch (Exception) { /* UiaRaiseNotificationEvent unavailable on pre-1709 */ }
       }
