@@ -123,6 +123,13 @@ namespace FastColoredTextBoxNS
       private string _lastNotificationText;
       private int    _lastNavLine = -1;
 
+      // Syncs _lastNavLine to the current cursor position. Called after auto-scroll so
+      // the next user arrow-key press is correctly recognized as a new-line change.
+      protected internal void UpdateNavPosition()
+      {
+         _lastNavLine = Selection.Start.iLine;
+      }
+
       // Navigation announcement: fires immediately when the cursor moves to a NEW line.
       // Position-tracking skips spurious SelectionChanged events (FCTB fires several per
       // keypress — scroll, repaint, etc.) because they all land on the same line number.

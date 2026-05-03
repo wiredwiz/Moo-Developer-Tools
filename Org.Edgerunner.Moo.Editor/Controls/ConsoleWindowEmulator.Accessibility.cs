@@ -18,29 +18,39 @@ namespace Org.Edgerunner.Moo.Editor.Controls
       // new complete lines occupy indices [_prevLinesCount-1 .. LinesCount-2] after a change.
       private int _prevLinesCount;
 
-      // Set by TextChanged so the immediately following auto-scroll SelectionChanged is ignored.
-      // Arrow-key navigation fires SelectionChanged WITHOUT a preceding TextChanged, so it
-      // passes through and announces the current line.
-      private bool _suppressNextSelection;
+      // True while a suppression window is open after text arrives. Using a timer rather than
+      // a one-shot bool because FCTB may auto-scroll the view WITHOUT moving the cursor, so
+      // SelectionChanged may never fire to clear a bool flag — leaving navigation blocked forever.
+      private bool _suppressingNav;
+      private System.Windows.Forms.Timer _suppressNavTimer;
 
       protected override void OnHandleCreated(EventArgs e)
       {
          base.OnHandleCreated(e);
          TextChanged += (_, _) => FireLiveRegionChangedEvent();
 
-         // Seed to current count so pre-existing buffer content is not re-announced.
          _prevLinesCount = LinesCount;
 
-         // Announce every new non-empty complete line in arrival order.
-         // NotificationProcessing.All (all:true) queues each line so Narrator reads
-         // the full stream in sequence rather than only the last line.
+         // Suppression timer: opened by TextChanged, auto-closes after 150ms.
+         // When it closes, sync _lastNavLine so the first arrow key after auto-scroll
+         // is correctly detected as a position change.
+         _suppressNavTimer = new System.Windows.Forms.Timer { Interval = 150 };
+         _suppressNavTimer.Tick += (_, _) =>
+         {
+            _suppressNavTimer.Stop();
+            _suppressingNav = false;
+            UpdateNavPosition(); // cursor may have scrolled; sync so next UP/DOWN is recognised
+         };
+
          TextChanged += (_, _) =>
          {
             int count = LinesCount;
             if (count <= _prevLinesCount) { _prevLinesCount = count; return; }
 
-            // Suppress the auto-scroll SelectionChanged that fires right after new text arrives.
-            _suppressNextSelection = true;
+            // Open/extend the suppression window so auto-scroll SelectionChangeds are ignored.
+            _suppressingNav = true;
+            _suppressNavTimer.Stop();
+            _suppressNavTimer.Start();
 
             int startLine = Math.Max(0, _prevLinesCount - 1);
             int endLine   = count - 2;
@@ -54,11 +64,9 @@ namespace Org.Edgerunner.Moo.Editor.Controls
             _prevLinesCount = count;
          };
 
-         // Arrow-key navigation: announce the line the cursor moved to.
-         // Skipped when _suppressNextSelection is set (auto-scroll from TextChanged).
          SelectionChanged += (_, _) =>
          {
-            if (_suppressNextSelection) { _suppressNextSelection = false; return; }
+            if (_suppressingNav) return;
             FireNavigationNotification();
          };
       }
