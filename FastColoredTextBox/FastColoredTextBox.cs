@@ -3124,21 +3124,13 @@ namespace FastColoredTextBoxNS
                return;
             }
 
-            // OBJID_CLIENT (-4): return our custom UIA provider.
-            if (lp == OBJID_CLIENT && IsHandleCreated)
-            {
-               if (AccessibilityObject is FctbAccessibleObject fctbProvider)
-               {
-                  UiaLog($"  -> OBJID_CLIENT hit: provider={fctbProvider.GetType().Name}");
-                  m.Result = AutomationInteropProvider.ReturnRawElementProvider(m.HWnd, m.WParam, m.LParam, fctbProvider);
-                  UiaLog($"  -> result={m.Result}");
-                  return;
-               }
-               else
-               {
-                  UiaLog($"  -> OBJID_CLIENT: AccessibilityObject={AccessibilityObject?.GetType().Name ?? "null"} — not FctbAccessibleObject");
-               }
-            }
+            // OBJID_CLIENT (-4): let base.WndProc handle it so UIAutomationCore must use
+            // UiaRegisterProviderCallback instead of resolving our custom lresult.
+            // TEST: intentionally NOT handling OBJID_CLIENT here to see if our registered
+            // callback fires. If GetPropertyValue appears in the log via the callback path,
+            // we know the callback mechanism is the correct path for cross-process UIA.
+            if (lp == OBJID_CLIENT)
+               UiaLog($"  OBJID_CLIENT: letting base.WndProc handle (callback test)");
          }
 
          if (m.Msg == WM_HSCROLL || m.Msg == WM_VSCROLL)

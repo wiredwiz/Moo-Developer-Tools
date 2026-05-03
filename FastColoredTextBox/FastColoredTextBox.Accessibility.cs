@@ -91,6 +91,9 @@ namespace FastColoredTextBoxNS
       private static IRawElementProviderSimple OnUiaProviderRequested(
          IntPtr hwnd, _ProviderType providerType)
       {
+         // Log ALL invocations to confirm the callback fires at all.
+         UiaLog($"  UiaProviderCallback: hwnd={hwnd} providerType={providerType}");
+
          if (providerType != _ProviderType.BaseHwnd) return null;
          FastColoredTextBox tb = null;
          lock (s_fctbByHwnd)
@@ -98,12 +101,13 @@ namespace FastColoredTextBoxNS
             if (s_fctbByHwnd.TryGetValue(hwnd, out var wr))
                wr.TryGetTarget(out tb);
          }
-         if (tb == null) return null;
-         // AccessibilityObject is already cached by the time this callback fires
-         // (EnsureUiaEventHooks was triggered by the same WM_GETOBJECT that
-         // caused callback registration).
+         if (tb == null)
+         {
+            UiaLog($"    (not an FCTB hwnd — returning null)");
+            return null;
+         }
          var ao = tb.AccessibilityObject as FctbAccessibleObject;
-         UiaLog($"  UiaProviderCallback: hwnd={hwnd} → {ao?.GetType().Name ?? "null"}");
+         UiaLog($"    returning {ao?.GetType().Name ?? "null"}");
          return ao;
       }
 
