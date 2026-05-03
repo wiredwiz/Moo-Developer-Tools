@@ -21,6 +21,10 @@ namespace Org.Edgerunner.Moo.Editor.Controls
       {
          base.OnHandleCreated(e);
          TextChanged += (_, _) => FireLiveRegionChangedEvent();
+         // UiaRaiseNotificationEvent: makes Narrator announce incoming server text regardless
+         // of whether ITextProvider works cross-process. interrupt=false so it queues after
+         // whatever Narrator is currently saying (e.g. the user's keystrokes).
+         TextChanged += (_, _) => FireAccessibilityNotification(GetCurrentLineText(), interrupt: false);
       }
 
       protected override AccessibleObject CreateAccessibilityInstance()

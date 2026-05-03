@@ -107,19 +107,61 @@ namespace FastColoredTextBoxNS
          catch (Exception ex) { UiaLog($"UiaRegisterProviderCallback failed: {ex.Message}"); }
       }
 
+      // UiaRaiseNotificationEvent — the documented mechanism to make Narrator (and other UIA
+      // screen readers on Win10 1709+) speak arbitrary text regardless of ControlType or
+      // whether ITextProvider works cross-process. Defined in UIAutomationCore.dll.
+      // notificationKind: 1=ItemAdded, 2=ActionCompleted
+      // notificationProcessing: 0=ImportantMostRecent (interrupt, latest only), 3=MostRecent (queued, latest only)
+      [DllImport("UIAutomationCore.dll", ExactSpelling = true, SetLastError = false)]
+      private static extern int UiaRaiseNotificationEvent(
+         IRawElementProviderSimple provider,
+         int notificationKind,
+         int notificationProcessing,
+         [MarshalAs(UnmanagedType.BStr)] string displayString,
+         [MarshalAs(UnmanagedType.BStr)] string activityId);
+
+      // Call this to make Narrator (and other UIA screen readers) speak text.
+      // interrupt=true: cuts off current speech and immediately speaks (for navigation).
+      // interrupt=false: queues after current speech (for incoming live text).
+      protected internal void FireAccessibilityNotification(string text, bool interrupt = false)
+      {
+         if (string.IsNullOrEmpty(text)) return;
+         var provider = AccessibilityObject as IRawElementProviderSimple;
+         if (provider == null) return;
+         try
+         {
+            int processing = interrupt ? 0 : 3; // ImportantMostRecent : MostRecent
+            UiaRaiseNotificationEvent(provider, 2, processing, text, "fctb-text");
+         }
+         catch (Exception) { /* UiaRaiseNotificationEvent unavailable on pre-1709 */ }
+      }
+
+      // Returns the last non-empty line — used as notification text for both
+      // navigation (SelectionChanged) and initial focus reading.
+      protected internal string GetCurrentLineText()
+      {
+         int line = Selection.Start.iLine;
+         if (line < 0 || line >= LinesCount) line = Math.Max(0, LinesCount - 1);
+         while (line > 0 && string.IsNullOrEmpty(Lines[line]))
+            line--;
+         return (line >= 0 && line < LinesCount) ? Lines[line] : string.Empty;
+      }
+
       // Called by CreateAccessibilityInstance overrides in this class and subclasses.
       // Ensures text/selection UIA events are hooked exactly once per control lifetime.
       protected void EnsureUiaEventHooks()
       {
          if (_accessibilityInitialized) return;
-         // UIA events (for UIA clients like Narrator/AIW)
-         TextChanged      += (_, _) => RaiseUiaEvent(AccessibilityObject, 20014); // UIA_Text_TextChangedEventId
-         SelectionChanged += (_, _) => RaiseUiaEvent(AccessibilityObject, 20018); // UIA_Text_TextSelectionChangedEventId
-         GotFocus         += (_, _) => RaiseUiaEvent(AccessibilityObject, 20005); // UIA_AutomationFocusChangedEventId
-         // MSAA WinEvents (for NVDA/JAWS in MSAA mode): notify when text or cursor changes so
-         // the screen reader calls get_accValue again and reads the updated current line.
+         // UIA events for UIA clients (Narrator/AIW)
+         TextChanged      += (_, _) => RaiseUiaEvent(AccessibilityObject, 20014);
+         SelectionChanged += (_, _) => RaiseUiaEvent(AccessibilityObject, 20018);
+         GotFocus         += (_, _) => RaiseUiaEvent(AccessibilityObject, 20005);
+         // MSAA WinEvents for MSAA-mode screen readers (NVDA/JAWS)
          TextChanged      += (_, _) => AccessibilityNotifyClients(AccessibleEvents.ValueChange, 0);
          SelectionChanged += (_, _) => AccessibilityNotifyClients(AccessibleEvents.Selection, 0);
+         // UiaRaiseNotificationEvent: speaks the current line when the cursor moves.
+         // This works for Narrator regardless of whether ITextProvider works cross-process.
+         SelectionChanged += (_, _) => FireAccessibilityNotification(GetCurrentLineText(), interrupt: true);
          _accessibilityInitialized = true;
          RegisterUiaHwnd();
       }
@@ -150,10 +192,7 @@ namespace FastColoredTextBoxNS
       private const int UIA_IsContentElementPropertyId       = 30017;
       private const int UIA_LiveSettingPropertyId            = 30135;
       private const int UIA_IsTextPatternAvailablePropertyId = 30119;
-      // ControlType=Edit (50004) so Narrator stays in forms mode and reads MSAA Value.
-      // ControlType=Document (50006) causes Narrator to use UIA TextPattern exclusively,
-      // which fails cross-process for UserControl-derived types in .NET 6.
-      private const int UIA_EditControlTypeId                = 50004;
+      private const int UIA_DocumentControlTypeId             = 50006;
 
       // Reflection to forward property/pattern queries to AccessibleObject's
       // internal implementation for properties we don't override ourselves.
@@ -178,12 +217,20 @@ namespace FastColoredTextBoxNS
 
       // ── AccessibleObject overrides ────────────────────────────────────
 
-      // Use Text (ROLE_SYSTEM_TEXT) for MSAA so screen readers stay in forms mode and read
-      // Value on cursor-move events. Document (ROLE_SYSTEM_DOCUMENT) triggers NVDA's
-      // virtual-buffer mode, which builds a tree from IAccessible children — we have none,
-      // so the document appears empty. The UIA ControlType is set independently in
-      // GetPropertyValue(UIA_ControlTypePropertyId) and still returns Document (50006).
       public override AccessibleRole Role => AccessibleRole.Text;
+
+      // Narrator reads Name when it focuses an element in scan mode.
+      // Returning the current line here means the user immediately hears content.
+      public override string Name
+      {
+         get
+         {
+            if (Tb.InvokeRequired)
+               return (string)Tb.Invoke(new Func<string>(() => Name));
+            return Tb.GetCurrentLineText();
+         }
+         set { }
+      }
 
       // Returning null suppresses InvokePattern from the MSAA-UIA bridge.
       public override string DefaultAction => null;
@@ -256,7 +303,7 @@ namespace FastColoredTextBoxNS
          FastColoredTextBox.UiaLog($"  GetPropertyValue({propertyId}) called on {GetType().Name}");
          switch (propertyId)
          {
-            case UIA_ControlTypePropertyId:             return UIA_EditControlTypeId;
+            case UIA_ControlTypePropertyId:             return UIA_DocumentControlTypeId;
             case UIA_IsControlElementPropertyId:        return true;
             case UIA_IsContentElementPropertyId:        return true;
             case UIA_LiveSettingPropertyId:             return (int)LiveSetting;
