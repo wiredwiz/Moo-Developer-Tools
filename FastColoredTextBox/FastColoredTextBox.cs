@@ -3109,33 +3109,14 @@ namespace FastColoredTextBoxNS
 
       protected override void WndProc(ref Message m)
       {
+         // DIAGNOSTIC: let base.WndProc handle ALL WM_GETOBJECT messages (pure MSAA).
+         // Tests whether our Role=Document is visible via MSAA, and whether Krypton
+         // is hiding our element. If AIW shows Document, the issue is UIA-specific;
+         // if it still shows Pane, the problem is at the MSAA or container level.
          if (m.Msg == WM_GETOBJECT)
          {
             int lp = (int)(long)m.LParam;
-            UiaLog($"WM_GETOBJECT lParam={m.LParam}(={lp}) Handle={Handle} IsHandleCreated={IsHandleCreated} type={GetType().Name}");
-
-            // OBJID_QUERYCLASSNAMEIDX (-12): return the WinForms UIA marker so UIAutomationCore
-            // uses the UIA path (our OBJID_CLIENT provider) instead of the MSAA bridge.
-            // Without this, UIAutomationCore sees 0, concludes "MSAA-only control", and never
-            // calls GetPropertyValue on our provider even after a successful OBJID_CLIENT response.
-            if (lp == OBJID_QUERYCLASSNAMEIDX)
-            {
-               m.Result = _uiaClassMarker;
-               UiaLog($"  OBJID_QUERYCLASSNAMEIDX: returning 0x{m.Result.ToInt64():X}");
-               return;
-            }
-
-            // OBJID_CLIENT (-4): return our custom UIA provider.
-            if (lp == OBJID_CLIENT && IsHandleCreated)
-            {
-               if (AccessibilityObject is FctbAccessibleObject fctbProvider)
-               {
-                  UiaLog($"  -> OBJID_CLIENT hit: provider={fctbProvider.GetType().Name}");
-                  m.Result = AutomationInteropProvider.ReturnRawElementProvider(m.HWnd, m.WParam, m.LParam, fctbProvider);
-                  UiaLog($"  -> result={m.Result}");
-                  return;
-               }
-            }
+            UiaLog($"WM_GETOBJECT lParam={lp} type={GetType().Name}");
          }
 
          if (m.Msg == WM_HSCROLL || m.Msg == WM_VSCROLL)
