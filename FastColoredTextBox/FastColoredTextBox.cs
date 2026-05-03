@@ -39,6 +39,7 @@ using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Windows.Automation.Provider;
 using System.Windows.Forms;
 using System.Windows.Forms.Design;
 using Timer = System.Windows.Forms.Timer;
@@ -3106,7 +3107,7 @@ namespace FastColoredTextBoxNS
             if (AccessibilityObject is FctbAccessibleObject fctbProvider)
             {
                var bridge = new FctbUiaProviderBridge(fctbProvider);
-               m.Result = UiaReturnRawElementProvider(Handle, m.WParam, m.LParam, bridge);
+               m.Result = AutomationInteropProvider.ReturnRawElementProvider(Handle, m.WParam, m.LParam, bridge);
                return;
             }
          }
