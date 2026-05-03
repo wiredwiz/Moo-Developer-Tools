@@ -151,7 +151,7 @@ namespace FastColoredTextBoxNS
          if (string.IsNullOrEmpty(text)) return;
          var provider = AccessibilityObject as IRawElementProviderSimple;
          if (provider == null) return;
-         try { UiaRaiseNotificationEvent(provider, 2, 0, text, "fctb-nav"); }
+         try { UiaRaiseNotificationEvent(provider, 2, 0, text, "fctb-notify"); }
          catch (Exception) { }
       }
 
@@ -171,8 +171,7 @@ namespace FastColoredTextBoxNS
          try
          {
             int processing = all ? 2 : 3;
-            string activityId = all ? "fctb-live-text" : "fctb-text";
-            UiaRaiseNotificationEvent(provider, 2, processing, text, activityId);
+            UiaRaiseNotificationEvent(provider, 2, processing, text, "fctb-notify");
          }
          catch (Exception) { /* UiaRaiseNotificationEvent unavailable on pre-1709 */ }
       }
@@ -234,7 +233,7 @@ namespace FastColoredTextBoxNS
                if (string.IsNullOrEmpty(t)) return;
                var prov = AccessibilityObject as IRawElementProviderSimple;
                if (prov == null) return;
-               try { UiaRaiseNotificationEvent(prov, 2, 0, t, "fctb-nav"); }
+               try { UiaRaiseNotificationEvent(prov, 2, 0, t, "fctb-notify"); }
                catch (Exception) { }
             }
          };
