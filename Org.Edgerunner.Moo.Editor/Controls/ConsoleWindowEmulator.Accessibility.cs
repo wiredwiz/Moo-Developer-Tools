@@ -14,17 +14,23 @@ namespace Org.Edgerunner.Moo.Editor.Controls
          typeof(AccessibleObject).GetMethod("RaiseAutomationEvent",
             BindingFlags.NonPublic | BindingFlags.Instance);
 
-      // Live region hook is attached eagerly at handle creation so it is in place
-      // the moment a screen reader connects, not only after the user directly focuses
-      // this control with the screen reader.
+      // Debounce timer for live text announcements. Rapid bursts (e.g. 30 lines arriving
+      // over 200ms) keep resetting the timer; the notification fires once the text settles.
+      // This prevents Narrator from clipping each line short as the next one interrupts it.
+      private System.Windows.Forms.Timer _liveTextTimer;
+
       protected override void OnHandleCreated(EventArgs e)
       {
          base.OnHandleCreated(e);
          TextChanged += (_, _) => FireLiveRegionChangedEvent();
-         // UiaRaiseNotificationEvent: makes Narrator announce incoming server text regardless
-         // of whether ITextProvider works cross-process. interrupt=false so it queues after
-         // whatever Narrator is currently saying (e.g. the user's keystrokes).
-         TextChanged += (_, _) => FireAccessibilityNotification(GetCurrentLineText(), interrupt: false);
+
+         _liveTextTimer = new System.Windows.Forms.Timer { Interval = 250 };
+         _liveTextTimer.Tick += (_, _) =>
+         {
+            _liveTextTimer.Stop();
+            FireAccessibilityNotification(GetCurrentLineText(), interrupt: false);
+         };
+         TextChanged += (_, _) => { _liveTextTimer.Stop(); _liveTextTimer.Start(); };
       }
 
       protected override AccessibleObject CreateAccessibilityInstance()
