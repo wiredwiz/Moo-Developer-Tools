@@ -175,7 +175,12 @@ namespace FastColoredTextBoxNS
 
       // ── AccessibleObject overrides ────────────────────────────────────
 
-      public override AccessibleRole Role => AccessibleRole.Document;
+      // Use Text (ROLE_SYSTEM_TEXT) for MSAA so screen readers stay in forms mode and read
+      // Value on cursor-move events. Document (ROLE_SYSTEM_DOCUMENT) triggers NVDA's
+      // virtual-buffer mode, which builds a tree from IAccessible children — we have none,
+      // so the document appears empty. The UIA ControlType is set independently in
+      // GetPropertyValue(UIA_ControlTypePropertyId) and still returns Document (50006).
+      public override AccessibleRole Role => AccessibleRole.Text;
 
       // Returning null suppresses InvokePattern from the MSAA-UIA bridge.
       public override string DefaultAction => null;
