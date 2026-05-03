@@ -120,12 +120,17 @@ namespace FastColoredTextBoxNS
          [MarshalAs(UnmanagedType.BStr)] string displayString,
          [MarshalAs(UnmanagedType.BStr)] string activityId);
 
+      private string _lastNotificationText;
+
       // Call this to make Narrator (and other UIA screen readers) speak text.
       // interrupt=true: cuts off current speech and immediately speaks (for navigation).
       // interrupt=false: queues after current speech (for incoming live text).
+      // Deduplicates: same text skipped so auto-scroll SelectionChanged doesn't loop.
       protected internal void FireAccessibilityNotification(string text, bool interrupt = false)
       {
          if (string.IsNullOrEmpty(text)) return;
+         if (text == _lastNotificationText) return;
+         _lastNotificationText = text;
          var provider = AccessibilityObject as IRawElementProviderSimple;
          if (provider == null) return;
          try
