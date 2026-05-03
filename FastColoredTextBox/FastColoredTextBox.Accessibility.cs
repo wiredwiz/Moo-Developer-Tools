@@ -150,7 +150,10 @@ namespace FastColoredTextBoxNS
       private const int UIA_IsContentElementPropertyId       = 30017;
       private const int UIA_LiveSettingPropertyId            = 30135;
       private const int UIA_IsTextPatternAvailablePropertyId = 30119;
-      private const int UIA_DocumentControlTypeId            = 50006;
+      // ControlType=Edit (50004) so Narrator stays in forms mode and reads MSAA Value.
+      // ControlType=Document (50006) causes Narrator to use UIA TextPattern exclusively,
+      // which fails cross-process for UserControl-derived types in .NET 6.
+      private const int UIA_EditControlTypeId                = 50004;
 
       // Reflection to forward property/pattern queries to AccessibleObject's
       // internal implementation for properties we don't override ourselves.
@@ -185,19 +188,24 @@ namespace FastColoredTextBoxNS
       // Returning null suppresses InvokePattern from the MSAA-UIA bridge.
       public override string DefaultAction => null;
 
-      // Value exposes the current line text via MSAA so screen readers in MSAA mode can read it.
-      // Returning the entire document is too long; screen readers call this on every cursor move
-      // expecting the current line, analogous to a text field reporting its value.
+      // Value exposes the current line text via MSAA so screen readers read it on focus and
+      // cursor-move WinEvents. If the cursor is on an empty trailing line (common after a
+      // newline-terminated MUD response), walk back to the last non-empty line so screen
+      // readers always hear meaningful content rather than silence.
       public override string Value
       {
          get
          {
-            FastColoredTextBox.UiaLog($"  Value getter called on {GetType().Name}");
             if (Tb.InvokeRequired)
                return (string)Tb.Invoke(new Func<string>(() => Value));
             int line = Tb.Selection.Start.iLine;
-            if (line < 0 || line >= Tb.LinesCount) return string.Empty;
-            return Tb.Lines[line];
+            if (line < 0 || line >= Tb.LinesCount) line = Math.Max(0, Tb.LinesCount - 1);
+            // Walk back past empty trailing lines
+            while (line > 0 && string.IsNullOrEmpty(Tb.Lines[line]))
+               line--;
+            string text = (line >= 0 && line < Tb.LinesCount) ? Tb.Lines[line] : string.Empty;
+            FastColoredTextBox.UiaLog($"  Value getter called on {GetType().Name} → line={line} text=\"{text}\"");
+            return text;
          }
       }
 
@@ -248,7 +256,7 @@ namespace FastColoredTextBoxNS
          FastColoredTextBox.UiaLog($"  GetPropertyValue({propertyId}) called on {GetType().Name}");
          switch (propertyId)
          {
-            case UIA_ControlTypePropertyId:             return UIA_DocumentControlTypeId;
+            case UIA_ControlTypePropertyId:             return UIA_EditControlTypeId;
             case UIA_IsControlElementPropertyId:        return true;
             case UIA_IsContentElementPropertyId:        return true;
             case UIA_LiveSettingPropertyId:             return (int)LiveSetting;
