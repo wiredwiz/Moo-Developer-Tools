@@ -109,16 +109,26 @@ namespace FastColoredTextBoxNS
       {
          get
          {
+            FastColoredTextBox.UiaLog($"  HostRawElementProvider called on {GetType().Name} IsHandleCreated={Tb.IsHandleCreated}");
             if (!Tb.IsHandleCreated) return null;
             UiaHostProviderFromHwnd(Tb.Handle, out var host);
+            FastColoredTextBox.UiaLog($"  HostRawElementProvider returning {host?.GetType().Name ?? "null"}");
             return host;
          }
       }
 
-      ProviderOptions IRawElementProviderSimple.ProviderOptions => ProviderOptions.ServerSideProvider;
+      ProviderOptions IRawElementProviderSimple.ProviderOptions
+      {
+         get
+         {
+            FastColoredTextBox.UiaLog($"  ProviderOptions called on {GetType().Name}");
+            return ProviderOptions.ServerSideProvider;
+         }
+      }
 
       object IRawElementProviderSimple.GetPatternProvider(int patternId)
       {
+         FastColoredTextBox.UiaLog($"  GetPatternProvider({patternId}) called on {GetType().Name}");
          if (patternId == UIA_TextPatternId || patternId == UIA_TextPattern2Id)
             return this;
          // Forward all other pattern queries to base
@@ -127,6 +137,7 @@ namespace FastColoredTextBoxNS
 
       object IRawElementProviderSimple.GetPropertyValue(int propertyId)
       {
+         FastColoredTextBox.UiaLog($"  GetPropertyValue({propertyId}) called on {GetType().Name}");
          switch (propertyId)
          {
             case UIA_ControlTypePropertyId:             return UIA_DocumentControlTypeId;

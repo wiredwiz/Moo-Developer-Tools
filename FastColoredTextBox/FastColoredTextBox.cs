@@ -3095,20 +3095,40 @@ namespace FastColoredTextBoxNS
       [DllImport("Imm32.dll")]
       private static extern IntPtr ImmAssociateContext(IntPtr hWnd, IntPtr hIMC);
 
+      private static readonly string _uiaLog = @"C:\Temp\fctb-uia.log";
+      internal static void UiaLog(string msg)
+      {
+         try
+         {
+            System.IO.Directory.CreateDirectory(@"C:\Temp");
+            System.IO.File.AppendAllText(_uiaLog, $"[{System.DateTime.Now:HH:mm:ss.fff}] {msg}\n");
+         }
+         catch { }
+      }
+
       protected override void WndProc(ref Message m)
       {
+         // Log ALL WM_GETOBJECT hits so we can see what lParam values arrive.
+         if (m.Msg == WM_GETOBJECT)
+         {
+            int lp = (int)(long)m.LParam;
+            UiaLog($"WM_GETOBJECT lParam={m.LParam}(={lp}) Handle={Handle} m.HWnd={m.HWnd} IsHandleCreated={IsHandleCreated} type={GetType().Name}");
+         }
+
          // Return our UIA provider for WM_GETOBJECT, bypassing WinForms's
          // SupportsUiaProviders gate (which is false for custom UserControls).
          if (m.Msg == WM_GETOBJECT && (int)(long)m.LParam == OBJID_CLIENT && IsHandleCreated)
          {
             if (AccessibilityObject is FctbAccessibleObject fctbProvider)
             {
-               System.IO.File.AppendAllText(@"C:\Temp\fctb-uia.log",
-                  $"OBJID_CLIENT hit: Handle={Handle} m.HWnd={m.HWnd} match={Handle==m.HWnd} lParam={m.LParam}\n");
+               UiaLog($"  -> OBJID_CLIENT hit: Handle={Handle} m.HWnd={m.HWnd} match={Handle==m.HWnd} provider={fctbProvider.GetType().Name}");
                m.Result = AutomationInteropProvider.ReturnRawElementProvider(m.HWnd, m.WParam, m.LParam, fctbProvider);
-               System.IO.File.AppendAllText(@"C:\Temp\fctb-uia.log",
-                  $"  result={m.Result} provider={fctbProvider.GetType().Name}\n");
+               UiaLog($"  -> result={m.Result}");
                return;
+            }
+            else
+            {
+               UiaLog($"  -> OBJID_CLIENT: AccessibilityObject is {AccessibilityObject?.GetType().Name ?? "null"} — not FctbAccessibleObject, skipping");
             }
          }
 
