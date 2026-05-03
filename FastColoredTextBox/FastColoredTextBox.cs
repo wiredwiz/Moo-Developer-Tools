@@ -3125,16 +3125,16 @@ namespace FastColoredTextBoxNS
                return;
             }
 
-            // OBJID_CLIENT (-4): return 0 so UIAutomationCore MUST use our registered
-            // UiaProviderCallback instead of resolving a WM_GETOBJECT lresult.
-            // Both MSAA (via base.WndProc) and UIA (via ReturnRawElementProvider) lresults
-            // cause UIAutomationCore to bypass the provider callback entirely.
-            // Returning 0 forces UIAutomationCore to call our callback for cross-process access.
-            if (lp == OBJID_CLIENT)
+            // OBJID_CLIENT (-4): return our custom UIA provider.
+            if (lp == OBJID_CLIENT && IsHandleCreated)
             {
-               UiaLog($"  OBJID_CLIENT: returning 0 (forcing callback path)");
-               m.Result = IntPtr.Zero;
-               return;
+               if (AccessibilityObject is FctbAccessibleObject fctbProvider)
+               {
+                  UiaLog($"  -> OBJID_CLIENT hit: provider={fctbProvider.GetType().Name}");
+                  m.Result = AutomationInteropProvider.ReturnRawElementProvider(m.HWnd, m.WParam, m.LParam, fctbProvider);
+                  UiaLog($"  -> result={m.Result}");
+                  return;
+               }
             }
          }
 

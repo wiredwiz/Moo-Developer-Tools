@@ -222,7 +222,11 @@ namespace FastColoredTextBoxNS
          get
          {
             FastColoredTextBox.UiaLog($"  ProviderOptions called on {GetType().Name}");
-            return ProviderOptions.ServerSideProvider;
+            // UseComThreading: UIAutomationCore must call this provider on the UI thread's
+            // STA COM apartment (via the STA message pump). Without it, cross-process calls
+            // from the UIA client to our provider fail silently. WinForms AccessibleObject's
+            // own ProviderOptions returns both ServerSideProvider | UseComThreading.
+            return ProviderOptions.ServerSideProvider | ProviderOptions.UseComThreading;
          }
       }
 
