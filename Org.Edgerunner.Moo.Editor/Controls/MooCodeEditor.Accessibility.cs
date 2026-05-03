@@ -95,6 +95,11 @@ public class MooCodeEditorAccessibleObject : FctbAccessibleObject
    {
       _errors   = messages.Where(m => m.Severity == ParseMessageSeverity.Error).ToList();
       _warnings = messages.Where(m => m.Severity == ParseMessageSeverity.Warning).ToList();
+      if (_announcementTimer != null)
+      {
+         _announcementTimer.Stop();
+         _announcementTimer.Start();
+      }
    }
 
    public override ITextRangeProvider[] GetSelection()
