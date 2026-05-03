@@ -573,7 +573,7 @@ namespace FastColoredTextBoxNS
    }
 
    /// <summary>
-   /// Thin non-FTM wrapper passed to UiaReturnRawElementProvider.
+   /// Thin non-FTM wrapper passed to AutomationInteropProvider.ReturnRawElementProvider.
    /// FctbAccessibleObject inherits StandardOleMarshalObject (FTM via AccessibleObject),
    /// which causes UIAutomationCore to discard the provider during cross-process setup.
    /// This plain class uses standard STA COM apartment marshaling, allowing registration
