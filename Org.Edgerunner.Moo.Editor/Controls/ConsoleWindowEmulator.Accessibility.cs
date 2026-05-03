@@ -18,6 +18,11 @@ namespace Org.Edgerunner.Moo.Editor.Controls
       // new complete lines occupy indices [_prevLinesCount-1 .. LinesCount-2] after a change.
       private int _prevLinesCount;
 
+      // Set by TextChanged so the immediately following auto-scroll SelectionChanged is ignored.
+      // Arrow-key navigation fires SelectionChanged WITHOUT a preceding TextChanged, so it
+      // passes through and announces the current line.
+      private bool _suppressNextSelection;
+
       protected override void OnHandleCreated(EventArgs e)
       {
          base.OnHandleCreated(e);
@@ -34,9 +39,9 @@ namespace Org.Edgerunner.Moo.Editor.Controls
             int count = LinesCount;
             if (count <= _prevLinesCount) { _prevLinesCount = count; return; }
 
-            // New complete lines: from the old trailing-empty slot to the new trailing-empty.
-            // Old trailing empty was at index _prevLinesCount-1; it now holds real text.
-            // New trailing empty is at index count-1; we skip it.
+            // Suppress the auto-scroll SelectionChanged that fires right after new text arrives.
+            _suppressNextSelection = true;
+
             int startLine = Math.Max(0, _prevLinesCount - 1);
             int endLine   = count - 2;
 
@@ -47,6 +52,14 @@ namespace Org.Edgerunner.Moo.Editor.Controls
                   FireAccessibilityNotification(line, all: true);
             }
             _prevLinesCount = count;
+         };
+
+         // Arrow-key navigation: announce the line the cursor moved to.
+         // Skipped when _suppressNextSelection is set (auto-scroll from TextChanged).
+         SelectionChanged += (_, _) =>
+         {
+            if (_suppressNextSelection) { _suppressNextSelection = false; return; }
+            FireAccessibilityNotification(GetCurrentLineText(), interrupt: true);
          };
       }
 

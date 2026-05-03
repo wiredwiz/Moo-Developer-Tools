@@ -131,7 +131,10 @@ namespace FastColoredTextBoxNS
       protected internal void FireAccessibilityNotification(string text, bool interrupt = false, bool all = false)
       {
          if (string.IsNullOrEmpty(text)) return;
-         if (!all)
+         // Only deduplicate passive (non-interrupt, non-all) notifications.
+         // Navigation (interrupt=true) should always read even if the line was just announced.
+         // All-mode (all=true) handles its own queueing without deduplication.
+         if (!interrupt && !all)
          {
             if (text == _lastNotificationText) return;
             _lastNotificationText = text;
