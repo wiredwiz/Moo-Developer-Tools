@@ -123,7 +123,7 @@ namespace FastColoredTextBoxNS
       private string _lastNotificationText;
       private int    _lastNavLine = -1;
       private bool   _navFromMouse;
-      private bool   _hadFocusOnMouseDown;
+      private bool   _pendingFocusEvent;
       private System.Windows.Forms.Timer _mouseNavTimer;
 
       // Syncs _lastNavLine to the current cursor position. Called after auto-scroll so
@@ -133,20 +133,19 @@ namespace FastColoredTextBoxNS
          _lastNavLine = Selection.Start.iLine;
       }
 
-      // Navigation announcement.
-      // Keyboard (arrow keys): fires immediately when the cursor moves to a new line.
-      //   Position-tracking skips spurious SelectionChanged events (FCTB fires several per
-      //   keypress — scroll, repaint) because they all land on the same line number.
-      //   ImportantMostRecent cuts off previous speech so rapid UP/DOWN reads each line.
-      // Mouse (click): _navFromMouse is true while button is held; SelectionChanged events
-      //   during a click bounce across multiple line numbers, causing stutter if announced.
-      //   Instead, EnsureUiaEventHooks starts a 40ms settle timer on MouseUp; the timer
-      //   reads the final settled position and announces it once.
+      // Navigation announcement (keyboard arrow keys).
+      // Position-tracking skips spurious SelectionChanged events (FCTB fires several per
+      // keypress) because they all land on the same line number.
+      // Mouse clicks are blocked via two guards:
+      //   _navFromMouse — set at MouseDown, cleared at timer tick (covers post-MouseUp bounce)
+      //   MouseButtons  — catches SelectionChanged that fires BEFORE MouseDown because FCTB
+      //                   moves the cursor during WM_LBUTTONDOWN before WinForms fires MouseDown
       protected internal void FireNavigationNotification()
       {
-         if (_navFromMouse) return; // click settling — mouse timer announces on settle
+         if (_navFromMouse) return;
+         if (MouseButtons != MouseButtons.None) return; // mouse button physically held
          int line = Selection.Start.iLine;
-         if (line == _lastNavLine) return; // spurious duplicate event, same line
+         if (line == _lastNavLine) return;
          _lastNavLine = line;
          string text = GetCurrentLineText();
          if (string.IsNullOrEmpty(text)) return;
@@ -205,9 +204,15 @@ namespace FastColoredTextBoxNS
          // Console subclass hooks TextChanged to read all new lines (all=true).
          // Editor subclass hooks SelectionChanged to read current line on navigation.
 
-         // Mouse click: hold off navigation announcements while button is down; cursor
-         // bounces across multiple lines during a click, causing stutter if announced.
-         // Announce once 40ms after MouseUp when the position has settled.
+         // Mouse click handling.
+         //
+         // WM_SETFOCUS arrives BEFORE WM_LBUTTONDOWN on click-to-focus. GotFocus fires
+         // while the cursor is still at its pre-click position, so raising the UIA focus
+         // event immediately would make Narrator read the wrong line. Instead, we defer
+         // the focus event until the mouse timer fires (after cursor has settled).
+         //
+         // For already-focused clicks: no GotFocus fires, so the timer announces the line
+         // directly via UiaRaiseNotificationEvent.
          _mouseNavTimer = new System.Windows.Forms.Timer { Interval = 40 };
          _mouseNavTimer.Tick += (_, _) =>
          {
@@ -215,32 +220,38 @@ namespace FastColoredTextBoxNS
             _navFromMouse = false;
             int line = Selection.Start.iLine;
             _lastNavLine = line;
-            string t = GetCurrentLineText();
-            if (string.IsNullOrEmpty(t)) return;
-            var prov = AccessibilityObject as IRawElementProviderSimple;
-            if (prov == null) return;
-            try { UiaRaiseNotificationEvent(prov, 2, 0, t, "fctb-nav"); }
-            catch (Exception) { }
-         };
-         MouseDown += (_, _) =>
-         {
-            _hadFocusOnMouseDown = Focused;
-            _navFromMouse = true;
-            _mouseNavTimer.Stop();
-         };
-         MouseUp += (_, _) =>
-         {
-            if (!_hadFocusOnMouseDown)
+            if (_pendingFocusEvent)
             {
-               // Click moved focus here; Narrator reads element Name+role+Value automatically.
-               // Suppress the settle timer to avoid a third reading.
-               _navFromMouse = false;
-               UpdateNavPosition();
-               return;
+               // Click-to-focus: raise UIA focus event now that cursor is at the clicked line.
+               // Narrator reads "Name Edit Value" with the correct position.
+               _pendingFocusEvent = false;
+               RaiseUiaEvent(AccessibilityObject, 20005);
             }
-            _mouseNavTimer.Stop();
-            _mouseNavTimer.Start();
+            else
+            {
+               // Already-focused click: announce the clicked line directly.
+               string t = GetCurrentLineText();
+               if (string.IsNullOrEmpty(t)) return;
+               var prov = AccessibilityObject as IRawElementProviderSimple;
+               if (prov == null) return;
+               try { UiaRaiseNotificationEvent(prov, 2, 0, t, "fctb-nav"); }
+               catch (Exception) { }
+            }
          };
+
+         // GotFocus fires during WM_SETFOCUS (before WM_LBUTTONDOWN for click-to-focus).
+         // If a mouse button is physically held, defer the focus event to the timer so
+         // the cursor has time to move to the clicked position first.
+         GotFocus += (_, _) =>
+         {
+            if (MouseButtons != MouseButtons.None)
+               _pendingFocusEvent = true;
+            else
+               RaiseUiaEvent(AccessibilityObject, 20005); // keyboard/programmatic focus
+         };
+
+         MouseDown += (_, _) => { _navFromMouse = true; _mouseNavTimer.Stop(); };
+         MouseUp   += (_, _) => { _mouseNavTimer.Stop(); _mouseNavTimer.Start(); };
          _accessibilityInitialized = true;
          RegisterUiaHwnd();
       }
