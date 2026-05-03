@@ -3099,15 +3099,11 @@ namespace FastColoredTextBoxNS
       {
          // Return our UIA provider for WM_GETOBJECT, bypassing WinForms's
          // SupportsUiaProviders gate (which is false for custom UserControls).
-         // FctbAccessibleObject inherits StandardOleMarshalObject (FTM), which
-         // UIAutomationCore rejects for cross-process provider registration. We pass
-         // FctbUiaProviderBridge — a plain non-FTM wrapper — instead.
          if (m.Msg == WM_GETOBJECT && (int)(long)m.LParam == OBJID_CLIENT && IsHandleCreated)
          {
             if (AccessibilityObject is FctbAccessibleObject fctbProvider)
             {
-               var bridge = new FctbUiaProviderBridge(fctbProvider);
-               m.Result = AutomationInteropProvider.ReturnRawElementProvider(Handle, m.WParam, m.LParam, bridge);
+               m.Result = AutomationInteropProvider.ReturnRawElementProvider(Handle, m.WParam, m.LParam, fctbProvider);
                return;
             }
          }
