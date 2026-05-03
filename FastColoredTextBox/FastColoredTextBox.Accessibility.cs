@@ -17,10 +17,6 @@ namespace FastColoredTextBoxNS
       private const int WM_GETOBJECT = 0x003D;
       private const int OBJID_CLIENT = unchecked((int)0xFFFFFFFC);
 
-      [DllImport("UIAutomationCore.dll", SetLastError = false)]
-      private static extern IntPtr UiaReturnRawElementProvider(
-         IntPtr hwnd, IntPtr wParam, IntPtr lParam, IRawElementProviderSimple el);
-
       // UIA event IDs for text notifications (from UIAutomationClient constants).
       // UIA_Text_TextChangedEventId          = 20014
       // UIA_Text_TextSelectionChangedEventId = 20018
