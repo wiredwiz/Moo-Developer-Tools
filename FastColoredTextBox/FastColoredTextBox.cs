@@ -3109,15 +3109,20 @@ namespace FastColoredTextBoxNS
 
       protected override void WndProc(ref Message m)
       {
-         // DIAGNOSTIC: let base.WndProc handle ALL WM_GETOBJECT messages (pure MSAA).
-         // Tests whether our Role=Document is visible via MSAA, and whether Krypton
-         // is hiding our element. If AIW shows Document, the issue is UIA-specific;
-         // if it still shows Pane, the problem is at the MSAA or container level.
+         // WM_GETOBJECT: let base.WndProc handle it entirely.
+         //
+         // The working mechanism: base.WndProc calls LresultFromObject (MSAA) with our
+         // AccessibilityObject. oleacc.dll creates a robust cross-process COM pointer.
+         // UIA clients (AIW, screen readers) do QI on that pointer for IRawElementProviderSimple
+         // and ITextProvider — finding our FctbAccessibleObject's explicit implementations.
+         // This gives ControlType=Document (from Role=AccessibleRole.Document) and TextPattern.
+         //
+         // DO NOT intercept OBJID_CLIENT or OBJID_QUERYCLASSNAMEIDX here. Overriding either
+         // breaks the cross-process path: calling UiaReturnRawElementProvider directly produces
+         // a UIA lresult that cannot be resolved cross-process in .NET 6 for UserControl-derived
+         // types (SupportsUiaProviders=false), causing silent fallback to parent MSAA element.
          if (m.Msg == WM_GETOBJECT)
-         {
-            int lp = (int)(long)m.LParam;
-            UiaLog($"WM_GETOBJECT lParam={lp} type={GetType().Name}");
-         }
+            UiaLog($"WM_GETOBJECT lParam={(int)(long)m.LParam} type={GetType().Name}");
 
          if (m.Msg == WM_HSCROLL || m.Msg == WM_VSCROLL)
             if (m.WParam.ToInt32() != SB_ENDSCROLL)
