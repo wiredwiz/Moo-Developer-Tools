@@ -62,14 +62,80 @@ namespace FastColoredTextBoxNS
          catch (Exception) { /* best effort */ }
       }
 
+      // ── UIA provider callback registration ───────────────────────────────
+      // WinForms's own UiaRegisterProviderCallback returns null (MSAA) for our
+      // control because SupportsUiaProviders=false. We register our own callback
+      // so UIAutomationCore uses our Document+TextPattern provider instead.
+
+      private enum _ProviderType { BaseHwnd = 0, Proxy = 1, NonClientArea = 2 }
+
+      [UnmanagedFunctionPointer(CallingConvention.StdCall)]
+      private delegate IRawElementProviderSimple _UiaProviderCallbackDelegate(
+         IntPtr hwnd, _ProviderType providerType);
+
+      [DllImport("UIAutomationCore.dll", ExactSpelling = true, SetLastError = false)]
+      private static extern bool UiaRegisterProviderCallback(
+         _UiaProviderCallbackDelegate pCallback, _ProviderType eType);
+
+      // Static delegate — must be kept alive to prevent GC collection.
+      private static readonly _UiaProviderCallbackDelegate s_uiaProviderCallback =
+         OnUiaProviderRequested;
+
+      // HWND → weak-ref FCTB map, updated in EnsureUiaEventHooks / HandleDestroyed.
+      private static readonly Dictionary<IntPtr, WeakReference<FastColoredTextBox>> s_fctbByHwnd
+         = new();
+
+      private static bool s_uiaCallbackRegistered;
+      private static readonly object s_uiaCallbackLock = new();
+
+      private static IRawElementProviderSimple OnUiaProviderRequested(
+         IntPtr hwnd, _ProviderType providerType)
+      {
+         if (providerType != _ProviderType.BaseHwnd) return null;
+         FastColoredTextBox tb = null;
+         lock (s_fctbByHwnd)
+         {
+            if (s_fctbByHwnd.TryGetValue(hwnd, out var wr))
+               wr.TryGetTarget(out tb);
+         }
+         if (tb == null) return null;
+         // AccessibilityObject is already cached by the time this callback fires
+         // (EnsureUiaEventHooks was triggered by the same WM_GETOBJECT that
+         // caused callback registration).
+         var ao = tb.AccessibilityObject as FctbAccessibleObject;
+         UiaLog($"  UiaProviderCallback: hwnd={hwnd} → {ao?.GetType().Name ?? "null"}");
+         return ao;
+      }
+
       // Called by CreateAccessibilityInstance overrides in this class and subclasses.
-      // Ensures text/selection UIA events are hooked exactly once per control lifetime.
+      // Ensures text/selection UIA events are hooked exactly once per control lifetime,
+      // and registers the process-wide UIA provider callback for FCTB windows.
       protected void EnsureUiaEventHooks()
       {
          if (_accessibilityInitialized) return;
-         TextChanged     += (_, _) => RaiseUiaEvent(AccessibilityObject, 20014);
+         TextChanged      += (_, _) => RaiseUiaEvent(AccessibilityObject, 20014);
          SelectionChanged += (_, _) => RaiseUiaEvent(AccessibilityObject, 20018);
          _accessibilityInitialized = true;
+
+         // Register this control's HWND so the provider callback can find it.
+         if (!IsHandleCreated) return;
+         var hwnd = Handle;
+         lock (s_fctbByHwnd)
+            s_fctbByHwnd[hwnd] = new WeakReference<FastColoredTextBox>(this);
+         HandleDestroyed += (_, _) => { lock (s_fctbByHwnd) s_fctbByHwnd.Remove(hwnd); };
+
+         // Register the process-wide callback exactly once.
+         lock (s_uiaCallbackLock)
+         {
+            if (s_uiaCallbackRegistered) return;
+            s_uiaCallbackRegistered = true;
+         }
+         try
+         {
+            bool ok = UiaRegisterProviderCallback(s_uiaProviderCallback, _ProviderType.BaseHwnd);
+            UiaLog($"UiaRegisterProviderCallback → {ok}");
+         }
+         catch (Exception ex) { UiaLog($"UiaRegisterProviderCallback failed: {ex.Message}"); }
       }
 
       protected override AccessibleObject CreateAccessibilityInstance()
