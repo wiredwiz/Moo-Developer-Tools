@@ -14,23 +14,31 @@ namespace Org.Edgerunner.Moo.Editor.Controls
          typeof(AccessibleObject).GetMethod("RaiseAutomationEvent",
             BindingFlags.NonPublic | BindingFlags.Instance);
 
-      // Debounce timer for live text announcements. Rapid bursts (e.g. 30 lines arriving
-      // over 200ms) keep resetting the timer; the notification fires once the text settles.
-      // This prevents Narrator from clipping each line short as the next one interrupts it.
-      private System.Windows.Forms.Timer _liveTextTimer;
+      // Index of the last line we have already announced. Initialized in OnHandleCreated
+      // to the current bottom so pre-existing content is not announced on connect.
+      private int _lastAnnouncedLine = -1;
 
       protected override void OnHandleCreated(EventArgs e)
       {
          base.OnHandleCreated(e);
          TextChanged += (_, _) => FireLiveRegionChangedEvent();
 
-         _liveTextTimer = new System.Windows.Forms.Timer { Interval = 250 };
-         _liveTextTimer.Tick += (_, _) =>
+         // Seed the announced position at the current bottom so we only announce NEW text.
+         _lastAnnouncedLine = LinesCount - 1;
+
+         // Announce every new non-empty line in arrival order using NotificationProcessing.All
+         // so Narrator reads the full stream, not just the last line.
+         TextChanged += (_, _) =>
          {
-            _liveTextTimer.Stop();
-            FireAccessibilityNotification(GetCurrentLineText(), interrupt: false);
+            int count = LinesCount;
+            for (int i = _lastAnnouncedLine + 1; i < count; i++)
+            {
+               string line = i < count ? Lines[i] : string.Empty;
+               if (!string.IsNullOrWhiteSpace(line))
+                  FireAccessibilityNotification(line, all: true);
+            }
+            _lastAnnouncedLine = count - 1;
          };
-         TextChanged += (_, _) => { _liveTextTimer.Stop(); _liveTextTimer.Start(); };
       }
 
       protected override AccessibleObject CreateAccessibilityInstance()

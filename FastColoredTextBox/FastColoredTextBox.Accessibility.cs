@@ -122,21 +122,27 @@ namespace FastColoredTextBoxNS
 
       private string _lastNotificationText;
 
-      // Call this to make Narrator (and other UIA screen readers) speak text.
-      // interrupt=true: cuts off current speech and immediately speaks (for navigation).
-      // interrupt=false: queues after current speech (for incoming live text).
-      // Deduplicates: same text skipped so auto-scroll SelectionChanged doesn't loop.
-      protected internal void FireAccessibilityNotification(string text, bool interrupt = false)
+      // Makes Narrator (and other UIA screen readers) speak text via UiaRaiseNotificationEvent.
+      // interrupt=true  → ImportantMostRecent (0): cuts current speech; use for navigation.
+      // interrupt=false → MostRecent (3):          queued, only latest; use for single updates.
+      // all=true        → All (2):                 queued, every item read in order; use for
+      //                   streaming console output so every line gets read, not just the last.
+      // Deduplication is skipped in 'all' mode so the caller controls what gets announced.
+      protected internal void FireAccessibilityNotification(string text, bool interrupt = false, bool all = false)
       {
          if (string.IsNullOrEmpty(text)) return;
-         if (text == _lastNotificationText) return;
-         _lastNotificationText = text;
+         if (!all)
+         {
+            if (text == _lastNotificationText) return;
+            _lastNotificationText = text;
+         }
          var provider = AccessibilityObject as IRawElementProviderSimple;
          if (provider == null) return;
          try
          {
-            int processing = interrupt ? 0 : 3; // ImportantMostRecent : MostRecent
-            UiaRaiseNotificationEvent(provider, 2, processing, text, "fctb-text");
+            int processing = interrupt ? 0 : (all ? 2 : 3);
+            string activityId = all ? "fctb-live-text" : "fctb-text";
+            UiaRaiseNotificationEvent(provider, 2, processing, text, activityId);
          }
          catch (Exception) { /* UiaRaiseNotificationEvent unavailable on pre-1709 */ }
       }
@@ -164,9 +170,9 @@ namespace FastColoredTextBoxNS
          // MSAA WinEvents for MSAA-mode screen readers (NVDA/JAWS)
          TextChanged      += (_, _) => AccessibilityNotifyClients(AccessibleEvents.ValueChange, 0);
          SelectionChanged += (_, _) => AccessibilityNotifyClients(AccessibleEvents.Selection, 0);
-         // UiaRaiseNotificationEvent: speaks the current line when the cursor moves.
-         // This works for Narrator regardless of whether ITextProvider works cross-process.
-         SelectionChanged += (_, _) => FireAccessibilityNotification(GetCurrentLineText(), interrupt: true);
+         // SelectionChanged → FireAccessibilityNotification is NOT hooked here.
+         // Console subclass hooks TextChanged to read all new lines (all=true).
+         // Editor subclass hooks SelectionChanged to read current line on navigation.
          _accessibilityInitialized = true;
          RegisterUiaHwnd();
       }

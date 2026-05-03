@@ -14,7 +14,12 @@ public partial class MooCodeEditor
    {
       EnsureUiaEventHooks(); // text/selection UIA events from FastColoredTextBox base
       if (!_editorAccessibilityInitialized)
+      {
+         // Arrow-key navigation: announce the current line each time the cursor moves.
+         // interrupt=true so the new line immediately replaces whatever was being read.
+         SelectionChanged += (_, _) => FireAccessibilityNotification(GetCurrentLineText(), interrupt: true);
          _editorAccessibilityInitialized = true;
+      }
       var acc = new MooCodeEditorAccessibleObject(this);
       acc.InitializeTimer();
       return acc;
