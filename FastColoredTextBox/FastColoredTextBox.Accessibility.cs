@@ -123,6 +123,7 @@ namespace FastColoredTextBoxNS
       private string _lastNotificationText;
       private int    _lastNavLine = -1;
       private bool   _navFromMouse;
+      private bool   _hadFocusOnMouseDown;
       private System.Windows.Forms.Timer _mouseNavTimer;
 
       // Syncs _lastNavLine to the current cursor position. Called after auto-scroll so
@@ -221,8 +222,25 @@ namespace FastColoredTextBoxNS
             try { UiaRaiseNotificationEvent(prov, 2, 0, t, "fctb-nav"); }
             catch (Exception) { }
          };
-         MouseDown += (_, _) => { _navFromMouse = true;  _mouseNavTimer.Stop(); };
-         MouseUp   += (_, _) => { _mouseNavTimer.Stop(); _mouseNavTimer.Start(); };
+         MouseDown += (_, _) =>
+         {
+            _hadFocusOnMouseDown = Focused;
+            _navFromMouse = true;
+            _mouseNavTimer.Stop();
+         };
+         MouseUp += (_, _) =>
+         {
+            if (!_hadFocusOnMouseDown)
+            {
+               // Click moved focus here; Narrator reads element Name+role+Value automatically.
+               // Suppress the settle timer to avoid a third reading.
+               _navFromMouse = false;
+               UpdateNavPosition();
+               return;
+            }
+            _mouseNavTimer.Stop();
+            _mouseNavTimer.Start();
+         };
          _accessibilityInitialized = true;
          RegisterUiaHwnd();
       }
@@ -280,18 +298,11 @@ namespace FastColoredTextBoxNS
 
       public override AccessibleRole Role => AccessibleRole.Text;
 
-      // Narrator reads Name when it focuses an element in scan mode.
-      // Returning the current line here means the user immediately hears content.
-      public override string Name
-      {
-         get
-         {
-            if (Tb.InvokeRequired)
-               return (string)Tb.Invoke(new Func<string>(() => Name));
-            return Tb.GetCurrentLineText();
-         }
-         set { }
-      }
+      // Name intentionally returns empty. When Narrator focuses this element it reads
+      // Name + role + Value. If Name also returned the line text the user would hear the
+      // line twice ("line text  Edit  line text"). Value handles the content for MSAA
+      // screen readers; UiaRaiseNotificationEvent handles it for UIA screen readers.
+      public override string Name { get => string.Empty; set { } }
 
       // Returning null suppresses InvokePattern from the MSAA-UIA bridge.
       public override string DefaultAction => null;
