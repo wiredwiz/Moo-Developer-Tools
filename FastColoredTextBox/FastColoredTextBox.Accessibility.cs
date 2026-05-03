@@ -112,10 +112,14 @@ namespace FastColoredTextBoxNS
       protected void EnsureUiaEventHooks()
       {
          if (_accessibilityInitialized) return;
+         // UIA events (for UIA clients like Narrator/AIW)
          TextChanged      += (_, _) => RaiseUiaEvent(AccessibilityObject, 20014); // UIA_Text_TextChangedEventId
          SelectionChanged += (_, _) => RaiseUiaEvent(AccessibilityObject, 20018); // UIA_Text_TextSelectionChangedEventId
-         // Fire UIA focus changed event so screen readers subscribe to our UIA events.
          GotFocus         += (_, _) => RaiseUiaEvent(AccessibilityObject, 20005); // UIA_AutomationFocusChangedEventId
+         // MSAA WinEvents (for NVDA/JAWS in MSAA mode): notify when text or cursor changes so
+         // the screen reader calls get_accValue again and reads the updated current line.
+         TextChanged      += (_, _) => AccessibilityNotifyClients(AccessibleEvents.ValueChange, 0);
+         SelectionChanged += (_, _) => AccessibilityNotifyClients(AccessibleEvents.Selection, 0);
          _accessibilityInitialized = true;
          RegisterUiaHwnd();
       }
@@ -176,15 +180,19 @@ namespace FastColoredTextBoxNS
       // Returning null suppresses InvokePattern from the MSAA-UIA bridge.
       public override string DefaultAction => null;
 
-      // Value exposes the text content via MSAA so screen readers in MSAA mode can read it.
+      // Value exposes the current line text via MSAA so screen readers in MSAA mode can read it.
+      // Returning the entire document is too long; screen readers call this on every cursor move
+      // expecting the current line, analogous to a text field reporting its value.
       public override string Value
       {
          get
          {
             FastColoredTextBox.UiaLog($"  Value getter called on {GetType().Name}");
             if (Tb.InvokeRequired)
-               return (string)Tb.Invoke(new Func<string>(() => Tb.Text));
-            return Tb.Text;
+               return (string)Tb.Invoke(new Func<string>(() => Value));
+            int line = Tb.Selection.Start.iLine;
+            if (line < 0 || line >= Tb.LinesCount) return string.Empty;
+            return Tb.Lines[line];
          }
       }
 
