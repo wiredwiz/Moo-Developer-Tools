@@ -121,54 +121,45 @@ namespace FastColoredTextBoxNS
          [MarshalAs(UnmanagedType.BStr)] string activityId);
 
       private string _lastNotificationText;
-      private string _navPendingText;
-      private System.Windows.Forms.Timer _navDebounceTimer;
+      private int    _lastNavLine = -1;
 
-      // Makes Narrator (and other UIA screen readers) speak text via UiaRaiseNotificationEvent.
-      // interrupt=true  → debounced ImportantMostRecent: waits 60ms for rapid SelectionChanged
-      //                   bursts (FCTB fires several per keypress) to settle, then announces once.
-      // interrupt=false → MostRecent (3): queued, only latest; for single status updates.
-      // all=true        → All (2): queued, every item in order; for streaming console output.
-      protected internal void FireAccessibilityNotification(string text, bool interrupt = false, bool all = false)
+      // Navigation announcement: fires immediately when the cursor moves to a NEW line.
+      // Position-tracking skips spurious SelectionChanged events (FCTB fires several per
+      // keypress — scroll, repaint, etc.) because they all land on the same line number.
+      // Intentional arrow-key presses land on a different line, so they fire immediately.
+      // ImportantMostRecent (0) cuts off whatever Narrator is currently reading, so pressing
+      // up three times reads three lines with each press cutting off the previous.
+      protected internal void FireNavigationNotification()
+      {
+         int line = Selection.Start.iLine;
+         if (line == _lastNavLine) return; // spurious event — same line, skip
+         _lastNavLine = line;
+         string text = GetCurrentLineText();
+         if (string.IsNullOrEmpty(text)) return;
+         var provider = AccessibilityObject as IRawElementProviderSimple;
+         if (provider == null) return;
+         try { UiaRaiseNotificationEvent(provider, 2, 0, text, "fctb-nav"); }
+         catch (Exception) { }
+      }
+
+      // Live text and status announcements.
+      // all=true  → All (2): every item queued in order; for streaming console output.
+      // all=false → MostRecent (3): only latest; for single status updates. Deduplicates.
+      protected internal void FireAccessibilityNotification(string text, bool all = false)
       {
          if (string.IsNullOrEmpty(text)) return;
-
-         if (interrupt)
-         {
-            // Store latest and (re)start the debounce timer. All rapid events within the
-            // window collapse into one notification using the most recent line text.
-            _navPendingText = text;
-            if (_navDebounceTimer == null)
-            {
-               _navDebounceTimer = new System.Windows.Forms.Timer { Interval = 60 };
-               _navDebounceTimer.Tick += (_, _) =>
-               {
-                  _navDebounceTimer.Stop();
-                  var t = _navPendingText;
-                  if (string.IsNullOrEmpty(t)) return;
-                  var provider = AccessibilityObject as IRawElementProviderSimple;
-                  if (provider == null) return;
-                  try { UiaRaiseNotificationEvent(provider, 2, 0, t, "fctb-nav"); }
-                  catch (Exception) { }
-               };
-            }
-            _navDebounceTimer.Stop();
-            _navDebounceTimer.Start();
-            return;
-         }
-
          if (!all)
          {
             if (text == _lastNotificationText) return;
             _lastNotificationText = text;
          }
-         var prov = AccessibilityObject as IRawElementProviderSimple;
-         if (prov == null) return;
+         var provider = AccessibilityObject as IRawElementProviderSimple;
+         if (provider == null) return;
          try
          {
             int processing = all ? 2 : 3;
             string activityId = all ? "fctb-live-text" : "fctb-text";
-            UiaRaiseNotificationEvent(prov, 2, processing, text, activityId);
+            UiaRaiseNotificationEvent(provider, 2, processing, text, activityId);
          }
          catch (Exception) { /* UiaRaiseNotificationEvent unavailable on pre-1709 */ }
       }

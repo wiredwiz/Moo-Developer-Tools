@@ -59,7 +59,7 @@ namespace Org.Edgerunner.Moo.Editor.Controls
          SelectionChanged += (_, _) =>
          {
             if (_suppressNextSelection) { _suppressNextSelection = false; return; }
-            FireAccessibilityNotification(GetCurrentLineText(), interrupt: true);
+            FireNavigationNotification();
          };
       }
 
