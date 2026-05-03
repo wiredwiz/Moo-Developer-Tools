@@ -112,8 +112,10 @@ namespace FastColoredTextBoxNS
       protected void EnsureUiaEventHooks()
       {
          if (_accessibilityInitialized) return;
-         TextChanged      += (_, _) => RaiseUiaEvent(AccessibilityObject, 20014);
-         SelectionChanged += (_, _) => RaiseUiaEvent(AccessibilityObject, 20018);
+         TextChanged      += (_, _) => RaiseUiaEvent(AccessibilityObject, 20014); // UIA_Text_TextChangedEventId
+         SelectionChanged += (_, _) => RaiseUiaEvent(AccessibilityObject, 20018); // UIA_Text_TextSelectionChangedEventId
+         // Fire UIA focus changed event so screen readers subscribe to our UIA events.
+         GotFocus         += (_, _) => RaiseUiaEvent(AccessibilityObject, 20005); // UIA_AutomationFocusChangedEventId
          _accessibilityInitialized = true;
          RegisterUiaHwnd();
       }
@@ -170,6 +172,21 @@ namespace FastColoredTextBoxNS
       // ── AccessibleObject overrides ────────────────────────────────────
 
       public override AccessibleRole Role => AccessibleRole.Document;
+
+      // Returning null suppresses InvokePattern from the MSAA-UIA bridge.
+      public override string DefaultAction => null;
+
+      // Value exposes the text content via MSAA so screen readers in MSAA mode can read it.
+      public override string Value
+      {
+         get
+         {
+            FastColoredTextBox.UiaLog($"  Value getter called on {GetType().Name}");
+            if (Tb.InvokeRequired)
+               return (string)Tb.Invoke(new Func<string>(() => Tb.Text));
+            return Tb.Text;
+         }
+      }
 
       // ── IRawElementProviderSimple — expose ITextProvider to UIA ──────
       // Re-implemented explicitly because ControlAccessibleObject.GetPatternProvider
@@ -244,10 +261,12 @@ namespace FastColoredTextBoxNS
       {
          get
          {
+            FastColoredTextBox.UiaLog($"  DocumentRange called on {GetType().Name}");
             if (Tb.InvokeRequired)
                return (ITextRangeProvider)Tb.Invoke(new Func<ITextRangeProvider>(() => DocumentRange));
             int lastLine = Tb.LinesCount > 0 ? Tb.LinesCount - 1 : 0;
             int lastChar = Tb.LinesCount > 0 ? Tb.Lines[lastLine].Length : 0;
+            FastColoredTextBox.UiaLog($"    → range (0,0)→({lastLine},{lastChar}) lines={Tb.LinesCount}");
             return new FctbTextRangeProvider(Tb, new Place(0, 0), new Place(lastChar, lastLine));
          }
       }
@@ -256,9 +275,11 @@ namespace FastColoredTextBoxNS
 
       public virtual ITextRangeProvider[] GetSelection()
       {
+         FastColoredTextBox.UiaLog($"  GetSelection called on {GetType().Name}");
          if (Tb.InvokeRequired)
             return (ITextRangeProvider[])Tb.Invoke(new Func<ITextRangeProvider[]>(GetSelection));
          var sel = Tb.Selection;
+         FastColoredTextBox.UiaLog($"    → ({sel.Start.iLine},{sel.Start.iChar})→({sel.End.iLine},{sel.End.iChar})");
          return new ITextRangeProvider[]
          {
             new FctbTextRangeProvider(Tb, sel.Start, sel.End)
@@ -366,6 +387,7 @@ namespace FastColoredTextBoxNS
 
       public string GetText(int maxLength)
       {
+         FastColoredTextBox.UiaLog($"  GetText(maxLength={maxLength}) range ({_start.iLine},{_start.iChar})→({_end.iLine},{_end.iChar})");
          if (Tb.InvokeRequired)
             return (string)Tb.Invoke(new Func<string>(() => GetText(maxLength)));
          var (s, e) = Normalized();
