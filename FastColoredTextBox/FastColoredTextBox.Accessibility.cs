@@ -122,6 +122,8 @@ namespace FastColoredTextBoxNS
 
       private string _lastNotificationText;
       private int    _lastNavLine = -1;
+      private bool   _navFromMouse;
+      private System.Windows.Forms.Timer _mouseNavTimer;
 
       // Syncs _lastNavLine to the current cursor position. Called after auto-scroll so
       // the next user arrow-key press is correctly recognized as a new-line change.
@@ -130,16 +132,20 @@ namespace FastColoredTextBoxNS
          _lastNavLine = Selection.Start.iLine;
       }
 
-      // Navigation announcement: fires immediately when the cursor moves to a NEW line.
-      // Position-tracking skips spurious SelectionChanged events (FCTB fires several per
-      // keypress — scroll, repaint, etc.) because they all land on the same line number.
-      // Intentional arrow-key presses land on a different line, so they fire immediately.
-      // ImportantMostRecent (0) cuts off whatever Narrator is currently reading, so pressing
-      // up three times reads three lines with each press cutting off the previous.
+      // Navigation announcement.
+      // Keyboard (arrow keys): fires immediately when the cursor moves to a new line.
+      //   Position-tracking skips spurious SelectionChanged events (FCTB fires several per
+      //   keypress — scroll, repaint) because they all land on the same line number.
+      //   ImportantMostRecent cuts off previous speech so rapid UP/DOWN reads each line.
+      // Mouse (click): _navFromMouse is true while button is held; SelectionChanged events
+      //   during a click bounce across multiple line numbers, causing stutter if announced.
+      //   Instead, EnsureUiaEventHooks starts a 40ms settle timer on MouseUp; the timer
+      //   reads the final settled position and announces it once.
       protected internal void FireNavigationNotification()
       {
+         if (_navFromMouse) return; // click settling — mouse timer announces on settle
          int line = Selection.Start.iLine;
-         if (line == _lastNavLine) return; // spurious event — same line, skip
+         if (line == _lastNavLine) return; // spurious duplicate event, same line
          _lastNavLine = line;
          string text = GetCurrentLineText();
          if (string.IsNullOrEmpty(text)) return;
@@ -197,6 +203,26 @@ namespace FastColoredTextBoxNS
          // SelectionChanged → FireAccessibilityNotification is NOT hooked here.
          // Console subclass hooks TextChanged to read all new lines (all=true).
          // Editor subclass hooks SelectionChanged to read current line on navigation.
+
+         // Mouse click: hold off navigation announcements while button is down; cursor
+         // bounces across multiple lines during a click, causing stutter if announced.
+         // Announce once 40ms after MouseUp when the position has settled.
+         _mouseNavTimer = new System.Windows.Forms.Timer { Interval = 40 };
+         _mouseNavTimer.Tick += (_, _) =>
+         {
+            _mouseNavTimer.Stop();
+            _navFromMouse = false;
+            int line = Selection.Start.iLine;
+            _lastNavLine = line;
+            string t = GetCurrentLineText();
+            if (string.IsNullOrEmpty(t)) return;
+            var prov = AccessibilityObject as IRawElementProviderSimple;
+            if (prov == null) return;
+            try { UiaRaiseNotificationEvent(prov, 2, 0, t, "fctb-nav"); }
+            catch (Exception) { }
+         };
+         MouseDown += (_, _) => { _navFromMouse = true;  _mouseNavTimer.Stop(); };
+         MouseUp   += (_, _) => { _mouseNavTimer.Stop(); _mouseNavTimer.Start(); };
          _accessibilityInitialized = true;
          RegisterUiaHwnd();
       }
