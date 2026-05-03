@@ -3103,7 +3103,11 @@ namespace FastColoredTextBoxNS
          {
             if (AccessibilityObject is FctbAccessibleObject fctbProvider)
             {
-               m.Result = AutomationInteropProvider.ReturnRawElementProvider(Handle, m.WParam, m.LParam, fctbProvider);
+               System.IO.File.AppendAllText(@"C:\Temp\fctb-uia.log",
+                  $"OBJID_CLIENT hit: Handle={Handle} m.HWnd={m.HWnd} match={Handle==m.HWnd} lParam={m.LParam}\n");
+               m.Result = AutomationInteropProvider.ReturnRawElementProvider(m.HWnd, m.WParam, m.LParam, fctbProvider);
+               System.IO.File.AppendAllText(@"C:\Temp\fctb-uia.log",
+                  $"  result={m.Result} provider={fctbProvider.GetType().Name}\n");
                return;
             }
          }
