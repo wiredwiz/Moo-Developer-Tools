@@ -589,7 +589,7 @@ namespace FastColoredTextBoxNS
       }
 
       ProviderOptions IRawElementProviderSimple.ProviderOptions =>
-         ((IRawElementProviderSimple)_provider).ProviderOptions;
+         ProviderOptions.ServerSideProvider | ProviderOptions.UseComThreading;
 
       IRawElementProviderSimple IRawElementProviderSimple.HostRawElementProvider =>
          ((IRawElementProviderSimple)_provider).HostRawElementProvider;
