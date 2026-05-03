@@ -227,8 +227,8 @@ namespace FastColoredTextBoxNS
             // basic property queries (ControlType etc.) that can't reach our provider
             // cross-process. Our Role=Document maps to ControlType=Document(50006) via
             // the MSAA-UIA bridge, with oleacc.dll's reliable proxy/stub for cross-process.
-            return ProviderOptions.ServerSideProvider | ProviderOptions.UseComThreading
-                   | ProviderOptions.HasNativeIAccessible;
+            // HasNativeIAccessible = 128 (not in all NuGet versions of ProviderOptions)
+            return (ProviderOptions)((int)(ProviderOptions.ServerSideProvider | ProviderOptions.UseComThreading) | 128);
          }
       }
 
