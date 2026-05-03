@@ -110,8 +110,8 @@ namespace FastColoredTextBoxNS
       // UiaRaiseNotificationEvent — the documented mechanism to make Narrator (and other UIA
       // screen readers on Win10 1709+) speak arbitrary text regardless of ControlType or
       // whether ITextProvider works cross-process. Defined in UIAutomationCore.dll.
-      // notificationKind: 1=ItemAdded, 2=ActionCompleted
-      // notificationProcessing: 0=ImportantMostRecent (interrupt, latest only), 3=MostRecent (queued, latest only)
+      // notificationKind:       0=ItemAdded, 1=ItemRemoved, 2=ActionCompleted, 3=ActionAborted, 4=Other
+      // notificationProcessing: 0=ImportantAll, 1=ImportantMostRecent, 2=All, 3=MostRecent, 4=CurrentThenMostRecent
       [DllImport("UIAutomationCore.dll", ExactSpelling = true, SetLastError = false)]
       private static extern int UiaRaiseNotificationEvent(
          IRawElementProviderSimple provider,
@@ -151,7 +151,7 @@ namespace FastColoredTextBoxNS
          if (string.IsNullOrEmpty(text)) return;
          var provider = AccessibilityObject as IRawElementProviderSimple;
          if (provider == null) return;
-         try { UiaRaiseNotificationEvent(provider, 2, 0, text, "fctb-notify"); }
+         try { UiaRaiseNotificationEvent(provider, 2, 1, text, "fctb-notify"); }
          catch (Exception) { }
       }
 
@@ -233,7 +233,7 @@ namespace FastColoredTextBoxNS
                if (string.IsNullOrEmpty(t)) return;
                var prov = AccessibilityObject as IRawElementProviderSimple;
                if (prov == null) return;
-               try { UiaRaiseNotificationEvent(prov, 2, 0, t, "fctb-notify"); }
+               try { UiaRaiseNotificationEvent(prov, 2, 1, t, "fctb-notify"); }
                catch (Exception) { }
             }
          };
