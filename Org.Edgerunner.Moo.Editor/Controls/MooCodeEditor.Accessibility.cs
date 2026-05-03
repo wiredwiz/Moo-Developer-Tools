@@ -49,6 +49,8 @@ public class MooCodeEditorAccessibleObject : FctbAccessibleObject
       _editor = editor;
    }
 
+   public override string Name { get => "Code Editor"; set { } }
+
    internal void InitializeTimer()
    {
       _announcementTimer = new System.Windows.Forms.Timer { Interval = 2000 };
