@@ -176,18 +176,36 @@ namespace FastColoredTextBoxNS
          catch (Exception) { /* UiaRaiseNotificationEvent unavailable on pre-1709 */ }
       }
 
-      // Expands punctuation characters that Narrator skips at its default verbosity level
-      // ("Some") so screen reader users hear the correct command syntax.
-      // Applies only when the symbol directly precedes a word character (command context),
-      // leaving sentence-ending punctuation untouched.
+      // Matches a punctuation symbol that is NOT preceded by a word character (\w)
+      // but IS followed by one — i.e., it starts a token (command prefix, etc.).
+      // This leaves sentence-ending punctuation untouched while expanding command syntax.
+      // Examples: "?ansi-intro" → "question mark ansi-intro"; "Is this right?" unchanged.
+      //           "@create"     → "at create";    "user@example.com" unchanged.
+      //           "foo-bar"     → unchanged;       "-all" → "dash all".
+      private static readonly System.Text.RegularExpressions.Regex s_commandSymbolRe =
+         new System.Text.RegularExpressions.Regex(
+            @"(?<!\w)[?@!:#%$&*()\[\]\-+=|/<>~`,.\^\\](?=\w)",
+            System.Text.RegularExpressions.RegexOptions.Compiled);
+
+      private static readonly System.Collections.Generic.Dictionary<char, string> s_symbolNames =
+         new()
+         {
+            ['?'] = "question mark", ['@'] = "at",       ['!'] = "exclamation",
+            [':'] = "colon",         ['#'] = "hash",      ['%'] = "percent",
+            ['$'] = "dollar",        ['^'] = "caret",     ['&'] = "and",
+            ['*'] = "star",          ['('] = "open paren",  [')'] = "close paren",
+            ['['] = "open bracket",  [']'] = "close bracket",
+            ['-'] = "dash",          ['+'] = "plus",      ['='] = "equals",
+            ['|'] = "pipe",          ['/'] = "slash",     ['\\'] = "backslash",
+            ['<'] = "less than",     ['>'] = "greater than", ['~'] = "tilde",
+            ['`'] = "backtick",      [','] = "comma",     ['.'] = "dot",
+         };
+
       private static string ExpandCommandSymbols(string text)
       {
          if (string.IsNullOrEmpty(text)) return text;
-         // "?command" → "question mark command"; "Is this right?" unchanged (? not before \w)
-         text = System.Text.RegularExpressions.Regex.Replace(text, @"\?(?=\w)", "question mark ");
-         // "@command" → "at command"
-         text = System.Text.RegularExpressions.Regex.Replace(text, @"@(?=\w)", "at ");
-         return text;
+         return s_commandSymbolRe.Replace(text, m =>
+            s_symbolNames.TryGetValue(m.Value[0], out var name) ? name + " " : m.Value);
       }
 
       // Returns the last non-empty line — used as notification text for both
