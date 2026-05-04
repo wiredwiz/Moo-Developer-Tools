@@ -176,15 +176,14 @@ namespace FastColoredTextBoxNS
          catch (Exception) { /* UiaRaiseNotificationEvent unavailable on pre-1709 */ }
       }
 
-      // Matches any punctuation symbol followed by a word character (\w).
-      // Trailing/isolated punctuation (e.g. sentence-ending "?") is left untouched
-      // because it is not followed by \w.
-      // Examples: "?ansi-intro" → "question mark ansi dash intro"
-      //           "user@example.com" → "user at example dot com"
-      //           "Is this right?" → unchanged (? not before \w)
+      // Matches any occurrence of the listed punctuation symbols and expands it to a
+      // spoken word so screen readers announce it regardless of verbosity settings.
+      // No lookahead — every symbol is expanded wherever it appears, including inside
+      // words (ansi-intro → ansi dash intro) and at token ends ([Wizards] →
+      // open bracket Wizards close bracket).
       private static readonly System.Text.RegularExpressions.Regex s_commandSymbolRe =
          new System.Text.RegularExpressions.Regex(
-            @"[?@!:#%$&*()\[\]\-+=|/<>~`,.\^\\](?=\w)",
+            @"[?@!:#%$&*()\[\]\-+=|/<>~`,.\^\\]",
             System.Text.RegularExpressions.RegexOptions.Compiled);
 
       private static readonly System.Collections.Generic.Dictionary<char, string> s_symbolNames =
