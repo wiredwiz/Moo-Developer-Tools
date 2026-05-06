@@ -102,7 +102,11 @@ namespace Org.Edgerunner.Moo.Editor.Controls
    {
       public ConsoleAccessibleObject(ConsoleWindowEmulator console) : base(console) { }
 
-      public override string Name { get => "Terminal Output"; set { } }
+      public override string Name
+      {
+         get => !string.IsNullOrEmpty(Tb.AccessibleName) ? Tb.AccessibleName : "Terminal Output";
+         set { }
+      }
 
       /// <summary>Polite live setting: screen reader reads new content during natural pauses.</summary>
       public override System.Windows.Forms.Automation.AutomationLiveSetting LiveSetting
