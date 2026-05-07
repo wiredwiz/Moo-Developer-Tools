@@ -39,6 +39,7 @@ using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Windows.Automation.Provider;
 using System.Windows.Forms;
 using System.Windows.Forms.Design;
 using Timer = System.Windows.Forms.Timer;
@@ -2504,6 +2505,7 @@ namespace FastColoredTextBoxNS
          timersToReset.Clear();
 
          OnScrollbarsUpdated();
+         RegisterUiaHwnd(); // register HWND in UIA callback table early
       }
 
       /// <summary>
@@ -3094,22 +3096,33 @@ namespace FastColoredTextBoxNS
       [DllImport("Imm32.dll")]
       private static extern IntPtr ImmAssociateContext(IntPtr hWnd, IntPtr hIMC);
 
+      private static readonly string _uiaLog = @"C:\Temp\fctb-uia.log";
+      internal static void UiaLog(string msg)
+      {
+         try
+         {
+            System.IO.Directory.CreateDirectory(@"C:\Temp");
+            System.IO.File.AppendAllText(_uiaLog, $"[{System.DateTime.Now:HH:mm:ss.fff}] {msg}\n");
+         }
+         catch { }
+      }
+
       protected override void WndProc(ref Message m)
       {
-         // Return our UIA provider for WM_GETOBJECT, bypassing WinForms's
-         // SupportsUiaProviders gate (which is false for custom UserControls).
-         // FctbAccessibleObject inherits StandardOleMarshalObject (FTM), which
-         // UIAutomationCore rejects for cross-process provider registration. We pass
-         // FctbUiaProviderBridge — a plain non-FTM wrapper — instead.
-         if (m.Msg == WM_GETOBJECT && (int)(long)m.LParam == OBJID_CLIENT && IsHandleCreated)
-         {
-            if (AccessibilityObject is FctbAccessibleObject fctbProvider)
-            {
-               var bridge = new FctbUiaProviderBridge(fctbProvider);
-               m.Result = UiaReturnRawElementProvider(Handle, m.WParam, m.LParam, bridge);
-               return;
-            }
-         }
+         // WM_GETOBJECT: let base.WndProc handle it entirely.
+         //
+         // The working mechanism: base.WndProc calls LresultFromObject (MSAA) with our
+         // AccessibilityObject. oleacc.dll creates a robust cross-process COM pointer.
+         // UIA clients (AIW, screen readers) do QI on that pointer for IRawElementProviderSimple
+         // and ITextProvider — finding our FctbAccessibleObject's explicit implementations.
+         // This gives ControlType=Document (from Role=AccessibleRole.Document) and TextPattern.
+         //
+         // DO NOT intercept OBJID_CLIENT or OBJID_QUERYCLASSNAMEIDX here. Overriding either
+         // breaks the cross-process path: calling UiaReturnRawElementProvider directly produces
+         // a UIA lresult that cannot be resolved cross-process in .NET 6 for UserControl-derived
+         // types (SupportsUiaProviders=false), causing silent fallback to parent MSAA element.
+         if (m.Msg == WM_GETOBJECT)
+            UiaLog($"WM_GETOBJECT lParam={(int)(long)m.LParam} type={GetType().Name}");
 
          if (m.Msg == WM_HSCROLL || m.Msg == WM_VSCROLL)
             if (m.WParam.ToInt32() != SB_ENDSCROLL)

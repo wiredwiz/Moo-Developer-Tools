@@ -14,7 +14,11 @@ public partial class MooCodeEditor
    {
       EnsureUiaEventHooks(); // text/selection UIA events from FastColoredTextBox base
       if (!_editorAccessibilityInitialized)
+      {
+         // Arrow-key navigation: announce the line the cursor moved to.
+         SelectionChanged += (_, _) => FireNavigationNotification();
          _editorAccessibilityInitialized = true;
+      }
       var acc = new MooCodeEditorAccessibleObject(this);
       acc.InitializeTimer();
       return acc;
@@ -44,6 +48,8 @@ public class MooCodeEditorAccessibleObject : FctbAccessibleObject
    {
       _editor = editor;
    }
+
+   public override string Name { get => "Code Editor"; set { } }
 
    internal void InitializeTimer()
    {
@@ -95,6 +101,11 @@ public class MooCodeEditorAccessibleObject : FctbAccessibleObject
    {
       _errors   = messages.Where(m => m.Severity == ParseMessageSeverity.Error).ToList();
       _warnings = messages.Where(m => m.Severity == ParseMessageSeverity.Warning).ToList();
+      if (_announcementTimer != null)
+      {
+         _announcementTimer.Stop();
+         _announcementTimer.Start();
+      }
    }
 
    public override ITextRangeProvider[] GetSelection()

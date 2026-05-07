@@ -58,6 +58,7 @@ public class TerminalPage : ManagedPage
     {
         Terminal = new MooClientTerminal(useTls);
         Terminal.MessageProcessor = messageProcessor;
+        Terminal.Output.AccessibleName = $"Terminal {worldName}";
         // ReSharper disable VirtualMemberCallInConstructor
         Text = worldName;
         TextTitle = worldName;

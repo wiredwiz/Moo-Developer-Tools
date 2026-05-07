@@ -15,11 +15,6 @@ namespace FastColoredTextBoxNS
       private bool _accessibilityInitialized;
 
       private const int WM_GETOBJECT = 0x003D;
-      private const int OBJID_CLIENT = unchecked((int)0xFFFFFFFC);
-
-      [DllImport("UIAutomationCore.dll", SetLastError = false)]
-      private static extern IntPtr UiaReturnRawElementProvider(
-         IntPtr hwnd, IntPtr wParam, IntPtr lParam, IRawElementProviderSimple el);
 
       // UIA event IDs for text notifications (from UIAutomationClient constants).
       // UIA_Text_TextChangedEventId          = 20014
@@ -40,14 +35,255 @@ namespace FastColoredTextBoxNS
          catch (Exception) { /* best effort */ }
       }
 
+      // ── UIA provider callback registration ───────────────────────────────
+      // Registers a supplemental provider callback so some UIA clients that query
+      // via the callback path (rather than via WM_GETOBJECT MSAA) also find our provider.
+
+      private enum _ProviderType { BaseHwnd = 0, Proxy = 1, NonClientArea = 2 }
+
+      [UnmanagedFunctionPointer(CallingConvention.StdCall)]
+      private delegate IRawElementProviderSimple _UiaProviderCallbackDelegate(
+         IntPtr hwnd, _ProviderType providerType);
+
+      [DllImport("UIAutomationCore.dll", ExactSpelling = true, SetLastError = false)]
+      private static extern bool UiaRegisterProviderCallback(
+         _UiaProviderCallbackDelegate pCallback, _ProviderType eType);
+
+      // Static delegate — must be kept alive to prevent GC collection.
+      private static readonly _UiaProviderCallbackDelegate s_uiaProviderCallback =
+         OnUiaProviderRequested;
+
+      // HWND → weak-ref FCTB map, updated in EnsureUiaEventHooks / HandleDestroyed.
+      private static readonly Dictionary<IntPtr, WeakReference<FastColoredTextBox>> s_fctbByHwnd
+         = new();
+
+      private static bool s_uiaCallbackRegistered;
+      private static readonly object s_uiaCallbackLock = new();
+
+      private static IRawElementProviderSimple OnUiaProviderRequested(
+         IntPtr hwnd, _ProviderType providerType)
+      {
+         // Log ALL invocations to confirm the callback fires at all.
+         UiaLog($"  UiaProviderCallback: hwnd={hwnd} providerType={providerType}");
+
+         if (providerType != _ProviderType.BaseHwnd) return null;
+         FastColoredTextBox tb = null;
+         lock (s_fctbByHwnd)
+         {
+            if (s_fctbByHwnd.TryGetValue(hwnd, out var wr))
+               wr.TryGetTarget(out tb);
+         }
+         if (tb == null)
+         {
+            UiaLog($"    (not an FCTB hwnd — returning null)");
+            return null;
+         }
+         var ao = tb.AccessibilityObject as FctbAccessibleObject;
+         UiaLog($"    returning {ao?.GetType().Name ?? "null"}");
+         return ao;
+      }
+
+      // Called from OnHandleCreated to register the HWND early (before any WM_GETOBJECT arrives).
+      // Also called from EnsureUiaEventHooks so subclass CreateAccessibilityInstance calls cover it.
+      internal void RegisterUiaHwnd()
+      {
+         if (!IsHandleCreated) return;
+         var hwnd = Handle;
+         lock (s_fctbByHwnd)
+            s_fctbByHwnd[hwnd] = new WeakReference<FastColoredTextBox>(this);
+         HandleDestroyed += (_, _) => { lock (s_fctbByHwnd) s_fctbByHwnd.Remove(hwnd); };
+
+         // Register the process-wide callback exactly once.
+         lock (s_uiaCallbackLock)
+         {
+            if (s_uiaCallbackRegistered) return;
+            s_uiaCallbackRegistered = true;
+         }
+         try
+         {
+            bool ok = UiaRegisterProviderCallback(s_uiaProviderCallback, _ProviderType.BaseHwnd);
+            UiaLog($"UiaRegisterProviderCallback → {ok}");
+         }
+         catch (Exception ex) { UiaLog($"UiaRegisterProviderCallback failed: {ex.Message}"); }
+      }
+
+      // UiaRaiseNotificationEvent — the documented mechanism to make Narrator (and other UIA
+      // screen readers on Win10 1709+) speak arbitrary text regardless of ControlType or
+      // whether ITextProvider works cross-process. Defined in UIAutomationCore.dll.
+      // notificationKind:       0=ItemAdded, 1=ItemRemoved, 2=ActionCompleted, 3=ActionAborted, 4=Other
+      // notificationProcessing: 0=ImportantAll, 1=ImportantMostRecent, 2=All, 3=MostRecent, 4=CurrentThenMostRecent
+      [DllImport("UIAutomationCore.dll", ExactSpelling = true, SetLastError = false)]
+      private static extern int UiaRaiseNotificationEvent(
+         IRawElementProviderSimple provider,
+         int notificationKind,
+         int notificationProcessing,
+         [MarshalAs(UnmanagedType.BStr)] string displayString,
+         [MarshalAs(UnmanagedType.BStr)] string activityId);
+
+      private string _lastNotificationText;
+      private int    _lastNavLine = -1;
+      private bool   _navFromMouse;
+      private bool   _pendingFocusEvent;
+      private System.Windows.Forms.Timer _mouseNavTimer;
+
+      // Syncs _lastNavLine to the current cursor position. Called after auto-scroll so
+      // the next user arrow-key press is correctly recognized as a new-line change.
+      protected internal void UpdateNavPosition()
+      {
+         _lastNavLine = Selection.Start.iLine;
+      }
+
+      // Navigation announcement (keyboard arrow keys).
+      // Position-tracking skips spurious SelectionChanged events (FCTB fires several per
+      // keypress) because they all land on the same line number.
+      // Mouse clicks are blocked via two guards:
+      //   _navFromMouse — set at MouseDown, cleared at timer tick (covers post-MouseUp bounce)
+      //   MouseButtons  — catches SelectionChanged that fires BEFORE MouseDown because FCTB
+      //                   moves the cursor during WM_LBUTTONDOWN before WinForms fires MouseDown
+      protected internal void FireNavigationNotification()
+      {
+         if (_navFromMouse) return;
+         if (MouseButtons != MouseButtons.None) return; // mouse button physically held
+         int line = Selection.Start.iLine;
+         if (line == _lastNavLine) return;
+         _lastNavLine = line;
+         string text = GetCurrentLineText();
+         if (string.IsNullOrEmpty(text)) return;
+         var provider = AccessibilityObject as IRawElementProviderSimple;
+         if (provider == null) return;
+         try { UiaRaiseNotificationEvent(provider, 2, 1, ExpandCommandSymbols(text), "fctb-notify"); }
+         catch (Exception) { }
+      }
+
+      // Live text and status announcements.
+      // all=true  → All (2): every item queued in order; for streaming console output.
+      // all=false → MostRecent (3): only latest; for single status updates. Deduplicates.
+      protected internal void FireAccessibilityNotification(string text, bool all = false)
+      {
+         if (string.IsNullOrEmpty(text)) return;
+         if (!all)
+         {
+            if (text == _lastNotificationText) return;
+            _lastNotificationText = text;
+         }
+         var provider = AccessibilityObject as IRawElementProviderSimple;
+         if (provider == null) return;
+         try
+         {
+            int processing = all ? 2 : 3;
+            UiaRaiseNotificationEvent(provider, 2, processing, ExpandCommandSymbols(text), "fctb-notify");
+         }
+         catch (Exception) { /* UiaRaiseNotificationEvent unavailable on pre-1709 */ }
+      }
+
+      // Matches any occurrence of the listed punctuation symbols and expands it to a
+      // spoken word so screen readers announce it regardless of verbosity settings.
+      // No lookahead — every symbol is expanded wherever it appears, including inside
+      // words (ansi-intro → ansi dash intro) and at token ends ([Wizards] →
+      // open bracket Wizards close bracket).
+      private static readonly System.Text.RegularExpressions.Regex s_commandSymbolRe =
+         new System.Text.RegularExpressions.Regex(
+            @"[?@!:#%$&*()\[\]\-+=|/<>~`,.\^\\]",
+            System.Text.RegularExpressions.RegexOptions.Compiled);
+
+      private static readonly System.Collections.Generic.Dictionary<char, string> s_symbolNames =
+         new()
+         {
+            ['?'] = "question mark", ['@'] = "at",       ['!'] = "exclamation",
+            [':'] = "colon",         ['#'] = "hash",      ['%'] = "percent",
+            ['$'] = "dollar",        ['^'] = "caret",     ['&'] = "and",
+            ['*'] = "star",          ['('] = "open paren",  [')'] = "close paren",
+            ['['] = "open bracket",  [']'] = "close bracket",
+            ['-'] = "dash",          ['+'] = "plus",      ['='] = "equals",
+            ['|'] = "pipe",          ['/'] = "slash",     ['\\'] = "backslash",
+            ['<'] = "less than",     ['>'] = "greater than", ['~'] = "tilde",
+            ['`'] = "backtick",      [','] = "comma",     ['.'] = "dot",
+         };
+
+      private static string ExpandCommandSymbols(string text)
+      {
+         if (string.IsNullOrEmpty(text)) return text;
+         return s_commandSymbolRe.Replace(text, m =>
+            s_symbolNames.TryGetValue(m.Value[0], out var name) ? name + " " : m.Value);
+      }
+
+      // Returns the last non-empty line — used as notification text for both
+      // navigation (SelectionChanged) and initial focus reading.
+      protected internal string GetCurrentLineText()
+      {
+         int line = Selection.Start.iLine;
+         if (line < 0 || line >= LinesCount) line = Math.Max(0, LinesCount - 1);
+         while (line > 0 && string.IsNullOrEmpty(Lines[line]))
+            line--;
+         return (line >= 0 && line < LinesCount) ? Lines[line] : string.Empty;
+      }
+
       // Called by CreateAccessibilityInstance overrides in this class and subclasses.
       // Ensures text/selection UIA events are hooked exactly once per control lifetime.
       protected void EnsureUiaEventHooks()
       {
          if (_accessibilityInitialized) return;
-         TextChanged     += (_, _) => RaiseUiaEvent(AccessibilityObject, 20014);
+         // UIA events for UIA clients (Narrator/AIW)
+         TextChanged      += (_, _) => RaiseUiaEvent(AccessibilityObject, 20014);
          SelectionChanged += (_, _) => RaiseUiaEvent(AccessibilityObject, 20018);
+         GotFocus         += (_, _) => RaiseUiaEvent(AccessibilityObject, 20005);
+         // MSAA WinEvents for MSAA-mode screen readers (NVDA/JAWS)
+         TextChanged      += (_, _) => AccessibilityNotifyClients(AccessibleEvents.ValueChange, 0);
+         SelectionChanged += (_, _) => AccessibilityNotifyClients(AccessibleEvents.Selection, 0);
+         // SelectionChanged → FireAccessibilityNotification is NOT hooked here.
+         // Console subclass hooks TextChanged to read all new lines (all=true).
+         // Editor subclass hooks SelectionChanged to read current line on navigation.
+
+         // Mouse click handling.
+         //
+         // WM_SETFOCUS arrives BEFORE WM_LBUTTONDOWN on click-to-focus. GotFocus fires
+         // while the cursor is still at its pre-click position, so raising the UIA focus
+         // event immediately would make Narrator read the wrong line. Instead, we defer
+         // the focus event until the mouse timer fires (after cursor has settled).
+         //
+         // For already-focused clicks: no GotFocus fires, so the timer announces the line
+         // directly via UiaRaiseNotificationEvent.
+         _mouseNavTimer = new System.Windows.Forms.Timer { Interval = 40 };
+         _mouseNavTimer.Tick += (_, _) =>
+         {
+            _mouseNavTimer.Stop();
+            _navFromMouse = false;
+            int line = Selection.Start.iLine;
+            _lastNavLine = line;
+            if (_pendingFocusEvent)
+            {
+               // Click-to-focus: raise UIA focus event now that cursor is at the clicked line.
+               // Narrator reads "Name Edit Value" with the correct position.
+               _pendingFocusEvent = false;
+               RaiseUiaEvent(AccessibilityObject, 20005);
+            }
+            else
+            {
+               // Already-focused click: announce the clicked line directly.
+               string t = GetCurrentLineText();
+               if (string.IsNullOrEmpty(t)) return;
+               var prov = AccessibilityObject as IRawElementProviderSimple;
+               if (prov == null) return;
+               try { UiaRaiseNotificationEvent(prov, 2, 1, ExpandCommandSymbols(t), "fctb-notify"); }
+               catch (Exception) { }
+            }
+         };
+
+         // GotFocus fires during WM_SETFOCUS (before WM_LBUTTONDOWN for click-to-focus).
+         // If a mouse button is physically held, defer the focus event to the timer so
+         // the cursor has time to move to the clicked position first.
+         GotFocus += (_, _) =>
+         {
+            if (MouseButtons != MouseButtons.None)
+               _pendingFocusEvent = true;
+            else
+               RaiseUiaEvent(AccessibilityObject, 20005); // keyboard/programmatic focus
+         };
+
+         MouseDown += (_, _) => { _navFromMouse = true; _mouseNavTimer.Stop(); };
+         MouseUp   += (_, _) => { _mouseNavTimer.Stop(); _mouseNavTimer.Start(); };
          _accessibilityInitialized = true;
+         RegisterUiaHwnd();
       }
 
       protected override AccessibleObject CreateAccessibilityInstance()
@@ -76,7 +312,7 @@ namespace FastColoredTextBoxNS
       private const int UIA_IsContentElementPropertyId       = 30017;
       private const int UIA_LiveSettingPropertyId            = 30135;
       private const int UIA_IsTextPatternAvailablePropertyId = 30119;
-      private const int UIA_DocumentControlTypeId            = 50006;
+      private const int UIA_DocumentControlTypeId             = 50006;
 
       // Reflection to forward property/pattern queries to AccessibleObject's
       // internal implementation for properties we don't override ourselves.
@@ -101,7 +337,37 @@ namespace FastColoredTextBoxNS
 
       // ── AccessibleObject overrides ────────────────────────────────────
 
-      public override AccessibleRole Role => AccessibleRole.Document;
+      public override AccessibleRole Role => AccessibleRole.Text;
+
+      // Name intentionally returns empty. When Narrator focuses this element it reads
+      // Name + role + Value. If Name also returned the line text the user would hear the
+      // line twice ("line text  Edit  line text"). Value handles the content for MSAA
+      // screen readers; UiaRaiseNotificationEvent handles it for UIA screen readers.
+      public override string Name { get => string.Empty; set { } }
+
+      // Returning null suppresses InvokePattern from the MSAA-UIA bridge.
+      public override string DefaultAction => null;
+
+      // Value exposes the current line text via MSAA so screen readers read it on focus and
+      // cursor-move WinEvents. If the cursor is on an empty trailing line (common after a
+      // newline-terminated MUD response), walk back to the last non-empty line so screen
+      // readers always hear meaningful content rather than silence.
+      public override string Value
+      {
+         get
+         {
+            if (Tb.InvokeRequired)
+               return (string)Tb.Invoke(new Func<string>(() => Value));
+            int line = Tb.Selection.Start.iLine;
+            if (line < 0 || line >= Tb.LinesCount) line = Math.Max(0, Tb.LinesCount - 1);
+            // Walk back past empty trailing lines
+            while (line > 0 && string.IsNullOrEmpty(Tb.Lines[line]))
+               line--;
+            string text = (line >= 0 && line < Tb.LinesCount) ? Tb.Lines[line] : string.Empty;
+            FastColoredTextBox.UiaLog($"  Value getter called on {GetType().Name} → line={line} text=\"{text}\"");
+            return text;
+         }
+      }
 
       // ── IRawElementProviderSimple — expose ITextProvider to UIA ──────
       // Re-implemented explicitly because ControlAccessibleObject.GetPatternProvider
@@ -113,16 +379,32 @@ namespace FastColoredTextBoxNS
       {
          get
          {
+            FastColoredTextBox.UiaLog($"  HostRawElementProvider called on {GetType().Name} IsHandleCreated={Tb.IsHandleCreated}");
             if (!Tb.IsHandleCreated) return null;
             UiaHostProviderFromHwnd(Tb.Handle, out var host);
+            FastColoredTextBox.UiaLog($"  HostRawElementProvider returning {host?.GetType().Name ?? "null"}");
             return host;
          }
       }
 
-      ProviderOptions IRawElementProviderSimple.ProviderOptions => ProviderOptions.ServerSideProvider;
+      ProviderOptions IRawElementProviderSimple.ProviderOptions
+      {
+         get
+         {
+            FastColoredTextBox.UiaLog($"  ProviderOptions called on {GetType().Name}");
+            // UseComThreading: marshal cross-process calls via the UI thread's STA.
+            // HasNativeIAccessible: tells UIAutomationCore to use IAccessible (MSAA) for
+            // basic property queries (ControlType etc.) that can't reach our provider
+            // cross-process. Our Role=Document maps to ControlType=Document(50006) via
+            // the MSAA-UIA bridge, with oleacc.dll's reliable proxy/stub for cross-process.
+            // HasNativeIAccessible = 128 (not in all NuGet versions of ProviderOptions)
+            return (ProviderOptions)((int)(ProviderOptions.ServerSideProvider | ProviderOptions.UseComThreading) | 128);
+         }
+      }
 
       object IRawElementProviderSimple.GetPatternProvider(int patternId)
       {
+         FastColoredTextBox.UiaLog($"  GetPatternProvider({patternId}) called on {GetType().Name}");
          if (patternId == UIA_TextPatternId || patternId == UIA_TextPattern2Id)
             return this;
          // Forward all other pattern queries to base
@@ -131,6 +413,7 @@ namespace FastColoredTextBoxNS
 
       object IRawElementProviderSimple.GetPropertyValue(int propertyId)
       {
+         FastColoredTextBox.UiaLog($"  GetPropertyValue({propertyId}) called on {GetType().Name}");
          switch (propertyId)
          {
             case UIA_ControlTypePropertyId:             return UIA_DocumentControlTypeId;
@@ -159,10 +442,12 @@ namespace FastColoredTextBoxNS
       {
          get
          {
+            FastColoredTextBox.UiaLog($"  DocumentRange called on {GetType().Name}");
             if (Tb.InvokeRequired)
                return (ITextRangeProvider)Tb.Invoke(new Func<ITextRangeProvider>(() => DocumentRange));
             int lastLine = Tb.LinesCount > 0 ? Tb.LinesCount - 1 : 0;
             int lastChar = Tb.LinesCount > 0 ? Tb.Lines[lastLine].Length : 0;
+            FastColoredTextBox.UiaLog($"    → range (0,0)→({lastLine},{lastChar}) lines={Tb.LinesCount}");
             return new FctbTextRangeProvider(Tb, new Place(0, 0), new Place(lastChar, lastLine));
          }
       }
@@ -171,9 +456,11 @@ namespace FastColoredTextBoxNS
 
       public virtual ITextRangeProvider[] GetSelection()
       {
+         FastColoredTextBox.UiaLog($"  GetSelection called on {GetType().Name}");
          if (Tb.InvokeRequired)
             return (ITextRangeProvider[])Tb.Invoke(new Func<ITextRangeProvider[]>(GetSelection));
          var sel = Tb.Selection;
+         FastColoredTextBox.UiaLog($"    → ({sel.Start.iLine},{sel.Start.iChar})→({sel.End.iLine},{sel.End.iChar})");
          return new ITextRangeProvider[]
          {
             new FctbTextRangeProvider(Tb, sel.Start, sel.End)
@@ -281,6 +568,7 @@ namespace FastColoredTextBoxNS
 
       public string GetText(int maxLength)
       {
+         FastColoredTextBox.UiaLog($"  GetText(maxLength={maxLength}) range ({_start.iLine},{_start.iChar})→({_end.iLine},{_end.iChar})");
          if (Tb.InvokeRequired)
             return (string)Tb.Invoke(new Func<string>(() => GetText(maxLength)));
          var (s, e) = Normalized();
@@ -577,7 +865,7 @@ namespace FastColoredTextBoxNS
    }
 
    /// <summary>
-   /// Thin non-FTM wrapper passed to UiaReturnRawElementProvider.
+   /// Thin non-FTM wrapper passed to AutomationInteropProvider.ReturnRawElementProvider.
    /// FctbAccessibleObject inherits StandardOleMarshalObject (FTM via AccessibleObject),
    /// which causes UIAutomationCore to discard the provider during cross-process setup.
    /// This plain class uses standard STA COM apartment marshaling, allowing registration
@@ -593,7 +881,7 @@ namespace FastColoredTextBoxNS
       }
 
       ProviderOptions IRawElementProviderSimple.ProviderOptions =>
-         ((IRawElementProviderSimple)_provider).ProviderOptions;
+         ProviderOptions.ServerSideProvider | ProviderOptions.UseComThreading;
 
       IRawElementProviderSimple IRawElementProviderSimple.HostRawElementProvider =>
          ((IRawElementProviderSimple)_provider).HostRawElementProvider;
