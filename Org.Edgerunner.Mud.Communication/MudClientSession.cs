@@ -128,7 +128,7 @@ public class MudClientSession : IMudClientSession, IDisposable
          try
          {
             if (Client.Client != null)
-               return !(Client.Client.Poll(5, SelectMode.SelectRead) && Client.Client.Available == 0);
+                  return !(Client.Client.Poll(5, SelectMode.SelectRead) && Client.Client.Available == 0);
 
             return false;
          }
