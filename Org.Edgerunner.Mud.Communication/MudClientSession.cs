@@ -35,13 +35,12 @@
 #endregion
 
 using System;
-using System.Collections.Concurrent;
+using System.Buffers;
 using System.Diagnostics;
 using System.Net.Sockets;
 using System.Text;
 using System.Threading.Channels;
 using Org.Edgerunner.Common.Extensions;
-using Org.Edgerunner.Mud.Communication.Buffers;
 using Org.Edgerunner.Mud.Communication.Interfaces;
 using IOException = System.IO.IOException;
 
@@ -59,7 +58,7 @@ public class MudClientSession : IMudClientSession, IDisposable
    public MudClientSession(string world, string host, int port, string outOfBandPrefix = "#$#")
    {
       Client = new TcpClient();
-      CommandBuffer = new CommunicationBuffer(80000);
+      _lineBuffer = new ArrayBufferWriter<byte>(4096);
       CommandChannel = Channel.CreateUnbounded<string>(new UnboundedChannelOptions() { SingleReader = true, SingleWriter = true });
       World = world;
       Host = host;
@@ -90,6 +89,11 @@ public class MudClientSession : IMudClientSession, IDisposable
    protected readonly CancellationTokenSource TokenSource;
 
    protected Stream? _Stream;
+
+   private const int MaxLineBytes = 20 * 1024 * 1024; // 20MB per-line safety cap
+
+   private readonly ArrayBufferWriter<byte> _lineBuffer;
+   private int _droppedLineBytes;
 
    /// <summary>
    /// Gets the session world name.
@@ -167,14 +171,6 @@ public class MudClientSession : IMudClientSession, IDisposable
    /// The command queue.
    /// </value>
    public Channel<string> CommandChannel { get; }
-
-   /// <summary>
-   /// Gets the command buffer.
-   /// </summary>
-   /// <value>
-   /// The command buffer.
-   /// </value>
-   protected CommunicationBuffer CommandBuffer { get; }
 
    /// <summary>
    /// Sends the contents of the data buffer over the session connection.
@@ -343,59 +339,49 @@ public class MudClientSession : IMudClientSession, IDisposable
 
    private async Task ProcessReadBuffer(byte[] buffer, int bytes)
    {
-      var droppedBytes = 0;
       for (int i = 0; i < bytes; i++)
       {
-         // We convert any carriage return line feeds into line feeds
          if (buffer[i] == '\r' && bytes - i > 1 && buffer[i + 1] == '\n')
          {
-            // Do nothing, we are skipping the carriage return
+            // skip \r before \n
          }
          else if (buffer[i] == '\n')
          {
-            var data = "\n";
-            if (!CommandBuffer.IsEmpty)
+            _lineBuffer.Write(new ReadOnlySpan<byte>(buffer, i, 1));
+            var data = Encoding.UTF8.GetString(_lineBuffer.WrittenSpan);
+            _lineBuffer.Clear();
+            if (_droppedLineBytes > 0)
             {
-               BufferData(buffer[i]);
-               var dataBuffer = CommandBuffer.ToArray();
-               CommandBuffer.Clear();
-               var decoder = Encoding.UTF8.GetDecoder();
-
-               var chars = new char[decoder.GetCharCount(dataBuffer, 0, dataBuffer.Length)];
-               decoder.GetChars(dataBuffer, 0, dataBuffer.Length, chars, 0);
-               data = new string(chars);
+               OnDataDropped(_droppedLineBytes);
+               _droppedLineBytes = 0;
             }
-
             await CommandChannel.Writer.WriteAsync(data, TokenSource.Token);
             OnMessageReceived(data);
          }
+         else if (_lineBuffer.WrittenCount < MaxLineBytes)
+         {
+            _lineBuffer.Write(new ReadOnlySpan<byte>(buffer, i, 1));
+         }
          else
-            droppedBytes += BufferData(buffer[i]);
+         {
+            _droppedLineBytes++;
+         }
       }
-      if (droppedBytes != 0)
-         OnDataDropped(droppedBytes);
    }
 
    private async Task FlushCommandBuffer()
    {
-      if (!CommandBuffer.IsEmpty)
+      if (_lineBuffer.WrittenCount > 0)
       {
-         var dataBuffer = CommandBuffer.ToArray();
-         CommandBuffer.Clear();
-         var decoder = Encoding.UTF8.GetDecoder();
-
-         var chars = new char[decoder.GetCharCount(dataBuffer, 0, dataBuffer.Length)];
-         decoder.GetChars(dataBuffer, 0, dataBuffer.Length, chars, 0);
-         var data = new string(chars);
+         var data = Encoding.UTF8.GetString(_lineBuffer.WrittenSpan);
+         _lineBuffer.Clear();
+         if (_droppedLineBytes > 0)
+         {
+            OnDataDropped(_droppedLineBytes);
+            _droppedLineBytes = 0;
+         }
          await CommandChannel.Writer.WriteAsync(data, TokenSource.Token);
          OnMessageReceived(data);
       }
-   }
-
-   private int BufferData(byte b)
-   {
-      var full = CommandBuffer.IsFull;
-      CommandBuffer.PushBack(b);
-      return full ? 1 : 0;
    }
 }
