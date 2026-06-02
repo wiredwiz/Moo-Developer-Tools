@@ -35,13 +35,12 @@
 #endregion
 
 using System;
-using System.Collections.Concurrent;
+using System.Buffers;
 using System.Diagnostics;
 using System.Net.Sockets;
 using System.Text;
 using System.Threading.Channels;
 using Org.Edgerunner.Common.Extensions;
-using Org.Edgerunner.Mud.Communication.Buffers;
 using Org.Edgerunner.Mud.Communication.Interfaces;
 using IOException = System.IO.IOException;
 
@@ -59,7 +58,7 @@ public class MudClientSession : IMudClientSession, IDisposable
    public MudClientSession(string world, string host, int port, string outOfBandPrefix = "#$#")
    {
       Client = new TcpClient();
-      CommandBuffer = new CommunicationBuffer(80000);
+      _lineBuffer = new ArrayBufferWriter<byte>(4096);
       CommandChannel = Channel.CreateUnbounded<string>(new UnboundedChannelOptions() { SingleReader = true, SingleWriter = true });
       World = world;
       Host = host;
@@ -90,6 +89,12 @@ public class MudClientSession : IMudClientSession, IDisposable
    protected readonly CancellationTokenSource TokenSource;
 
    protected Stream? _Stream;
+
+   private const int MaxLineBytes = 20 * 1024 * 1024; // 20MB per-line safety cap
+
+   private readonly ArrayBufferWriter<byte> _lineBuffer;
+   private int _droppedLineBytes;
+   private bool _lastByteWasCR;
 
    /// <summary>
    /// Gets the session world name.
@@ -167,14 +172,6 @@ public class MudClientSession : IMudClientSession, IDisposable
    /// The command queue.
    /// </value>
    public Channel<string> CommandChannel { get; }
-
-   /// <summary>
-   /// Gets the command buffer.
-   /// </summary>
-   /// <value>
-   /// The command buffer.
-   /// </value>
-   protected CommunicationBuffer CommandBuffer { get; }
 
    /// <summary>
    /// Sends the contents of the data buffer over the session connection.
@@ -314,88 +311,122 @@ public class MudClientSession : IMudClientSession, IDisposable
    protected async void ReadFromConnection()
    {
       var buffer = new byte[10240];
-      while (IsOpen)
+      try
       {
-         Thread.Sleep(5);
-         try
+         while (!TokenSource.IsCancellationRequested)
          {
-            while (_Stream != null && Client.Available > 0)
-            {
-               // ReSharper disable ExceptionNotDocumented
-               var bytes = await _Stream.ReadAsync(buffer, 0, buffer.Length, TokenSource.Token);
-               // ReSharper restore ExceptionNotDocumented
-               await ProcessReadBuffer(buffer, bytes);
-            }
-
-            await FlushCommandBuffer();
+            if (_Stream == null)
+               break;
+            var bytes = await _Stream.ReadAsync(buffer, 0, buffer.Length, TokenSource.Token);
+            if (bytes == 0)
+               break;
+            await ProcessReadBuffer(buffer, bytes);
          }
-         catch (ObjectDisposedException)
-         {
-            _Stream = null;
-            OnClosed();
-            Debug.WriteLine("Stream disposed");
-         }
-         if (TokenSource.IsCancellationRequested)
-            break;
       }
-      OnClosed();
+      catch (OperationCanceledException)
+      {
+         // Normal shutdown via TokenSource.Cancel()
+      }
+      catch (ObjectDisposedException)
+      {
+         _Stream = null;
+         Debug.WriteLine("Stream disposed");
+      }
+      catch (IOException ex)
+      {
+         Debug.WriteLine($"Connection lost: {ex.Message}");
+      }
+      finally
+      {
+         await FlushCommandBuffer();
+         OnClosed();
+      }
    }
 
    private async Task ProcessReadBuffer(byte[] buffer, int bytes)
    {
-      var droppedBytes = 0;
       for (int i = 0; i < bytes; i++)
       {
-         // We convert any carriage return line feeds into line feeds
-         if (buffer[i] == '\r' && bytes - i > 1 && buffer[i + 1] == '\n')
+         var b = buffer[i];
+
+         if (_lastByteWasCR)
          {
-            // Do nothing, we are skipping the carriage return
-         }
-         else if (buffer[i] == '\n')
-         {
-            var data = "\n";
-            if (!CommandBuffer.IsEmpty)
+            _lastByteWasCR = false;
+            if (b == '\n')
             {
-               BufferData(buffer[i]);
-               var dataBuffer = CommandBuffer.ToArray();
-               CommandBuffer.Clear();
-               var decoder = Encoding.UTF8.GetDecoder();
-
-               var chars = new char[decoder.GetCharCount(dataBuffer, 0, dataBuffer.Length)];
-               decoder.GetChars(dataBuffer, 0, dataBuffer.Length, chars, 0);
-               data = new string(chars);
+               await FlushLine();
+               continue;
             }
+            // Previous \r was standalone — emit it before processing current byte
+            WriteByteToLine((byte)'\r');
+         }
 
-            await CommandChannel.Writer.WriteAsync(data, TokenSource.Token);
-            OnMessageReceived(data);
+         if (b == '\r')
+         {
+            if (i + 1 < bytes)
+            {
+               if (buffer[i + 1] != '\n')
+                  WriteByteToLine(b);
+               // else: \r followed by \n in same chunk — skip \r, \n handled next iteration
+            }
+            else
+            {
+               // \r is last byte of chunk — may be start of CRLF split across chunks
+               _lastByteWasCR = true;
+            }
+         }
+         else if (b == '\n')
+         {
+            await FlushLine();
          }
          else
-            droppedBytes += BufferData(buffer[i]);
+         {
+            WriteByteToLine(b);
+         }
       }
-      if (droppedBytes != 0)
-         OnDataDropped(droppedBytes);
+   }
+
+   private void WriteByteToLine(byte b)
+   {
+      if (_lineBuffer.WrittenCount < MaxLineBytes)
+      {
+         _lineBuffer.GetSpan(1)[0] = b;
+         _lineBuffer.Advance(1);
+      }
+      else
+      {
+         _droppedLineBytes++;
+      }
+   }
+
+   private async Task FlushLine()
+   {
+      _lineBuffer.GetSpan(1)[0] = (byte)'\n';
+      _lineBuffer.Advance(1);
+      var data = Encoding.UTF8.GetString(_lineBuffer.WrittenSpan);
+      _lineBuffer.Clear();
+      if (_droppedLineBytes > 0)
+      {
+         OnDataDropped(_droppedLineBytes);
+         _droppedLineBytes = 0;
+      }
+      await CommandChannel.Writer.WriteAsync(data, TokenSource.Token);
+      OnMessageReceived(data);
    }
 
    private async Task FlushCommandBuffer()
    {
-      if (!CommandBuffer.IsEmpty)
+      if (_lineBuffer.WrittenCount > 0)
       {
-         var dataBuffer = CommandBuffer.ToArray();
-         CommandBuffer.Clear();
-         var decoder = Encoding.UTF8.GetDecoder();
-
-         var chars = new char[decoder.GetCharCount(dataBuffer, 0, dataBuffer.Length)];
-         decoder.GetChars(dataBuffer, 0, dataBuffer.Length, chars, 0);
-         var data = new string(chars);
+         var data = Encoding.UTF8.GetString(_lineBuffer.WrittenSpan);
+         _lineBuffer.Clear();
+         if (_droppedLineBytes > 0)
+         {
+            OnDataDropped(_droppedLineBytes);
+            _droppedLineBytes = 0;
+         }
          await CommandChannel.Writer.WriteAsync(data, TokenSource.Token);
          OnMessageReceived(data);
       }
-   }
-
-   private int BufferData(byte b)
-   {
-      var full = CommandBuffer.IsFull;
-      CommandBuffer.PushBack(b);
-      return full ? 1 : 0;
    }
 }
