@@ -150,6 +150,8 @@ namespace Org.Edgerunner.Moo.Editor.Controls
       /// <value><c>true</c> if this instance is connected; otherwise, <c>false</c>.</value>
       public bool IsConnected => _Session?.IsOpen ?? false;
 
+      public bool IsClosed => TokenSource.IsCancellationRequested;
+
       /// <summary>
       /// Initializes a new instance of the <see cref="MooClientTerminal"/> class.
       /// </summary>

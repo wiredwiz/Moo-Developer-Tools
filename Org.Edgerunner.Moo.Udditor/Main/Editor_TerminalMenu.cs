@@ -47,7 +47,7 @@ public partial class Editor
    {
       Logger.Trace($"Opening address {host} via terminal menu {(useTls ? "with" : "without")} TLS");
       TerminalPage page = CurrentPage as TerminalPage;
-      if (page == null || page.Terminal.IsConnected)
+      if (page == null || page.Terminal.IsConnected || page.Terminal.IsClosed)
       {
          page = WindowManager.CreateTerminalPage(host);
       }
@@ -85,7 +85,7 @@ public partial class Editor
             return;
 
       TerminalPage page = CurrentPage as TerminalPage;
-      if (page == null || page.Terminal.IsConnected)
+      if (page == null || page.Terminal.IsConnected || page.Terminal.IsClosed)
       {
          page = WindowManager.CreateTerminalPage(world.Name);
       }

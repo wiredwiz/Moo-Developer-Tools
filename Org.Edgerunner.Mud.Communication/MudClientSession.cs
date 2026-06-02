@@ -425,7 +425,7 @@ public class MudClientSession : IMudClientSession, IDisposable
             OnDataDropped(_droppedLineBytes);
             _droppedLineBytes = 0;
          }
-         await CommandChannel.Writer.WriteAsync(data, TokenSource.Token);
+         await CommandChannel.Writer.WriteAsync(data, CancellationToken.None);
          OnMessageReceived(data);
       }
    }
