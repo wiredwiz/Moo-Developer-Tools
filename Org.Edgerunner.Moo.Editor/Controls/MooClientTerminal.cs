@@ -669,7 +669,8 @@ namespace Org.Edgerunner.Moo.Editor.Controls
 
       private void Session_DataDropped(object sender, int e)
       {
-         consoleSim.WriteLine($"** Warning: {e} bytes truncated (server line exceeded 20MB limit) **");
+         var message = $"** Warning: {e} bytes truncated (server line exceeded 20MB limit) **\n";
+         _Session.CommandChannel.Writer.TryWrite(message);
          Debug.WriteLine($"Warning: {e} bytes truncated (server line exceeded 20MB limit)");
       }
 
