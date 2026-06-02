@@ -38,6 +38,9 @@ namespace Org.Edgerunner.Moo.Editor.Controls
 
       private bool _LastCommandIsLogin;
 
+      private System.Windows.Forms.Timer _scrollTimer;
+      private bool _pendingScroll;
+
       public string Host => _Session.Host;
 
       public int Port => _Session.Port;
@@ -165,6 +168,9 @@ namespace Org.Edgerunner.Moo.Editor.Controls
          splitContainer1.SplitterDistance = splitContainer1.ClientSize.Height - txtInput.Height;
          splitContainer1.ActiveControl = txtInput;
          TokenSource = new CancellationTokenSource();
+         _scrollTimer = new System.Windows.Forms.Timer { Interval = 16 };
+         _scrollTimer.Tick += OnScrollTimerTick;
+         _scrollTimer.Start();
          Tls = useTls;
       }
 
@@ -663,8 +669,9 @@ namespace Org.Edgerunner.Moo.Editor.Controls
 
       private void Session_DataDropped(object sender, int e)
       {
-         consoleSim.WriteLine($"** {e} bytes dropped from buffer overflow **");
-         Debug.WriteLine($"{e} bytes dropped from buffer overflow");
+         var message = $"** Warning: {e} bytes truncated (server line exceeded 20MB limit) **\n";
+         _Session.CommandChannel.Writer.TryWrite(message);
+         Debug.WriteLine($"Warning: {e} bytes truncated (server line exceeded 20MB limit)");
       }
 
       private void SessionMessageReceived(object sender, string e)
@@ -691,7 +698,7 @@ namespace Org.Edgerunner.Moo.Editor.Controls
                         var atBottom = consoleSim.VerticalScrollbarPositionedAtBottom;
                         consoleSim.WriteAnsi(text);
                         if (atBottom)
-                           consoleSim.GoEnd();
+                           _pendingScroll = true;
                      }
 
                      try
@@ -740,6 +747,9 @@ namespace Org.Edgerunner.Moo.Editor.Controls
       public void Close()
       {
          _LoggedInConnection = false;
+         _scrollTimer?.Stop();
+         _scrollTimer?.Dispose();
+         _scrollTimer = null;
          try
          {
             TokenSource.Cancel();
@@ -748,6 +758,15 @@ namespace Org.Edgerunner.Moo.Editor.Controls
          catch (SocketException ex)
          {
             Debug.WriteLine(ex);
+         }
+      }
+
+      private void OnScrollTimerTick(object sender, EventArgs e)
+      {
+         if (_pendingScroll)
+         {
+            _pendingScroll = false;
+            consoleSim.GoEnd();
          }
       }
 
