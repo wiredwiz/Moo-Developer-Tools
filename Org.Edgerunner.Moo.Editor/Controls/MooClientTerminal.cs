@@ -298,9 +298,9 @@ namespace Org.Edgerunner.Moo.Editor.Controls
             var connecting = false;
             switch (words.Count)
             {
-               case 3 when words[0][..] == "connect"[..words[0].Length]:
+               case 3 when "connect".StartsWith(words[0]):
                case 2 when text[^1] == ' ' &&
-                           words[0][..] == "connect"[..words[0].Length]:
+                           "connect".StartsWith(words[0]):
                   connecting = true;
                   break;
             }
