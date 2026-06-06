@@ -95,6 +95,7 @@ public class MudClientSession : IMudClientSession, IDisposable
    private readonly ArrayBufferWriter<byte> _lineBuffer;
    private int _droppedLineBytes;
    private bool _lastByteWasCR;
+   private bool _capHitFired;
 
    /// <summary>
    /// Gets the session world name.
@@ -311,6 +312,7 @@ public class MudClientSession : IMudClientSession, IDisposable
    protected async void ReadFromConnection()
    {
       var buffer = new byte[10240];
+      var zeroBytesInARow = 0;
       try
       {
          while (!TokenSource.IsCancellationRequested)
@@ -319,7 +321,12 @@ public class MudClientSession : IMudClientSession, IDisposable
                break;
             var bytes = await _Stream.ReadAsync(buffer, 0, buffer.Length, TokenSource.Token);
             if (bytes == 0)
-               break;
+            {
+               if (++zeroBytesInARow >= 3)
+                  break;
+               continue;
+            }
+            zeroBytesInARow = 0;
             await ProcessReadBuffer(buffer, bytes);
             await FlushCommandBuffer();
          }
@@ -397,20 +404,24 @@ public class MudClientSession : IMudClientSession, IDisposable
       else
       {
          _droppedLineBytes++;
+         if (!_capHitFired)
+         {
+            _capHitFired = true;
+            OnDataDropped(1);
+         }
       }
    }
 
    private async Task FlushLine()
    {
-      _lineBuffer.GetSpan(1)[0] = (byte)'\n';
-      _lineBuffer.Advance(1);
-      var data = Encoding.UTF8.GetString(_lineBuffer.WrittenSpan);
+      var data = Encoding.UTF8.GetString(_lineBuffer.WrittenSpan) + "\n";
       _lineBuffer.Clear();
-      if (_droppedLineBytes > 0)
+      if (_droppedLineBytes > 1)
       {
-         OnDataDropped(_droppedLineBytes);
-         _droppedLineBytes = 0;
+         OnDataDropped(_droppedLineBytes - 1);
       }
+      _droppedLineBytes = 0;
+      _capHitFired = false;
       await CommandChannel.Writer.WriteAsync(data, CancellationToken.None);
       OnMessageReceived(data);
    }
@@ -421,11 +432,12 @@ public class MudClientSession : IMudClientSession, IDisposable
       {
          var data = Encoding.UTF8.GetString(_lineBuffer.WrittenSpan);
          _lineBuffer.Clear();
-         if (_droppedLineBytes > 0)
+         if (_droppedLineBytes > 1)
          {
-            OnDataDropped(_droppedLineBytes);
-            _droppedLineBytes = 0;
+            OnDataDropped(_droppedLineBytes - 1);
          }
+         _droppedLineBytes = 0;
+         _capHitFired = false;
          await CommandChannel.Writer.WriteAsync(data, CancellationToken.None);
          OnMessageReceived(data);
       }
