@@ -102,6 +102,26 @@ public class WindowManager
    private int _LastEditorCellIndexInSequence;
    private string _LastEditorCellStarSize;
 
+   private KryptonWorkspaceCell _lastTerminalCell;
+   public KryptonWorkspaceCell LastTerminalCell
+   {
+      get => _lastTerminalCell;
+      set
+      {
+         _lastTerminalCell = value;
+         if (value?.WorkspaceParent is KryptonWorkspaceSequence seq)
+         {
+            _LastTerminalCellSequence = seq;
+            _LastTerminalCellIndexInSequence = seq.Children.IndexOf(value);
+            _LastTerminalCellStarSize = value.StarSize;
+         }
+      }
+   }
+
+   private KryptonWorkspaceSequence _LastTerminalCellSequence;
+   private int _LastTerminalCellIndexInSequence;
+   private string _LastTerminalCellStarSize;
+
    public event EventHandler<MooEditorPage> EditorCursorUpdated;
 
    public event EventHandler<MooCodeEditorPage> EditorParsingComplete;
@@ -254,6 +274,14 @@ public class WindowManager
              && LastEditorCell.Pages.Count > 0;
    }
 
+   private bool IsLastTerminalCellValid()
+   {
+      return LastTerminalCell != null
+             && !LastTerminalCell.IsDisposed
+             && LastTerminalCell.Parent != null
+             && LastTerminalCell.Pages.Count > 0;
+   }
+
    // Dock a page to the remembered position.
    // Case 1: cell is alive and has pages — add directly.
    // Case 2: cell is gone but we saved the parent sequence — insert a fresh cell at the same index.
@@ -289,6 +317,37 @@ public class WindowManager
       Workspace.DockingManager.AddToWorkspace(_EditorWorkspaceName, new KryptonPage[] { page });
    }
 
+   private void DockNewTerminalPage(KryptonPage page)
+   {
+      if (IsLastTerminalCellValid())
+      {
+         LastTerminalCell.Pages.Add(page);
+         return;
+      }
+
+      if (_LastTerminalCellSequence != null && _LastTerminalCellSequence.Children.Count > 0)
+      {
+         try
+         {
+            var newCell = new KryptonWorkspaceCell();
+            newCell.StarSize = _LastTerminalCellStarSize;
+            var idx = Math.Min(_LastTerminalCellIndexInSequence, _LastTerminalCellSequence.Children.Count);
+            _LastTerminalCellSequence.Children.Insert(idx, newCell);
+            LastTerminalCell = newCell;
+            newCell.Pages.Add(page);
+            return;
+         }
+         catch
+         {
+            _LastTerminalCellSequence = null;
+         }
+      }
+
+      LastTerminalCell = null;
+      _LastTerminalCellSequence = null;
+      Workspace.DockingManager.AddToWorkspace(_EditorWorkspaceName, new KryptonPage[] { page });
+   }
+
    private void EditorPage_DockChanged(object sender, EventArgs e)
    {
       KryptonWorkspaceCell cell = null;
@@ -302,10 +361,18 @@ public class WindowManager
       LastEditorCell = cell;
    }
 
+   private void TerminalPage_DockChanged(object sender, EventArgs e)
+   {
+      if ((sender as TerminalPage)?.KryptonParentContainer is KryptonWorkspaceCell cell)
+         LastTerminalCell = cell;
+   }
+
    private void DockingManager_PageCloseRequest(object sender, CloseRequestEventArgs e)
    {
       if (LastEditorCell != null && (LastEditorCell.IsDisposed || LastEditorCell.Parent == null))
          LastEditorCell = null;
+      if (LastTerminalCell != null && (LastTerminalCell.IsDisposed || LastTerminalCell.Parent == null))
+         LastTerminalCell = null;
    }
 
    /// <summary>
@@ -340,7 +407,8 @@ public class WindowManager
          processor.OutOfBandMessagingTimeout = 500000;
          var page = new TerminalPage(this, processor, world, useTls);
          RegisterPage(page);
-         Workspace.DockingManager.AddToWorkspace(_EditorWorkspaceName, new KryptonPage[] { page });
+         page.DockChanged += TerminalPage_DockChanged;
+         DockNewTerminalPage(page);
          page.OutOfBandPrefix = oobPrefix;
          page.ClearFlags(KryptonPageFlags.DockingAllowAutoHidden);
          return page;
