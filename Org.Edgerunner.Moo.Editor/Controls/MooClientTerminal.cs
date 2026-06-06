@@ -634,6 +634,13 @@ namespace Org.Edgerunner.Moo.Editor.Controls
       public async Task ConnectAsync(string world, string host, int port, bool useTls = false)
       {
          Tls = useTls;
+         if (_Session != null)
+         {
+            _Session.Closed -= Session_Closed;
+            _Session.MessageReceived -= SessionMessageReceived;
+            _Session.DataDropped -= Session_DataDropped;
+         }
+         _Session?.CommandChannel.Writer.TryComplete();
          _Session = Tls ? MudClient.Create<TlsMudClientSession>(world, host, port) : MudClient.Create<MudClientSession>(world, host, port);
          _Session.Closed += Session_Closed;
          _Session.MessageReceived += SessionMessageReceived;
@@ -687,11 +694,12 @@ namespace Org.Edgerunner.Moo.Editor.Controls
 
       private async void PerformReadFromChannel()
       {
+         var session = _Session;
          try
          {
-            while (await _Session.CommandChannel.Reader.WaitToReadAsync(TokenSource.Token))
+            while (await session.CommandChannel.Reader.WaitToReadAsync(TokenSource.Token))
             {
-               while (_Session.CommandChannel.Reader.TryRead(out var text))
+               while (session.CommandChannel.Reader.TryRead(out var text))
                {
                   if (MessageProcessor == null || !MessageProcessor.ProcessMessage(this, text))
                   {
@@ -743,7 +751,8 @@ namespace Org.Edgerunner.Moo.Editor.Controls
       {
          _LoggedInConnection = false;
          Debug.WriteLine("** Session was closed **");
-         consoleSim.WriteLine("** Connection closed **");
+         if (IsHandleCreated)
+            consoleSim.WriteLine("** Connection closed **");
       }
 
       public void Close()
@@ -765,6 +774,8 @@ namespace Org.Edgerunner.Moo.Editor.Controls
 
       private void OnScrollTimerTick(object sender, EventArgs e)
       {
+         if (!IsHandleCreated || _scrollTimer == null)
+            return;
          if (_pendingScroll)
          {
             _pendingScroll = false;
