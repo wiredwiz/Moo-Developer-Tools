@@ -140,7 +140,7 @@ public partial class Editor
    }
    private async void Manager_ConnectToWorld(object sender, WorldConfiguration e)
    {
-      await OpenTerminalConnectionAsync(e);
+      await OpenTerminalConnectionAsync(e).ConfigureAwait(true);
    }
    
    private async void WorldShortcut_Click(object sender, EventArgs e)
@@ -148,7 +148,7 @@ public partial class Editor
       if (sender is ToolStripMenuItem { Tag: WorldConfiguration world })
       {
          Debug.WriteLine($"World {world.Name} clicked");
-         await OpenTerminalConnectionAsync(world);
+         await OpenTerminalConnectionAsync(world).ConfigureAwait(true);
       }
    }
 
@@ -160,7 +160,7 @@ public partial class Editor
       if (result == DialogResult.OK)
       {
          var world = $"{prompt.HostAddress}:{prompt.HostPort}";
-         await OpenTerminalConnectionAsync(prompt.HostAddress, prompt.HostPort, world, prompt.UseTls);
+         await OpenTerminalConnectionAsync(prompt.HostAddress, prompt.HostPort, world, prompt.UseTls).ConfigureAwait(true);
       }
    }
 

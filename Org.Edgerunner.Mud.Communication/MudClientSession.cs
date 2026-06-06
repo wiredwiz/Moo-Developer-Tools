@@ -244,7 +244,7 @@ public class MudClientSession : IMudClientSession, IDisposable
                          {
                             Client.Connect(Host, Port);
                             _Stream = GetStream(Client);
-                         }, TokenSource.Token);
+                         }, TokenSource.Token).ConfigureAwait(false);
       }
       catch (ObjectDisposedException)
       {
@@ -319,7 +319,7 @@ public class MudClientSession : IMudClientSession, IDisposable
          {
             if (_Stream == null)
                break;
-            var bytes = await _Stream.ReadAsync(buffer, 0, buffer.Length, TokenSource.Token);
+            var bytes = await _Stream.ReadAsync(buffer, 0, buffer.Length, TokenSource.Token).ConfigureAwait(false);
             if (bytes == 0)
             {
                if (++zeroBytesInARow >= 3)
@@ -327,8 +327,8 @@ public class MudClientSession : IMudClientSession, IDisposable
                continue;
             }
             zeroBytesInARow = 0;
-            await ProcessReadBuffer(buffer, bytes);
-            await FlushCommandBuffer();
+            await ProcessReadBuffer(buffer, bytes).ConfigureAwait(false);
+            await FlushCommandBuffer().ConfigureAwait(false);
          }
       }
       catch (OperationCanceledException)
@@ -346,7 +346,7 @@ public class MudClientSession : IMudClientSession, IDisposable
       }
       finally
       {
-         await FlushCommandBuffer();
+         await FlushCommandBuffer().ConfigureAwait(false);
          OnClosed();
       }
    }
@@ -362,7 +362,7 @@ public class MudClientSession : IMudClientSession, IDisposable
             _lastByteWasCR = false;
             if (b == '\n')
             {
-               await FlushLine();
+               await FlushLine().ConfigureAwait(false);
                continue;
             }
             // Previous \r was standalone — emit it before processing current byte
@@ -385,7 +385,7 @@ public class MudClientSession : IMudClientSession, IDisposable
          }
          else if (b == '\n')
          {
-            await FlushLine();
+            await FlushLine().ConfigureAwait(false);
          }
          else
          {
@@ -422,7 +422,7 @@ public class MudClientSession : IMudClientSession, IDisposable
       }
       _droppedLineBytes = 0;
       _capHitFired = false;
-      await CommandChannel.Writer.WriteAsync(data, CancellationToken.None);
+      await CommandChannel.Writer.WriteAsync(data, CancellationToken.None).ConfigureAwait(false);
       OnMessageReceived(data);
    }
 
@@ -438,7 +438,7 @@ public class MudClientSession : IMudClientSession, IDisposable
          }
          _droppedLineBytes = 0;
          _capHitFired = false;
-         await CommandChannel.Writer.WriteAsync(data, CancellationToken.None);
+         await CommandChannel.Writer.WriteAsync(data, CancellationToken.None).ConfigureAwait(false);
          OnMessageReceived(data);
       }
    }

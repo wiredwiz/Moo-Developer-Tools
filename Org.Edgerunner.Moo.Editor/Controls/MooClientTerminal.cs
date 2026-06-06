@@ -645,7 +645,7 @@ namespace Org.Edgerunner.Moo.Editor.Controls
          _Session.Closed += Session_Closed;
          _Session.MessageReceived += SessionMessageReceived;
          _Session.DataDropped += Session_DataDropped;
-         await _Session.OpenAsync(host, port);
+         await _Session.OpenAsync(host, port).ConfigureAwait(true);
          if (Tls)
             if (_Session.Stream is SslStream stream)
             {
@@ -697,7 +697,7 @@ namespace Org.Edgerunner.Moo.Editor.Controls
          var session = _Session;
          try
          {
-            while (await session.CommandChannel.Reader.WaitToReadAsync(TokenSource.Token))
+            while (await session.CommandChannel.Reader.WaitToReadAsync(TokenSource.Token).ConfigureAwait(false))
             {
                while (session.CommandChannel.Reader.TryRead(out var text))
                {
