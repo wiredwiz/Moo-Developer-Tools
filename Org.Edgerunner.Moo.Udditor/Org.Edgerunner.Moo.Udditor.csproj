@@ -14,9 +14,9 @@ Udditor is intended to allow Moo programmers to work faster, waste less time and
     <Copyright>Thaddeus Ryker 2022</Copyright>
     <AssemblyName>Moo Udditor</AssemblyName>
     <ApplicationIcon>UdditorLogo.ico</ApplicationIcon>
-    <AssemblyVersion>1.0.26158.0</AssemblyVersion>
-    <FileVersion>1.0.26158.0</FileVersion>
-    <Version>1.0.26158.0</Version>
+    <AssemblyVersion>1.0.26158.2</AssemblyVersion>
+    <FileVersion>1.0.26158.2</FileVersion>
+    <Version>1.0.26158</Version>
     <Title>MooUdditor</Title>
     <PackageProjectUrl>https://github.com/wiredwiz/Moo-Developer-Tools</PackageProjectUrl>
     <RepositoryUrl>https://github.com/wiredwiz/Moo-Developer-Tools</RepositoryUrl>
@@ -31,7 +31,7 @@ Udditor is intended to allow Moo programmers to work faster, waste less time and
     <UpdateAssemblyFileVersion>False</UpdateAssemblyFileVersion>
     <UpdateAssemblyInfoVersion>False</UpdateAssemblyInfoVersion>
     <UpdatePackageVersion>True</UpdatePackageVersion>
-    <PackageVersionSettings>AssemblyVersion.IncrementWithAutoReset.None</PackageVersionSettings>
+    <PackageVersionSettings>AssemblyVersion.None.None</PackageVersionSettings>
     <AssemblyInfoVersionType>SettingsVersion</AssemblyInfoVersionType>
     <InheritWinAppVersionFrom>None</InheritWinAppVersionFrom>
   </PropertyGroup>
