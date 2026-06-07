@@ -1,10 +1,12 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <TargetFramework>net6.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
     <Platforms>AnyCPU;x64;x86</Platforms>
+    <AssemblyVersion>1.0.26158.0</AssemblyVersion>
+    <FileVersion>1.0.26158.0</FileVersion>
   </PropertyGroup>
 
   <ItemGroup>
