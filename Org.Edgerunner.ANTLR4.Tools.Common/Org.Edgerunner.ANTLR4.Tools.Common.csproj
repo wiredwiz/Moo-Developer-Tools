@@ -5,8 +5,8 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>disable</Nullable>
     <Copyright>Copyright ©  2020</Copyright>
-    <FileVersion>1.2.26158.2</FileVersion>
-    <AssemblyVersion>1.2.26158.2</AssemblyVersion>
+    <FileVersion>1.2.26158.3</FileVersion>
+    <AssemblyVersion>1.2.26158.3</AssemblyVersion>
     <Authors>wiredwiz</Authors>
     <Description>A library of common tools for use with the ANTLR4 runtime.</Description>
     <PackageTags>ANTLR</PackageTags>
