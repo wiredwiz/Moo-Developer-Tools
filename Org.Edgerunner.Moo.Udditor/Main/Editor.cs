@@ -251,7 +251,7 @@ public partial class Editor : KryptonForm
 
    private AddressBook GetWorldsAddressBook()
    {
-      var worldsFile = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Worlds.xml");
+      var worldsFile = ApplicationPaths.ResolveDataFile("Worlds.xml");
       return !File.Exists(worldsFile) ? new AddressBook() : AddressBook.LoadFromFile(worldsFile);
    }
 }
