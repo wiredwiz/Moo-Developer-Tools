@@ -373,3 +373,8 @@ Images/Thumbs.db
 @eaDir/
 
 Installer/Output/
+
+# Beads / Dolt files (added by bd init)
+.dolt/
+*.db
+.beads-credential-key
