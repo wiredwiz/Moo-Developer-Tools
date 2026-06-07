@@ -101,6 +101,11 @@ namespace Org.Edgerunner.Moo.Udditor.Dialogs
          InitializeComponent();
          BuildPreview();
          BuildLeftControls();
+
+         // Auto-indent selects the whole sample while the text loads. Collapse the selection once
+         // the form is shown, deferred to the end of the message queue so it runs after any pending
+         // auto-indent so the preview never opens with everything highlighted.
+         Shown += (_, _) => BeginInvoke((Action)(() => _preview.CollapseSelectionToStart()));
       }
 
       private void BuildPreview()
@@ -117,11 +122,6 @@ namespace Org.Edgerunner.Moo.Udditor.Dialogs
          ApplyPreviewChrome();
          _preview.IsChanged = false;
          _preview.ClearUndo();
-
-         // Collapse the selection to the top so the preview does not open with the
-         // entire sample selected/highlighted.
-         _preview.SelectionStart = 0;
-         _preview.SelectionLength = 0;
       }
 
       private static string LoadPreviewSample()

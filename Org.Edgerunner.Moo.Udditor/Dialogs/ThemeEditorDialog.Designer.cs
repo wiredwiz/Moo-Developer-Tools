@@ -86,7 +86,7 @@ namespace Org.Edgerunner.Moo.Udditor.Dialogs
          this.splitContainer.Panel1.Controls.Add(this.leftScrollPanel);
          this.splitContainer.Panel2.Controls.Add(this.previewHostPanel);
          this.splitContainer.Size = new System.Drawing.Size(1260, 600);
-         this.splitContainer.SplitterDistance = 430;
+         this.splitContainer.SplitterDistance = 560;
          this.splitContainer.TabIndex = 0;
          //
          // leftScrollPanel

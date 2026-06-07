@@ -372,6 +372,20 @@ namespace Org.Edgerunner.Moo.Editor.Controls
             ColorizeTokens(null);
       }
 
+      /// <summary>
+      /// Collapses the selection to an empty caret at the very start of the document.
+      /// </summary>
+      /// <remarks>
+      /// The inherited <c>SelectionStart</c>/<c>SelectionLength</c> shims only move the selection
+      /// start (and ignore a zero length), so they cannot deselect a full-document selection. This
+      /// sets both ends of the selection explicitly to the home position.
+      /// </remarks>
+      public void CollapseSelectionToStart()
+      {
+         Selection = new TextSelectionRange(this, new Place(0, 0), new Place(0, 0));
+         Invalidate();
+      }
+
       public void ColorizeTokens(TextSelectionRange range)
       {
          if (Handle == IntPtr.Zero)
