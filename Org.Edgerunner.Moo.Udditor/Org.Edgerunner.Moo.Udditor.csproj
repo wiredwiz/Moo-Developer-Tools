@@ -16,12 +16,24 @@ Udditor is intended to allow Moo programmers to work faster, waste less time and
     <ApplicationIcon>UdditorLogo.ico</ApplicationIcon>
     <AssemblyVersion>1.0.26158.0</AssemblyVersion>
     <FileVersion>1.0.26158.0</FileVersion>
-    <Version>1.0.24013.0-beta</Version>
+    <Version>1.0.26158.0</Version>
     <Title>MooUdditor</Title>
     <PackageProjectUrl>https://github.com/wiredwiz/Moo-Developer-Tools</PackageProjectUrl>
     <RepositoryUrl>https://github.com/wiredwiz/Moo-Developer-Tools</RepositoryUrl>
     <Company>Edgerunner.org</Company>
     <Platforms>AnyCPU;x64;x86</Platforms>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
+    <ShouldCreateLogs>True</ShouldCreateLogs>
+    <AdvancedSettingsExpanded>False</AdvancedSettingsExpanded>
+    <UpdateAssemblyVersion>False</UpdateAssemblyVersion>
+    <UpdateAssemblyFileVersion>False</UpdateAssemblyFileVersion>
+    <UpdateAssemblyInfoVersion>False</UpdateAssemblyInfoVersion>
+    <UpdatePackageVersion>True</UpdatePackageVersion>
+    <PackageVersionSettings>AssemblyVersion.IncrementWithAutoReset.None</PackageVersionSettings>
+    <AssemblyInfoVersionType>SettingsVersion</AssemblyInfoVersionType>
+    <InheritWinAppVersionFrom>None</InheritWinAppVersionFrom>
   </PropertyGroup>
 
   <ItemGroup>
