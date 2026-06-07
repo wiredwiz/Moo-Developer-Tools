@@ -107,6 +107,9 @@ Udditor is intended to allow Moo programmers to work faster, waste less time and
     <EmbeddedResource Include="Snippets.txt">
       <LogicalName>Snippets.txt</LogicalName>
     </EmbeddedResource>
+    <EmbeddedResource Include="ThemePreviewSample.moo">
+      <LogicalName>ThemePreviewSample.moo</LogicalName>
+    </EmbeddedResource>
   </ItemGroup>
 
 </Project>

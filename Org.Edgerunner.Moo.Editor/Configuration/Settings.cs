@@ -36,6 +36,8 @@
 
 using System.Configuration;
 using System.Diagnostics.CodeAnalysis;
+using System.Text;
+using System.Xml;
 
 namespace Org.Edgerunner.Moo.Editor.Configuration
 {
@@ -547,6 +549,402 @@ namespace Org.Edgerunner.Moo.Editor.Configuration
                return defaultStyle;
 
          return result;
+      }
+
+      /// <summary>
+      /// Creates a deep copy of this <see cref="Settings"/> instance.
+      /// </summary>
+      /// <returns>A new <see cref="Settings"/> instance with every property copied from this one.</returns>
+      /// <remarks>
+      /// All <see cref="Color"/>, <see cref="FontStyle"/>, <see cref="FontFamily"/> and value-type
+      /// properties are value semantics (or immutable for our purposes), so a shallow member copy
+      /// produces a fully independent working copy. The singleton <see cref="Instance"/> is untouched.
+      /// </remarks>
+      public Settings Clone()
+      {
+         var clone = new Settings();
+
+         // Syntax highlighting colors and styles
+         clone.DefaultWordColor = DefaultWordColor;
+         clone.DefaultWordBackgroundColor = DefaultWordBackgroundColor;
+         clone.DefaultWordFontStyle = DefaultWordFontStyle;
+         clone.KeywordColor = KeywordColor;
+         clone.KeywordBackgroundColor = KeywordBackgroundColor;
+         clone.KeywordFontStyle = KeywordFontStyle;
+         clone.CommentColor = CommentColor;
+         clone.CommentBackgroundColor = CommentBackgroundColor;
+         clone.CommentFontStyle = CommentFontStyle;
+         clone.LiteralColor = LiteralColor;
+         clone.LiteralBackgroundColor = LiteralBackgroundColor;
+         clone.LiteralFontStyle = LiteralFontStyle;
+         clone.StringColor = StringColor;
+         clone.StringBackgroundColor = StringBackgroundColor;
+         clone.StringFontStyle = StringFontStyle;
+         clone.SymbolColor = SymbolColor;
+         clone.SymbolBackgroundColor = SymbolBackgroundColor;
+         clone.SymbolFontStyle = SymbolFontStyle;
+         clone.OperatorColor = OperatorColor;
+         clone.OperatorBackgroundColor = OperatorBackgroundColor;
+         clone.OperatorFontStyle = OperatorFontStyle;
+         clone.ParenthesisColor = ParenthesisColor;
+         clone.ParenthesisBackgroundColor = ParenthesisBackgroundColor;
+         clone.ParenthesisFontStyle = ParenthesisFontStyle;
+         clone.BracketColor = BracketColor;
+         clone.BracketBackgroundColor = BracketBackgroundColor;
+         clone.BracketFontStyle = BracketFontStyle;
+         clone.CurlyBraceColor = CurlyBraceColor;
+         clone.CurlyBraceBackgroundColor = CurlyBraceBackgroundColor;
+         clone.CurlyBraceFontStyle = CurlyBraceFontStyle;
+         clone.ObjectColor = ObjectColor;
+         clone.ObjectBackgroundColor = ObjectBackgroundColor;
+         clone.ObjectFontStyle = ObjectFontStyle;
+         clone.CoreReferenceColor = CoreReferenceColor;
+         clone.CoreReferenceBackgroundColor = CoreReferenceBackgroundColor;
+         clone.CoreReferenceFontStyle = CoreReferenceFontStyle;
+         clone.BuiltinVariableColor = BuiltinVariableColor;
+         clone.BuiltinVariableBackgroundColor = BuiltinVariableBackgroundColor;
+         clone.BuiltinVariableFontStyle = BuiltinVariableFontStyle;
+         clone.BuiltinFunctionColor = BuiltinFunctionColor;
+         clone.BuiltinFunctionBackgroundColor = BuiltinFunctionBackgroundColor;
+         clone.BuiltinFunctionFontStyle = BuiltinFunctionFontStyle;
+         clone.VerbColor = VerbColor;
+         clone.VerbBackgroundColor = VerbBackgroundColor;
+         clone.VerbFontStyle = VerbFontStyle;
+         clone.PropertyColor = PropertyColor;
+         clone.PropertyBackgroundColor = PropertyBackgroundColor;
+         clone.PropertyFontStyle = PropertyFontStyle;
+
+         // Editor fonts
+         clone.EditorFontFamily = EditorFontFamily;
+         clone.EditorFontSize = EditorFontSize;
+
+         // Editor chrome colors
+         clone.EditorTextColor = EditorTextColor;
+         clone.EditorBackgroundColor = EditorBackgroundColor;
+         clone.EditorCaretColor = EditorCaretColor;
+         clone.EditorLineNumberColor = EditorLineNumberColor;
+         clone.EditorCurrentLineColor = EditorCurrentLineColor;
+         clone.EditorTextSelectionColor = EditorTextSelectionColor;
+         clone.EditorFoldingIndicatorColor = EditorFoldingIndicatorColor;
+         clone.EditorChangedLineColor = EditorChangedLineColor;
+         clone.EditorIndentBackColor = EditorIndentBackColor;
+         clone.EditorBookmarkColor = EditorBookmarkColor;
+         clone.EditorServiceLineColor = EditorServiceLineColor;
+         clone.EditorFoldingHighlightColor = EditorFoldingHighlightColor;
+         clone.ErrorIndicatorColor = ErrorIndicatorColor;
+
+         // Editor behavior
+         clone.EditorShowFoldingBlockHighlights = EditorShowFoldingBlockHighlights;
+         clone.EditorZoomFactor = EditorZoomFactor;
+         clone.EditorWordWrap = EditorWordWrap;
+         clone.EditorWordWrapAutoIndent = EditorWordWrapAutoIndent;
+         clone.EditorWordWrapIndent = EditorWordWrapIndent;
+         clone.EditorAutoIndent = EditorAutoIndent;
+         clone.EditorDarkTheme = EditorDarkTheme;
+         clone.EditorShowCodeFolding = EditorShowCodeFolding;
+         clone.EditorShowTextIndentGuides = EditorShowTextIndentGuides;
+         clone.EditorAutoBrackets = EditorAutoBrackets;
+         clone.EditorTabLength = EditorTabLength;
+         clone.EditorAutocompleteDelay = EditorAutocompleteDelay;
+
+         // Parser message font
+         clone.ParserMessageFontFamily = ParserMessageFontFamily;
+         clone.ParserMessageFontSize = ParserMessageFontSize;
+
+         // Dialect
+         clone.DefaultGrammarDialect = DefaultGrammarDialect;
+
+         return clone;
+      }
+
+      /// <summary>
+      /// Copies every property value from the supplied <paramref name="source"/> into this instance.
+      /// </summary>
+      /// <param name="source">The settings to copy from.</param>
+      /// <exception cref="T:System.ArgumentNullException"><paramref name="source"/> is <see langword="null"/>.</exception>
+      public void CopyFrom([NotNull] Settings source)
+      {
+         if (source == null)
+            throw new ArgumentNullException(nameof(source));
+
+         var clone = source.Clone();
+
+         // Syntax highlighting colors and styles
+         DefaultWordColor = clone.DefaultWordColor;
+         DefaultWordBackgroundColor = clone.DefaultWordBackgroundColor;
+         DefaultWordFontStyle = clone.DefaultWordFontStyle;
+         KeywordColor = clone.KeywordColor;
+         KeywordBackgroundColor = clone.KeywordBackgroundColor;
+         KeywordFontStyle = clone.KeywordFontStyle;
+         CommentColor = clone.CommentColor;
+         CommentBackgroundColor = clone.CommentBackgroundColor;
+         CommentFontStyle = clone.CommentFontStyle;
+         LiteralColor = clone.LiteralColor;
+         LiteralBackgroundColor = clone.LiteralBackgroundColor;
+         LiteralFontStyle = clone.LiteralFontStyle;
+         StringColor = clone.StringColor;
+         StringBackgroundColor = clone.StringBackgroundColor;
+         StringFontStyle = clone.StringFontStyle;
+         SymbolColor = clone.SymbolColor;
+         SymbolBackgroundColor = clone.SymbolBackgroundColor;
+         SymbolFontStyle = clone.SymbolFontStyle;
+         OperatorColor = clone.OperatorColor;
+         OperatorBackgroundColor = clone.OperatorBackgroundColor;
+         OperatorFontStyle = clone.OperatorFontStyle;
+         ParenthesisColor = clone.ParenthesisColor;
+         ParenthesisBackgroundColor = clone.ParenthesisBackgroundColor;
+         ParenthesisFontStyle = clone.ParenthesisFontStyle;
+         BracketColor = clone.BracketColor;
+         BracketBackgroundColor = clone.BracketBackgroundColor;
+         BracketFontStyle = clone.BracketFontStyle;
+         CurlyBraceColor = clone.CurlyBraceColor;
+         CurlyBraceBackgroundColor = clone.CurlyBraceBackgroundColor;
+         CurlyBraceFontStyle = clone.CurlyBraceFontStyle;
+         ObjectColor = clone.ObjectColor;
+         ObjectBackgroundColor = clone.ObjectBackgroundColor;
+         ObjectFontStyle = clone.ObjectFontStyle;
+         CoreReferenceColor = clone.CoreReferenceColor;
+         CoreReferenceBackgroundColor = clone.CoreReferenceBackgroundColor;
+         CoreReferenceFontStyle = clone.CoreReferenceFontStyle;
+         BuiltinVariableColor = clone.BuiltinVariableColor;
+         BuiltinVariableBackgroundColor = clone.BuiltinVariableBackgroundColor;
+         BuiltinVariableFontStyle = clone.BuiltinVariableFontStyle;
+         BuiltinFunctionColor = clone.BuiltinFunctionColor;
+         BuiltinFunctionBackgroundColor = clone.BuiltinFunctionBackgroundColor;
+         BuiltinFunctionFontStyle = clone.BuiltinFunctionFontStyle;
+         VerbColor = clone.VerbColor;
+         VerbBackgroundColor = clone.VerbBackgroundColor;
+         VerbFontStyle = clone.VerbFontStyle;
+         PropertyColor = clone.PropertyColor;
+         PropertyBackgroundColor = clone.PropertyBackgroundColor;
+         PropertyFontStyle = clone.PropertyFontStyle;
+
+         // Editor fonts
+         EditorFontFamily = clone.EditorFontFamily;
+         EditorFontSize = clone.EditorFontSize;
+
+         // Editor chrome colors
+         EditorTextColor = clone.EditorTextColor;
+         EditorBackgroundColor = clone.EditorBackgroundColor;
+         EditorCaretColor = clone.EditorCaretColor;
+         EditorLineNumberColor = clone.EditorLineNumberColor;
+         EditorCurrentLineColor = clone.EditorCurrentLineColor;
+         EditorTextSelectionColor = clone.EditorTextSelectionColor;
+         EditorFoldingIndicatorColor = clone.EditorFoldingIndicatorColor;
+         EditorChangedLineColor = clone.EditorChangedLineColor;
+         EditorIndentBackColor = clone.EditorIndentBackColor;
+         EditorBookmarkColor = clone.EditorBookmarkColor;
+         EditorServiceLineColor = clone.EditorServiceLineColor;
+         EditorFoldingHighlightColor = clone.EditorFoldingHighlightColor;
+         ErrorIndicatorColor = clone.ErrorIndicatorColor;
+
+         // Editor behavior
+         EditorShowFoldingBlockHighlights = clone.EditorShowFoldingBlockHighlights;
+         EditorZoomFactor = clone.EditorZoomFactor;
+         EditorWordWrap = clone.EditorWordWrap;
+         EditorWordWrapAutoIndent = clone.EditorWordWrapAutoIndent;
+         EditorWordWrapIndent = clone.EditorWordWrapIndent;
+         EditorAutoIndent = clone.EditorAutoIndent;
+         EditorDarkTheme = clone.EditorDarkTheme;
+         EditorShowCodeFolding = clone.EditorShowCodeFolding;
+         EditorShowTextIndentGuides = clone.EditorShowTextIndentGuides;
+         EditorAutoBrackets = clone.EditorAutoBrackets;
+         EditorTabLength = clone.EditorTabLength;
+         EditorAutocompleteDelay = clone.EditorAutocompleteDelay;
+
+         // Parser message font
+         ParserMessageFontFamily = clone.ParserMessageFontFamily;
+         ParserMessageFontSize = clone.ParserMessageFontSize;
+
+         // Dialect
+         DefaultGrammarDialect = clone.DefaultGrammarDialect;
+      }
+
+      /// <summary>
+      /// Serializes a <see cref="Color"/> into the form the loader accepts (named color or hex).
+      /// </summary>
+      /// <param name="color">The color.</param>
+      /// <returns>A string the loader's <see cref="ColorTranslator.FromHtml"/> path can parse.</returns>
+      /// <remarks>
+      /// <see cref="ColorTranslator.ToHtml"/> returns a named color when possible (e.g. "Transparent",
+      /// "Red") and a "#RRGGBB" hex string otherwise. <see cref="Color.Transparent"/> round-trips
+      /// because it is a known named color.
+      /// </remarks>
+      private static string SerializeColor(Color color)
+      {
+         var html = ColorTranslator.ToHtml(color);
+         if (!string.IsNullOrEmpty(html))
+            return html;
+
+         // Fall back to an explicit hex string for any color ToHtml could not name.
+         return $"#{color.R:X2}{color.G:X2}{color.B:X2}";
+      }
+
+      /// <summary>
+      /// Serializes a <see cref="FontStyle"/> into the ';'-joined form <see cref="ParseFontStyles"/> reads.
+      /// </summary>
+      /// <param name="style">The font style.</param>
+      /// <returns>A string such as "Regular" or "Bold;Italic".</returns>
+      private static string SerializeFontStyle(FontStyle style)
+      {
+         if (style == FontStyle.Regular)
+            return nameof(FontStyle.Regular);
+
+         var parts = new List<string>();
+         if (style.HasFlag(FontStyle.Bold))
+            parts.Add(nameof(FontStyle.Bold));
+         if (style.HasFlag(FontStyle.Italic))
+            parts.Add(nameof(FontStyle.Italic));
+         if (style.HasFlag(FontStyle.Underline))
+            parts.Add(nameof(FontStyle.Underline));
+         if (style.HasFlag(FontStyle.Strikeout))
+            parts.Add(nameof(FontStyle.Strikeout));
+
+         return parts.Count == 0 ? nameof(FontStyle.Regular) : string.Join(";", parts);
+      }
+
+      /// <summary>
+      /// Saves all editor settings to the specified file as an appSettings XML document.
+      /// </summary>
+      /// <param name="filePath">The destination file path.</param>
+      /// <exception cref="T:System.ArgumentNullException"><paramref name="filePath"/> is <see langword="null"/> or empty.</exception>
+      /// <exception cref="T:System.IO.IOException">The file could not be written.</exception>
+      /// <remarks>
+      /// The written keys, color formats and font-style formats exactly match what <see cref="LoadFrom(string)"/>
+      /// reads, so a subsequent load round-trips every value.
+      /// </remarks>
+      public void SaveTo([NotNull] string filePath)
+      {
+         if (string.IsNullOrEmpty(filePath))
+            throw new ArgumentNullException(nameof(filePath));
+
+         var settings = new Dictionary<string, string>
+         {
+            // Syntax highlighting
+            ["DefaultWordColor"] = SerializeColor(DefaultWordColor),
+            ["DefaultWordBackgroundColor"] = SerializeColor(DefaultWordBackgroundColor),
+            ["DefaultWordFontStyle"] = SerializeFontStyle(DefaultWordFontStyle),
+            ["CommentColor"] = SerializeColor(CommentColor),
+            ["CommentBackgroundColor"] = SerializeColor(CommentBackgroundColor),
+            ["CommentFontStyle"] = SerializeFontStyle(CommentFontStyle),
+            ["KeywordColor"] = SerializeColor(KeywordColor),
+            ["KeywordBackgroundColor"] = SerializeColor(KeywordBackgroundColor),
+            ["KeywordFontStyle"] = SerializeFontStyle(KeywordFontStyle),
+            ["LiteralColor"] = SerializeColor(LiteralColor),
+            ["LiteralBackgroundColor"] = SerializeColor(LiteralBackgroundColor),
+            ["LiteralFontStyle"] = SerializeFontStyle(LiteralFontStyle),
+            ["StringColor"] = SerializeColor(StringColor),
+            ["StringBackgroundColor"] = SerializeColor(StringBackgroundColor),
+            ["StringFontStyle"] = SerializeFontStyle(StringFontStyle),
+            ["SymbolColor"] = SerializeColor(SymbolColor),
+            ["SymbolBackgroundColor"] = SerializeColor(SymbolBackgroundColor),
+            ["SymbolFontStyle"] = SerializeFontStyle(SymbolFontStyle),
+            ["OperatorColor"] = SerializeColor(OperatorColor),
+            ["OperatorBackgroundColor"] = SerializeColor(OperatorBackgroundColor),
+            ["OperatorFontStyle"] = SerializeFontStyle(OperatorFontStyle),
+            ["ParenthesisColor"] = SerializeColor(ParenthesisColor),
+            ["ParenthesisBackgroundColor"] = SerializeColor(ParenthesisBackgroundColor),
+            ["ParenthesisFontStyle"] = SerializeFontStyle(ParenthesisFontStyle),
+            ["CurlyBraceColor"] = SerializeColor(CurlyBraceColor),
+            ["CurlyBraceBackgroundColor"] = SerializeColor(CurlyBraceBackgroundColor),
+            ["CurlyBraceFontStyle"] = SerializeFontStyle(CurlyBraceFontStyle),
+            ["BracketColor"] = SerializeColor(BracketColor),
+            ["BracketBackgroundColor"] = SerializeColor(BracketBackgroundColor),
+            ["BracketFontStyle"] = SerializeFontStyle(BracketFontStyle),
+            ["ObjectColor"] = SerializeColor(ObjectColor),
+            ["ObjectBackgroundColor"] = SerializeColor(ObjectBackgroundColor),
+            ["ObjectFontStyle"] = SerializeFontStyle(ObjectFontStyle),
+            ["CoreReferenceColor"] = SerializeColor(CoreReferenceColor),
+            ["CoreReferenceBackgroundColor"] = SerializeColor(CoreReferenceBackgroundColor),
+            ["CoreReferenceFontStyle"] = SerializeFontStyle(CoreReferenceFontStyle),
+            ["BuiltinVariableColor"] = SerializeColor(BuiltinVariableColor),
+            ["BuiltinVariableBackgroundColor"] = SerializeColor(BuiltinVariableBackgroundColor),
+            ["BuiltinVariableFontStyle"] = SerializeFontStyle(BuiltinVariableFontStyle),
+            ["BuiltinFunctionColor"] = SerializeColor(BuiltinFunctionColor),
+            ["BuiltinFunctionBackgroundColor"] = SerializeColor(BuiltinFunctionBackgroundColor),
+            ["BuiltinFunctionFontStyle"] = SerializeFontStyle(BuiltinFunctionFontStyle),
+            ["VerbColor"] = SerializeColor(VerbColor),
+            ["VerbBackgroundColor"] = SerializeColor(VerbBackgroundColor),
+            ["VerbFontStyle"] = SerializeFontStyle(VerbFontStyle),
+            ["PropertyColor"] = SerializeColor(PropertyColor),
+            ["PropertyBackgroundColor"] = SerializeColor(PropertyBackgroundColor),
+            ["PropertyFontStyle"] = SerializeFontStyle(PropertyFontStyle),
+
+            // Editor fonts
+            ["EditorFontFamily"] = EditorFontFamily?.Name ?? string.Empty,
+            ["EditorFontSize"] = EditorFontSize.ToString(System.Globalization.CultureInfo.InvariantCulture),
+
+            // Editor chrome colors
+            ["EditorTextColor"] = SerializeColor(EditorTextColor),
+            ["EditorBackgroundColor"] = SerializeColor(EditorBackgroundColor),
+            ["EditorCaretColor"] = SerializeColor(EditorCaretColor),
+            ["EditorLineNumberColor"] = SerializeColor(EditorLineNumberColor),
+            ["EditorCurrentLineColor"] = SerializeColor(EditorCurrentLineColor),
+            ["EditorTextSelectionColor"] = SerializeColor(EditorTextSelectionColor),
+            ["EditorFoldingIndicatorColor"] = SerializeColor(EditorFoldingIndicatorColor),
+            ["EditorChangedLineColor"] = SerializeColor(EditorChangedLineColor),
+            ["EditorIndentBackColor"] = SerializeColor(EditorIndentBackColor),
+            ["EditorBookmarkColor"] = SerializeColor(EditorBookmarkColor),
+            ["EditorServiceLineColor"] = SerializeColor(EditorServiceLineColor),
+            ["EditorFoldingHighlightColor"] = SerializeColor(EditorFoldingHighlightColor),
+            ["ErrorIndicatorColor"] = SerializeColor(ErrorIndicatorColor),
+
+            // Editor behavior
+            ["EditorShowCodeFolding"] = EditorShowCodeFolding.ToString(),
+            ["EditorShowFoldingBlockHighlights"] = EditorShowFoldingBlockHighlights.ToString(),
+            ["EditorShowTextIndentGuides"] = EditorShowTextIndentGuides.ToString(),
+            ["EditorWordWrap"] = EditorWordWrap.ToString(),
+            ["EditorWordWrapAutoIndent"] = EditorWordWrapAutoIndent.ToString(),
+            ["EditorWordWrapIndent"] = EditorWordWrapIndent.ToString(),
+            ["EditorZoomFactor"] = EditorZoomFactor.ToString(),
+            ["EditorAutoIndent"] = EditorAutoIndent.ToString(),
+            ["EditorAutoBrackets"] = EditorAutoBrackets.ToString(),
+            ["EditorTabLength"] = EditorTabLength.ToString(),
+            ["EditorAutocompleteDelay"] = EditorAutocompleteDelay.ToString(),
+            ["EditorDarkTheme"] = EditorDarkTheme.ToString(),
+
+            // Parser message font
+            ["ParserMessageFontFamily"] = ParserMessageFontFamily?.Name ?? string.Empty,
+            ["ParserMessageFontSize"] = ParserMessageFontSize.ToString(System.Globalization.CultureInfo.InvariantCulture),
+
+            // Dialect
+            ["DefaultGrammarDialect"] = DefaultGrammarDialect.ToString()
+         };
+
+         try
+         {
+            var xmlSettings = new XmlWriterSettings
+            {
+               Indent = true,
+               IndentChars = "   ",
+               Encoding = new UTF8Encoding(false)
+            };
+
+            // Ensure the destination directory exists.
+            var directory = Path.GetDirectoryName(filePath);
+            if (!string.IsNullOrEmpty(directory))
+               Directory.CreateDirectory(directory);
+
+            using var writer = XmlWriter.Create(filePath, xmlSettings);
+            writer.WriteStartDocument();
+            writer.WriteStartElement("configuration");
+            writer.WriteStartElement("appSettings");
+            foreach (var pair in settings)
+            {
+               writer.WriteStartElement("add");
+               writer.WriteAttributeString("key", pair.Key);
+               writer.WriteAttributeString("value", pair.Value);
+               writer.WriteEndElement();
+            }
+
+            writer.WriteEndElement(); // appSettings
+            writer.WriteEndElement(); // configuration
+            writer.WriteEndDocument();
+         }
+         catch (Exception ex)
+         {
+            throw new IOException($"Failed to save editor settings to '{filePath}': {ex.Message}", ex);
+         }
       }
 
       /// <summary>

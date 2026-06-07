@@ -1,4 +1,4 @@
-﻿using Org.Edgerunner.ANTLR4.Tools.Common.Grammar;
+using Org.Edgerunner.ANTLR4.Tools.Common.Grammar;
 using Org.Edgerunner.ANTLR4.Tools.Common.Syntax;
 using Org.Edgerunner.Moo.Editor.Configuration;
 using Org.Edgerunner.MooSharp.Language.Grammar;
@@ -7,14 +7,24 @@ namespace Org.Edgerunner.Moo.Editor.SyntaxHighlighting;
 
 public class MooSyntaxHighlightingGuide : ISyntaxHighlightingGuide
 {
-   public MooSyntaxHighlightingGuide()
+   private readonly Settings _settings;
+
+   /// <summary>
+   /// Initializes a new instance of the <see cref="MooSyntaxHighlightingGuide"/> class.
+   /// </summary>
+   /// <param name="source">
+   /// The settings source to read colors and styles from. When <see langword="null"/>, the
+   /// singleton <see cref="Settings.Instance"/> is used (default behavior).
+   /// </param>
+   public MooSyntaxHighlightingGuide(Settings source = null)
    {
+      _settings = source ?? Settings.Instance;
       AllGrammarNames = new List<string> { "Moo", "MooSharp", "ToastStuntMoo", "StuntMoo", "EdgeMoo" };
    }
 
    public Color GetErrorIndicatorColor()
    {
-      return Settings.Instance.ErrorIndicatorColor;
+      return _settings.ErrorIndicatorColor;
    }
 
    public Color GetTokenForegroundColor(DetailedToken token, DetailedToken previousToken, DetailedToken nextToken)
@@ -40,30 +50,30 @@ public class MooSyntaxHighlightingGuide : ISyntaxHighlightingGuide
          case "ELSEIF":
          case "ENDIF":
          case "ANY":
-            return Settings.Instance.KeywordColor;
+            return _settings.KeywordColor;
          case "OBJECT":
-            return Settings.Instance.ObjectColor;
+            return _settings.ObjectColor;
          case "CORE_REFERENCE":
-            return Settings.Instance.CoreReferenceColor;
+            return _settings.CoreReferenceColor;
          case "STRING":
-            return Settings.Instance.StringColor;
+            return _settings.StringColor;
          case "NUMBER":
          case "FLOAT":
          case "ERROR":
          case "BOOLEAN":
-            return Settings.Instance.LiteralColor;
+            return _settings.LiteralColor;
          case "IDENTIFIER":
             // Highlight verbs
             if (previousToken?.DisplayText == ":")
-               return Settings.Instance.VerbColor;
+               return _settings.VerbColor;
 
             // Highlight functions
             if (nextToken?.DisplayText == "(")
-               return Settings.Instance.BuiltinFunctionColor;
+               return _settings.BuiltinFunctionColor;
 
             // Highlight properties
             if (previousToken?.DisplayText == ".")
-               return Settings.Instance.PropertyColor;
+               return _settings.PropertyColor;
 
             // highlight builtin variables
             switch (token.DisplayText)
@@ -90,9 +100,9 @@ public class MooSyntaxHighlightingGuide : ISyntaxHighlightingGuide
                case "MAP":
                case "WAIF":
                case "ANON":
-                  return Settings.Instance.BuiltinVariableColor;
+                  return _settings.BuiltinVariableColor;
                default:
-                  return Settings.Instance.DefaultWordColor;
+                  return _settings.DefaultWordColor;
             }
          case "'->'":
          case "'$'":
@@ -107,7 +117,7 @@ public class MooSyntaxHighlightingGuide : ISyntaxHighlightingGuide
          case "'.'":
          case "'..'":
          case "','":
-            return Settings.Instance.SymbolColor;
+            return _settings.SymbolColor;
          case "'='":
          case "'+'":
          case "'-'":
@@ -141,21 +151,21 @@ public class MooSyntaxHighlightingGuide : ISyntaxHighlightingGuide
          case "'||'":
          case "'&&'":
          case "IN":
-            return Settings.Instance.OperatorColor;
+            return _settings.OperatorColor;
          case "'('":
          case "')'":
-            return Settings.Instance.ParenthesisColor;
+            return _settings.ParenthesisColor;
          case "'['":
          case "']'":
-            return Settings.Instance.BracketColor;
+            return _settings.BracketColor;
          case "'{'":
          case "'}'":
-            return Settings.Instance.CurlyBraceColor;
+            return _settings.CurlyBraceColor;
          case "SINGLE_LINE_COMMENT":
          case "DELIMITED_COMMENT":
-            return Settings.Instance.CommentColor;
+            return _settings.CommentColor;
          default:
-            return Settings.Instance.DefaultWordColor;
+            return _settings.DefaultWordColor;
       }
    }
 
@@ -182,30 +192,30 @@ public class MooSyntaxHighlightingGuide : ISyntaxHighlightingGuide
          case "ELSEIF":
          case "ENDIF":
          case "ANY":
-            return Settings.Instance.KeywordBackgroundColor;
+            return _settings.KeywordBackgroundColor;
          case "OBJECT":
-            return Settings.Instance.ObjectBackgroundColor;
+            return _settings.ObjectBackgroundColor;
          case "CORE_REFERENCE":
-            return Settings.Instance.CoreReferenceBackgroundColor;
+            return _settings.CoreReferenceBackgroundColor;
          case "STRING":
-            return Settings.Instance.StringBackgroundColor;
+            return _settings.StringBackgroundColor;
          case "NUMBER":
          case "FLOAT":
          case "ERROR":
          case "BOOLEAN":
-            return Settings.Instance.LiteralBackgroundColor;
+            return _settings.LiteralBackgroundColor;
          case "IDENTIFIER":
             // Highlight verbs
             if (previousToken?.DisplayText == ":")
-               return Settings.Instance.VerbBackgroundColor;
+               return _settings.VerbBackgroundColor;
 
             // Highlight functions
             if (nextToken?.DisplayText == "(")
-               return Settings.Instance.BuiltinFunctionBackgroundColor;
+               return _settings.BuiltinFunctionBackgroundColor;
 
             // Highlight properties
             if (previousToken?.DisplayText == ".")
-               return Settings.Instance.PropertyBackgroundColor;
+               return _settings.PropertyBackgroundColor;
 
             // highlight builtin variables
             switch (token.DisplayText)
@@ -232,9 +242,9 @@ public class MooSyntaxHighlightingGuide : ISyntaxHighlightingGuide
                case "MAP":
                case "WAIF":
                case "ANON":
-                  return Settings.Instance.BuiltinVariableBackgroundColor;
+                  return _settings.BuiltinVariableBackgroundColor;
                default:
-                  return Settings.Instance.DefaultWordBackgroundColor;
+                  return _settings.DefaultWordBackgroundColor;
             }
          case "'->'":
          case "'$'":
@@ -249,7 +259,7 @@ public class MooSyntaxHighlightingGuide : ISyntaxHighlightingGuide
          case "'.'":
          case "'..'":
          case "','":
-            return Settings.Instance.SymbolBackgroundColor;
+            return _settings.SymbolBackgroundColor;
          case "'='":
          case "'+'":
          case "'-'":
@@ -283,21 +293,21 @@ public class MooSyntaxHighlightingGuide : ISyntaxHighlightingGuide
          case "'||'":
          case "'&&'":
          case "IN":
-            return Settings.Instance.OperatorBackgroundColor;
+            return _settings.OperatorBackgroundColor;
          case "'('":
          case "')'":
-            return Settings.Instance.ParenthesisBackgroundColor;
+            return _settings.ParenthesisBackgroundColor;
          case "'['":
          case "']'":
-            return Settings.Instance.BracketBackgroundColor;
+            return _settings.BracketBackgroundColor;
          case "'{'":
          case "'}'":
-            return Settings.Instance.CurlyBraceBackgroundColor;
+            return _settings.CurlyBraceBackgroundColor;
          case "SINGLE_LINE_COMMENT":
          case "DELIMITED_COMMENT":
-            return Settings.Instance.CommentBackgroundColor;
+            return _settings.CommentBackgroundColor;
          default:
-            return Settings.Instance.DefaultWordBackgroundColor;
+            return _settings.DefaultWordBackgroundColor;
       }
    }
 
@@ -324,30 +334,30 @@ public class MooSyntaxHighlightingGuide : ISyntaxHighlightingGuide
          case "ELSEIF":
          case "ENDIF":
          case "ANY":
-            return Settings.Instance.KeywordFontStyle;
+            return _settings.KeywordFontStyle;
          case "OBJECT":
-            return Settings.Instance.ObjectFontStyle;
+            return _settings.ObjectFontStyle;
          case "CORE_REFERENCE":
-            return Settings.Instance.CoreReferenceFontStyle;
+            return _settings.CoreReferenceFontStyle;
          case "STRING":
-            return Settings.Instance.StringFontStyle;
+            return _settings.StringFontStyle;
          case "NUMBER":
          case "FLOAT":
          case "ERROR":
          case "BOOLEAN":
-            return Settings.Instance.LiteralFontStyle;
+            return _settings.LiteralFontStyle;
          case "IDENTIFIER":
             // Highlight verbs
             if (previousToken?.DisplayText == ":")
-               return Settings.Instance.VerbFontStyle;
+               return _settings.VerbFontStyle;
 
             // Highlight functions
             if (nextToken?.DisplayText == "(")
-               return Settings.Instance.BuiltinFunctionFontStyle;
+               return _settings.BuiltinFunctionFontStyle;
 
             // Highlight properties
             if (previousToken?.DisplayText == ".")
-               return Settings.Instance.PropertyFontStyle;
+               return _settings.PropertyFontStyle;
 
             // highlight builtin variables
             switch (token.DisplayText)
@@ -374,9 +384,9 @@ public class MooSyntaxHighlightingGuide : ISyntaxHighlightingGuide
                case "MAP":
                case "WAIF":
                case "ANON":
-                  return Settings.Instance.BuiltinVariableFontStyle;
+                  return _settings.BuiltinVariableFontStyle;
                default:
-                  return Settings.Instance.DefaultWordFontStyle;
+                  return _settings.DefaultWordFontStyle;
             }
          case "'->'":
          case "'$'":
@@ -391,7 +401,7 @@ public class MooSyntaxHighlightingGuide : ISyntaxHighlightingGuide
          case "'.'":
          case "'..'":
          case "','":
-            return Settings.Instance.SymbolFontStyle;
+            return _settings.SymbolFontStyle;
          case "'='":
          case "'+'":
          case "'-'":
@@ -425,21 +435,21 @@ public class MooSyntaxHighlightingGuide : ISyntaxHighlightingGuide
          case "'||'":
          case "'&&'":
          case "IN":
-            return Settings.Instance.OperatorFontStyle;
+            return _settings.OperatorFontStyle;
          case "'('":
          case "')'":
-            return Settings.Instance.ParenthesisFontStyle;
+            return _settings.ParenthesisFontStyle;
          case "'['":
          case "']'":
-            return Settings.Instance.BracketFontStyle;
+            return _settings.BracketFontStyle;
          case "'{'":
          case "'}'":
-            return Settings.Instance.CurlyBraceFontStyle;
+            return _settings.CurlyBraceFontStyle;
          case "SINGLE_LINE_COMMENT":
          case "DELIMITED_COMMENT":
-            return Settings.Instance.CommentFontStyle;
+            return _settings.CommentFontStyle;
          default:
-            return Settings.Instance.DefaultWordFontStyle;
+            return _settings.DefaultWordFontStyle;
       }
    }
 

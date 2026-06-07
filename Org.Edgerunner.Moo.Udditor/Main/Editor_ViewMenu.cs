@@ -34,12 +34,21 @@
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #endregion
 
+using Org.Edgerunner.Moo.Udditor.Dialogs;
 using Org.Edgerunner.Moo.Udditor.Pages;
 
 namespace Org.Edgerunner.Moo.Udditor.Main;
 
 public partial class Editor
 {
+   private void mnuItemTheme_Click(object sender, EventArgs e)
+   {
+      var configPath = ApplicationPaths.GetWritableDataFile("Moo.Editor.config");
+      using var dialog = new ThemeEditorDialog(WindowManager, configPath);
+      dialog.StartPosition = FormStartPosition.CenterParent;
+      dialog.ShowDialog(this);
+   }
+
    private void mnuItemWordWrap_CheckStateChanged(object sender, EventArgs e)
    {
       if (CurrentPage is MooEditorPage editorPage)

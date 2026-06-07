@@ -74,6 +74,8 @@ namespace Org.Edgerunner.Moo.Udditor.Main
          mnuItemShowLineNumbers = new ToolStripMenuItem();
          mnuItemIndentationGuides = new ToolStripMenuItem();
          mnuItemShowPreviewPane = new ToolStripMenuItem();
+         toolStripSeparatorTheme = new ToolStripSeparator();
+         mnuItemTheme = new ToolStripMenuItem();
          mnuItemTerminal = new ToolStripMenuItem();
          mnuItemWorldManager = new ToolStripMenuItem();
          tlMnuItemOpenConnection = new ToolStripMenuItem();
@@ -367,7 +369,7 @@ namespace Org.Edgerunner.Moo.Udditor.Main
          // 
          // mnuItemView
          // 
-         mnuItemView.DropDownItems.AddRange(new ToolStripItem[] { mnuItemZoomIn, mnuItemZoomOut, toolStripSeparator6, mnuItemWordWrap, mnuItemShowLineNumbers, mnuItemIndentationGuides, mnuItemShowPreviewPane });
+         mnuItemView.DropDownItems.AddRange(new ToolStripItem[] { mnuItemZoomIn, mnuItemZoomOut, toolStripSeparator6, mnuItemWordWrap, mnuItemShowLineNumbers, mnuItemIndentationGuides, mnuItemShowPreviewPane, toolStripSeparatorTheme, mnuItemTheme });
          mnuItemView.Name = "mnuItemView";
          mnuItemView.Size = new Size(55, 24);
          mnuItemView.Text = "&View";
@@ -434,7 +436,19 @@ namespace Org.Edgerunner.Moo.Udditor.Main
          mnuItemShowPreviewPane.Size = new Size(244, 26);
          mnuItemShowPreviewPane.Text = "Show Preview Pane";
          mnuItemShowPreviewPane.CheckStateChanged += mnuItemShowPreviewPane_CheckStateChanged;
-         // 
+         //
+         // toolStripSeparatorTheme
+         //
+         toolStripSeparatorTheme.Name = "toolStripSeparatorTheme";
+         toolStripSeparatorTheme.Size = new Size(241, 6);
+         //
+         // mnuItemTheme
+         //
+         mnuItemTheme.Name = "mnuItemTheme";
+         mnuItemTheme.Size = new Size(244, 26);
+         mnuItemTheme.Text = "Theme…";
+         mnuItemTheme.Click += mnuItemTheme_Click;
+         //
          // mnuItemTerminal
          // 
          mnuItemTerminal.DropDownItems.AddRange(new ToolStripItem[] { mnuItemWorldManager, tlMnuItemOpenConnection, mnuItemCloseConnection, toolStripSeparator5, mnuItemEchoCommands, mnuItemEnableColor, mnuItemEnableBlinking, mnuItemEnableAudio });
@@ -743,6 +757,8 @@ namespace Org.Edgerunner.Moo.Udditor.Main
       private ToolStripSeparator toolStripSeparator6;
       private Krypton.Toolkit.KryptonCustomPaletteBase kryptonPalette1;
       private ToolStripMenuItem mnuItemShowPreviewPane;
+      private ToolStripSeparator toolStripSeparatorTheme;
+      private ToolStripMenuItem mnuItemTheme;
       private ToolStripSeparator toolStripSeparator7;
       private ToolStripMenuItem mnuItemMarkdown;
       private ToolStripMenuItem mnuItemMarkdownSupport;

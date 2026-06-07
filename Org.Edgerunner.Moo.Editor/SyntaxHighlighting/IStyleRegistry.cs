@@ -55,5 +55,11 @@ namespace Org.Edgerunner.Moo.Editor.SyntaxHighlighting
       /// </summary>
       /// <returns>A <see cref="Style"/> instance.</returns>
       Style GetParseErrorStyle();
+
+      /// <summary>
+      /// Clears all cached token, unique and error styles so they are recomputed on next request.
+      /// </summary>
+      /// <remarks>Used when the active theme changes and previously computed styles are stale.</remarks>
+      void Clear();
    }
 }

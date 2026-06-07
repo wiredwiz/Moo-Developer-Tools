@@ -218,29 +218,41 @@ public class MooCodeEditorPage : MooEditorPage
 
     private void ConfigureEditorSettings(MooCodeEditor codeEditor)
     {
-        codeEditor.Font = new Font(Settings.Instance.EditorFontFamily, Settings.Instance.EditorFontSize);
-        codeEditor.ForeColor = Settings.Instance.EditorTextColor;
-        codeEditor.CaretColor = Settings.Instance.EditorCaretColor;
-        codeEditor.BackColor = Settings.Instance.EditorBackgroundColor;
-        codeEditor.CurrentLineColor = Settings.Instance.EditorCurrentLineColor;
-        codeEditor.AutoIndent = Settings.Instance.EditorAutoIndent;
-        codeEditor.WordWrapIndent = Settings.Instance.EditorWordWrapIndent;
-        codeEditor.WordWrapAutoIndent = Settings.Instance.EditorWordWrapAutoIndent;
-        codeEditor.WordWrap = Settings.Instance.EditorWordWrap;
-        codeEditor.AutoCompleteBrackets = Settings.Instance.EditorAutoBrackets;
-        codeEditor.TabLength = Settings.Instance.EditorTabLength;
-        codeEditor.LineNumberColor = Settings.Instance.EditorLineNumberColor;
-        codeEditor.SelectionColor = Settings.Instance.EditorTextSelectionColor;
-        codeEditor.ChangedLineColor = Settings.Instance.EditorChangedLineColor;
-        codeEditor.FoldingIndicatorColor = Settings.Instance.EditorFoldingIndicatorColor;
-        codeEditor.IndentBackColor = Settings.Instance.EditorIndentBackColor;
-        codeEditor.BookmarkColor = Settings.Instance.EditorBookmarkColor;
-        codeEditor.ServiceLinesColor = Settings.Instance.EditorServiceLineColor;
-        codeEditor.ShowCodeFolding = Settings.Instance.EditorShowCodeFolding;
-        codeEditor.ShowTextBlockIndentationGuides = Settings.Instance.EditorShowTextIndentGuides;
-        codeEditor.Zoom = Settings.Instance.EditorZoomFactor;
-        codeEditor.FoldingHighlightColor = Settings.Instance.EditorFoldingHighlightColor;
-        codeEditor.FoldingHighlightEnabled = Settings.Instance.EditorShowFoldingBlockHighlights;
+        ApplyEditorSettings(codeEditor, Settings.Instance);
+    }
+
+    /// <summary>
+    /// Applies the supplied <paramref name="source"/> settings (chrome colors, fonts and behavior)
+    /// to the supplied editor.
+    /// </summary>
+    /// <param name="codeEditor">The editor to configure.</param>
+    /// <param name="source">The settings source. When <see langword="null"/>, <see cref="Settings.Instance"/> is used.</param>
+    public void ApplyEditorSettings(MooCodeEditor codeEditor, Settings source = null)
+    {
+        source ??= Settings.Instance;
+        codeEditor.Font = new Font(source.EditorFontFamily, source.EditorFontSize);
+        codeEditor.ForeColor = source.EditorTextColor;
+        codeEditor.CaretColor = source.EditorCaretColor;
+        codeEditor.BackColor = source.EditorBackgroundColor;
+        codeEditor.CurrentLineColor = source.EditorCurrentLineColor;
+        codeEditor.AutoIndent = source.EditorAutoIndent;
+        codeEditor.WordWrapIndent = source.EditorWordWrapIndent;
+        codeEditor.WordWrapAutoIndent = source.EditorWordWrapAutoIndent;
+        codeEditor.WordWrap = source.EditorWordWrap;
+        codeEditor.AutoCompleteBrackets = source.EditorAutoBrackets;
+        codeEditor.TabLength = source.EditorTabLength;
+        codeEditor.LineNumberColor = source.EditorLineNumberColor;
+        codeEditor.SelectionColor = source.EditorTextSelectionColor;
+        codeEditor.ChangedLineColor = source.EditorChangedLineColor;
+        codeEditor.FoldingIndicatorColor = source.EditorFoldingIndicatorColor;
+        codeEditor.IndentBackColor = source.EditorIndentBackColor;
+        codeEditor.BookmarkColor = source.EditorBookmarkColor;
+        codeEditor.ServiceLinesColor = source.EditorServiceLineColor;
+        codeEditor.ShowCodeFolding = source.EditorShowCodeFolding;
+        codeEditor.ShowTextBlockIndentationGuides = source.EditorShowTextIndentGuides;
+        codeEditor.Zoom = source.EditorZoomFactor;
+        codeEditor.FoldingHighlightColor = source.EditorFoldingHighlightColor;
+        codeEditor.FoldingHighlightEnabled = source.EditorShowFoldingBlockHighlights;
         BuildAutocompleteMenu(codeEditor);
     }
 
@@ -272,6 +284,16 @@ public class MooCodeEditorPage : MooEditorPage
         //set as autocomplete source
         codeEditor.AutocompleteMenu.Items.SetAutocompleteItems(items);
         codeEditor.AutocompleteMenu.AppearInterval = Settings.Instance.EditorAutocompleteDelay;
+    }
+
+    /// <summary>
+    /// Re-applies the current <see cref="Settings.Instance"/> theme (chrome colors and syntax
+    /// highlighting) to this page's editor.
+    /// </summary>
+    public void ApplyTheme()
+    {
+        ApplyEditorSettings(Editor, Settings.Instance);
+        Editor.RefreshTheme();
     }
 
     /// <summary>

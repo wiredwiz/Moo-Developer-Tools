@@ -1,0 +1,535 @@
+#region BSD 3-Clause License
+// <copyright company="Edgerunner.org" file="ThemeEditorDialog.cs">
+// Copyright (c) Thaddeus Ryker 2026
+// </copyright>
+//
+// BSD 3-Clause License
+//
+// Copyright (c) 2026,
+// All rights reserved.
+//
+// Redistribution and use in source and binary forms, with or without
+// modification, are permitted provided that the following conditions are met:
+//
+// 1. Redistributions of source code must retain the above copyright notice, this
+//    list of conditions and the following disclaimer.
+//
+// 2. Redistributions in binary form must reproduce the above copyright notice,
+//    this list of conditions and the following disclaimer in the documentation
+//    and/or other materials provided with the distribution.
+//
+// 3. Neither the name of the copyright holder nor the names of its
+//    contributors may be used to endorse or promote products derived from
+//    this software without specific prior written permission.
+//
+// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+// DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE
+// FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+// DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
+// SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+// CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
+// OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+// OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+#endregion
+
+using Krypton.Toolkit;
+using Org.Edgerunner.Moo.Editor.Configuration;
+using Org.Edgerunner.Moo.Editor.Controls;
+
+namespace Org.Edgerunner.Moo.Udditor.Dialogs
+{
+   /// <summary>
+   /// Modal dialog that edits the editor color theme with an isolated live preview.
+   /// </summary>
+   /// <remarks>
+   /// The dialog edits a clone of <see cref="Settings.Instance"/>. Open editors are untouched until
+   /// the user clicks Apply or OK, at which point the working copy is persisted to the active config
+   /// file, copied into the singleton, and applied to all open editors and the parser-message panel.
+   /// </remarks>
+   public partial class ThemeEditorDialog : KryptonForm
+   {
+      private const string PreviewResourceName = "ThemePreviewSample.moo";
+
+      private readonly WindowManager _manager;
+      private readonly string _configPath;
+
+      /// <summary>The working copy of the settings being edited.</summary>
+      private readonly Settings _working;
+
+      private MooCodeEditor _preview;
+
+      /// <summary>Maps a background swatch control to a "make transparent" button so we can toggle state.</summary>
+      private readonly Dictionary<Control, Action> _refreshers = new();
+
+      /// <summary>
+      /// Describes a single syntax-token row: its label and the property accessors it edits.
+      /// </summary>
+      private sealed class TokenRowDefinition
+      {
+         public string Label;
+         public Func<Color> GetForeground;
+         public Action<Color> SetForeground;
+         public Func<Color> GetBackground;
+         public Action<Color> SetBackground;
+         public Func<FontStyle> GetFontStyle;
+         public Action<FontStyle> SetFontStyle;
+      }
+
+      /// <summary>
+      /// Describes a single editor-chrome row: a label and one color accessor.
+      /// </summary>
+      private sealed class ChromeRowDefinition
+      {
+         public string Label;
+         public Func<Color> GetColor;
+         public Action<Color> SetColor;
+      }
+
+      /// <summary>
+      /// Initializes a new instance of the <see cref="ThemeEditorDialog"/> class.
+      /// </summary>
+      /// <param name="manager">The window manager used to apply the theme to open editors.</param>
+      /// <param name="configPath">The path the working theme is persisted to on Apply/OK.</param>
+      public ThemeEditorDialog(WindowManager manager, string configPath)
+      {
+         _manager = manager;
+         _configPath = configPath;
+         _working = Settings.Instance.Clone();
+
+         InitializeComponent();
+         BuildPreview();
+         BuildLeftControls();
+      }
+
+      private void BuildPreview()
+      {
+         _preview = new MooCodeEditor(_working.DefaultGrammarDialect, _working)
+         {
+            Dock = DockStyle.Fill,
+            ReadOnly = true,
+            LineInterval = 4,
+            BorderStyle = BorderStyle.Fixed3D
+         };
+         previewHostPanel.Controls.Add(_preview);
+         _preview.Text = LoadPreviewSample();
+         ApplyPreviewChrome();
+         _preview.IsChanged = false;
+         _preview.ClearUndo();
+      }
+
+      private static string LoadPreviewSample()
+      {
+         try
+         {
+            using var stream = typeof(ThemeEditorDialog).Assembly.GetManifestResourceStream(PreviewResourceName);
+            if (stream == null)
+               return "\"Theme preview sample could not be loaded.\";";
+
+            using var reader = new StreamReader(stream);
+            return reader.ReadToEnd();
+         }
+         catch (Exception)
+         {
+            return "\"Theme preview sample could not be loaded.\";";
+         }
+      }
+
+      private void ApplyPreviewChrome()
+      {
+         _preview.Font = new Font(_working.EditorFontFamily, _working.EditorFontSize);
+         _preview.ForeColor = _working.EditorTextColor;
+         _preview.BackColor = _working.EditorBackgroundColor;
+         _preview.CaretColor = _working.EditorCaretColor;
+         _preview.CurrentLineColor = _working.EditorCurrentLineColor;
+         _preview.LineNumberColor = _working.EditorLineNumberColor;
+         _preview.SelectionColor = _working.EditorTextSelectionColor;
+         _preview.ChangedLineColor = _working.EditorChangedLineColor;
+         _preview.FoldingIndicatorColor = _working.EditorFoldingIndicatorColor;
+         _preview.IndentBackColor = _working.EditorIndentBackColor;
+         _preview.BookmarkColor = _working.EditorBookmarkColor;
+         _preview.ServiceLinesColor = _working.EditorServiceLineColor;
+         _preview.FoldingHighlightColor = _working.EditorFoldingHighlightColor;
+      }
+
+      /// <summary>
+      /// Re-applies the working theme to the preview editor after any color or style change.
+      /// </summary>
+      private void RefreshPreview()
+      {
+         ApplyPreviewChrome();
+         _preview.RefreshTheme();
+         _preview.Invalidate();
+      }
+
+      private void BuildLeftControls()
+      {
+         var tokenRows = BuildTokenRowDefinitions();
+         var chromeRows = BuildChromeRowDefinitions();
+
+         var layout = new TableLayoutPanel
+         {
+            Dock = DockStyle.Top,
+            AutoSize = true,
+            AutoSizeMode = AutoSizeMode.GrowAndShrink,
+            ColumnCount = 1,
+            Padding = new Padding(8),
+            GrowStyle = TableLayoutPanelGrowStyle.AddRows
+         };
+         layout.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100f));
+
+         layout.Controls.Add(BuildSyntaxGroup(tokenRows));
+         layout.Controls.Add(BuildChromeGroup(chromeRows));
+
+         leftScrollPanel.Controls.Add(layout);
+      }
+
+      private GroupBox BuildSyntaxGroup(IList<TokenRowDefinition> rows)
+      {
+         var table = new TableLayoutPanel
+         {
+            Dock = DockStyle.Top,
+            AutoSize = true,
+            AutoSizeMode = AutoSizeMode.GrowAndShrink,
+            ColumnCount = 4,
+            Padding = new Padding(6),
+            GrowStyle = TableLayoutPanelGrowStyle.AddRows
+         };
+         table.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 130f));
+         table.ColumnStyles.Add(new ColumnStyle(SizeType.AutoSize));
+         table.ColumnStyles.Add(new ColumnStyle(SizeType.AutoSize));
+         table.ColumnStyles.Add(new ColumnStyle(SizeType.AutoSize));
+
+         // Header row
+         table.Controls.Add(new Label { Text = "Token", AutoSize = true, Anchor = AnchorStyles.Left });
+         table.Controls.Add(new Label { Text = "Foreground", AutoSize = true, Anchor = AnchorStyles.Left });
+         table.Controls.Add(new Label { Text = "Background", AutoSize = true, Anchor = AnchorStyles.Left });
+         table.Controls.Add(new Label { Text = "Style", AutoSize = true, Anchor = AnchorStyles.Left });
+
+         foreach (var row in rows)
+         {
+            table.Controls.Add(new Label { Text = row.Label, AutoSize = true, Anchor = AnchorStyles.Left, Margin = new Padding(3, 6, 3, 3) });
+            table.Controls.Add(CreateForegroundSwatch(row.GetForeground, row.SetForeground));
+            table.Controls.Add(CreateBackgroundSwatch(row.GetBackground, row.SetBackground));
+            table.Controls.Add(CreateFontStyleControl(row.GetFontStyle, row.SetFontStyle));
+         }
+
+         var group = new GroupBox
+         {
+            Text = "Syntax",
+            Dock = DockStyle.Top,
+            AutoSize = true,
+            AutoSizeMode = AutoSizeMode.GrowAndShrink,
+            Padding = new Padding(4, 8, 4, 8),
+            Margin = new Padding(3)
+         };
+         group.Controls.Add(table);
+         return group;
+      }
+
+      private GroupBox BuildChromeGroup(IList<ChromeRowDefinition> rows)
+      {
+         var table = new TableLayoutPanel
+         {
+            Dock = DockStyle.Top,
+            AutoSize = true,
+            AutoSizeMode = AutoSizeMode.GrowAndShrink,
+            ColumnCount = 2,
+            Padding = new Padding(6),
+            GrowStyle = TableLayoutPanelGrowStyle.AddRows
+         };
+         table.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 200f));
+         table.ColumnStyles.Add(new ColumnStyle(SizeType.AutoSize));
+
+         foreach (var row in rows)
+         {
+            table.Controls.Add(new Label { Text = row.Label, AutoSize = true, Anchor = AnchorStyles.Left, Margin = new Padding(3, 6, 3, 3) });
+            table.Controls.Add(CreateForegroundSwatch(row.GetColor, row.SetColor));
+         }
+
+         var group = new GroupBox
+         {
+            Text = "Editor chrome",
+            Dock = DockStyle.Top,
+            AutoSize = true,
+            AutoSizeMode = AutoSizeMode.GrowAndShrink,
+            Padding = new Padding(4, 8, 4, 8),
+            Margin = new Padding(3)
+         };
+         group.Controls.Add(table);
+         return group;
+      }
+
+      /// <summary>
+      /// Creates a swatch button that opens a <see cref="ColorDialog"/> on click (opaque colors only).
+      /// </summary>
+      private Control CreateForegroundSwatch(Func<Color> get, Action<Color> set)
+      {
+         var swatch = new Button
+         {
+            Width = 60,
+            Height = 24,
+            FlatStyle = FlatStyle.Flat,
+            BackColor = get(),
+            Margin = new Padding(3)
+         };
+         swatch.FlatAppearance.BorderColor = Color.Gray;
+         swatch.FlatAppearance.BorderSize = 1;
+
+         void Refresh() => swatch.BackColor = get();
+         _refreshers[swatch] = Refresh;
+
+         swatch.Click += (_, _) =>
+         {
+            using var dialog = new ColorDialog { Color = get(), FullOpen = true, AnyColor = true };
+            if (dialog.ShowDialog(this) == DialogResult.OK)
+            {
+               set(dialog.Color);
+               Refresh();
+               RefreshPreview();
+            }
+         };
+
+         return swatch;
+      }
+
+      /// <summary>
+      /// Creates a background swatch with both a color picker and a "Transparent" affordance,
+      /// since <see cref="ColorDialog"/> cannot express transparency.
+      /// </summary>
+      private Control CreateBackgroundSwatch(Func<Color> get, Action<Color> set)
+      {
+         var container = new FlowLayoutPanel
+         {
+            AutoSize = true,
+            AutoSizeMode = AutoSizeMode.GrowAndShrink,
+            FlowDirection = FlowDirection.LeftToRight,
+            Margin = new Padding(0),
+            WrapContents = false
+         };
+
+         var swatch = new Button
+         {
+            Width = 60,
+            Height = 24,
+            FlatStyle = FlatStyle.Flat,
+            Margin = new Padding(3)
+         };
+         swatch.FlatAppearance.BorderColor = Color.Gray;
+         swatch.FlatAppearance.BorderSize = 1;
+
+         var transparentBox = new CheckBox
+         {
+            Text = "Transparent",
+            AutoSize = true,
+            Margin = new Padding(3, 5, 3, 3)
+         };
+
+         void Refresh()
+         {
+            var color = get();
+            var isTransparent = color.A == 0;
+            transparentBox.Checked = isTransparent;
+            // Show a checkerboard-ish neutral when transparent so the user sees "no color".
+            swatch.BackColor = isTransparent ? SystemColors.Control : color;
+            swatch.Text = isTransparent ? "(none)" : string.Empty;
+            swatch.ForeColor = Color.Gray;
+         }
+
+         _refreshers[swatch] = Refresh;
+
+         swatch.Click += (_, _) =>
+         {
+            var current = get();
+            using var dialog = new ColorDialog
+            {
+               Color = current.A == 0 ? Color.White : current,
+               FullOpen = true,
+               AnyColor = true
+            };
+            if (dialog.ShowDialog(this) == DialogResult.OK)
+            {
+               set(dialog.Color);
+               Refresh();
+               RefreshPreview();
+            }
+         };
+
+         transparentBox.CheckedChanged += (_, _) =>
+         {
+            if (transparentBox.Checked && get().A != 0)
+            {
+               set(Color.Transparent);
+               Refresh();
+               RefreshPreview();
+            }
+            else if (!transparentBox.Checked && get().A == 0)
+            {
+               // Restore an opaque default when un-checking transparent.
+               set(_working.EditorBackgroundColor);
+               Refresh();
+               RefreshPreview();
+            }
+         };
+
+         Refresh();
+         container.Controls.Add(swatch);
+         container.Controls.Add(transparentBox);
+         return container;
+      }
+
+      /// <summary>
+      /// Creates a combo box for choosing the per-token font style (Regular/Bold/Italic/Bold+Italic).
+      /// </summary>
+      private Control CreateFontStyleControl(Func<FontStyle> get, Action<FontStyle> set)
+      {
+         var combo = new ComboBox
+         {
+            DropDownStyle = ComboBoxStyle.DropDownList,
+            Width = 110,
+            Margin = new Padding(3)
+         };
+         combo.Items.AddRange(new object[] { "Regular", "Bold", "Italic", "Bold + Italic" });
+         combo.SelectedIndex = FontStyleToIndex(get());
+
+         combo.SelectedIndexChanged += (_, _) =>
+         {
+            set(IndexToFontStyle(combo.SelectedIndex));
+            RefreshPreview();
+         };
+
+         return combo;
+      }
+
+      private static int FontStyleToIndex(FontStyle style)
+      {
+         var bold = style.HasFlag(FontStyle.Bold);
+         var italic = style.HasFlag(FontStyle.Italic);
+         if (bold && italic) return 3;
+         if (italic) return 2;
+         if (bold) return 1;
+         return 0;
+      }
+
+      private static FontStyle IndexToFontStyle(int index)
+      {
+         return index switch
+         {
+            1 => FontStyle.Bold,
+            2 => FontStyle.Italic,
+            3 => FontStyle.Bold | FontStyle.Italic,
+            _ => FontStyle.Regular
+         };
+      }
+
+      private IList<TokenRowDefinition> BuildTokenRowDefinitions()
+      {
+         var s = _working;
+         return new List<TokenRowDefinition>
+         {
+            Token("Default", () => s.DefaultWordColor, c => s.DefaultWordColor = c, () => s.DefaultWordBackgroundColor, c => s.DefaultWordBackgroundColor = c, () => s.DefaultWordFontStyle, v => s.DefaultWordFontStyle = v),
+            Token("Keyword", () => s.KeywordColor, c => s.KeywordColor = c, () => s.KeywordBackgroundColor, c => s.KeywordBackgroundColor = c, () => s.KeywordFontStyle, v => s.KeywordFontStyle = v),
+            Token("Comment", () => s.CommentColor, c => s.CommentColor = c, () => s.CommentBackgroundColor, c => s.CommentBackgroundColor = c, () => s.CommentFontStyle, v => s.CommentFontStyle = v),
+            Token("Literal", () => s.LiteralColor, c => s.LiteralColor = c, () => s.LiteralBackgroundColor, c => s.LiteralBackgroundColor = c, () => s.LiteralFontStyle, v => s.LiteralFontStyle = v),
+            Token("String", () => s.StringColor, c => s.StringColor = c, () => s.StringBackgroundColor, c => s.StringBackgroundColor = c, () => s.StringFontStyle, v => s.StringFontStyle = v),
+            Token("Symbol", () => s.SymbolColor, c => s.SymbolColor = c, () => s.SymbolBackgroundColor, c => s.SymbolBackgroundColor = c, () => s.SymbolFontStyle, v => s.SymbolFontStyle = v),
+            Token("Operator", () => s.OperatorColor, c => s.OperatorColor = c, () => s.OperatorBackgroundColor, c => s.OperatorBackgroundColor = c, () => s.OperatorFontStyle, v => s.OperatorFontStyle = v),
+            Token("Parenthesis", () => s.ParenthesisColor, c => s.ParenthesisColor = c, () => s.ParenthesisBackgroundColor, c => s.ParenthesisBackgroundColor = c, () => s.ParenthesisFontStyle, v => s.ParenthesisFontStyle = v),
+            Token("Bracket", () => s.BracketColor, c => s.BracketColor = c, () => s.BracketBackgroundColor, c => s.BracketBackgroundColor = c, () => s.BracketFontStyle, v => s.BracketFontStyle = v),
+            Token("Curly Brace", () => s.CurlyBraceColor, c => s.CurlyBraceColor = c, () => s.CurlyBraceBackgroundColor, c => s.CurlyBraceBackgroundColor = c, () => s.CurlyBraceFontStyle, v => s.CurlyBraceFontStyle = v),
+            Token("Object", () => s.ObjectColor, c => s.ObjectColor = c, () => s.ObjectBackgroundColor, c => s.ObjectBackgroundColor = c, () => s.ObjectFontStyle, v => s.ObjectFontStyle = v),
+            Token("Core Reference", () => s.CoreReferenceColor, c => s.CoreReferenceColor = c, () => s.CoreReferenceBackgroundColor, c => s.CoreReferenceBackgroundColor = c, () => s.CoreReferenceFontStyle, v => s.CoreReferenceFontStyle = v),
+            Token("Builtin Variable", () => s.BuiltinVariableColor, c => s.BuiltinVariableColor = c, () => s.BuiltinVariableBackgroundColor, c => s.BuiltinVariableBackgroundColor = c, () => s.BuiltinVariableFontStyle, v => s.BuiltinVariableFontStyle = v),
+            Token("Builtin Function", () => s.BuiltinFunctionColor, c => s.BuiltinFunctionColor = c, () => s.BuiltinFunctionBackgroundColor, c => s.BuiltinFunctionBackgroundColor = c, () => s.BuiltinFunctionFontStyle, v => s.BuiltinFunctionFontStyle = v),
+            Token("Verb", () => s.VerbColor, c => s.VerbColor = c, () => s.VerbBackgroundColor, c => s.VerbBackgroundColor = c, () => s.VerbFontStyle, v => s.VerbFontStyle = v),
+            Token("Property", () => s.PropertyColor, c => s.PropertyColor = c, () => s.PropertyBackgroundColor, c => s.PropertyBackgroundColor = c, () => s.PropertyFontStyle, v => s.PropertyFontStyle = v)
+         };
+      }
+
+      private static TokenRowDefinition Token(string label, Func<Color> getFg, Action<Color> setFg, Func<Color> getBg, Action<Color> setBg, Func<FontStyle> getStyle, Action<FontStyle> setStyle)
+      {
+         return new TokenRowDefinition
+         {
+            Label = label,
+            GetForeground = getFg,
+            SetForeground = setFg,
+            GetBackground = getBg,
+            SetBackground = setBg,
+            GetFontStyle = getStyle,
+            SetFontStyle = setStyle
+         };
+      }
+
+      private IList<ChromeRowDefinition> BuildChromeRowDefinitions()
+      {
+         var s = _working;
+         return new List<ChromeRowDefinition>
+         {
+            Chrome("Background", () => s.EditorBackgroundColor, c => s.EditorBackgroundColor = c),
+            Chrome("Text", () => s.EditorTextColor, c => s.EditorTextColor = c),
+            Chrome("Caret", () => s.EditorCaretColor, c => s.EditorCaretColor = c),
+            Chrome("Line Number", () => s.EditorLineNumberColor, c => s.EditorLineNumberColor = c),
+            Chrome("Current Line", () => s.EditorCurrentLineColor, c => s.EditorCurrentLineColor = c),
+            Chrome("Text Selection", () => s.EditorTextSelectionColor, c => s.EditorTextSelectionColor = c),
+            Chrome("Changed Line", () => s.EditorChangedLineColor, c => s.EditorChangedLineColor = c),
+            Chrome("Folding Indicator", () => s.EditorFoldingIndicatorColor, c => s.EditorFoldingIndicatorColor = c),
+            Chrome("Folding Highlight", () => s.EditorFoldingHighlightColor, c => s.EditorFoldingHighlightColor = c),
+            Chrome("Indent Background", () => s.EditorIndentBackColor, c => s.EditorIndentBackColor = c),
+            Chrome("Bookmark", () => s.EditorBookmarkColor, c => s.EditorBookmarkColor = c),
+            Chrome("Service Line", () => s.EditorServiceLineColor, c => s.EditorServiceLineColor = c),
+            Chrome("Error Indicator", () => s.ErrorIndicatorColor, c => s.ErrorIndicatorColor = c)
+         };
+      }
+
+      private static ChromeRowDefinition Chrome(string label, Func<Color> get, Action<Color> set)
+      {
+         return new ChromeRowDefinition { Label = label, GetColor = get, SetColor = set };
+      }
+
+      /// <summary>
+      /// Persists the working theme, copies it into the singleton, and applies it to open editors.
+      /// </summary>
+      /// <returns><c>true</c> if the apply succeeded; otherwise <c>false</c>.</returns>
+      private bool ApplyTheme()
+      {
+         try
+         {
+            _working.SaveTo(_configPath);
+         }
+         catch (Exception ex)
+         {
+            MessageBox.Show(this,
+               $"The theme could not be saved:{Environment.NewLine}{ex.Message}",
+               "Theme Save Error",
+               MessageBoxButtons.OK,
+               MessageBoxIcon.Error);
+            return false;
+         }
+
+         Settings.Instance.CopyFrom(_working);
+         _manager?.ApplyThemeToOpenEditors();
+         return true;
+      }
+
+      private void btnApply_Click(object sender, EventArgs e)
+      {
+         ApplyTheme();
+      }
+
+      private void btnOk_Click(object sender, EventArgs e)
+      {
+         if (ApplyTheme())
+         {
+            DialogResult = DialogResult.OK;
+            Close();
+         }
+      }
+
+      private void btnCancel_Click(object sender, EventArgs e)
+      {
+         DialogResult = DialogResult.Cancel;
+         Close();
+      }
+   }
+}

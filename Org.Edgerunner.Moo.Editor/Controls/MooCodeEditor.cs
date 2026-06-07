@@ -63,13 +63,26 @@ namespace Org.Edgerunner.Moo.Editor.Controls
       { }
 
       public MooCodeEditor(GrammarDialect grammarDialect)
+        : this(grammarDialect, null)
+      { }
+
+      /// <summary>
+      /// Initializes a new instance of the <see cref="MooCodeEditor"/> class bound to an alternate
+      /// settings source for syntax highlighting.
+      /// </summary>
+      /// <param name="grammarDialect">The grammar dialect.</param>
+      /// <param name="themeSource">
+      /// The settings source the syntax highlighting guide reads colors and styles from. When
+      /// <see langword="null"/>, the singleton <see cref="Settings.Instance"/> is used.
+      /// </param>
+      public MooCodeEditor(GrammarDialect grammarDialect, Settings themeSource)
       {
          InitializeComponent();
          Tokens = new List<DetailedToken>();
          ParseErrors = new List<ParseMessage>();
          LexerErrorListener = new LexerErrorListener();
          ParserErrorListener = new ParserErrorListener();
-         SyntaxHighlightingGuide = new MooSyntaxHighlightingGuide();
+         SyntaxHighlightingGuide = new MooSyntaxHighlightingGuide(themeSource);
          StyleRegistry = new StyleRegistry(SyntaxHighlightingGuide);
          Highlighter = new EditorSyntaxHighlighter();
          LeftBracket = '(';
@@ -342,6 +355,21 @@ namespace Org.Edgerunner.Moo.Editor.Controls
                result.Add(error.Guide);
 
          return result;
+      }
+
+      /// <summary>
+      /// Re-applies the current theme to the editor by clearing cached styles and re-colorizing.
+      /// </summary>
+      /// <remarks>
+      /// Used after the active color theme changes. Clears the <see cref="StyleRegistry"/> cache,
+      /// removes existing styles, then re-colorizes the tokens (guarding against empty text).
+      /// </remarks>
+      public void RefreshTheme()
+      {
+         StyleRegistry.Clear();
+         ClearAllStyles();
+         if (!string.IsNullOrEmpty(Text))
+            ColorizeTokens(null);
       }
 
       public void ColorizeTokens(TextSelectionRange range)

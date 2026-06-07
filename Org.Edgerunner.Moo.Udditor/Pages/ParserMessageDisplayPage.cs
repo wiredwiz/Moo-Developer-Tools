@@ -87,6 +87,15 @@ public class ParserMessageDisplayPage : ManagedPage
         display.BackColor = Settings.Instance.EditorBackgroundColor;
     }
 
+    /// <summary>
+    /// Re-applies the current <see cref="Settings.Instance"/> editor text and background colors.
+    /// </summary>
+    public void RefreshTheme()
+    {
+        ConfigureMessageDisplay(MessageDisplay);
+        MessageDisplay.Invalidate();
+    }
+
     private void MessageDisplay_DoubleClick(object sender, EventArgs e)
     {
         if (MessageDisplay.SelectedItems.Count == 0 || MessageDisplay.SelectedItems[0] == null)

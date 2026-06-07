@@ -98,6 +98,16 @@ namespace Org.Edgerunner.Moo.Editor.SyntaxHighlighting
          return _ErrorStyle ??= new WavyLineStyle(240, _SyntaxGuide.GetErrorIndicatorColor());
       }
 
+      /// <summary>
+      /// Clears all cached token, unique and error styles so they are recomputed on next request.
+      /// </summary>
+      public void Clear()
+      {
+         _TokenStyles.Clear();
+         _UniqueStyles.Clear();
+         _ErrorStyle = null;
+      }
+
       private int GetKey(Color foreground, Color background, FontStyle style)
       {
          return (((foreground.GetHashCode() * 397) ^ background.GetHashCode()) * 397) ^ style.GetHashCode();

@@ -445,6 +445,27 @@ public class WindowManager
          DoClosePage();
    }
 
+   /// <summary>
+   /// Applies the current <see cref="Org.Edgerunner.Moo.Editor.Configuration.Settings.Instance"/>
+   /// theme to all open code editor pages and the parser message display page.
+   /// </summary>
+   public void ApplyThemeToOpenEditors()
+   {
+      void DoApply()
+      {
+         foreach (var page in Pages.Values.OfType<MooCodeEditorPage>().ToList())
+            page.ApplyTheme();
+
+         foreach (var page in Pages.Values.OfType<ParserMessageDisplayPage>().ToList())
+            page.RefreshTheme();
+      }
+
+      if (_Owner.InvokeRequired)
+         _Owner.Invoke(DoApply);
+      else
+         DoApply();
+   }
+
    protected virtual void OnEditorCursorUpdated(MooEditorPage e)
    {
       EditorCursorUpdated?.Invoke(this, e);
