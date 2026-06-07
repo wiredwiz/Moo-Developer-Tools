@@ -20,6 +20,7 @@ internal static class Program
 
       try
       {
+         ApplicationDataSeeder.EnsureSeeded();
          ApplicationConfiguration.Initialize();
          Settings.Instance.LoadFrom(ApplicationPaths.ResolveDataFile("Moo.Editor.config"));
       }

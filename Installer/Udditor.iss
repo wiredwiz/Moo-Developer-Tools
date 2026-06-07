@@ -53,8 +53,6 @@ Source: "D:\Projects\Moo Developer Tools\Org.Edgerunner.Moo.Udditor\bin\Release\
 Source: "D:\Projects\Moo Developer Tools\Org.Edgerunner.Moo.Udditor\bin\Release\net6.0-windows\Moo Udditor.exe"; DestDir: "{app}"; Flags: ignoreversion
 Source: "D:\Projects\Moo Developer Tools\Org.Edgerunner.Moo.Udditor\bin\Release\net6.0-windows\Moo Udditor.pdb"; DestDir: "{app}"; Flags: ignoreversion
 Source: "D:\Projects\Moo Developer Tools\Org.Edgerunner.Moo.Udditor\bin\Release\net6.0-windows\Moo Udditor.runtimeconfig.json"; DestDir: "{app}"; Flags: ignoreversion
-Source: "D:\Projects\Moo Developer Tools\Org.Edgerunner.Moo.Udditor\bin\Release\net6.0-windows\Moo.Editor.config"; DestDir: "{userappdata}\{#MyAppName}"; Flags: ignoreversion
-Source: "D:\Projects\Moo Developer Tools\Org.Edgerunner.Moo.Udditor\bin\Release\net6.0-windows\Moo.Editor.Darkmode.Example.config"; DestDir: "{userappdata}\{#MyAppName}"; Flags: ignoreversion
 Source: "D:\Projects\Moo Developer Tools\Org.Edgerunner.Moo.Udditor\bin\Release\net6.0-windows\nlog.config"; DestDir: "{app}"; Flags: ignoreversion
 Source: "D:\Projects\Moo Developer Tools\Org.Edgerunner.Moo.Udditor\bin\Release\net6.0-windows\NLog.dll"; DestDir: "{app}"; Flags: ignoreversion
 Source: "D:\Projects\Moo Developer Tools\Org.Edgerunner.Moo.Udditor\bin\Release\net6.0-windows\Org.Edgerunner.ANTLR4.Tools.Common.dll"; DestDir: "{app}"; Flags: ignoreversion
@@ -75,7 +73,6 @@ Source: "D:\Projects\Moo Developer Tools\Org.Edgerunner.Moo.Udditor\bin\Release\
 Source: "D:\Projects\Moo Developer Tools\Org.Edgerunner.Moo.Udditor\bin\Release\net6.0-windows\Org.Edgerunner.Mud.Communication.pdb"; DestDir: "{app}"; Flags: ignoreversion
 Source: "D:\Projects\Moo Developer Tools\Org.Edgerunner.Moo.Udditor\bin\Release\net6.0-windows\Org.Edgerunner.Mud.MCP.dll"; DestDir: "{app}"; Flags: ignoreversion
 Source: "D:\Projects\Moo Developer Tools\Org.Edgerunner.Moo.Udditor\bin\Release\net6.0-windows\Org.Edgerunner.Mud.MCP.pdb"; DestDir: "{app}"; Flags: ignoreversion
-Source: "D:\Projects\Moo Developer Tools\Org.Edgerunner.Moo.Udditor\bin\Release\net6.0-windows\Snippets.txt"; DestDir: "{userappdata}\{#MyAppName}"; Flags: ignoreversion
 ; NOTE: Don't use "Flags: ignoreversion" on any shared system files
 
 [Icons]
