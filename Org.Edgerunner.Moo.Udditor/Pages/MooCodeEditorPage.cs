@@ -262,6 +262,9 @@ public class MooCodeEditorPage : MooEditorPage
         foreach (var builtin in Moo.Editor.Moo.Builtins.Values)
             items.Add(new SnippetAutocompleteItem(builtin));
 
+        // display the completion items alphabetically by their menu text
+        items.Sort((a, b) => string.Compare(a.ToString(), b.ToString(), StringComparison.CurrentCultureIgnoreCase));
+
         items.Add(new InsertSpaceSnippet());
         items.Add(new InsertSpaceSnippet(@"^(\w+)([=<>!&|%-+*/]+)(\w+)$"));
         items.Add(new FormatCommaSnippet(@"^(\w+)(([,]+)(\w+))+$"));
