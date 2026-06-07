@@ -21,7 +21,10 @@ internal static class Program
       try
       {
          ApplicationConfiguration.Initialize();
-         Settings.Instance.LoadFrom(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Moo.Editor.config"));
+         var appDataConfigPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "Edgerunner", "Udditor", "Moo.Editor.config");
+         var baseDirectoryConfigPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Moo.Editor.config");
+         var configPath = File.Exists(appDataConfigPath) ? appDataConfigPath : baseDirectoryConfigPath;
+         Settings.Instance.LoadFrom(configPath);
       }
       catch (ConfigurationErrorsException ex)
       {
