@@ -97,4 +97,16 @@ Udditor is intended to allow Moo programmers to work faster, waste less time and
     </EmbeddedResource>
   </ItemGroup>
 
+  <ItemGroup>
+    <EmbeddedResource Include="Moo.Editor.config">
+      <LogicalName>Moo.Editor.config</LogicalName>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Moo.Editor.Darkmode.Example.config">
+      <LogicalName>Moo.Editor.Darkmode.Example.config</LogicalName>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Snippets.txt">
+      <LogicalName>Snippets.txt</LogicalName>
+    </EmbeddedResource>
+  </ItemGroup>
+
 </Project>
