@@ -371,3 +371,5 @@ Images/Thumbs.db
 
 # Synology NAS metadata
 @eaDir/
+
+Installer/Output/
