@@ -389,7 +389,7 @@ namespace FastColoredTextBoxNS {
 							nothingToComplete = false;
 							break;
 						}
-					if (nothingToComplete) {
+					if (nothingToComplete && !forced) {
 						Menu.Close();
 						return;
 					}
