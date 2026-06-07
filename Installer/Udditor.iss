@@ -149,10 +149,17 @@ begin
 end;
 
 procedure CurUninstallStepChanged(CurUninstallStep: TUninstallStep);
+var
+  AppDataPath: String;
 begin
   if CurUninstallStep = usPostUninstall then
   begin
     if RemoveAppData then
-      DelTree(ExpandConstant('{userappdata}\{#MyAppName}'), True, True, True);
+    begin
+      AppDataPath := ExpandConstant('{userappdata}\{#MyAppName}');
+      if (AppDataPath <> '') and
+         (CompareText(ExtractFileName(AppDataPath), '{#MyAppName}') = 0) then
+        DelTree(AppDataPath, True, True, True);
+    end;
   end;
 end;
