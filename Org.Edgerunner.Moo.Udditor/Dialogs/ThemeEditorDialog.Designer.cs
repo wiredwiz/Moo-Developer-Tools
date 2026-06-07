@@ -85,7 +85,7 @@ namespace Org.Edgerunner.Moo.Udditor.Dialogs
          this.splitContainer.Orientation = System.Windows.Forms.Orientation.Vertical;
          this.splitContainer.Panel1.Controls.Add(this.leftScrollPanel);
          this.splitContainer.Panel2.Controls.Add(this.previewHostPanel);
-         this.splitContainer.Size = new System.Drawing.Size(900, 600);
+         this.splitContainer.Size = new System.Drawing.Size(1260, 600);
          this.splitContainer.SplitterDistance = 430;
          this.splitContainer.TabIndex = 0;
          //
@@ -154,10 +154,10 @@ namespace Org.Edgerunner.Moo.Udditor.Dialogs
          //
          this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 15F);
          this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-         this.ClientSize = new System.Drawing.Size(900, 648);
+         this.ClientSize = new System.Drawing.Size(1260, 648);
          this.Controls.Add(this.splitContainer);
          this.Controls.Add(this.buttonPanel);
-         this.MinimumSize = new System.Drawing.Size(700, 450);
+         this.MinimumSize = new System.Drawing.Size(980, 450);
          this.Name = "ThemeEditorDialog";
          this.StartPosition = System.Windows.Forms.FormStartPosition.CenterParent;
          this.Text = "Editor Theme";

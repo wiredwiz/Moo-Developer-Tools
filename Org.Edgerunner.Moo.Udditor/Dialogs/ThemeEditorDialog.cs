@@ -117,6 +117,11 @@ namespace Org.Edgerunner.Moo.Udditor.Dialogs
          ApplyPreviewChrome();
          _preview.IsChanged = false;
          _preview.ClearUndo();
+
+         // Collapse the selection to the top so the preview does not open with the
+         // entire sample selected/highlighted.
+         _preview.SelectionStart = 0;
+         _preview.SelectionLength = 0;
       }
 
       private static string LoadPreviewSample()
