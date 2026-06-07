@@ -368,6 +368,7 @@ Images/Thumbs.db
 
 # Git worktrees
 .worktrees/
+.claude/worktrees/
 
 # Synology NAS metadata
 @eaDir/
