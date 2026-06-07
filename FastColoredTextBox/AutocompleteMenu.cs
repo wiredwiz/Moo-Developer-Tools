@@ -355,16 +355,43 @@ namespace FastColoredTextBoxNS {
 				&& tb.Selection.IsEmpty /*pops up only if selected range is empty*/
 				&& (tb.Selection.Start > fragment.Start || text.Length == 0/*pops up only if caret is after first letter*/))) {
 				Menu.Fragment = fragment;
-				bool foundSelected = false;
-				//build popup menu
+				//build popup menu, ranking the selected item: exact match first, then shortest, then source order
+				int bestIndex = -1;
+				bool bestExact = false;
+				int bestLength = int.MaxValue;
 				foreach (var item in sourceItems) {
 					item.Parent = Menu;
 					CompareResult res = item.Compare(text);
-					if (res != CompareResult.Hidden)
-						visibleItems.Add(item);
-					if (res == CompareResult.VisibleAndSelected && !foundSelected) {
-						foundSelected = true;
-						FocussedItemIndex = visibleItems.Count - 1;
+					if (res == CompareResult.Hidden)
+						continue;
+					visibleItems.Add(item);
+					if (res == CompareResult.VisibleAndSelected) {
+						int index = visibleItems.Count - 1;
+						bool exact = string.Equals(item.Text, text, StringComparison.InvariantCultureIgnoreCase);
+						int length = item.Text != null ? item.Text.Length : int.MaxValue;
+						if (bestIndex < 0 ||
+							(exact && !bestExact) ||
+							(exact == bestExact && length < bestLength)) {
+							bestIndex = index;
+							bestExact = exact;
+							bestLength = length;
+						}
+					}
+				}
+				if (bestIndex >= 0)
+					FocussedItemIndex = bestIndex;
+
+				//if nothing offers more than what is already typed, do not show the menu
+				if (visibleItems.Count > 0) {
+					bool nothingToComplete = true;
+					foreach (var item in visibleItems)
+						if (!string.Equals(item.GetTextForReplace(), text, StringComparison.InvariantCultureIgnoreCase)) {
+							nothingToComplete = false;
+							break;
+						}
+					if (nothingToComplete) {
+						Menu.Close();
+						return;
 					}
 				}
 			}
