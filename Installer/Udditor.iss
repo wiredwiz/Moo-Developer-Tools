@@ -75,7 +75,7 @@ Source: "D:\Projects\Moo Developer Tools\Org.Edgerunner.Moo.Udditor\bin\Release\
 Source: "D:\Projects\Moo Developer Tools\Org.Edgerunner.Moo.Udditor\bin\Release\net6.0-windows\Org.Edgerunner.Mud.Communication.pdb"; DestDir: "{app}"; Flags: ignoreversion
 Source: "D:\Projects\Moo Developer Tools\Org.Edgerunner.Moo.Udditor\bin\Release\net6.0-windows\Org.Edgerunner.Mud.MCP.dll"; DestDir: "{app}"; Flags: ignoreversion
 Source: "D:\Projects\Moo Developer Tools\Org.Edgerunner.Moo.Udditor\bin\Release\net6.0-windows\Org.Edgerunner.Mud.MCP.pdb"; DestDir: "{app}"; Flags: ignoreversion
-Source: "D:\Projects\Moo Developer Tools\Org.Edgerunner.Moo.Udditor\bin\Release\net6.0-windows\Snippets.txt"; DestDir: "{app}"; Flags: ignoreversion
+Source: "D:\Projects\Moo Developer Tools\Org.Edgerunner.Moo.Udditor\bin\Release\net6.0-windows\Snippets.txt"; DestDir: "{userappdata}\{#MyAppName}"; Flags: ignoreversion
 ; NOTE: Don't use "Flags: ignoreversion" on any shared system files
 
 [Icons]
