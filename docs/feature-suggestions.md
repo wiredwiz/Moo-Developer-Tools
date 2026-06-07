@@ -2,7 +2,7 @@
 
 ## Connectivity & Workflow
 
-1. **Multi-server split view** — Show two terminal connections side by side in a split docking cell. Useful when testing objects across two servers, comparing production vs. development, or watching output on one server while issuing commands on another.
+1. **Linked split connections** — Link two terminal connections so they share a single command input. Both connections tile side by side automatically when linked, and any command typed in the shared input bar is transmitted to both servers simultaneously. Output from each server remains independent and visible in its own pane. Useful for testing a verb change across a production and development server at the same time, verifying identical behaviour on two different MOO codebases, or running parallel sessions where commands need to be issued to both worlds in lockstep. Linking and unlinking would be a per-session toggle, with each terminal reverting to its own independent input when unlinked.
 
 2. **Session transcript logging** — Opt-in per-world logging of all terminal I/O to a timestamped file. Invaluable for debugging async verb interactions and reproducing intermittent bugs. Configurable via world settings with log rotation by size or date.
 
