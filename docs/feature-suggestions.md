@@ -27,5 +27,3 @@
 10. **Connection health indicator** — A status bar chip showing round-trip latency and bytes in/out per second. Lets the programmer immediately distinguish a slow server from a stuck client.
 
 11. **Per-world color scheme** — Each world connection gets its own ANSI color palette and editor theme. When connected to multiple servers simultaneously, the visual distinction makes it immediately obvious which terminal belongs to which server.
-
-12. **Find in terminal output** — A search bar (Ctrl+F) that highlights and navigates matches in the terminal scrollback buffer, so you can locate a specific error or value without exporting to a file.
