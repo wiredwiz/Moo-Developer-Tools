@@ -2,7 +2,7 @@
 ; SEE THE DOCUMENTATION FOR DETAILS ON CREATING INNO SETUP SCRIPT FILES!
 
 #define MyAppName "Moo Udditor"
-#define MyAppVersion "1.2.26158"
+#define MyAppVersion "1.0.26158"
 #define MyAppPublisher "Thad Ryker (Dakkon/WiredWiz)"
 #define MyAppURL "https://github.com/wiredwiz/Moo-Developer-Tools"
 #define MyAppExeName "Moo Udditor.exe"
