@@ -181,7 +181,7 @@ public partial class Editor
       var manager = new WorldManager();
       var book = GetWorldsAddressBook();
       manager.LoadAddressBook(book);
-      manager.SourceFile = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Worlds.xml");
+      manager.SourceFile = ApplicationPaths.GetWritableDataFile("Worlds.xml");
       manager.ConnectToWorld += Manager_ConnectToWorld;
       manager.ShowDialog(this);
       BuildTerminalShortcutMenu();
