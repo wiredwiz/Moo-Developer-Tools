@@ -35,6 +35,7 @@
 #endregion
 
 using System.Collections.Concurrent;
+using NLog;
 
 namespace Org.Edgerunner.Mud.Common.Querying;
 
@@ -47,6 +48,8 @@ namespace Org.Edgerunner.Mud.Common.Querying;
 /// <seealso cref="IDisposable"/>
 public class CachingMooWorldQueryProvider : IMooWorldQueryProvider, IDisposable
 {
+   private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
+
    /// <summary>
    /// Identifies a cached query operation.
    /// </summary>
@@ -167,10 +170,18 @@ public class CachingMooWorldQueryProvider : IMooWorldQueryProvider, IDisposable
    /// </summary>
    private void Sweep()
    {
-      var now = DateTime.UtcNow;
-      foreach (var pair in _cache)
-         if (now - pair.Value.Timestamp >= _timeToLive)
-            _cache.TryRemove(pair.Key, out _);
+      try
+      {
+         var now = DateTime.UtcNow;
+         foreach (var pair in _cache)
+            if (now - pair.Value.Timestamp >= _timeToLive)
+               _cache.TryRemove(pair.Key, out _);
+      }
+      catch (Exception ex)
+      {
+         // A sweep failure must never crash the process via the timer thread.
+         Logger.Warn(ex, "An error occurred while sweeping expired cache entries.");
+      }
    }
 
    private async Task<T> GetOrAddAsync<T>(CacheKey key, Func<Task<T>> factory)
