@@ -69,8 +69,30 @@ internal static class ApplicationDataSeeder
          return;
       }
 
-      using var file = File.Create(target);
-      stream.CopyTo(file);
+      var tempPath = target + ".tmp";
+      try
+      {
+         using (var file = File.Create(tempPath))
+         {
+            stream.CopyTo(file);
+         }
+
+         File.Move(tempPath, target);
+      }
+      catch
+      {
+         try
+         {
+            File.Delete(tempPath);
+         }
+         catch
+         {
+            // best effort cleanup; ignore
+         }
+
+         throw;
+      }
+
       Logger.Info("Seeded default file '{0}' to '{1}'", fileName, target);
    }
 }
