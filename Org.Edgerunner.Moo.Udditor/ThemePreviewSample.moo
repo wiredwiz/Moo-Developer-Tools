@@ -26,10 +26,6 @@ try
   total = (counter * 2) - (limit / ratio) % 4;
 except err (ANY)
   this:handle_error(err, verb, caller);
-finally
-  fork (5)
-    this:cleanup();
-  endfork
 endtry
 while (counter > 0)
   counter = counter - 1;
