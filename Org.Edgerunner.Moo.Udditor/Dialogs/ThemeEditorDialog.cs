@@ -1,4 +1,4 @@
-#region BSD 3-Clause License
+﻿#region BSD 3-Clause License
 // <copyright company="Edgerunner.org" file="ThemeEditorDialog.cs">
 // Copyright (c) Thaddeus Ryker 2026
 // </copyright>
@@ -120,6 +120,7 @@ namespace Org.Edgerunner.Moo.Udditor.Dialogs
          previewHostPanel.Controls.Add(_preview);
          _preview.Text = LoadPreviewSample();
          ApplyPreviewChrome();
+         _preview.ShowCodeFolding = true;
          _preview.IsChanged = false;
          _preview.ClearUndo();
       }
