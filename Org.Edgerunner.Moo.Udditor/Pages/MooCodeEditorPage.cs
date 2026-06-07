@@ -44,11 +44,24 @@ using FastColoredTextBoxNS.Types;
 using Krypton.Toolkit;
 using Org.Edgerunner.Moo.Editor.Autocomplete;
 using Org.Edgerunner.Moo.Editor.Configuration;
+using Org.Edgerunner.Mud.Common.Querying;
 
 namespace Org.Edgerunner.Moo.Udditor.Pages;
 
 public class MooCodeEditorPage : MooEditorPage
 {
+    /// <summary>
+    /// Gets or sets the MOO world query provider used to power code-completion popups and tooltips.
+    /// </summary>
+    /// <value>
+    /// The query provider, or <c>null</c> when no connection/provider is associated.
+    /// </value>
+    /// <remarks>
+    /// This is a defensive, nullable hook; consuming code must null-check it. It will be wired to the
+    /// owning connection's <c>session.QueryProviders.Query</c> in udd-am1.
+    /// </remarks>
+    public IMooWorldQueryProvider? QueryProvider { get; set; }
+
     /// <summary>
     /// Initializes a new instance of the <see cref="MooCodeEditorPage"/> class.
     /// </summary>

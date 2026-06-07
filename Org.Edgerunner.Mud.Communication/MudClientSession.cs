@@ -41,6 +41,7 @@ using System.Net.Sockets;
 using System.Text;
 using System.Threading.Channels;
 using Org.Edgerunner.Common.Extensions;
+using Org.Edgerunner.Mud.Common.Querying;
 using Org.Edgerunner.Mud.Communication.Interfaces;
 using IOException = System.IO.IOException;
 
@@ -64,7 +65,16 @@ public class MudClientSession : IMudClientSession, IDisposable
       Host = host;
       Port = port;
       TokenSource = new CancellationTokenSource();
+      QueryProviders = new MooWorldQueryService();
    }
+
+   /// <summary>
+   /// Gets the per-connection MOO world query service that aggregates developer-info query providers.
+   /// </summary>
+   /// <value>
+   /// The query service.
+   /// </value>
+   public MooWorldQueryService QueryProviders { get; }
 
    /// <summary>
    /// Performs application-defined tasks associated with freeing, releasing, or resetting unmanaged resources.
@@ -80,6 +90,7 @@ public class MudClientSession : IMudClientSession, IDisposable
       }
       finally
       {
+         QueryProviders.Dispose();
          Client.Dispose();
       }
    }

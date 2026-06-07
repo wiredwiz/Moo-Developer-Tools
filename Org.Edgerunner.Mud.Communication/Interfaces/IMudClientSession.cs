@@ -39,11 +39,20 @@
 using System;
 using System.Collections.Concurrent;
 using System.Threading.Channels;
+using Org.Edgerunner.Mud.Common.Querying;
 
 namespace Org.Edgerunner.Mud.Communication.Interfaces;
 
 public interface IMudClientSession
 {
+   /// <summary>
+   /// Gets the per-connection MOO world query service that aggregates developer-info query providers.
+   /// </summary>
+   /// <value>
+   /// The query service.
+   /// </value>
+   MooWorldQueryService QueryProviders { get; }
+
    /// <summary>
    ///    Gets the command channel.
    /// </summary>
