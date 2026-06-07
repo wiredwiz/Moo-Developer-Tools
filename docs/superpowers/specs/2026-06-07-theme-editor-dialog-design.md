@@ -106,6 +106,12 @@ Modal dialog, horizontal `SplitContainer`:
    `editor.RefreshTheme()`; refresh `ParserMessageDisplayPage` fore/back colors. OK then closes.
 4. **Cancel:** discard `working`; nothing persisted, no editors touched.
 
+> **Behavior settings are never edited by this dialog.** The Theme UI exposes only colors and
+> per-token font styles. The Apply path reuses `ApplyEditorSettings(editor, source)`, which also
+> re-pushes behavior/font-family — but since `working` is a clone, those values are identical to
+> what is already live, making it a harmless no-op. Behavior settings remain the responsibility of
+> the Options dialog (udd-1p9.1).
+
 ## 8. Error handling
 
 - `SaveTo` wraps file IO in try/catch; on failure shows a message box and leaves the in-memory
