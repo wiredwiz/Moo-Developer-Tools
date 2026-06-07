@@ -81,3 +81,85 @@ Name: "{commondesktop}\{#MyAppName}"; Filename: "{app}\{#MyAppExeName}"; Tasks: 
 
 [Run]
 Filename: "{app}\{#MyAppExeName}"; Description: "{cm:LaunchProgram,{#StringChange(MyAppName, '&', '&&')}}"; Flags: nowait postinstall skipifsilent
+
+[Code]
+var
+  RemoveAppData: Boolean;
+
+procedure AskRemoveAppData;
+var
+  Form: TSetupForm;
+  IntroLabel: TNewStaticText;
+  DataCheckBox: TNewCheckBox;
+  OKButton: TNewButton;
+begin
+  RemoveAppData := False;
+
+  Form := CreateCustomForm();
+  try
+    Form.Caption := 'Remove Application Data';
+    Form.ClientWidth := ScaleX(420);
+    Form.ClientHeight := ScaleY(150);
+    Form.Position := poScreenCenter;
+
+    IntroLabel := TNewStaticText.Create(Form);
+    IntroLabel.Parent := Form;
+    IntroLabel.Left := ScaleX(16);
+    IntroLabel.Top := ScaleY(16);
+    IntroLabel.Width := Form.ClientWidth - ScaleX(32);
+    IntroLabel.AutoSize := False;
+    IntroLabel.WordWrap := True;
+    IntroLabel.Height := ScaleY(60);
+    IntroLabel.Caption :=
+      'Do you also want to remove your {#MyAppName} settings data ' +
+      '(configuration, theme, snippets and saved worlds) for your user account?' + #13#10 + #13#10 +
+      'This affects only your account, not other users on this computer.';
+
+    DataCheckBox := TNewCheckBox.Create(Form);
+    DataCheckBox.Parent := Form;
+    DataCheckBox.Left := ScaleX(16);
+    DataCheckBox.Top := ScaleY(88);
+    DataCheckBox.Width := Form.ClientWidth - ScaleX(32);
+    DataCheckBox.Caption := 'Delete my {#MyAppName} application data';
+    DataCheckBox.Checked := False;
+
+    OKButton := TNewButton.Create(Form);
+    OKButton.Parent := Form;
+    OKButton.Width := ScaleX(80);
+    OKButton.Height := ScaleY(25);
+    OKButton.Left := Form.ClientWidth - ScaleX(96);
+    OKButton.Top := Form.ClientHeight - ScaleY(38);
+    OKButton.Caption := 'OK';
+    OKButton.ModalResult := mrOk;
+    OKButton.Default := True;
+
+    Form.ActiveControl := OKButton;
+
+    if Form.ShowModal() = mrOk then
+      RemoveAppData := DataCheckBox.Checked;
+  finally
+    Form.Free();
+  end;
+end;
+
+function InitializeUninstall(): Boolean;
+begin
+  AskRemoveAppData();
+  Result := True;
+end;
+
+procedure CurUninstallStepChanged(CurUninstallStep: TUninstallStep);
+var
+  AppDataPath: String;
+begin
+  if CurUninstallStep = usPostUninstall then
+  begin
+    if RemoveAppData then
+    begin
+      AppDataPath := ExpandConstant('{userappdata}\{#MyAppName}');
+      if (AppDataPath <> '') and
+         (CompareText(ExtractFileName(AppDataPath), '{#MyAppName}') = 0) then
+        DelTree(AppDataPath, True, True, True);
+    end;
+  end;
+end;
