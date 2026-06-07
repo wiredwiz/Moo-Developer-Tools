@@ -255,7 +255,7 @@ public class MooCodeEditorPage : MooEditorPage
 
         List<AutocompleteItem> items = new List<AutocompleteItem>();
 
-        foreach (var item in Snippets.LoadSnippets(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Snippets.txt")))
+        foreach (var item in Snippets.LoadSnippets(ApplicationPaths.ResolveDataFile("Snippets.txt")))
             items.Add(new SnippetAutocompleteItem(item) { ImageIndex = 1 });
         foreach (var item in Moo.Editor.Moo.Keywords)
             items.Add(new AutoIndentingSnippet(item));
