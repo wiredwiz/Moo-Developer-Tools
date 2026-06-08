@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>Snippet Icon Colour — Picker</title>
+<style>
+  :root{--bg:#0f1115;--panel:#171a21;--line:#2c333f;--text:#e6e9ef;--muted:#9aa4b2;--accent:#6ea8fe}
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--text);font:14px/1.5 "Segoe UI",system-ui,Arial,sans-serif}
+  header{padding:22px 28px;border-bottom:1px solid var(--line)}
+  h1{margin:0 0 4px;font-size:20px}
+  .sub{color:var(--muted);font-size:13px;max-width:760px}
+  main{padding:24px 28px}
+  h2{font-size:13px;letter-spacing:.4px;text-transform:uppercase;color:#cdd5e0;margin:26px 0 12px}
+  .swatches{display:flex;gap:12px;flex-wrap:wrap;align-items:center}
+  .sw{cursor:pointer;border:2px solid transparent;border-radius:12px;padding:10px;background:var(--panel);display:flex;flex-direction:column;align-items:center;gap:8px;width:120px}
+  .sw:hover{border-color:var(--line)}
+  .sw.sel{border-color:var(--accent)}
+  .chip{width:30px;height:30px;border-radius:7px}
+  .sw .nm{font-size:12px}.sw .hx{font-size:11px;color:var(--muted);font-family:Consolas,monospace}
+  .custom{display:flex;gap:10px;align-items:center;margin-top:14px}
+  input[type=text]{background:#0c0f14;border:1px solid var(--line);color:#cfe3ff;border-radius:8px;padding:8px 10px;font-family:Consolas,monospace;width:120px}
+  input[type=color]{width:42px;height:34px;border:1px solid var(--line);background:none;border-radius:8px}
+  .bgwrap{display:inline-flex;border-radius:8px;overflow:hidden;border:1px solid var(--line)}
+  .bgwrap span{padding:10px}.bg-d{background:#1e1e1e}.bg-l{background:#fff}
+  .sizes{display:flex;gap:26px;align-items:center;flex-wrap:wrap}
+  .popup{width:300px;border-radius:8px;overflow:hidden;border:1px solid var(--line);box-shadow:0 12px 34px rgba(0,0,0,.45);font:13px/1 "Consolas","Courier New",monospace}
+  .popup .cap{font-family:"Segoe UI",sans-serif;font-size:11px;color:var(--muted);padding:6px 10px;background:var(--panel);border-bottom:1px solid var(--line)}
+  .previews{display:flex;gap:26px;flex-wrap:wrap}
+  .row{display:flex;align-items:center;gap:8px;padding:5px 9px}
+  .row .ic{width:16px;height:16px;flex:0 0 16px;display:flex;align-items:center;justify-content:center}
+  .light{background:#fff}.light .row{color:#1c1c1c}.light .row.sel-row{background:#cde4ff}
+  .dark{background:#1e1e1e}.dark .row{color:#dcdcdc}.dark .row.sel-row{background:#264f78}
+  code{background:#0c0f14;border:1px solid var(--line);border-radius:6px;padding:6px 9px;color:#cfe3ff;font-size:12px}
+</style>
+</head>
+<body>
+<header>
+  <h1>Snippet icon — pick a colour</h1>
+  <div class="sub">Your chosen set is baked in (constants/variables chips, core-ref line&nbsp;$, solid bolt verbs, solid tag properties, line&nbsp;ƒ functions). Only the <b>snippet</b> icon recolours below. Candidates avoid your other six hues. Pick a swatch or enter a custom hex.</div>
+</header>
+<main>
+  <h2>Candidate colours</h2>
+  <div class="swatches" id="swatches"></div>
+  <div class="custom">
+    <span class="sub">Custom:</span>
+    <input type="color" id="cpick" value="#E5573F"/>
+    <input type="text" id="chex" value="#E5573F"/>
+    <span class="sub">current → </span><code id="cur">#E5573F</code>
+  </div>
+
+  <h2>Snippet icon at size</h2>
+  <div class="sizes">
+    <div class="bgwrap"><span class="bg-d" id="d16"></span><span class="bg-l" id="l16"></span></div>
+    <div class="bgwrap"><span class="bg-d" id="d32"></span><span class="bg-l" id="l32"></span></div>
+    <span class="sub">16&nbsp;px (real) &nbsp;·&nbsp; 32&nbsp;px (detail), on dark &amp; light</span>
+  </div>
+
+  <h2>Mock popup (full set, snippet recolouring live)</h2>
+  <div class="previews" id="previews"></div>
+</main>
+
+<script>
+const CATS={
+  constants:{color:"#E2A33B",letter:"C",fam:"Arial",ital:"normal",big:13,dy:16.6},
+  variables:{color:"#4C8DF6",letter:"x",fam:"Georgia,serif",ital:"italic",big:13,dy:16.6},
+  corerefs:{color:"#19B27A"}, verbs:{color:"#A06CF0"}, properties:{color:"#15B5C9"},
+  functions:{color:"#EC5C9B"}, snippets:{color:"#E5573F"}
+};
+function chip(c){const o=CATS[c==="snippets"?"snippets":c];return "";}
+function svgFor(key,px){
+  const c=CATS[key].color;const W="#fff";let inner="";
+  if(key==="constants"||key==="variables"){const o=CATS[key];
+    inner=`<circle cx="12" cy="12" r="9.4" fill="${c}"/><text x="12" y="${o.dy}" font-family="${o.fam}" font-style="${o.ital}" font-weight="700" font-size="${o.big}" text-anchor="middle" fill="#fff">${o.letter}</text>`;}
+  else if(key==="corerefs"){const s=`fill="none" stroke="${c}" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"`;
+    inner=`<path d="M12 4.2V19.8M15.6 7.6c-.9-1.4-2.3-2-3.9-2-2 0-3.4 1-3.4 2.7 0 3.9 7.6 2 7.6 5.9 0 1.8-1.6 2.8-3.8 2.8-1.8 0-3.2-.7-4.1-2.1" ${s}/>`;}
+  else if(key==="functions"){const s=`fill="none" stroke="${c}" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"`;
+    inner=`<path d="M9.5 4.6C6.6 7.4 6.6 16.6 9.5 19.4M14.5 4.6c2.9 2.8 2.9 12 0 14.8" ${s}/>`;}
+  else if(key==="verbs"){inner=`<path d="M13.6 2.5 5 14h5.4l-1.5 7.5L19 9.5h-5.6z" fill="${c}"/>`;}
+  else if(key==="properties"){inner=`<path d="M12.8 3 21 11.2a1.8 1.8 0 0 1 0 2.6l-7.2 7.2a1.8 1.8 0 0 1-2.6 0L3 12.8V3z" fill="${c}"/><circle cx="8.3" cy="8.3" r="1.9" fill="#0e0e0e"/>`;}
+  else if(key==="snippets"){inner=`<path d="M6 3h8l4 4v14H6z" fill="${c}"/><path d="M14 3v4h4" fill="#ffffff" opacity=".35"/><path d="M10.2 11.5 8 14l2.2 2.5M13.8 11.5 16 14l-2.2 2.5" fill="none" stroke="#ffffff" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/>`;}
+  return `<svg width="${px}" height="${px}" viewBox="0 0 24 24">${inner}</svg>`;
+}
+const CANDS=[
+  {nm:"Coral",hx:"#E5573F"},{nm:"Orange",hx:"#F08A24"},{nm:"Gold",hx:"#D9B017"},
+  {nm:"Lime",hx:"#8FBF3F"},{nm:"Indigo",hx:"#5C6CE0"},{nm:"Crimson",hx:"#D8456B"}
+];
+const SAMPLES=[["snippets","for (..in..)"],["constants","E_PERM"],["variables","player"],["corerefs","$string_utils"],["verbs","tell"],["properties","name"],["functions","tostr()"]];
+
+const sw=document.getElementById("swatches");
+CANDS.forEach(c=>{
+  const d=document.createElement("div");d.className="sw";d.dataset.hx=c.hx;
+  d.innerHTML=`<div class="chip" style="background:${c.hx}"></div><div class="nm">${c.nm}</div><div class="hx">${c.hx}</div>`;
+  d.onclick=()=>setColor(c.hx);sw.appendChild(d);
+});
+function setColor(hx){
+  CATS.snippets.color=hx;
+  document.getElementById("cur").textContent=hx.toUpperCase();
+  document.getElementById("chex").value=hx.toUpperCase();
+  document.getElementById("cpick").value=hx;
+  document.querySelectorAll(".sw").forEach(s=>s.classList.toggle("sel",s.dataset.hx.toLowerCase()===hx.toLowerCase()));
+  render();
+}
+document.getElementById("cpick").addEventListener("input",e=>setColor(e.target.value));
+document.getElementById("chex").addEventListener("change",e=>{let v=e.target.value.trim();if(/^#?[0-9a-fA-F]{6}$/.test(v)){if(v[0]!=='#')v='#'+v;setColor(v);}});
+function render(){
+  document.getElementById("d16").innerHTML=svgFor("snippets",16);
+  document.getElementById("l16").innerHTML=svgFor("snippets",16);
+  document.getElementById("d32").innerHTML=svgFor("snippets",32);
+  document.getElementById("l32").innerHTML=svgFor("snippets",32);
+  const make=t=>{let r="";SAMPLES.forEach((it,i)=>{const c=CATS[it[0]].color;r+=`<div class="row ${i===0?'sel-row':''}"><span class="ic">${svgFor(it[0],16)}</span><span>${it[1]}</span></div>`;});return `<div class="popup ${t}"><div class="cap">${t==='dark'?'Dark editor theme':'Light editor theme'}</div>${r}</div>`;};
+  document.getElementById("previews").innerHTML=make("dark")+make("light");
+}
+setColor("#8FBF3F");
+</script>
+</body>
+</html>

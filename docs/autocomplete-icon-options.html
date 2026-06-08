@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>Moo Autocomplete Icons — Options</title>
+<style>
+  :root{
+    --bg:#0f1115; --panel:#171a21; --panel2:#1f242e; --line:#2c333f;
+    --text:#e6e9ef; --muted:#9aa4b2; --accent:#6ea8fe;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--text);font:14px/1.5 "Segoe UI",system-ui,Arial,sans-serif}
+  header{padding:22px 28px;border-bottom:1px solid var(--line);position:sticky;top:0;background:rgba(15,17,21,.92);backdrop-filter:blur(6px);z-index:5}
+  h1{margin:0 0 4px;font-size:20px}
+  .sub{color:var(--muted);font-size:13px;max-width:820px}
+  main{padding:24px 28px 80px}
+  h2{font-size:15px;margin:30px 0 12px;color:#cdd5e0;letter-spacing:.3px;text-transform:uppercase;font-weight:600}
+  .controls{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-top:14px}
+  button{background:var(--panel2);color:var(--text);border:1px solid var(--line);border-radius:8px;padding:7px 12px;cursor:pointer;font-size:13px}
+  button:hover{border-color:var(--accent)}
+  button.active{background:var(--accent);color:#0b0e13;border-color:var(--accent);font-weight:600}
+
+  /* Comparison grid */
+  table{border-collapse:collapse;width:100%;margin-top:6px}
+  th,td{border:1px solid var(--line);padding:0}
+  thead th{background:var(--panel);font-size:12px;color:var(--muted);font-weight:600;padding:10px 12px;text-align:center}
+  thead th.cat{text-align:left;width:190px}
+  td.catcell{padding:10px 14px;background:var(--panel)}
+  .catname{font-weight:600}
+  .catdesc{color:var(--muted);font-size:11.5px}
+  .opt{display:flex;align-items:center;justify-content:center;gap:14px;padding:14px;cursor:pointer;position:relative;min-height:64px}
+  .opt:hover{background:var(--panel2)}
+  .opt.sel{background:rgba(110,168,254,.14);box-shadow:inset 0 0 0 2px var(--accent)}
+  .opt .px16{width:16px;height:16px;display:flex;align-items:center;justify-content:center}
+  .opt .px32{width:32px;height:32px;display:flex;align-items:center;justify-content:center}
+  .opt .tick{position:absolute;top:6px;right:8px;font-size:11px;color:var(--accent);opacity:0;font-weight:700}
+  .opt.sel .tick{opacity:1}
+  svg{display:block}
+
+  /* light/dark swatch behind icons */
+  .bgwrap{display:inline-flex;border-radius:6px;overflow:hidden;border:1px solid var(--line)}
+  .bgwrap span{padding:7px}
+  .bg-d{background:#1e1e1e}
+  .bg-l{background:#ffffff}
+
+  /* Mock popup */
+  .previews{display:flex;gap:26px;flex-wrap:wrap;margin-top:8px}
+  .popup{width:300px;border-radius:8px;overflow:hidden;border:1px solid var(--line);box-shadow:0 12px 34px rgba(0,0,0,.45);font:13px/1 "Consolas","Courier New",monospace}
+  .popup .cap{font-family:"Segoe UI",sans-serif;font-size:11px;color:var(--muted);padding:6px 10px;background:var(--panel);border-bottom:1px solid var(--line)}
+  .row{display:flex;align-items:center;gap:8px;padding:5px 9px}
+  .row .ic{width:16px;height:16px;flex:0 0 16px;display:flex;align-items:center;justify-content:center}
+  .row.sel-row{outline:1px solid rgba(110,168,254,.6)}
+  .light .row{color:#1c1c1c}
+  .light .row.sel-row{background:#cde4ff}
+  .light{background:#ffffff}
+  .dark .row{color:#dcdcdc}
+  .dark .row.sel-row{background:#264f78}
+  .dark{background:#1e1e1e}
+  .kw{color:#569cd6}.lt{background:#fff}
+
+  .summary{position:fixed;bottom:0;left:0;right:0;background:rgba(20,24,31,.97);border-top:1px solid var(--line);padding:12px 28px;display:flex;align-items:center;gap:16px;flex-wrap:wrap;z-index:6}
+  .summary code{background:#0c0f14;border:1px solid var(--line);border-radius:6px;padding:8px 10px;font-size:12px;color:#cfe3ff;flex:1;min-width:240px;white-space:pre-wrap}
+  .legend{color:var(--muted);font-size:12px}
+  .pill{display:inline-block;padding:1px 7px;border-radius:20px;font-size:11px;border:1px solid var(--line);margin-left:6px}
+</style>
+</head>
+<body>
+<header>
+  <h1>Moo Code Editor — Autocomplete Category Icons</h1>
+  <div class="sub">Four style families for the seven categories. Pick one option per row (or grab a whole set). Icons render unscaled in an 18&nbsp;px gutter, so the real target is <b>16&nbsp;px</b> — the left column shows that exact size; the right shows 2× for detail. Test legibility on the light/dark editor background and in the mock popup below. <b>udd-lvn</b>.</div>
+  <div class="controls">
+    <span class="legend">Quick-pick a whole family:</span>
+    <button data-setall="A">Family A · Badges</button>
+    <button data-setall="B">Family B · Line</button>
+    <button data-setall="C">Family C · Solid</button>
+    <button data-setall="D">Family D · Chips</button>
+    <span class="legend">| Icon background test:</span>
+    <button id="bgtoggle">Toggle popup theme</button>
+  </div>
+</header>
+<main>
+  <h2>Compare &amp; select</h2>
+  <table id="grid"></table>
+
+  <h2>Mock autocomplete popup (live with your current picks, 16&nbsp;px)</h2>
+  <div class="previews" id="previews"></div>
+</main>
+
+<div class="summary">
+  <span class="legend">Your selection:</span>
+  <code id="selout"></code>
+  <button id="copy">Copy selection</button>
+</div>
+
+<script>
+const CATS = [
+  {key:"constants", name:"Constants",       desc:"true, false, E_PERM, numeric/error literals", color:"#E2A33B", letter:"C"},
+  {key:"variables", name:"Variables",       desc:"this, player, args, locals",                   color:"#4C8DF6", letter:"x"},
+  {key:"corerefs",  name:"Core references", desc:"$string_utils, $sysobj",                        color:"#19B27A", letter:"$"},
+  {key:"verbs",     name:"Verbs",           desc:"obj:verbname (callable actions)",               color:"#A06CF0", letter:":"},
+  {key:"properties",name:"Properties",      desc:"obj.propname (stored data)",                     color:"#15B5C9", letter:"."},
+  {key:"functions", name:"Functions",       desc:"tostr(), length() built-ins",                   color:"#EC5C9B", letter:"ƒ"},
+  {key:"snippets",  name:"Snippets",        desc:"for / if / try code templates",                 color:"#7C8AA0", letter:"{}"}
+];
+const SETS = ["A","B","C","D"];
+const SETLABEL = {A:"A · Badge", B:"B · Line", C:"C · Solid", D:"D · Chip"};
+
+// ---- SVG builders. viewBox 0 0 24 24. color via the category accent. ----
+function badge(inner, c){ // filled rounded-square + white glyph
+  return `<rect x="2" y="2" width="20" height="20" rx="5.5" fill="${c}"/>${inner}`;
+}
+function I(set, cat){
+  const c = cat.color;
+  const W='#ffffff';
+  switch(set){
+  // ---------- A : filled badge, white symbol ----------
+  case "A": switch(cat.key){
+    case "constants": return badge(`<rect x="8" y="11" width="8" height="6" rx="1.2" fill="${W}"/><path d="M9.6 11V9.6a2.4 2.4 0 0 1 4.8 0V11" fill="none" stroke="${W}" stroke-width="1.5"/>`,c);
+    case "variables": return badge(`<text x="12" y="16.4" font-family="Georgia,serif" font-style="italic" font-size="11" text-anchor="middle" fill="${W}">x</text>`,c);
+    case "corerefs":  return badge(`<text x="12" y="17" font-family="Arial" font-weight="700" font-size="13" text-anchor="middle" fill="${W}">$</text>`,c);
+    case "verbs":     return badge(`<path d="M10 8.3 16.2 12 10 15.7Z" fill="${W}"/>`,c);
+    case "properties":return badge(`<path d="M12.6 7.2 16.8 7.2 16.8 11.4 11.3 16.9a1.5 1.5 0 0 1-2.1 0l-2-2a1.5 1.5 0 0 1 0-2.1z" fill="${W}"/><circle cx="14.3" cy="9.5" r="1.05" fill="${c}"/>`,c);
+    case "functions": return badge(`<text x="12" y="17.2" font-family="Georgia,serif" font-style="italic" font-size="14" text-anchor="middle" fill="${W}">ƒ</text>`,c);
+    case "snippets":  return badge(`<path d="M11 7.5c-2 0-2 2.2-2 3.1 0 .9-.4 1.4-1.4 1.4 1 0 1.4.5 1.4 1.4 0 .9 0 3.1 2 3.1M13 7.5c2 0 2 2.2 2 3.1 0 .9.4 1.4 1.4 1.4-1 0-1.4.5-1.4 1.4 0 .9 0 3.1-2 3.1" fill="none" stroke="${W}" stroke-width="1.5" stroke-linecap="round"/>`,c);
+  } break;
+  // ---------- B : line / outline, accent stroke ----------
+  case "B": { const s=`fill="none" stroke="${c}" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"`;
+    switch(cat.key){
+    case "constants": return `<path d="M12 3.2 19.4 7.3v9.4L12 20.8 4.6 16.7V7.3z" ${s}/><circle cx="12" cy="12" r="2.1" fill="${c}"/>`;
+    case "variables": return `<rect x="4.5" y="6.5" width="15" height="11" rx="2.4" ${s}/><path d="M9.5 10 14.5 14M14.5 10 9.5 14" ${s}/>`;
+    case "corerefs":  return `<path d="M12 4.2V19.8M15.6 7.6c-.9-1.4-2.3-2-3.9-2-2 0-3.4 1-3.4 2.7 0 3.9 7.6 2 7.6 5.9 0 1.8-1.6 2.8-3.8 2.8-1.8 0-3.2-.7-4.1-2.1" ${s}/>`;
+    case "verbs":     return `<path d="M13.2 3.3 6 13.4h4.6l-1.2 7.3 8.4-11h-5z" ${s}/>`;
+    case "properties":return `<circle cx="9" cy="9" r="3.1" ${s}/><path d="M11.1 11.1 18 18M15.4 18l2.3-2.3M13.2 16.1l2.1-2.1" ${s}/>`;
+    case "functions": return `<path d="M9.5 4.6C6.6 7.4 6.6 16.6 9.5 19.4M14.5 4.6c2.9 2.8 2.9 12 0 14.8" ${s}/>`;
+    case "snippets":  return `<path d="M9.3 7.5 4.8 12l4.5 4.5M14.7 7.5 19.2 12l-4.5 4.5" ${s}/>`;
+  } break; }
+  // ---------- C : solid monochrome symbol (accent fill) ----------
+  case "C": switch(cat.key){
+    case "constants": return `<rect x="5.5" y="10.5" width="13" height="9" rx="1.8" fill="${c}"/><path d="M8 10.5V8.4a4 4 0 0 1 8 0v2.1" fill="none" stroke="${c}" stroke-width="2.1"/><circle cx="12" cy="14.6" r="1.5" fill="#0e0e0e"/>`;
+    case "variables": return `<rect x="3.5" y="5.5" width="17" height="13" rx="2.6" fill="${c}"/><path d="M9 9.5 15 14.5M15 9.5 9 14.5" stroke="#0e0e0e" stroke-width="2.1" stroke-linecap="round"/>`;
+    case "corerefs":  return `<circle cx="12" cy="12" r="9" fill="${c}"/><text x="12" y="17" font-family="Arial" font-weight="800" font-size="14" text-anchor="middle" fill="#0e0e0e">$</text>`;
+    case "verbs":     return `<path d="M13.6 2.5 5 14h5.4l-1.5 7.5L19 9.5h-5.6z" fill="${c}"/>`;
+    case "properties":return `<path d="M12.8 3 21 11.2a1.8 1.8 0 0 1 0 2.6l-7.2 7.2a1.8 1.8 0 0 1-2.6 0L3 12.8V3z" fill="${c}"/><circle cx="8.3" cy="8.3" r="1.9" fill="#0e0e0e"/>`;
+    case "functions": return `<circle cx="12" cy="12" r="9" fill="${c}"/><text x="12" y="17.4" font-family="Georgia,serif" font-style="italic" font-size="15" text-anchor="middle" fill="#0e0e0e">ƒ</text>`;
+    case "snippets":  return `<path d="M6 3h8l4 4v14a0 0 0 0 1 0 0H6z" fill="${c}"/><path d="M14 3v4h4" fill="#0e0e0e" opacity=".25"/><path d="M10.2 11.5 8 14l2.2 2.5M13.8 11.5 16 14l-2.2 2.5" fill="none" stroke="#0e0e0e" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/>`;
+  } break;
+  // ---------- D : colored circle chip + white letter ----------
+  case "D": {
+    const big = cat.key==="snippets" ? 9 : (cat.key==="verbs"||cat.key==="properties"? 17 : 13);
+    const dy  = cat.key==="verbs" ? 16 : (cat.key==="properties"? 15.5 : 16.6);
+    const fam = (cat.key==="variables"||cat.key==="functions") ? 'Georgia,serif' : 'Arial';
+    const ital= (cat.key==="variables"||cat.key==="functions") ? 'italic':'normal';
+    return `<circle cx="12" cy="12" r="9.4" fill="${c}"/><text x="12" y="${dy}" font-family="${fam}" font-style="${ital}" font-weight="700" font-size="${big}" text-anchor="middle" fill="#ffffff">${cat.letter}</text>`;
+  }
+  }
+  return "";
+}
+function svg(set, cat, px){
+  return `<svg width="${px}" height="${px}" viewBox="0 0 24 24" aria-hidden="true">${I(set,cat)}</svg>`;
+}
+
+// ---- selection state ----
+const sel = {};
+CATS.forEach(c=> sel[c.key]="A");
+
+// ---- build grid ----
+const grid = document.getElementById("grid");
+let thead = `<thead><tr><th class="cat">Category</th>`;
+SETS.forEach(s=> thead += `<th>Family ${SETLABEL[s]}</th>`);
+thead += `</tr></thead>`;
+let tb = "<tbody>";
+CATS.forEach(cat=>{
+  tb += `<tr><td class="catcell"><div class="catname">${cat.name}</div><div class="catdesc">${cat.desc}</div></td>`;
+  SETS.forEach(s=>{
+    tb += `<td><div class="opt" data-cat="${cat.key}" data-set="${s}" style="color:${cat.color}">
+        <span class="tick">✓ picked</span>
+        <span class="bgwrap"><span class="bg-d px16wrap">${svg(s,cat,16)}</span><span class="bg-l px16wrap">${svg(s,cat,16)}</span></span>
+        <span class="px32">${svg(s,cat,32)}</span>
+      </div></td>`;
+  });
+  tb += `</tr>`;
+});
+tb += "</tbody>";
+grid.innerHTML = thead + tb;
+
+// ---- mock popups ----
+const SAMPLES = [
+  {cat:"snippets",  text:"for (..in..)"},
+  {cat:"constants", text:"E_PERM"},
+  {cat:"variables", text:"player"},
+  {cat:"corerefs",  text:"$string_utils"},
+  {cat:"verbs",     text:"tell"},
+  {cat:"properties",text:"name"},
+  {cat:"functions", text:"tostr()"}
+];
+let popupTheme = "dark";
+function renderPreviews(){
+  const wrap = document.getElementById("previews");
+  const make = (theme)=>{
+    let rows = "";
+    SAMPLES.forEach((it,idx)=>{
+      const cat = CATS.find(c=>c.key===it.cat);
+      rows += `<div class="row ${idx===2?'sel-row':''}"><span class="ic" style="color:${cat.color}">${svg(sel[it.cat],cat,16)}</span><span>${it.text}</span></div>`;
+    });
+    return `<div class="popup ${theme}"><div class="cap">${theme==='dark'?'Dark editor theme':'Light editor theme'}</div>${rows}</div>`;
+  };
+  wrap.innerHTML = make("dark") + make("light");
+}
+renderPreviews();
+
+// ---- interactions ----
+function refreshSel(){
+  document.querySelectorAll(".opt").forEach(o=>{
+    o.classList.toggle("sel", sel[o.dataset.cat]===o.dataset.set);
+  });
+  const lines = CATS.map(c=>`${c.name.padEnd(16)} -> Family ${sel[c.key]}`).join("\n");
+  document.getElementById("selout").textContent = lines;
+  renderPreviews();
+}
+grid.addEventListener("click", e=>{
+  const opt = e.target.closest(".opt");
+  if(!opt) return;
+  sel[opt.dataset.cat] = opt.dataset.set;
+  refreshSel();
+});
+document.querySelectorAll("[data-setall]").forEach(b=>{
+  b.addEventListener("click", ()=>{
+    const s=b.dataset.setall;
+    CATS.forEach(c=> sel[c.key]=s);
+    document.querySelectorAll("[data-setall]").forEach(x=>x.classList.toggle("active", x===b));
+    refreshSel();
+  });
+});
+document.getElementById("bgtoggle").addEventListener("click", ()=>{
+  popupTheme = popupTheme==="dark"?"light":"dark"; // reserved; both shown side by side
+});
+document.getElementById("copy").addEventListener("click", ()=>{
+  navigator.clipboard.writeText(document.getElementById("selout").textContent).then(()=>{
+    const b=document.getElementById("copy"); b.textContent="Copied!"; setTimeout(()=>b.textContent="Copy selection",1200);
+  });
+});
+refreshSel();
+</script>
+</body>
+</html>
