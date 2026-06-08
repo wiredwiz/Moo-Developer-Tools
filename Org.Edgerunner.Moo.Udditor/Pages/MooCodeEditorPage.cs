@@ -273,7 +273,7 @@ public class MooCodeEditorPage : MooEditorPage
     {
         codeEditor.AutocompleteMenu = new AutocompleteMenu(codeEditor);
 
-        //editor.AutocompleteMenu.Items.ImageList = imageList1;
+        codeEditor.AutocompleteMenu.ImageList = CompletionIconFactory.CreateImageList();
         codeEditor.AutocompleteMenu.SearchPattern = @"[\w\.:=!<>+-/*%&|^]";
         codeEditor.AutocompleteMenu.AllowTabKey = true;
         codeEditor.AutocompleteMenu.MinFragmentLength = 1;
@@ -281,11 +281,11 @@ public class MooCodeEditorPage : MooEditorPage
         List<AutocompleteItem> items = new List<AutocompleteItem>();
 
         foreach (var item in Snippets.LoadSnippets(ApplicationPaths.ResolveDataFile("Snippets.txt")))
-            items.Add(new SnippetAutocompleteItem(item) { ImageIndex = 1 });
+            items.Add(new SnippetAutocompleteItem(item) { ImageIndex = (int)CompletionIconCategory.Snippet });
         foreach (var item in Moo.Editor.Moo.Keywords)
-            items.Add(new AutoIndentingSnippet(item));
+            items.Add(new AutoIndentingSnippet(item) { ImageIndex = (int)Moo.Editor.Moo.ClassifyKeyword(item) });
         foreach (var builtin in Moo.Editor.Moo.Builtins.Values)
-            items.Add(new SnippetAutocompleteItem(builtin));
+            items.Add(new SnippetAutocompleteItem(builtin) { ImageIndex = (int)CompletionIconCategory.Function });
 
         // display the completion items alphabetically by their menu text
         items.Sort((a, b) => string.Compare(a.ToString(), b.ToString(), StringComparison.CurrentCultureIgnoreCase));

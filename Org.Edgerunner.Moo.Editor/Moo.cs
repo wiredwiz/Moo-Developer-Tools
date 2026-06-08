@@ -1,4 +1,5 @@
 ﻿using Antlr4.Runtime;
+using Org.Edgerunner.Moo.Editor.Autocomplete;
 using Org.Edgerunner.Moo.Editor.Language.Navigation;
 using Org.Edgerunner.MooSharp.Language.Grammar;
 
@@ -16,13 +17,64 @@ public static class Moo
 
    public static Dictionary<string, string> Builtins = new(200);
 
-   public static IList<string> Keywords = new List<string>
+   /// <summary>
+   /// Control-flow keywords (if / while / for / try / ...). Classified as
+   /// <see cref="CompletionIconCategory.Keyword"/>.
+   /// </summary>
+   public static readonly IReadOnlyList<string> ControlFlowKeywords = new List<string>
    {
       "if", "elseif", "else", "endif", "return", "while", "endwhile", "for", "endfor", "fork", "endfork", "try", "except", "finally",
-      "endtry", "in", "player", "caller", "verb", "dobj", "dobjstr", "prepstr", "iobj", "iobjstr", "this", "args", "argstr",
+      "endtry", "in"
+   };
+
+   /// <summary>
+   /// Built-in variables (player, caller, this, args, ...). Classified as
+   /// <see cref="CompletionIconCategory.Variable"/>.
+   /// </summary>
+   public static readonly IReadOnlyList<string> BuiltinVariables = new List<string>
+   {
+      "player", "caller", "verb", "dobj", "dobjstr", "prepstr", "iobj", "iobjstr", "this", "args", "argstr"
+   };
+
+   /// <summary>
+   /// Built-in constants (error codes, type names, true/false). Classified as
+   /// <see cref="CompletionIconCategory.Constant"/>.
+   /// </summary>
+   public static readonly IReadOnlyList<string> Constants = new List<string>
+   {
       "E_NONE", "E_TYPE", "E_DIV", "E_PERM", "E_PROPNF", "E_VERBNF", "E_VARNF", "E_INVIND", "E_RECMOVE", "E_MAXREC", "E_RANGE", "E_ARGS", "E_NACC", "E_INVARG", "E_QUOTA",
       "E_FLOAT", "E_FILE", "E_EXEC", "E_INTRPT", "STR", "LIST", "OBJ", "MAP", "INT", "FLOAT", "ERR", "BOOL", "WAIF", "ANON", "NUM", "true", "false"
    };
+
+   private static readonly HashSet<string> BuiltinVariableSet = new(BuiltinVariables);
+
+   private static readonly HashSet<string> ConstantSet = new(Constants);
+
+   /// <summary>
+   /// The full combined keyword list: control-flow keywords, built-in variables and built-in
+   /// constants. Derived from the three category lists so they stay consistent.
+   /// </summary>
+   public static IList<string> Keywords =
+      new List<string>(ControlFlowKeywords).Concat(BuiltinVariables).Concat(Constants).ToList();
+
+   /// <summary>
+   /// Classifies a word from <see cref="Keywords"/> into its completion icon category.
+   /// </summary>
+   /// <param name="word">The keyword to classify.</param>
+   /// <returns>
+   /// <see cref="CompletionIconCategory.Constant"/> for built-in constants,
+   /// <see cref="CompletionIconCategory.Variable"/> for built-in variables, and
+   /// <see cref="CompletionIconCategory.Keyword"/> for everything else (control-flow keywords).
+   /// </returns>
+   public static CompletionIconCategory ClassifyKeyword(string word)
+   {
+      if (ConstantSet.Contains(word))
+         return CompletionIconCategory.Constant;
+      if (BuiltinVariableSet.Contains(word))
+         return CompletionIconCategory.Variable;
+
+      return CompletionIconCategory.Keyword;
+   }
 
    private static readonly List<string> BuiltinsWithArgs = new()
    {
