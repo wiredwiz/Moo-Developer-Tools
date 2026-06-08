@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>Keyword Icon — Picker</title>
+<style>
+  :root{--bg:#0f1115;--panel:#171a21;--line:#2c333f;--text:#e6e9ef;--muted:#9aa4b2;--accent:#6ea8fe}
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--text);font:14px/1.5 "Segoe UI",system-ui,Arial,sans-serif}
+  header{padding:22px 28px;border-bottom:1px solid var(--line)}
+  h1{margin:0 0 4px;font-size:20px}.sub{color:var(--muted);font-size:13px;max-width:780px}
+  main{padding:24px 28px}
+  h2{font-size:13px;letter-spacing:.4px;text-transform:uppercase;color:#cdd5e0;margin:26px 0 12px}
+  .opts{display:flex;gap:14px;flex-wrap:wrap}
+  .opt{cursor:pointer;border:2px solid transparent;border-radius:12px;padding:12px 14px;background:var(--panel);display:flex;flex-direction:column;align-items:center;gap:10px;width:150px}
+  .opt:hover{border-color:var(--line)}.opt.sel{border-color:var(--accent)}
+  .opt .nm{font-size:12px}.opt .row2{display:flex;gap:12px;align-items:center}
+  .bgwrap{display:inline-flex;border-radius:8px;overflow:hidden;border:1px solid var(--line)}
+  .bgwrap span{padding:8px}.bg-d{background:#1e1e1e}.bg-l{background:#fff}
+  .swatches{display:flex;gap:12px;flex-wrap:wrap;align-items:center}
+  .sw{cursor:pointer;border:2px solid transparent;border-radius:12px;padding:10px;background:var(--panel);display:flex;flex-direction:column;align-items:center;gap:8px;width:110px}
+  .sw:hover{border-color:var(--line)}.sw.sel{border-color:var(--accent)}
+  .chip{width:28px;height:28px;border-radius:7px}.sw .nm{font-size:12px}.sw .hx{font-size:11px;color:var(--muted);font-family:Consolas,monospace}
+  .custom{display:flex;gap:10px;align-items:center;margin-top:14px}
+  input[type=text]{background:#0c0f14;border:1px solid var(--line);color:#cfe3ff;border-radius:8px;padding:8px 10px;font-family:Consolas,monospace;width:120px}
+  input[type=color]{width:42px;height:34px;border:1px solid var(--line);background:none;border-radius:8px}
+  code{background:#0c0f14;border:1px solid var(--line);border-radius:6px;padding:6px 9px;color:#cfe3ff;font-size:12px}
+  .previews{display:flex;gap:26px;flex-wrap:wrap}
+  .popup{width:300px;border-radius:8px;overflow:hidden;border:1px solid var(--line);box-shadow:0 12px 34px rgba(0,0,0,.45);font:13px/1 "Consolas","Courier New",monospace}
+  .popup .cap{font-family:"Segoe UI",sans-serif;font-size:11px;color:var(--muted);padding:6px 10px;background:var(--panel);border-bottom:1px solid var(--line)}
+  .r{display:flex;align-items:center;gap:8px;padding:5px 9px}.r .ic{width:16px;height:16px;flex:0 0 16px;display:flex;align-items:center;justify-content:center}
+  .light{background:#fff}.light .r{color:#1c1c1c}.dark{background:#1e1e1e}.dark .r{color:#dcdcdc}
+</style>
+</head>
+<body>
+<header>
+  <h1>Keyword icon — pick glyph + colour</h1>
+  <div class="sub">The 8th category: control-flow keywords (if / while / for / try …). Choose a glyph style and a colour distinct from your other seven hues. Preview shows it beside the final set in the popup.</div>
+</header>
+<main>
+  <h2>Glyph</h2>
+  <div class="opts" id="glyphs"></div>
+
+  <h2>Colour</h2>
+  <div class="swatches" id="swatches"></div>
+  <div class="custom"><span class="sub">Custom:</span><input type="color" id="cpick" value="#5E7CA8"/><input type="text" id="chex" value="#5E7CA8"/><span class="sub">→</span><code id="cur">glyph=branch  colour=#5E7CA8</code></div>
+
+  <h2>In the popup (with your final set)</h2>
+  <div class="previews" id="previews"></div>
+</main>
+
+<script>
+// final set colours
+const FINAL={constants:"#E2A33B",variables:"#4C8DF6",corerefs:"#19B27A",verbs:"#A06CF0",properties:"#15B5C9",functions:"#EC5C9B",snippets:"#8FBF3F"};
+function fixedIcon(key,px){
+  const c=FINAL[key];let inner="";
+  if(key==="constants")inner=`<circle cx="12" cy="12" r="9.4" fill="${c}"/><text x="12" y="16.6" font-family="Arial" font-weight="700" font-size="13" text-anchor="middle" fill="#fff">C</text>`;
+  else if(key==="variables")inner=`<circle cx="12" cy="12" r="9.4" fill="${c}"/><text x="12" y="16.6" font-family="Georgia,serif" font-style="italic" font-weight="700" font-size="13" text-anchor="middle" fill="#fff">x</text>`;
+  else if(key==="corerefs"){const s=`fill="none" stroke="${c}" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"`;inner=`<path d="M12 4.2V19.8M15.6 7.6c-.9-1.4-2.3-2-3.9-2-2 0-3.4 1-3.4 2.7 0 3.9 7.6 2 7.6 5.9 0 1.8-1.6 2.8-3.8 2.8-1.8 0-3.2-.7-4.1-2.1" ${s}/>`;}
+  else if(key==="functions"){const s=`fill="none" stroke="${c}" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"`;inner=`<path d="M9.5 4.6C6.6 7.4 6.6 16.6 9.5 19.4M14.5 4.6c2.9 2.8 2.9 12 0 14.8" ${s}/>`;}
+  else if(key==="verbs")inner=`<path d="M13.6 2.5 5 14h5.4l-1.5 7.5L19 9.5h-5.6z" fill="${c}"/>`;
+  else if(key==="properties")inner=`<path d="M12.8 3 21 11.2a1.8 1.8 0 0 1 0 2.6l-7.2 7.2a1.8 1.8 0 0 1-2.6 0L3 12.8V3z" fill="${c}"/><circle cx="8.3" cy="8.3" r="1.9" fill="#0e0e0e"/>`;
+  else if(key==="snippets")inner=`<path d="M6 3h8l4 4v14H6z" fill="${c}"/><path d="M14 3v4h4" fill="#fff" opacity=".35"/><path d="M10.2 11.5 8 14l2.2 2.5M13.8 11.5 16 14l-2.2 2.5" fill="none" stroke="#fff" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/>`;
+  return `<svg width="${px}" height="${px}" viewBox="0 0 24 24">${inner}</svg>`;
+}
+// keyword glyph variants
+function keyIcon(glyph,color,px){
+  const c=color, W="#fff"; let inner="";
+  const s=`fill="none" stroke="${c}" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"`;
+  if(glyph==="branch") // line: decision diamond with two exits (control flow)
+    inner=`<path d="M12 3 19 10 12 17 5 10Z" ${s}/><path d="M12 17v3M9 20h6" ${s}/>`;
+  else if(glyph==="chevron") // line: double chevron >>
+    inner=`<path d="M6.5 6 12 12l-5.5 6M13 6l5.5 6L13 18" ${s}/>`;
+  else if(glyph==="key") // solid: literal key
+    inner=`<circle cx="8.5" cy="8.5" r="4" fill="${c}"/><circle cx="8.5" cy="8.5" r="1.5" fill="#0e0e0e"/><path d="M11 11 18.5 18.5M15.5 18.5l2-2M17 17l1.5-1.5" stroke="${c}" stroke-width="2.2" stroke-linecap="round" fill="none"/>`;
+  else if(glyph==="chip") // chip: circle + K
+    inner=`<circle cx="12" cy="12" r="9.4" fill="${c}"/><text x="12" y="16.6" font-family="Arial" font-weight="700" font-size="12.5" text-anchor="middle" fill="${W}">K</text>`;
+  return `<svg width="${px}" height="${px}" viewBox="0 0 24 24">${inner}</svg>`;
+}
+
+const GLYPHS=[
+  {id:"branch", nm:"Branch (line)"},
+  {id:"chevron",nm:"Chevron » (line)"},
+  {id:"key",    nm:"Key (solid)"},
+  {id:"chip",   nm:"Chip K"}
+];
+const CANDS=[{nm:"Steel",hx:"#5E7CA8"},{nm:"Indigo",hx:"#5C6CE0"},{nm:"Orange",hx:"#F08A24"},{nm:"Bronze",hx:"#B07B4F"},{nm:"Crimson",hx:"#D8456B"}];
+let sel={glyph:"branch", color:"#5E7CA8"};
+
+const gw=document.getElementById("glyphs");
+GLYPHS.forEach(g=>{const d=document.createElement("div");d.className="opt";d.dataset.g=g.id;
+  d.innerHTML=`<div class="nm">${g.nm}</div><div class="row2"><span class="bgwrap"><span class="bg-d">${keyIcon(g.id,sel.color,16)}</span><span class="bg-l">${keyIcon(g.id,sel.color,16)}</span></span><span>${keyIcon(g.id,sel.color,32)}</span></div>`;
+  d.onclick=()=>{sel.glyph=g.id;render();};gw.appendChild(d);});
+
+const sw=document.getElementById("swatches");
+CANDS.forEach(c=>{const d=document.createElement("div");d.className="sw";d.dataset.hx=c.hx;
+  d.innerHTML=`<div class="chip" style="background:${c.hx}"></div><div class="nm">${c.nm}</div><div class="hx">${c.hx}</div>`;
+  d.onclick=()=>{setColor(c.hx);};sw.appendChild(d);});
+function setColor(hx){sel.color=hx;document.getElementById("cpick").value=hx;document.getElementById("chex").value=hx.toUpperCase();render();}
+document.getElementById("cpick").addEventListener("input",e=>setColor(e.target.value));
+document.getElementById("chex").addEventListener("change",e=>{let v=e.target.value.trim();if(/^#?[0-9a-fA-F]{6}$/.test(v)){if(v[0]!=='#')v='#'+v;setColor(v);}});
+
+const ITEMS=[["keyword","while"],["snippets","for (..in..)"],["constants","E_PERM"],["variables","player"],["corerefs","$string_utils"],["verbs","tell"],["properties","name"],["functions","tostr()"]];
+function iconFor(key,px){return key==="keyword"?keyIcon(sel.glyph,sel.color,px):fixedIcon(key,px);}
+function render(){
+  document.querySelectorAll(".opt").forEach(o=>{o.classList.toggle("sel",o.dataset.g===sel.glyph);
+    o.querySelector(".row2").innerHTML=`<span class="bgwrap"><span class="bg-d">${keyIcon(o.dataset.g,sel.color,16)}</span><span class="bg-l">${keyIcon(o.dataset.g,sel.color,16)}</span></span><span>${keyIcon(o.dataset.g,sel.color,32)}</span>`;});
+  document.querySelectorAll(".sw").forEach(x=>x.classList.toggle("sel",x.dataset.hx.toLowerCase()===sel.color.toLowerCase()));
+  document.getElementById("cur").textContent=`glyph=${sel.glyph}  colour=${sel.color.toUpperCase()}`;
+  const make=t=>{let r="";ITEMS.forEach(it=>{r+=`<div class="r"><span class="ic">${iconFor(it[0],16)}</span><span>${it[1]}</span></div>`;});return `<div class="popup ${t}"><div class="cap">${t==='dark'?'Dark editor theme':'Light editor theme'}</div>${r}</div>`;};
+  document.getElementById("previews").innerHTML=make("dark")+make("light");
+}
+render();
+</script>
+</body>
+</html>
