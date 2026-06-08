@@ -27,6 +27,15 @@ LicenseFile=D:\Projects\Moo Developer Tools\LICENSE.txt
 OutputBaseFilename=setup
 Compression=lzma
 SolidCompression=yes
+UninstallDisplayIcon={app}\Moo Udditor.exe
+VersionInfoVersion=1.0.26158
+VersionInfoCompany=Edgerunner
+VersionInfoDescription=A Moo programming development environment
+VersionInfoTextVersion=one point zero point two six one five eight
+VersionInfoCopyright=Thaddeus Ryker 2024
+VersionInfoProductName=Moo Udditor
+VersionInfoProductVersion=1.0.26158
+VersionInfoProductTextVersion=one point zero point two six one five eight
 
 [Languages]
 Name: "english"; MessagesFile: "compiler:Default.isl"
