@@ -70,23 +70,9 @@ public partial class Editor
       if (CurrentPage is MooEditorPage page)
       {
          if (!string.IsNullOrEmpty(page.Document.Path))
-            page.SourceEditor.SaveToFile(page.Document.Path, Encoding.Default);
+            TrySaveToFile(page, page.Document.Path);
          else
-         {
-            saveFileDialog.DefaultExt = "moo";
-            saveFileDialog.Filter = @"Moo files (*.moo)|*.moo|Text files (*.txt)|*.txt|Markdown files (*.md)|*.md|All files (*.*)|*.*";
-            saveFileDialog.Title = "Please select a file name to save as";
-            if (saveFileDialog.ShowDialog() == DialogResult.OK)
-            {
-               var path = saveFileDialog.FileName;
-               var name = Path.GetFileName(path);
-               page.SourceEditor.SaveToFile(path, Encoding.Default);
-               page.Document.Path = path;
-               page.Document.Name = name;
-               if (page is MooCodeEditorPage mooCodeEditorPage)
-                  mooCodeEditorPage.ParseSourceCode();
-            }
-         }
+            SaveAs(page);
          page.SourceEditor.Invalidate();
       }
    }
@@ -94,20 +80,52 @@ public partial class Editor
    private void mnuItemSaveAsFile_Click(object sender, EventArgs e)
    {
       if (CurrentPage is MooEditorPage page)
+         SaveAs(page);
+   }
+
+   /// <summary>
+   /// Prompts the user for a destination file name and saves a local disk copy of the page's source.
+   /// </summary>
+   /// <param name="page">The editor page whose source should be saved.</param>
+   private void SaveAs(MooEditorPage page)
+   {
+      Directory.CreateDirectory(ApplicationPaths.DocumentsFolder);
+      saveFileDialog.DefaultExt = "moo";
+      saveFileDialog.Filter = @"Moo files (*.moo)|*.moo|Text files (*.txt)|*.txt|Markdown files (*.md)|*.md|All files (*.*)|*.*";
+      saveFileDialog.Title = "Please select a file name to save as";
+      saveFileDialog.InitialDirectory = ApplicationPaths.DocumentsFolder;
+      saveFileDialog.FileName = ApplicationPaths.SanitizeFileName(page.Document.Name);
+      if (saveFileDialog.ShowDialog() == DialogResult.OK)
       {
-         saveFileDialog.DefaultExt = "moo";
-         saveFileDialog.Filter = @"Moo files (*.moo)|*.moo|Text files (*.txt)|*.txt|Markdown files (*.md)|*.md|All files (*.*)|*.*";
-         saveFileDialog.Title = "Please select a file name to save as";
-         if (saveFileDialog.ShowDialog() == DialogResult.OK)
+         var path = saveFileDialog.FileName;
+         if (TrySaveToFile(page, path))
          {
-            var path = saveFileDialog.FileName;
-            var name = Path.GetFileName(path);
-            page.SourceEditor.SaveToFile(path, Encoding.Default);
             page.Document.Path = path;
-            page.Document.Name = name;
+            page.Document.Name = Path.GetFileName(path);
             if (page is MooCodeEditorPage mooCodeEditorPage)
                mooCodeEditorPage.ParseSourceCode();
          }
+      }
+   }
+
+   /// <summary>
+   /// Saves the page's source to the specified file, reporting any failure without crashing.
+   /// </summary>
+   /// <param name="page">The editor page whose source should be saved.</param>
+   /// <param name="path">The destination file path.</param>
+   /// <returns><see langword="true"/> if the file was saved successfully; otherwise, <see langword="false"/>.</returns>
+   private bool TrySaveToFile(MooEditorPage page, string path)
+   {
+      try
+      {
+         page.SourceEditor.SaveToFile(path, Encoding.Default);
+         return true;
+      }
+      catch (Exception ex)
+      {
+         Logger.Error(ex, "Failed to save '{0}'", path);
+         MessageBox.Show($"Could not save the file:\n{ex.Message}", "Save Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+         return false;
       }
    }
 

@@ -12,6 +12,32 @@ internal static class ApplicationPaths
       Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "Moo Udditor");
 
    /// <summary>
+   /// Gets the user-writable documents folder for Moo Udditor (My Documents\Moo Udditor).
+   /// </summary>
+   /// <remarks>
+   /// This is the default location for user-facing saved .moo files, distinct from the
+   /// %APPDATA%\Moo Udditor application data folder used for configuration.
+   /// </remarks>
+   public static string DocumentsFolder =>
+      Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments), "Moo Udditor");
+
+   /// <summary>
+   /// Replaces any characters that are invalid in a file name with an underscore.
+   /// </summary>
+   /// <param name="name">The candidate file name, e.g. "ANSI Utilities:notify".</param>
+   /// <returns>A sanitized file name safe for use on disk, or "untitled" when the result is empty.</returns>
+   public static string SanitizeFileName(string name)
+   {
+      if (string.IsNullOrEmpty(name))
+         return "untitled";
+
+      foreach (var invalid in Path.GetInvalidFileNameChars())
+         name = name.Replace(invalid, '_');
+
+      return string.IsNullOrWhiteSpace(name) ? "untitled" : name;
+   }
+
+   /// <summary>
    /// Resolves a data file for reading: returns the copy in the application data folder if it
    /// exists, otherwise the copy in the application base directory (preserves older/portable installs).
    /// </summary>

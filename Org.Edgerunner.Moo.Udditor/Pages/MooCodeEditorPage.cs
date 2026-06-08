@@ -77,7 +77,7 @@ public class MooCodeEditorPage : MooEditorPage
         var name = $@"{verbName} - {worldName}";
         var key = $"{name}-{Guid.NewGuid()}";
         InitializeEditor(dialect, key, verbName, name);
-        Editor.Document = new DocumentInfo(key, key, verbName);
+        Editor.Document = new DocumentInfo(key, string.Empty, verbName);
         Editor.Text = source;
         PostInitialize();
     }
@@ -111,7 +111,7 @@ public class MooCodeEditorPage : MooEditorPage
         var name = "<New>";
         var key = $"{name}-{Guid.NewGuid()}";
         InitializeEditor(dialect, key, name, name);
-        Editor.Document = new DocumentInfo(key, name, name);
+        Editor.Document = new DocumentInfo(key, string.Empty, name);
         PostInitialize();
     }
 

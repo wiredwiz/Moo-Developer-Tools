@@ -50,7 +50,7 @@ public class MooDocumentEditorPage : MooEditorPage
         var name = $@"{documentName} - {worldName}";
         var key = $"{name}-{Guid.NewGuid()}";
         InitializeEditor(key, documentName, name);
-        Editor.Document = new DocumentInfo(key, key, documentName);
+        Editor.Document = new DocumentInfo(key, string.Empty, documentName);
         Editor.Input.Text = source;
         Editor.Input.IsChanged = false;
         Editor.Input.ClearUndo();;
