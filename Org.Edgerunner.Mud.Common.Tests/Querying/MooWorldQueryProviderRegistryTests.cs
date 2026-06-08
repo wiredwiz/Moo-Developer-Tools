@@ -131,6 +131,116 @@ public class MooWorldQueryProviderRegistryTests
     }
 
     [Fact]
+    public async Task GetOwnedObjectsForPlayer_HigherPriorityProvider_AnswersFirst()
+    {
+        var low = new FakeQueryProvider
+        {
+            OnGetOwnedObjectsForPlayer = () => Task.FromResult<IReadOnlyList<MooObjectSummary>>(new[] { Summary(1, "low") }),
+        };
+        var high = new FakeQueryProvider
+        {
+            OnGetOwnedObjectsForPlayer = () => Task.FromResult<IReadOnlyList<MooObjectSummary>>(new[] { Summary(2, "high") }),
+        };
+
+        var registry = new MooWorldQueryProviderRegistry();
+        registry.Register(low, 1);
+        registry.Register(high, 10);
+
+        var result = await registry.GetOwnedObjectsAsync(CancellationToken.None);
+
+        result.Should().ContainSingle().Which.Name.Should().Be("high");
+        low.GetOwnedObjectsForPlayerCallCount.Should().Be(0);
+        high.GetOwnedObjectsForPlayerCallCount.Should().Be(1);
+    }
+
+    [Fact]
+    public async Task GetOwnedObjectsForPlayer_NotImplementedException_FallsThroughToNextProvider()
+    {
+        var unsupported = new FakeQueryProvider();
+        var supported = new FakeQueryProvider
+        {
+            OnGetOwnedObjectsForPlayer = () => Task.FromResult<IReadOnlyList<MooObjectSummary>>(new[] { Summary(5, "fallback") }),
+        };
+
+        var registry = new MooWorldQueryProviderRegistry();
+        registry.Register(unsupported, 10);
+        registry.Register(supported, 1);
+
+        var result = await registry.GetOwnedObjectsAsync(CancellationToken.None);
+
+        result.Should().ContainSingle().Which.Name.Should().Be("fallback");
+        unsupported.GetOwnedObjectsForPlayerCallCount.Should().Be(1);
+        supported.GetOwnedObjectsForPlayerCallCount.Should().Be(1);
+    }
+
+    [Fact]
+    public async Task GetOwnedObjectsForPlayer_Exhaustion_ReturnsEmpty()
+    {
+        var registry = new MooWorldQueryProviderRegistry();
+        registry.Register(new FakeQueryProvider(), 1); // unsupported
+
+        var result = await registry.GetOwnedObjectsAsync(CancellationToken.None);
+
+        result.Should().BeEmpty();
+    }
+
+    [Fact]
+    public async Task GetOwnedObjectsForOwner_HigherPriorityProvider_AnswersFirst()
+    {
+        var owner = new MooObjectId(42);
+        var low = new FakeQueryProvider
+        {
+            OnGetOwnedObjectsForOwner = _ => Task.FromResult<IReadOnlyList<MooObjectSummary>>(new[] { Summary(1, "low") }),
+        };
+        var high = new FakeQueryProvider
+        {
+            OnGetOwnedObjectsForOwner = _ => Task.FromResult<IReadOnlyList<MooObjectSummary>>(new[] { Summary(2, "high") }),
+        };
+
+        var registry = new MooWorldQueryProviderRegistry();
+        registry.Register(low, 1);
+        registry.Register(high, 10);
+
+        var result = await registry.GetOwnedObjectsAsync(owner, CancellationToken.None);
+
+        result.Should().ContainSingle().Which.Name.Should().Be("high");
+        low.GetOwnedObjectsForOwnerCallCount.Should().Be(0);
+        high.GetOwnedObjectsForOwnerCallCount.Should().Be(1);
+    }
+
+    [Fact]
+    public async Task GetOwnedObjectsForOwner_NotImplementedException_FallsThroughToNextProvider()
+    {
+        var owner = new MooObjectId(42);
+        var unsupported = new FakeQueryProvider();
+        var supported = new FakeQueryProvider
+        {
+            OnGetOwnedObjectsForOwner = _ => Task.FromResult<IReadOnlyList<MooObjectSummary>>(new[] { Summary(5, "fallback") }),
+        };
+
+        var registry = new MooWorldQueryProviderRegistry();
+        registry.Register(unsupported, 10);
+        registry.Register(supported, 1);
+
+        var result = await registry.GetOwnedObjectsAsync(owner, CancellationToken.None);
+
+        result.Should().ContainSingle().Which.Name.Should().Be("fallback");
+        unsupported.GetOwnedObjectsForOwnerCallCount.Should().Be(1);
+        supported.GetOwnedObjectsForOwnerCallCount.Should().Be(1);
+    }
+
+    [Fact]
+    public async Task GetOwnedObjectsForOwner_Exhaustion_ReturnsEmpty()
+    {
+        var registry = new MooWorldQueryProviderRegistry();
+        registry.Register(new FakeQueryProvider(), 1); // unsupported
+
+        var result = await registry.GetOwnedObjectsAsync(new MooObjectId(42), CancellationToken.None);
+
+        result.Should().BeEmpty();
+    }
+
+    [Fact]
     public void Register_And_Unregister_Fire_ProvidersChanged()
     {
         var registry = new MooWorldQueryProviderRegistry();

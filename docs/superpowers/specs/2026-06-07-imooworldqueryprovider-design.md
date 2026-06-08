@@ -39,6 +39,8 @@ All methods are async and take a `CancellationToken`.
 Summary / list:
 - `GetObjectsAsync(ct)` → `IReadOnlyList<MooObjectSummary>` — known objects
 - `GetChildrenAsync(MooObjectId, ct)` → `IReadOnlyList<MooObjectSummary>`
+- `GetOwnedObjectsAsync(ct)` → `IReadOnlyList<MooObjectSummary>` — objects owned by the current player connection
+- `GetOwnedObjectsAsync(MooObjectId owner, ct)` → `IReadOnlyList<MooObjectSummary>` — objects owned by the specified owner
 - `GetParentAsync(MooObjectId, ct)` → `MooObjectId?` (none/`#-1` → null)
 - `GetVerbsAsync(MooObjectId, ct)` → `IReadOnlyList<MooVerbSummary>`
 - `GetVerbDocumentationAsync(MooObjectId, verbName, ct)` → `IReadOnlyList<string>`

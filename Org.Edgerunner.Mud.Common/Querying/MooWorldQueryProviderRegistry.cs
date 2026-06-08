@@ -172,6 +172,18 @@ public class MooWorldQueryProviderRegistry : IMooWorldQueryProvider
    }
 
    /// <inheritdoc/>
+   public Task<IReadOnlyList<MooObjectSummary>> GetOwnedObjectsAsync(CancellationToken cancellationToken)
+   {
+      return QueryAsync(p => p.GetOwnedObjectsAsync(cancellationToken), Array.Empty<MooObjectSummary>());
+   }
+
+   /// <inheritdoc/>
+   public Task<IReadOnlyList<MooObjectSummary>> GetOwnedObjectsAsync(MooObjectId owner, CancellationToken cancellationToken)
+   {
+      return QueryAsync(p => p.GetOwnedObjectsAsync(owner, cancellationToken), Array.Empty<MooObjectSummary>());
+   }
+
+   /// <inheritdoc/>
    public Task<MooObjectId?> GetParentAsync(MooObjectId objectId, CancellationToken cancellationToken)
    {
       return QueryAsync<MooObjectId?>(p => p.GetParentAsync(objectId, cancellationToken), null);

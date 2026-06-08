@@ -64,6 +64,21 @@ public interface IMooWorldQueryProvider
    Task<IReadOnlyList<MooObjectSummary>> GetChildrenAsync(MooObjectId objectId, CancellationToken cancellationToken);
 
    /// <summary>
+   /// Gets the objects owned by the current player connection.
+   /// </summary>
+   /// <param name="cancellationToken">The cancellation token.</param>
+   /// <returns>A read-only list of <see cref="MooObjectSummary"/> owned by the current player.</returns>
+   Task<IReadOnlyList<MooObjectSummary>> GetOwnedObjectsAsync(CancellationToken cancellationToken);
+
+   /// <summary>
+   /// Gets the objects owned by the specified owner.
+   /// </summary>
+   /// <param name="owner">The owner object id whose owned objects are requested.</param>
+   /// <param name="cancellationToken">The cancellation token.</param>
+   /// <returns>A read-only list of <see cref="MooObjectSummary"/> owned by <paramref name="owner"/>.</returns>
+   Task<IReadOnlyList<MooObjectSummary>> GetOwnedObjectsAsync(MooObjectId owner, CancellationToken cancellationToken);
+
+   /// <summary>
    /// Gets the parent of the specified object.
    /// </summary>
    /// <param name="objectId">The object id.</param>

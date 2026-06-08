@@ -139,6 +139,101 @@ public class CachingMooWorldQueryProviderTests
     }
 
     [Fact]
+    public async Task GetOwnedObjectsForPlayer_CacheHit_DoesNotCallInnerAgain()
+    {
+        var inner = new FakeQueryProvider
+        {
+            OnGetOwnedObjectsForPlayer = () => Task.FromResult<IReadOnlyList<MooObjectSummary>>(new[] { Summary(1, "a") }),
+        };
+        using var cache = new CachingMooWorldQueryProvider(inner, TimeSpan.FromMinutes(5));
+
+        var first = await cache.GetOwnedObjectsAsync(CancellationToken.None);
+        var second = await cache.GetOwnedObjectsAsync(CancellationToken.None);
+
+        first.Should().BeSameAs(second);
+        inner.GetOwnedObjectsForPlayerCallCount.Should().Be(1);
+    }
+
+    [Fact]
+    public async Task GetOwnedObjectsForOwner_CacheHit_DoesNotCallInnerAgain()
+    {
+        var owner = new MooObjectId(42);
+        var inner = new FakeQueryProvider
+        {
+            OnGetOwnedObjectsForOwner = _ => Task.FromResult<IReadOnlyList<MooObjectSummary>>(new[] { Summary(1, "a") }),
+        };
+        using var cache = new CachingMooWorldQueryProvider(inner, TimeSpan.FromMinutes(5));
+
+        var first = await cache.GetOwnedObjectsAsync(owner, CancellationToken.None);
+        var second = await cache.GetOwnedObjectsAsync(owner, CancellationToken.None);
+
+        first.Should().BeSameAs(second);
+        inner.GetOwnedObjectsForOwnerCallCount.Should().Be(1);
+    }
+
+    [Fact]
+    public async Task GetOwnedObjectsForOwner_DifferentOwners_AreCachedSeparately()
+    {
+        var inner = new FakeQueryProvider
+        {
+            OnGetOwnedObjectsForOwner = owner =>
+                Task.FromResult<IReadOnlyList<MooObjectSummary>>(new[] { Summary(owner.Number, "owned") }),
+        };
+        using var cache = new CachingMooWorldQueryProvider(inner, TimeSpan.FromMinutes(5));
+
+        await cache.GetOwnedObjectsAsync(new MooObjectId(1), CancellationToken.None);
+        await cache.GetOwnedObjectsAsync(new MooObjectId(2), CancellationToken.None);
+
+        inner.GetOwnedObjectsForOwnerCallCount.Should().Be(2);
+    }
+
+    [Fact]
+    public async Task OwnedObjectsOverloads_UseDistinctCacheKeys()
+    {
+        // The owner overload is invoked with MooObjectId.Nothing, which is the same placeholder id the
+        // current-player overload uses. The two overloads must still be cached under distinct keys.
+        var inner = new FakeQueryProvider
+        {
+            OnGetOwnedObjectsForPlayer = () => Task.FromResult<IReadOnlyList<MooObjectSummary>>(new[] { Summary(1, "player") }),
+            OnGetOwnedObjectsForOwner = _ => Task.FromResult<IReadOnlyList<MooObjectSummary>>(new[] { Summary(2, "owner") }),
+        };
+        using var cache = new CachingMooWorldQueryProvider(inner, TimeSpan.FromMinutes(5));
+
+        var playerResult = await cache.GetOwnedObjectsAsync(CancellationToken.None);
+        var ownerResult = await cache.GetOwnedObjectsAsync(MooObjectId.Nothing, CancellationToken.None);
+
+        // A cached current-player result must NOT be returned for the owner overload and vice versa.
+        playerResult.Should().ContainSingle().Which.Name.Should().Be("player");
+        ownerResult.Should().ContainSingle().Which.Name.Should().Be("owner");
+        inner.GetOwnedObjectsForPlayerCallCount.Should().Be(1);
+        inner.GetOwnedObjectsForOwnerCallCount.Should().Be(1);
+    }
+
+    [Fact]
+    public async Task InvalidateObject_DropsOwnerKeyedOwnedObjectsEntry()
+    {
+        var owner = new MooObjectId(7);
+        var calls = 0;
+        var inner = new FakeQueryProvider
+        {
+            OnGetOwnedObjectsForOwner = _ =>
+            {
+                calls++;
+                return Task.FromResult<IReadOnlyList<MooObjectSummary>>(new[] { Summary(99, "owned") });
+            },
+        };
+        using var cache = new CachingMooWorldQueryProvider(inner, TimeSpan.FromMinutes(5));
+
+        await cache.GetOwnedObjectsAsync(owner, CancellationToken.None);
+        await cache.GetOwnedObjectsAsync(owner, CancellationToken.None);
+        calls.Should().Be(1);
+
+        cache.InvalidateObject(owner);
+        await cache.GetOwnedObjectsAsync(owner, CancellationToken.None);
+        calls.Should().Be(2);
+    }
+
+    [Fact]
     public async Task Invalidate_SpecificKey_ForcesReFetch()
     {
         var inner = new FakeQueryProvider

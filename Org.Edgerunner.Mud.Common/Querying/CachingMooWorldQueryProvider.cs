@@ -61,6 +61,12 @@ public class CachingMooWorldQueryProvider : IMooWorldQueryProvider, IDisposable
       /// <summary>The <see cref="IMooWorldQueryProvider.GetChildrenAsync"/> operation.</summary>
       GetChildren,
 
+      /// <summary>The current-player overload of <see cref="IMooWorldQueryProvider.GetOwnedObjectsAsync(CancellationToken)"/>.</summary>
+      OwnedObjectsForPlayer,
+
+      /// <summary>The owner overload of <see cref="IMooWorldQueryProvider.GetOwnedObjectsAsync(MooObjectId, CancellationToken)"/>.</summary>
+      OwnedObjectsForOwner,
+
       /// <summary>The <see cref="IMooWorldQueryProvider.GetParentAsync"/> operation.</summary>
       GetParent,
 
@@ -209,6 +215,25 @@ public class CachingMooWorldQueryProvider : IMooWorldQueryProvider, IDisposable
       return GetOrAddAsync(
          new CacheKey(Operation.GetChildren, objectId, null),
          () => _inner.GetChildrenAsync(objectId, cancellationToken));
+   }
+
+   /// <inheritdoc/>
+   public Task<IReadOnlyList<MooObjectSummary>> GetOwnedObjectsAsync(CancellationToken cancellationToken)
+   {
+      // Current-player overload: no owner id, so it is keyed only by its own operation
+      // (MooObjectId.Nothing as a placeholder). It is dropped only by Clear()/ProvidersChanged.
+      return GetOrAddAsync(
+         new CacheKey(Operation.OwnedObjectsForPlayer, MooObjectId.Nothing, null),
+         () => _inner.GetOwnedObjectsAsync(cancellationToken));
+   }
+
+   /// <inheritdoc/>
+   public Task<IReadOnlyList<MooObjectSummary>> GetOwnedObjectsAsync(MooObjectId owner, CancellationToken cancellationToken)
+   {
+      // Owner overload: keyed by the owner id so InvalidateObject(owner) drops it.
+      return GetOrAddAsync(
+         new CacheKey(Operation.OwnedObjectsForOwner, owner, null),
+         () => _inner.GetOwnedObjectsAsync(owner, cancellationToken));
    }
 
    /// <inheritdoc/>
