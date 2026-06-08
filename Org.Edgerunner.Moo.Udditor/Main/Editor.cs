@@ -231,14 +231,21 @@ public partial class Editor : KryptonForm
          DialogResult dialogResult = MessageBox.Show($"\"{name}\" has been modified but has not been saved.  Would you like to save this file?", "Modified File", MessageBoxButtons.YesNo);
          if (dialogResult == DialogResult.Yes)
          {
+            try { Directory.CreateDirectory(ApplicationPaths.DocumentsFolder); }
+            catch (Exception ex)
+            {
+               Logger.Warn(ex, "Could not create documents folder; the save dialog will open in its default location");
+            }
+
             saveFileDialog.DefaultExt = "moo";
             saveFileDialog.Filter = @"Moo files (*.moo)|*.moo|Text files (*.txt)|*.txt|All files (*.*)|*.*";
             saveFileDialog.Title = "Please select a file name to save as";
-            saveFileDialog.FileName = name;
+            saveFileDialog.InitialDirectory = ApplicationPaths.DocumentsFolder;
+            saveFileDialog.FileName = ApplicationPaths.SanitizeFileName(name);
             if (saveFileDialog.ShowDialog() == DialogResult.OK)
             {
                var path = saveFileDialog.FileName;
-               page.Editor.SaveToFile(path, Encoding.Default);
+               TrySaveToFile(page, path);
                return request;
             }
 

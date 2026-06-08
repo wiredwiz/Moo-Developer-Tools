@@ -6,6 +6,16 @@ namespace Org.Edgerunner.Moo.Udditor;
 internal static class ApplicationPaths
 {
    /// <summary>
+   /// Reserved Windows device names that cannot be used as file names regardless of extension.
+   /// </summary>
+   private static readonly HashSet<string> ReservedDeviceNames = new(StringComparer.OrdinalIgnoreCase)
+   {
+      "CON", "PRN", "AUX", "NUL",
+      "COM1", "COM2", "COM3", "COM4", "COM5", "COM6", "COM7", "COM8", "COM9",
+      "LPT1", "LPT2", "LPT3", "LPT4", "LPT5", "LPT6", "LPT7", "LPT8", "LPT9",
+   };
+
+   /// <summary>
    /// Gets the per-user application data folder for Moo Udditor (%APPDATA%\Moo Udditor).
    /// </summary>
    public static string AppDataFolder =>
@@ -33,6 +43,11 @@ internal static class ApplicationPaths
 
       foreach (var invalid in Path.GetInvalidFileNameChars())
          name = name.Replace(invalid, '_');
+
+      name = name.TrimEnd('.', ' ');
+
+      if (ReservedDeviceNames.Contains(Path.GetFileNameWithoutExtension(name)))
+         name = "_" + name;
 
       return string.IsNullOrWhiteSpace(name) ? "untitled" : name;
    }

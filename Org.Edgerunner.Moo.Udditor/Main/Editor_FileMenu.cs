@@ -89,7 +89,12 @@ public partial class Editor
    /// <param name="page">The editor page whose source should be saved.</param>
    private void SaveAs(MooEditorPage page)
    {
-      Directory.CreateDirectory(ApplicationPaths.DocumentsFolder);
+      try { Directory.CreateDirectory(ApplicationPaths.DocumentsFolder); }
+      catch (Exception ex)
+      {
+         Logger.Warn(ex, "Could not create documents folder; the save dialog will open in its default location");
+      }
+
       saveFileDialog.DefaultExt = "moo";
       saveFileDialog.Filter = @"Moo files (*.moo)|*.moo|Text files (*.txt)|*.txt|Markdown files (*.md)|*.md|All files (*.*)|*.*";
       saveFileDialog.Title = "Please select a file name to save as";
