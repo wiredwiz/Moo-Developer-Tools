@@ -196,9 +196,9 @@ public class MooWorldQueryProviderRegistry : IMooWorldQueryProvider
    }
 
    /// <inheritdoc/>
-   public Task<IReadOnlyList<string>> GetVerbDocumentationAsync(MooObjectId objectId, string verbName, CancellationToken cancellationToken)
+   public Task<MooVerbDocumentation?> GetVerbDocumentationAsync(MooObjectId objectId, string verbName, CancellationToken cancellationToken)
    {
-      return QueryAsync(p => p.GetVerbDocumentationAsync(objectId, verbName, cancellationToken), Array.Empty<string>());
+      return QueryAsync<MooVerbDocumentation?>(p => p.GetVerbDocumentationAsync(objectId, verbName, cancellationToken), null);
    }
 
    /// <inheritdoc/>
@@ -220,9 +220,9 @@ public class MooWorldQueryProviderRegistry : IMooWorldQueryProvider
    }
 
    /// <inheritdoc/>
-   public Task<IReadOnlyList<string>> GetVerbCodeAsync(MooObjectId objectId, string verbName, CancellationToken cancellationToken)
+   public Task<MooVerbCode?> GetVerbCodeAsync(MooObjectId objectId, string verbName, CancellationToken cancellationToken)
    {
-      return QueryAsync(p => p.GetVerbCodeAsync(objectId, verbName, cancellationToken), Array.Empty<string>());
+      return QueryAsync<MooVerbCode?>(p => p.GetVerbCodeAsync(objectId, verbName, cancellationToken), null);
    }
 
    /// <inheritdoc/>

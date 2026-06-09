@@ -253,7 +253,7 @@ public class CachingMooWorldQueryProvider : IMooWorldQueryProvider, IDisposable
    }
 
    /// <inheritdoc/>
-   public Task<IReadOnlyList<string>> GetVerbDocumentationAsync(MooObjectId objectId, string verbName, CancellationToken cancellationToken)
+   public Task<MooVerbDocumentation?> GetVerbDocumentationAsync(MooObjectId objectId, string verbName, CancellationToken cancellationToken)
    {
       return GetOrAddAsync(
          new CacheKey(Operation.GetVerbDocumentation, objectId, verbName),
@@ -285,7 +285,7 @@ public class CachingMooWorldQueryProvider : IMooWorldQueryProvider, IDisposable
    }
 
    /// <inheritdoc/>
-   public Task<IReadOnlyList<string>> GetVerbCodeAsync(MooObjectId objectId, string verbName, CancellationToken cancellationToken)
+   public Task<MooVerbCode?> GetVerbCodeAsync(MooObjectId objectId, string verbName, CancellationToken cancellationToken)
    {
       return GetOrAddAsync(
          new CacheKey(Operation.GetVerbCode, objectId, verbName),

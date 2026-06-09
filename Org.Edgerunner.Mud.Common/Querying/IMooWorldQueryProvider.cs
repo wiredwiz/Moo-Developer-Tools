@@ -97,11 +97,15 @@ public interface IMooWorldQueryProvider
    /// <summary>
    /// Gets the documentation lines for the specified verb.
    /// </summary>
-   /// <param name="objectId">The object id.</param>
+   /// <param name="objectId">The object id queried for the verb.</param>
    /// <param name="verbName">The verb name.</param>
    /// <param name="cancellationToken">The cancellation token.</param>
-   /// <returns>A read-only list of documentation lines.</returns>
-   Task<IReadOnlyList<string>> GetVerbDocumentationAsync(MooObjectId objectId, string verbName, CancellationToken cancellationToken);
+   /// <returns>
+   /// A <see cref="MooVerbDocumentation"/> carrying the queried object id, the resolved (defining) object
+   /// id the verb actually lives on, and the documentation lines; or <c>null</c> if the verb was not found
+   /// or the operation is unsupported.
+   /// </returns>
+   Task<MooVerbDocumentation?> GetVerbDocumentationAsync(MooObjectId objectId, string verbName, CancellationToken cancellationToken);
 
    /// <summary>
    /// Gets the properties defined on the specified object.
@@ -114,10 +118,13 @@ public interface IMooWorldQueryProvider
    /// <summary>
    /// Gets detailed information about the specified verb.
    /// </summary>
-   /// <param name="objectId">The object id.</param>
+   /// <param name="objectId">The object id queried for the verb.</param>
    /// <param name="verbName">The verb name.</param>
    /// <param name="cancellationToken">The cancellation token.</param>
-   /// <returns>A <see cref="MooVerbInfo"/>, or <c>null</c> if the verb was not found.</returns>
+   /// <returns>
+   /// A <see cref="MooVerbInfo"/> carrying both the queried object id and the resolved (defining) object
+   /// id the verb actually lives on; or <c>null</c> if the verb was not found or the operation is unsupported.
+   /// </returns>
    Task<MooVerbInfo?> GetVerbInfoAsync(MooObjectId objectId, string verbName, CancellationToken cancellationToken);
 
    /// <summary>
@@ -132,11 +139,15 @@ public interface IMooWorldQueryProvider
    /// <summary>
    /// Gets the source code lines of the specified verb.
    /// </summary>
-   /// <param name="objectId">The object id.</param>
+   /// <param name="objectId">The object id queried for the verb.</param>
    /// <param name="verbName">The verb name.</param>
    /// <param name="cancellationToken">The cancellation token.</param>
-   /// <returns>A read-only list of source code lines.</returns>
-   Task<IReadOnlyList<string>> GetVerbCodeAsync(MooObjectId objectId, string verbName, CancellationToken cancellationToken);
+   /// <returns>
+   /// A <see cref="MooVerbCode"/> carrying the queried object id, the resolved (defining) object id the
+   /// verb actually lives on, and the source code lines; or <c>null</c> if the verb was not found or the
+   /// operation is unsupported.
+   /// </returns>
+   Task<MooVerbCode?> GetVerbCodeAsync(MooObjectId objectId, string verbName, CancellationToken cancellationToken);
 
    /// <summary>
    /// Gets the value of the specified property.

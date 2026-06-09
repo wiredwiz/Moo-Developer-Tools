@@ -241,6 +241,115 @@ public class MooWorldQueryProviderRegistryTests
     }
 
     [Fact]
+    public async Task GetVerbDocumentation_NotImplementedException_FallsThroughToNextProvider()
+    {
+        var queried = new MooObjectId(5);
+        var resolved = new MooObjectId(2);
+        var unsupported = new FakeQueryProvider();
+        var supported = new FakeQueryProvider
+        {
+            OnGetVerbDocumentation = (objId, _) =>
+                Task.FromResult<MooVerbDocumentation?>(new MooVerbDocumentation(objId, resolved, new[] { "doc" })),
+        };
+
+        var registry = new MooWorldQueryProviderRegistry();
+        registry.Register(unsupported, 10);
+        registry.Register(supported, 1);
+
+        var result = await registry.GetVerbDocumentationAsync(queried, "foo", CancellationToken.None);
+
+        result.Should().NotBeNull();
+        // The verb is inherited: the queried object differs from the resolved (defining) object.
+        result!.QueriedObjectId.Should().Be(queried);
+        result.ResolvedObjectId.Should().Be(resolved);
+        result.Lines.Should().ContainSingle().Which.Should().Be("doc");
+    }
+
+    [Fact]
+    public async Task GetVerbDocumentation_Exhaustion_ReturnsNull()
+    {
+        var registry = new MooWorldQueryProviderRegistry();
+        registry.Register(new FakeQueryProvider(), 1); // unsupported
+
+        var result = await registry.GetVerbDocumentationAsync(new MooObjectId(3), "foo", CancellationToken.None);
+
+        result.Should().BeNull();
+    }
+
+    [Fact]
+    public async Task GetVerbCode_NotImplementedException_FallsThroughToNextProvider()
+    {
+        var queried = new MooObjectId(5);
+        var resolved = new MooObjectId(2);
+        var unsupported = new FakeQueryProvider();
+        var supported = new FakeQueryProvider
+        {
+            OnGetVerbCode = (objId, _) =>
+                Task.FromResult<MooVerbCode?>(new MooVerbCode(objId, resolved, new[] { "return 1;" })),
+        };
+
+        var registry = new MooWorldQueryProviderRegistry();
+        registry.Register(unsupported, 10);
+        registry.Register(supported, 1);
+
+        var result = await registry.GetVerbCodeAsync(queried, "foo", CancellationToken.None);
+
+        result.Should().NotBeNull();
+        // The verb is inherited: the queried object differs from the resolved (defining) object.
+        result!.QueriedObjectId.Should().Be(queried);
+        result.ResolvedObjectId.Should().Be(resolved);
+        result.Lines.Should().ContainSingle().Which.Should().Be("return 1;");
+    }
+
+    [Fact]
+    public async Task GetVerbCode_Exhaustion_ReturnsNull()
+    {
+        var registry = new MooWorldQueryProviderRegistry();
+        registry.Register(new FakeQueryProvider(), 1); // unsupported
+
+        var result = await registry.GetVerbCodeAsync(new MooObjectId(3), "foo", CancellationToken.None);
+
+        result.Should().BeNull();
+    }
+
+    [Fact]
+    public async Task GetVerbInfo_SurfacesQueriedAndResolvedIds()
+    {
+        var queried = new MooObjectId(5);
+        var resolved = new MooObjectId(2);
+        var provider = new FakeQueryProvider
+        {
+            OnGetVerbInfo = (objId, _) => Task.FromResult<MooVerbInfo?>(new MooVerbInfo(
+                objId,
+                resolved,
+                new[] { "foo" },
+                new MooObjectId(1),
+                new VerbPermission(true, true, true, false),
+                new VerbArgs(DirectObject.This, Preposition.None, IndirectObject.This))),
+        };
+
+        var registry = new MooWorldQueryProviderRegistry();
+        registry.Register(provider, 1);
+
+        var result = await registry.GetVerbInfoAsync(queried, "foo", CancellationToken.None);
+
+        result.Should().NotBeNull();
+        result!.QueriedObjectId.Should().Be(queried);
+        result.ResolvedObjectId.Should().Be(resolved);
+    }
+
+    [Fact]
+    public async Task GetVerbInfo_Exhaustion_ReturnsNull()
+    {
+        var registry = new MooWorldQueryProviderRegistry();
+        registry.Register(new FakeQueryProvider(), 1); // unsupported
+
+        var result = await registry.GetVerbInfoAsync(new MooObjectId(3), "foo", CancellationToken.None);
+
+        result.Should().BeNull();
+    }
+
+    [Fact]
     public void Register_And_Unregister_Fire_ProvidersChanged()
     {
         var registry = new MooWorldQueryProviderRegistry();

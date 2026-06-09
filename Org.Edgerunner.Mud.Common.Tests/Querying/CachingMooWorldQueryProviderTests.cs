@@ -234,6 +234,52 @@ public class CachingMooWorldQueryProviderTests
     }
 
     [Fact]
+    public async Task GetVerbCode_CacheHit_DoesNotCallInnerAgain_AndSurfacesResolvedId()
+    {
+        var queried = new MooObjectId(5);
+        var resolved = new MooObjectId(2);
+        var calls = 0;
+        var inner = new FakeQueryProvider
+        {
+            OnGetVerbCode = (objId, _) =>
+            {
+                calls++;
+                return Task.FromResult<MooVerbCode?>(new MooVerbCode(objId, resolved, new[] { "return 1;" }));
+            },
+        };
+        using var cache = new CachingMooWorldQueryProvider(inner, TimeSpan.FromMinutes(5));
+
+        var first = await cache.GetVerbCodeAsync(queried, "foo", CancellationToken.None);
+        var second = await cache.GetVerbCodeAsync(queried, "foo", CancellationToken.None);
+
+        first.Should().BeSameAs(second);
+        calls.Should().Be(1);
+        // Inherited verb: queried object differs from the resolved (defining) object.
+        first!.QueriedObjectId.Should().Be(queried);
+        first.ResolvedObjectId.Should().Be(resolved);
+    }
+
+    [Fact]
+    public async Task GetVerbDocumentation_NullResult_IsCached()
+    {
+        var calls = 0;
+        var inner = new FakeQueryProvider
+        {
+            OnGetVerbDocumentation = (_, _) =>
+            {
+                calls++;
+                return Task.FromResult<MooVerbDocumentation?>(null);
+            },
+        };
+        using var cache = new CachingMooWorldQueryProvider(inner, TimeSpan.FromMinutes(5));
+
+        (await cache.GetVerbDocumentationAsync(new MooObjectId(1), "foo", CancellationToken.None)).Should().BeNull();
+        (await cache.GetVerbDocumentationAsync(new MooObjectId(1), "foo", CancellationToken.None)).Should().BeNull();
+
+        calls.Should().Be(1);
+    }
+
+    [Fact]
     public async Task Invalidate_SpecificKey_ForcesReFetch()
     {
         var inner = new FakeQueryProvider

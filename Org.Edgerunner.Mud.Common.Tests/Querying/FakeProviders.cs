@@ -18,7 +18,11 @@ public class FakeQueryProvider : IMooWorldQueryProvider
 
     public Func<MooObjectId, Task<MooObjectId?>>? OnGetParent { get; set; }
 
-    public Func<MooObjectId, string, Task<IReadOnlyList<string>>>? OnGetVerbCode { get; set; }
+    public Func<MooObjectId, string, Task<MooVerbCode?>>? OnGetVerbCode { get; set; }
+
+    public Func<MooObjectId, string, Task<MooVerbDocumentation?>>? OnGetVerbDocumentation { get; set; }
+
+    public Func<MooObjectId, string, Task<MooVerbInfo?>>? OnGetVerbInfo { get; set; }
 
     /// <summary>
     /// Gets the number of times <see cref="GetObjectsAsync"/> has been invoked.
@@ -76,9 +80,11 @@ public class FakeQueryProvider : IMooWorldQueryProvider
         throw new NotImplementedException();
     }
 
-    public Task<IReadOnlyList<string>> GetVerbDocumentationAsync(MooObjectId objectId, string verbName, CancellationToken cancellationToken)
+    public Task<MooVerbDocumentation?> GetVerbDocumentationAsync(MooObjectId objectId, string verbName, CancellationToken cancellationToken)
     {
-        throw new NotImplementedException();
+        if (OnGetVerbDocumentation == null)
+            throw new NotImplementedException();
+        return OnGetVerbDocumentation(objectId, verbName);
     }
 
     public Task<IReadOnlyList<MooPropertySummary>> GetPropertiesAsync(MooObjectId objectId, CancellationToken cancellationToken)
@@ -88,7 +94,9 @@ public class FakeQueryProvider : IMooWorldQueryProvider
 
     public Task<MooVerbInfo?> GetVerbInfoAsync(MooObjectId objectId, string verbName, CancellationToken cancellationToken)
     {
-        throw new NotImplementedException();
+        if (OnGetVerbInfo == null)
+            throw new NotImplementedException();
+        return OnGetVerbInfo(objectId, verbName);
     }
 
     public Task<MooPropertyInfo?> GetPropertyInfoAsync(MooObjectId objectId, string propName, CancellationToken cancellationToken)
@@ -96,7 +104,7 @@ public class FakeQueryProvider : IMooWorldQueryProvider
         throw new NotImplementedException();
     }
 
-    public Task<IReadOnlyList<string>> GetVerbCodeAsync(MooObjectId objectId, string verbName, CancellationToken cancellationToken)
+    public Task<MooVerbCode?> GetVerbCodeAsync(MooObjectId objectId, string verbName, CancellationToken cancellationToken)
     {
         if (OnGetVerbCode == null)
             throw new NotImplementedException();

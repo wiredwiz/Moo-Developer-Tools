@@ -61,17 +61,35 @@ public record MooPropertySummary(string Name, MooObjectId DefiningObject);
 /// <summary>
 /// Detailed information describing a MOO verb.
 /// </summary>
+/// <param name="QueriedObjectId">The object that was queried for the verb.</param>
+/// <param name="ResolvedObjectId">The object on which the verb actually lives (the defining object, which may be an ancestor of the queried object when the verb is inherited).</param>
 /// <param name="Aliases">The verb names/aliases.</param>
 /// <param name="Owner">The verb owner.</param>
 /// <param name="Permissions">The verb permission flags.</param>
 /// <param name="Args">The verb argument specification.</param>
-/// <param name="DefiningObject">The object on which the verb is defined.</param>
 public record MooVerbInfo(
+   MooObjectId QueriedObjectId,
+   MooObjectId ResolvedObjectId,
    IReadOnlyList<string> Aliases,
    MooObjectId Owner,
    VerbPermission Permissions,
-   VerbArgs Args,
-   MooObjectId DefiningObject);
+   VerbArgs Args);
+
+/// <summary>
+/// Documentation lines for a MOO verb, together with the queried and resolved objects.
+/// </summary>
+/// <param name="QueriedObjectId">The object that was queried for the verb.</param>
+/// <param name="ResolvedObjectId">The object on which the verb actually lives (the defining object, which may be an ancestor of the queried object when the verb is inherited).</param>
+/// <param name="Lines">The documentation lines.</param>
+public record MooVerbDocumentation(MooObjectId QueriedObjectId, MooObjectId ResolvedObjectId, IReadOnlyList<string> Lines);
+
+/// <summary>
+/// Source code lines for a MOO verb, together with the queried and resolved objects.
+/// </summary>
+/// <param name="QueriedObjectId">The object that was queried for the verb.</param>
+/// <param name="ResolvedObjectId">The object on which the verb actually lives (the defining object, which may be an ancestor of the queried object when the verb is inherited).</param>
+/// <param name="Lines">The source code lines.</param>
+public record MooVerbCode(MooObjectId QueriedObjectId, MooObjectId ResolvedObjectId, IReadOnlyList<string> Lines);
 
 /// <summary>
 /// Detailed information describing a MOO property.
