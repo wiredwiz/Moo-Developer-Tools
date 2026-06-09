@@ -76,6 +76,8 @@ namespace Org.Edgerunner.Moo.Udditor.Main
          mnuItemShowPreviewPane = new ToolStripMenuItem();
          toolStripSeparatorTheme = new ToolStripSeparator();
          mnuItemTheme = new ToolStripMenuItem();
+         toolStripSeparatorOptions = new ToolStripSeparator();
+         mnuItemOptions = new ToolStripMenuItem();
          mnuItemTerminal = new ToolStripMenuItem();
          mnuItemWorldManager = new ToolStripMenuItem();
          tlMnuItemOpenConnection = new ToolStripMenuItem();
@@ -369,7 +371,7 @@ namespace Org.Edgerunner.Moo.Udditor.Main
          // 
          // mnuItemView
          // 
-         mnuItemView.DropDownItems.AddRange(new ToolStripItem[] { mnuItemZoomIn, mnuItemZoomOut, toolStripSeparator6, mnuItemWordWrap, mnuItemShowLineNumbers, mnuItemIndentationGuides, mnuItemShowPreviewPane, toolStripSeparatorTheme, mnuItemTheme });
+         mnuItemView.DropDownItems.AddRange(new ToolStripItem[] { mnuItemZoomIn, mnuItemZoomOut, toolStripSeparator6, mnuItemWordWrap, mnuItemShowLineNumbers, mnuItemIndentationGuides, mnuItemShowPreviewPane, toolStripSeparatorTheme, mnuItemTheme, toolStripSeparatorOptions, mnuItemOptions });
          mnuItemView.Name = "mnuItemView";
          mnuItemView.Size = new Size(55, 24);
          mnuItemView.Text = "&View";
@@ -448,6 +450,18 @@ namespace Org.Edgerunner.Moo.Udditor.Main
          mnuItemTheme.Size = new Size(244, 26);
          mnuItemTheme.Text = "Theme…";
          mnuItemTheme.Click += mnuItemTheme_Click;
+         //
+         // toolStripSeparatorOptions
+         //
+         toolStripSeparatorOptions.Name = "toolStripSeparatorOptions";
+         toolStripSeparatorOptions.Size = new Size(241, 6);
+         //
+         // mnuItemOptions
+         //
+         mnuItemOptions.Name = "mnuItemOptions";
+         mnuItemOptions.Size = new Size(244, 26);
+         mnuItemOptions.Text = "Options…";
+         mnuItemOptions.Click += mnuItemOptions_Click;
          //
          // mnuItemTerminal
          // 
@@ -759,6 +773,8 @@ namespace Org.Edgerunner.Moo.Udditor.Main
       private ToolStripMenuItem mnuItemShowPreviewPane;
       private ToolStripSeparator toolStripSeparatorTheme;
       private ToolStripMenuItem mnuItemTheme;
+      private ToolStripSeparator toolStripSeparatorOptions;
+      private ToolStripMenuItem mnuItemOptions;
       private ToolStripSeparator toolStripSeparator7;
       private ToolStripMenuItem mnuItemMarkdown;
       private ToolStripMenuItem mnuItemMarkdownSupport;
