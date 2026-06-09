@@ -31,26 +31,33 @@ namespace Org.Edgerunner.Moo.Udditor.Dialogs
          components = new System.ComponentModel.Container();
          var resources = new System.ComponentModel.ComponentResourceManager(typeof(EditorOptionsDialog));
 
-         tabControl1 = new TabControl();
-         tabPageEditorFont = new TabPage();
-         tabPageIndentation = new TabPage();
-         tabPageCodeFeatures = new TabPage();
-         tabPageGrammar = new TabPage();
+         tabControl1 = new Krypton.Navigator.KryptonNavigator();
+         tabPageEditorFont = new Krypton.Navigator.KryptonPage();
+         tabPageIndentation = new Krypton.Navigator.KryptonPage();
+         tabPageCodeFeatures = new Krypton.Navigator.KryptonPage();
+         tabPageGrammar = new Krypton.Navigator.KryptonPage();
 
-         panelButtons = new Panel();
-         buttonOk = new Button();
-         buttonApply = new Button();
-         buttonCancel = new Button();
+         panelButtons = new Krypton.Toolkit.KryptonPanel();
+         buttonOk = new Krypton.Toolkit.KryptonButton();
+         buttonApply = new Krypton.Toolkit.KryptonButton();
+         buttonCancel = new Krypton.Toolkit.KryptonButton();
 
+         ((System.ComponentModel.ISupportInitialize)(tabControl1)).BeginInit();
          tabControl1.SuspendLayout();
+         ((System.ComponentModel.ISupportInitialize)(tabPageEditorFont)).BeginInit();
+         ((System.ComponentModel.ISupportInitialize)(tabPageIndentation)).BeginInit();
+         ((System.ComponentModel.ISupportInitialize)(tabPageCodeFeatures)).BeginInit();
+         ((System.ComponentModel.ISupportInitialize)(tabPageGrammar)).BeginInit();
+         ((System.ComponentModel.ISupportInitialize)(panelButtons)).BeginInit();
          panelButtons.SuspendLayout();
          SuspendLayout();
 
          // tabControl1
-         tabControl1.Controls.Add(tabPageEditorFont);
-         tabControl1.Controls.Add(tabPageIndentation);
-         tabControl1.Controls.Add(tabPageCodeFeatures);
-         tabControl1.Controls.Add(tabPageGrammar);
+         tabControl1.Pages.Add(tabPageEditorFont);
+         tabControl1.Pages.Add(tabPageIndentation);
+         tabControl1.Pages.Add(tabPageCodeFeatures);
+         tabControl1.Pages.Add(tabPageGrammar);
+         tabControl1.NavigatorMode = Krypton.Navigator.NavigatorMode.BarTabGroup;
          tabControl1.Dock = DockStyle.Fill;
          tabControl1.Location = new Point(0, 0);
          tabControl1.Name = "tabControl1";
@@ -59,47 +66,34 @@ namespace Org.Edgerunner.Moo.Udditor.Dialogs
          tabControl1.TabIndex = 0;
 
          // tabPageEditorFont
-         tabPageEditorFont.Location = new Point(4, 24);
          tabPageEditorFont.Name = "tabPageEditorFont";
-         tabPageEditorFont.Padding = new Padding(3);
          tabPageEditorFont.Size = new Size(692, 472);
-         tabPageEditorFont.TabIndex = 0;
          tabPageEditorFont.Text = "Editor Font & Display";
-         tabPageEditorFont.UseVisualStyleBackColor = true;
+         tabPageEditorFont.TextTitle = "Editor Font & Display";
 
          // tabPageIndentation
-         tabPageIndentation.Location = new Point(4, 24);
          tabPageIndentation.Name = "tabPageIndentation";
-         tabPageIndentation.Padding = new Padding(3);
          tabPageIndentation.Size = new Size(692, 472);
-         tabPageIndentation.TabIndex = 1;
          tabPageIndentation.Text = "Indentation & Wrapping";
-         tabPageIndentation.UseVisualStyleBackColor = true;
+         tabPageIndentation.TextTitle = "Indentation & Wrapping";
 
          // tabPageCodeFeatures
-         tabPageCodeFeatures.Location = new Point(4, 24);
          tabPageCodeFeatures.Name = "tabPageCodeFeatures";
-         tabPageCodeFeatures.Padding = new Padding(3);
          tabPageCodeFeatures.Size = new Size(692, 472);
-         tabPageCodeFeatures.TabIndex = 2;
          tabPageCodeFeatures.Text = "Code Features";
-         tabPageCodeFeatures.UseVisualStyleBackColor = true;
+         tabPageCodeFeatures.TextTitle = "Code Features";
 
          // tabPageGrammar
-         tabPageGrammar.Location = new Point(4, 24);
          tabPageGrammar.Name = "tabPageGrammar";
-         tabPageGrammar.Padding = new Padding(3);
          tabPageGrammar.Size = new Size(692, 472);
-         tabPageGrammar.TabIndex = 3;
          tabPageGrammar.Text = "Grammar";
-         tabPageGrammar.UseVisualStyleBackColor = true;
+         tabPageGrammar.TextTitle = "Grammar";
 
          // panelButtons
          panelButtons.Controls.Add(buttonCancel);
          panelButtons.Controls.Add(buttonApply);
          panelButtons.Controls.Add(buttonOk);
          panelButtons.Dock = DockStyle.Bottom;
-         panelButtons.Height = 50;
          panelButtons.Location = new Point(0, 500);
          panelButtons.Name = "panelButtons";
          panelButtons.Padding = new Padding(8);
@@ -113,8 +107,7 @@ namespace Org.Edgerunner.Moo.Udditor.Dialogs
          buttonOk.Name = "buttonOk";
          buttonOk.Size = new Size(75, 23);
          buttonOk.TabIndex = 0;
-         buttonOk.Text = "OK";
-         buttonOk.UseVisualStyleBackColor = true;
+         buttonOk.Values.Text = "OK";
          buttonOk.Click += buttonOk_Click;
 
          // buttonApply
@@ -123,8 +116,7 @@ namespace Org.Edgerunner.Moo.Udditor.Dialogs
          buttonApply.Name = "buttonApply";
          buttonApply.Size = new Size(75, 23);
          buttonApply.TabIndex = 1;
-         buttonApply.Text = "Apply";
-         buttonApply.UseVisualStyleBackColor = true;
+         buttonApply.Values.Text = "Apply";
          buttonApply.Click += buttonApply_Click;
 
          // buttonCancel
@@ -134,8 +126,7 @@ namespace Org.Edgerunner.Moo.Udditor.Dialogs
          buttonCancel.Name = "buttonCancel";
          buttonCancel.Size = new Size(75, 23);
          buttonCancel.TabIndex = 2;
-         buttonCancel.Text = "Cancel";
-         buttonCancel.UseVisualStyleBackColor = true;
+         buttonCancel.Values.Text = "Cancel";
          buttonCancel.Click += buttonCancel_Click;
 
          // EditorOptionsDialog
@@ -152,22 +143,28 @@ namespace Org.Edgerunner.Moo.Udditor.Dialogs
          StartPosition = FormStartPosition.CenterParent;
          Text = "Editor Options";
 
+         ((System.ComponentModel.ISupportInitialize)(tabPageEditorFont)).EndInit();
+         ((System.ComponentModel.ISupportInitialize)(tabPageIndentation)).EndInit();
+         ((System.ComponentModel.ISupportInitialize)(tabPageCodeFeatures)).EndInit();
+         ((System.ComponentModel.ISupportInitialize)(tabPageGrammar)).EndInit();
          tabControl1.ResumeLayout(false);
+         ((System.ComponentModel.ISupportInitialize)(tabControl1)).EndInit();
          panelButtons.ResumeLayout(false);
+         ((System.ComponentModel.ISupportInitialize)(panelButtons)).EndInit();
          ResumeLayout(false);
       }
 
       #endregion
 
-      private TabControl tabControl1;
-      private TabPage tabPageEditorFont;
-      private TabPage tabPageIndentation;
-      private TabPage tabPageCodeFeatures;
-      private TabPage tabPageGrammar;
+      private Krypton.Navigator.KryptonNavigator tabControl1;
+      private Krypton.Navigator.KryptonPage tabPageEditorFont;
+      private Krypton.Navigator.KryptonPage tabPageIndentation;
+      private Krypton.Navigator.KryptonPage tabPageCodeFeatures;
+      private Krypton.Navigator.KryptonPage tabPageGrammar;
 
-      private Panel panelButtons;
-      private Button buttonOk;
-      private Button buttonApply;
-      private Button buttonCancel;
+      private Krypton.Toolkit.KryptonPanel panelButtons;
+      private Krypton.Toolkit.KryptonButton buttonOk;
+      private Krypton.Toolkit.KryptonButton buttonApply;
+      private Krypton.Toolkit.KryptonButton buttonCancel;
    }
 }

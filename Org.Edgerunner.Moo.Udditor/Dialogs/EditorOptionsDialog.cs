@@ -88,7 +88,7 @@ namespace Org.Edgerunner.Moo.Udditor.Dialogs
 
       private void BuildEditorFontTab()
       {
-         var panel = new TableLayoutPanel
+         var panel = new KryptonTableLayoutPanel
          {
             Dock = DockStyle.Top,
             AutoSize = true,
@@ -101,33 +101,38 @@ namespace Org.Edgerunner.Moo.Udditor.Dialogs
          panel.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100f));
 
          // Font Family
-         var lblFont = new Label { Text = "Font Family:", AutoSize = true };
-         var cmbFont = new ComboBox { Name = nameof(Settings.EditorFontFamily), DropDownStyle = ComboBoxStyle.DropDownList, Dock = DockStyle.Fill };
+         var lblFont = new KryptonLabel { AutoSize = true };
+         lblFont.Values.Text = "Font Family:";
+         var cmbFont = new KryptonComboBox { Name = nameof(Settings.EditorFontFamily), DropDownStyle = ComboBoxStyle.DropDownList, Dock = DockStyle.Fill };
          PopulateFontCombo(cmbFont);
          panel.Controls.Add(lblFont);
          panel.Controls.Add(cmbFont);
 
          // Font Size
-         var lblSize = new Label { Text = "Font Size:", AutoSize = true };
-         var nudSize = new NumericUpDown { Name = nameof(Settings.EditorFontSize), Dock = DockStyle.Fill, Minimum = 1, Maximum = 72, DecimalPlaces = 1 };
+         var lblSize = new KryptonLabel { AutoSize = true };
+         lblSize.Values.Text = "Font Size:";
+         var nudSize = new KryptonNumericUpDown { Name = nameof(Settings.EditorFontSize), Dock = DockStyle.Fill, Minimum = 1, Maximum = 72, DecimalPlaces = 1 };
          panel.Controls.Add(lblSize);
          panel.Controls.Add(nudSize);
 
          // Zoom Factor
-         var lblZoom = new Label { Text = "Zoom Factor:", AutoSize = true };
-         var nudZoom = new NumericUpDown { Name = nameof(Settings.EditorZoomFactor), Dock = DockStyle.Fill, Minimum = -100, Maximum = 500 };
+         var lblZoom = new KryptonLabel { AutoSize = true };
+         lblZoom.Values.Text = "Zoom Factor:";
+         var nudZoom = new KryptonNumericUpDown { Name = nameof(Settings.EditorZoomFactor), Dock = DockStyle.Fill, Minimum = -100, Maximum = 500 };
          panel.Controls.Add(lblZoom);
          panel.Controls.Add(nudZoom);
 
          // Tab Length
-         var lblTab = new Label { Text = "Tab Length:", AutoSize = true };
-         var nudTab = new NumericUpDown { Name = nameof(Settings.EditorTabLength), Dock = DockStyle.Fill, Minimum = 1, Maximum = 16 };
+         var lblTab = new KryptonLabel { AutoSize = true };
+         lblTab.Values.Text = "Tab Length:";
+         var nudTab = new KryptonNumericUpDown { Name = nameof(Settings.EditorTabLength), Dock = DockStyle.Fill, Minimum = 1, Maximum = 16 };
          panel.Controls.Add(lblTab);
          panel.Controls.Add(nudTab);
 
          // Autocomplete Delay
-         var lblAutoComplete = new Label { Text = "Autocomplete Delay (ms):", AutoSize = true };
-         var nudAutoComplete = new NumericUpDown { Name = nameof(Settings.EditorAutocompleteDelay), Dock = DockStyle.Fill, Minimum = 0, Maximum = 5000 };
+         var lblAutoComplete = new KryptonLabel { AutoSize = true };
+         lblAutoComplete.Values.Text = "Autocomplete Delay (ms):";
+         var nudAutoComplete = new KryptonNumericUpDown { Name = nameof(Settings.EditorAutocompleteDelay), Dock = DockStyle.Fill, Minimum = 0, Maximum = 5000 };
          panel.Controls.Add(lblAutoComplete);
          panel.Controls.Add(nudAutoComplete);
 
@@ -136,7 +141,7 @@ namespace Org.Edgerunner.Moo.Udditor.Dialogs
 
       private void BuildIndentationTab()
       {
-         var panel = new TableLayoutPanel
+         var panel = new KryptonTableLayoutPanel
          {
             Dock = DockStyle.Top,
             AutoSize = true,
@@ -149,37 +154,42 @@ namespace Org.Edgerunner.Moo.Udditor.Dialogs
          panel.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100f));
 
          // Word Wrap
-         var chkWordWrap = new CheckBox { Text = "Enable Word Wrap", Name = nameof(Settings.EditorWordWrap), AutoSize = true };
+         var chkWordWrap = new KryptonCheckBox { Name = nameof(Settings.EditorWordWrap), AutoSize = true };
+         chkWordWrap.Values.Text = "Enable Word Wrap";
          panel.Controls.Add(chkWordWrap);
-         panel.Controls.Add(new Label());
+         panel.Controls.Add(new KryptonLabel());
 
          // Word Wrap Auto Indent
-         var chkWordWrapIndent = new CheckBox { Text = "Word Wrap Auto Indent", Name = nameof(Settings.EditorWordWrapAutoIndent), AutoSize = true };
+         var chkWordWrapIndent = new KryptonCheckBox { Name = nameof(Settings.EditorWordWrapAutoIndent), AutoSize = true };
+         chkWordWrapIndent.Values.Text = "Word Wrap Auto Indent";
          panel.Controls.Add(chkWordWrapIndent);
-         panel.Controls.Add(new Label());
+         panel.Controls.Add(new KryptonLabel());
 
          // Word Wrap Indent
-         var lblWrapIndent = new Label { Text = "Word Wrap Indent:", AutoSize = true };
-         var nudWrapIndent = new NumericUpDown { Name = nameof(Settings.EditorWordWrapIndent), Dock = DockStyle.Fill, Minimum = 0, Maximum = 100 };
+         var lblWrapIndent = new KryptonLabel { AutoSize = true };
+         lblWrapIndent.Values.Text = "Word Wrap Indent:";
+         var nudWrapIndent = new KryptonNumericUpDown { Name = nameof(Settings.EditorWordWrapIndent), Dock = DockStyle.Fill, Minimum = 0, Maximum = 100 };
          panel.Controls.Add(lblWrapIndent);
          panel.Controls.Add(nudWrapIndent);
 
          // Auto Indent
-         var chkAutoIndent = new CheckBox { Text = "Enable Auto Indent", Name = nameof(Settings.EditorAutoIndent), AutoSize = true };
+         var chkAutoIndent = new KryptonCheckBox { Name = nameof(Settings.EditorAutoIndent), AutoSize = true };
+         chkAutoIndent.Values.Text = "Enable Auto Indent";
          panel.Controls.Add(chkAutoIndent);
-         panel.Controls.Add(new Label());
+         panel.Controls.Add(new KryptonLabel());
 
          // Show Text Indent Guides
-         var chkIndentGuides = new CheckBox { Text = "Show Text Indent Guides", Name = nameof(Settings.EditorShowTextIndentGuides), AutoSize = true };
+         var chkIndentGuides = new KryptonCheckBox { Name = nameof(Settings.EditorShowTextIndentGuides), AutoSize = true };
+         chkIndentGuides.Values.Text = "Show Text Indent Guides";
          panel.Controls.Add(chkIndentGuides);
-         panel.Controls.Add(new Label());
+         panel.Controls.Add(new KryptonLabel());
 
          tabPageIndentation.Controls.Add(panel);
       }
 
       private void BuildCodeFeaturesTab()
       {
-         var panel = new TableLayoutPanel
+         var panel = new KryptonTableLayoutPanel
          {
             Dock = DockStyle.Top,
             AutoSize = true,
@@ -192,30 +202,35 @@ namespace Org.Edgerunner.Moo.Udditor.Dialogs
          panel.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100f));
 
          // Show Code Folding
-         var chkCodeFolding = new CheckBox { Text = "Enable Code Folding", Name = nameof(Settings.EditorShowCodeFolding), AutoSize = true };
+         var chkCodeFolding = new KryptonCheckBox { Name = nameof(Settings.EditorShowCodeFolding), AutoSize = true };
+         chkCodeFolding.Values.Text = "Enable Code Folding";
          panel.Controls.Add(chkCodeFolding);
-         panel.Controls.Add(new Label());
+         panel.Controls.Add(new KryptonLabel());
 
          // Show Folding Block Highlights
-         var chkFoldHighlight = new CheckBox { Text = "Show Folding Block Highlights", Name = nameof(Settings.EditorShowFoldingBlockHighlights), AutoSize = true };
+         var chkFoldHighlight = new KryptonCheckBox { Name = nameof(Settings.EditorShowFoldingBlockHighlights), AutoSize = true };
+         chkFoldHighlight.Values.Text = "Show Folding Block Highlights";
          panel.Controls.Add(chkFoldHighlight);
-         panel.Controls.Add(new Label());
+         panel.Controls.Add(new KryptonLabel());
 
          // Auto Brackets
-         var chkAutoBrackets = new CheckBox { Text = "Enable Auto Brackets", Name = nameof(Settings.EditorAutoBrackets), AutoSize = true };
+         var chkAutoBrackets = new KryptonCheckBox { Name = nameof(Settings.EditorAutoBrackets), AutoSize = true };
+         chkAutoBrackets.Values.Text = "Enable Auto Brackets";
          panel.Controls.Add(chkAutoBrackets);
-         panel.Controls.Add(new Label());
+         panel.Controls.Add(new KryptonLabel());
 
          // Parser Message Font Family
-         var lblParserFont = new Label { Text = "Parser Message Font:", AutoSize = true };
-         var cmbParserFont = new ComboBox { Name = nameof(Settings.ParserMessageFontFamily), DropDownStyle = ComboBoxStyle.DropDownList, Dock = DockStyle.Fill };
+         var lblParserFont = new KryptonLabel { AutoSize = true };
+         lblParserFont.Values.Text = "Parser Message Font:";
+         var cmbParserFont = new KryptonComboBox { Name = nameof(Settings.ParserMessageFontFamily), DropDownStyle = ComboBoxStyle.DropDownList, Dock = DockStyle.Fill };
          PopulateFontCombo(cmbParserFont);
          panel.Controls.Add(lblParserFont);
          panel.Controls.Add(cmbParserFont);
 
          // Parser Message Font Size
-         var lblParserSize = new Label { Text = "Parser Message Font Size:", AutoSize = true };
-         var nudParserSize = new NumericUpDown { Name = nameof(Settings.ParserMessageFontSize), Dock = DockStyle.Fill, Minimum = 1, Maximum = 72, DecimalPlaces = 1 };
+         var lblParserSize = new KryptonLabel { AutoSize = true };
+         lblParserSize.Values.Text = "Parser Message Font Size:";
+         var nudParserSize = new KryptonNumericUpDown { Name = nameof(Settings.ParserMessageFontSize), Dock = DockStyle.Fill, Minimum = 1, Maximum = 72, DecimalPlaces = 1 };
          panel.Controls.Add(lblParserSize);
          panel.Controls.Add(nudParserSize);
 
@@ -224,7 +239,7 @@ namespace Org.Edgerunner.Moo.Udditor.Dialogs
 
       private void BuildGrammarTab()
       {
-         var panel = new TableLayoutPanel
+         var panel = new KryptonTableLayoutPanel
          {
             Dock = DockStyle.Top,
             AutoSize = true,
@@ -237,8 +252,9 @@ namespace Org.Edgerunner.Moo.Udditor.Dialogs
          panel.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100f));
 
          // Default Dialect
-         var lblDialect = new Label { Text = "Default Grammar Dialect:", AutoSize = true };
-         var cmbDialect = new ComboBox { Name = nameof(Settings.DefaultGrammarDialect), DropDownStyle = ComboBoxStyle.DropDownList, Dock = DockStyle.Fill };
+         var lblDialect = new KryptonLabel { AutoSize = true };
+         lblDialect.Values.Text = "Default Grammar Dialect:";
+         var cmbDialect = new KryptonComboBox { Name = nameof(Settings.DefaultGrammarDialect), DropDownStyle = ComboBoxStyle.DropDownList, Dock = DockStyle.Fill };
          cmbDialect.Items.AddRange(new object[] { "LambdaMoo", "ToastStunt", "Edgerunner" });
          panel.Controls.Add(lblDialect);
          panel.Controls.Add(cmbDialect);
@@ -250,7 +266,7 @@ namespace Org.Edgerunner.Moo.Udditor.Dialogs
 
       #region Helper Methods for Tab Building
 
-      private void PopulateFontCombo(ComboBox combo)
+      private void PopulateFontCombo(KryptonComboBox combo)
       {
          foreach (var family in FontFamily.Families)
             combo.Items.Add(family.Name);
@@ -282,16 +298,16 @@ namespace Org.Edgerunner.Moo.Udditor.Dialogs
 
             var value = prop.GetValue(_working);
 
-            if (control is CheckBox chk && value is bool boolValue)
+            if (control is KryptonCheckBox chk && value is bool boolValue)
                chk.Checked = boolValue;
-            else if (control is NumericUpDown nud && value != null)
+            else if (control is KryptonNumericUpDown nud && value != null)
             {
                if (value is int intValue)
                   nud.Value = intValue;
                else if (value is float floatValue)
                   nud.Value = (decimal)floatValue;
             }
-            else if (control is ComboBox combo && value != null)
+            else if (control is KryptonComboBox combo && value != null)
             {
                if (value is FontFamily ff)
                   combo.SelectedItem = ff.Name;
@@ -319,16 +335,16 @@ namespace Org.Edgerunner.Moo.Udditor.Dialogs
 
             object value = null;
 
-            if (control is CheckBox chk)
+            if (control is KryptonCheckBox chk)
                value = chk.Checked;
-            else if (control is NumericUpDown nud)
+            else if (control is KryptonNumericUpDown nud)
             {
                if (prop.PropertyType == typeof(int))
                   value = (int)nud.Value;
                else if (prop.PropertyType == typeof(float))
                   value = (float)nud.Value;
             }
-            else if (control is ComboBox combo)
+            else if (control is KryptonComboBox combo)
             {
                if (prop.PropertyType == typeof(FontFamily))
                {
@@ -357,6 +373,14 @@ namespace Org.Edgerunner.Moo.Udditor.Dialogs
             foreach (var child in GetAllControls(control))
                yield return child;
          }
+
+         if (container is Krypton.Navigator.KryptonNavigator nav)
+            foreach (Krypton.Navigator.KryptonPage page in nav.Pages)
+            {
+               yield return page;
+               foreach (var child in GetAllControls(page))
+                  yield return child;
+            }
       }
 
       /// <summary>
