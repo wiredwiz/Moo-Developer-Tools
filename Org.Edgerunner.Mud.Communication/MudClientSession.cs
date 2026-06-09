@@ -339,7 +339,13 @@ public class MudClientSession : IMudClientSession, IDisposable
             }
             zeroBytesInARow = 0;
             await ProcessReadBuffer(buffer, bytes).ConfigureAwait(false);
-            await FlushCommandBuffer().ConfigureAwait(false);
+            // Only flush an unterminated partial line when the socket has drained (a short read,
+            // e.g. a no-newline prompt). A full-buffer read means more of the current line is
+            // likely still arriving; flushing here would split a line that spans read chunks and
+            // corrupt multi-line OOB/MCP messages. The remainder is flushed on the next newline
+            // (FlushLine), the next short read, or in the finally block on disconnect.
+            if (bytes < buffer.Length)
+               await FlushCommandBuffer().ConfigureAwait(false);
          }
       }
       catch (OperationCanceledException)
