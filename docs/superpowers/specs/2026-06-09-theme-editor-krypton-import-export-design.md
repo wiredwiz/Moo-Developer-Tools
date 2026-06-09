@@ -155,8 +155,14 @@ delay, dialect, zoom, etc.).
   Behavior settings and any omitted appearance keys are never touched.
 
 `formatVersion` is written and read; an unrecognized future version still
-imports best-effort by key (forward-compatible), and a malformed/garbage file
-throws a clear exception the dialog surfaces.
+imports best-effort by key (forward-compatible).
+
+**Atomicity / malformed files:** `ImportThemeFromJson` fully reads and
+deserializes the file (and validates the wrapper shape) **before** mutating the
+target instance. A malformed/garbage/unreadable file therefore throws a clear
+exception *before any value is applied*, leaving the working copy completely
+unchanged. The dialog (section 6) catches that exception and surfaces a clean
+error message, and the user continues with their in-dialog state intact.
 
 ## 5. Import font mitigation
 
@@ -179,12 +185,19 @@ small result object) for the dialog to show the notice.
   default ext `.mood`) → `_working.ExportThemeToJson(path)`; show an error
   `MessageBox` on failure (mirrors `ApplyTheme`'s error handling).
 - **Import…** → `OpenFileDialog` (same filter) → `_working.ImportThemeFromJson(path)`
-  → **rebuild the left controls** (clear `leftScrollPanel.Controls` and
-  `_refreshers`, then re-run `BuildLeftControls` so swatches, font-style combos,
-  and transparent checkboxes reflect the imported values), reset the mode
-  dropdown from `_working.EditorDarkTheme`, re-apply the dialog-local palette to
-  match, and `RefreshPreview()`. If a font fallback occurred, show the notice.
-  Nothing touches live editors until Apply/OK (unchanged).
+  inside a `try`/`catch`:
+  - **On success:** **rebuild the left controls** (clear
+    `leftScrollPanel.Controls` and `_refreshers`, then re-run `BuildLeftControls`
+    so swatches, font-style combos, and transparent checkboxes reflect the
+    imported values), reset the mode dropdown from `_working.EditorDarkTheme`,
+    re-apply the dialog-local palette to match, and `RefreshPreview()`. If a
+    font fallback occurred, show the notice.
+  - **On failure** (malformed/unreadable file): catch the exception and show a
+    clean error `MessageBox` (mirroring `ApplyTheme`'s error handling) naming the
+    problem. Because import is atomic (section 4), `_working` and every control
+    are unchanged, so the user dismisses the message and continues editing as if
+    nothing happened.
+  - Nothing touches live editors until Apply/OK (unchanged).
 
 ## 7. Testing
 
@@ -199,7 +212,9 @@ Add to `Org.Edgerunner.Moo.Editor.Tests/SettingsThemeTests.cs`:
 - **Missing font:** importing `EditorFontFamily` set to a guaranteed-absent
   family falls back to generic monospace and reports the missing name; the
   imported size is still applied.
-- **Malformed file:** importing garbage throws a clear exception.
+- **Malformed file:** importing garbage throws a clear exception **and leaves
+  the target instance unchanged** (atomicity — set a sentinel value on the
+  target first, attempt the import, assert it threw and the sentinel survived).
 
 (UI/Krypton conversion is validated by build + manual smoke test; logic lives in
 `Settings` where it is unit-testable.)
