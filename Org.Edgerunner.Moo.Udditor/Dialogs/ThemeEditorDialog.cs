@@ -320,48 +320,70 @@ namespace Org.Edgerunner.Moo.Udditor.Dialogs
       }
 
       /// <summary>
-      /// Creates a flat <see cref="KryptonButton"/> color chip that paints a solid color regardless of palette.
+      /// Creates an owner-drawn color chip that always paints its solid color, in every state.
       /// </summary>
-      private static KryptonButton CreateColorChip()
+      private static ColorSwatch CreateColorChip()
       {
-         var swatch = new KryptonButton
+         return new ColorSwatch
          {
             Width = 60,
             Height = 24,
             Margin = new Padding(3)
          };
-         swatch.StateCommon.Back.ColorStyle = Krypton.Toolkit.PaletteColorStyle.Solid;
-         return swatch;
       }
 
       /// <summary>
-      /// Paints a color chip with the supplied color (solid draw style) and a neutral fill when transparent.
+      /// Sets the color a chip displays (a transparent color renders a neutral "(none)" cell).
       /// </summary>
-      private static void SetChipColor(KryptonButton swatch, Color color)
+      private static void SetChipColor(ColorSwatch swatch, Color color)
       {
-         var isTransparent = color.A == 0;
-         var fill = isTransparent ? SystemColors.Control : color;
+         swatch.SwatchColor = color;
+      }
 
-         // Pin the fill on every interactive state (common/normal/hover/pressed). Clicking the
-         // swatch opens a modal ColorDialog and leaves the button focused/pressed afterward;
-         // without overriding these states it falls back to the palette's grey button color
-         // until the swatch loses focus.
-         foreach (var back in new[]
-                  {
-                     swatch.StateCommon.Back, swatch.StateNormal.Back,
-                     swatch.StateTracking.Back, swatch.StatePressed.Back
-                  })
+      /// <summary>
+      /// A small non-focusable, owner-drawn color cell. It is deliberately NOT a themed
+      /// <see cref="KryptonButton"/>: a button paints its background from the active palette state
+      /// (normal/hover/pressed/focus), so a clicked-and-focused swatch reverted to the palette's grey.
+      /// This control simply paints the chosen color and never takes focus, so it always shows the color.
+      /// </summary>
+      private sealed class ColorSwatch : Control
+      {
+         private Color _color;
+
+         public ColorSwatch()
          {
-            back.ColorStyle = Krypton.Toolkit.PaletteColorStyle.Solid;
-            back.Color1 = fill;
-            back.Color2 = fill;
+            SetStyle(ControlStyles.UserPaint | ControlStyles.AllPaintingInWmPaint
+                   | ControlStyles.OptimizedDoubleBuffer | ControlStyles.ResizeRedraw, true);
+            // Never take focus, so there is no focus/pressed visual to paint over the color.
+            SetStyle(ControlStyles.Selectable, false);
          }
 
-         // Pin the label color so "(none)" stays readable on the light fill even when the
-         // dialog palette (dark mode) would otherwise paint button text white.
-         swatch.StateCommon.Content.ShortText.Color1 = Color.DimGray;
-         swatch.StateCommon.Content.ShortText.Color2 = Color.DimGray;
-         swatch.Values.Text = isTransparent ? "(none)" : string.Empty;
+         /// <summary>Gets or sets the color the chip displays. A zero-alpha color shows "(none)".</summary>
+         public Color SwatchColor
+         {
+            get => _color;
+            set
+            {
+               _color = value;
+               Invalidate();
+            }
+         }
+
+         protected override void OnPaint(PaintEventArgs e)
+         {
+            var isTransparent = _color.A == 0;
+            var fill = isTransparent ? SystemColors.Control : _color;
+
+            using (var brush = new SolidBrush(fill))
+               e.Graphics.FillRectangle(brush, ClientRectangle);
+
+            if (isTransparent)
+               TextRenderer.DrawText(e.Graphics, "(none)", Font, ClientRectangle, Color.DimGray,
+                  TextFormatFlags.HorizontalCenter | TextFormatFlags.VerticalCenter);
+
+            using (var pen = new Pen(Color.Gray))
+               e.Graphics.DrawRectangle(pen, 0, 0, Width - 1, Height - 1);
+         }
       }
 
       /// <summary>
