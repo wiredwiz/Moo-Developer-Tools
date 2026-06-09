@@ -361,24 +361,28 @@ namespace Org.Edgerunner.Moo.Editor.Controls
       /// Re-applies the current theme to the editor by clearing cached styles and re-colorizing.
       /// </summary>
       /// <remarks>
-      /// Used after the active color theme changes. Clears the <see cref="StyleRegistry"/> cache,
-      /// clears existing styles per-line (preserving fold/visible state), then re-colorizes the
-      /// tokens (guarding against empty text).
+      /// Used after the active color theme changes. Clears the <see cref="StyleRegistry"/> cache and
+      /// existing styles, then re-creates the code-folding markers and re-colorizes the tokens
+      /// (guarding against empty text).
+      /// <para>
+      /// Re-creating the folding markers is required because <see cref="ClearAllStyles"/> deletes every
+      /// line's <c>FoldingStartMarker</c>/<c>FoldingEndMarker</c> (see <see cref="Line.ClearAllStyles"/>).
+      /// Without re-running <see cref="ConfigureCodeFolding"/>, a theme refresh would leave
+      /// <see cref="ShowCodeFolding"/> enabled but with no markers, making all fold indicators vanish.
+      /// </para>
       /// </remarks>
       public void RefreshTheme()
       {
          StyleRegistry.Clear();
-
-         // Clear styles per line WITHOUT resetting fold/visible state. The inherited
-         // FastColoredTextBox.ClearAllStyles() also forces every line back to
-         // VisibleState.Visible, which expands any folds the user had collapsed — so
-         // calling it here wiped the collapsed fold state on every theme refresh.
-         // Line.ClearAllStyles() clears only the line's character styles.
-         for (int i = 0; i < LinesCount; i++)
-            this[i].ClearAllStyles();
-
+         var context = ParseSourceCode();
+         ClearAllStyles();
          if (!string.IsNullOrEmpty(Text))
+         {
+            // ClearAllStyles() also removes the per-line folding markers, so restore them.
+            // ConfigureCodeFolding is a no-op when ShowCodeFolding is disabled.
+            ConfigureCodeFolding(context);
             ColorizeTokens(null);
+         }
 
          Invalidate();
       }
