@@ -200,6 +200,12 @@ namespace FastColoredTextBoxNS {
 		internal ToolTip toolTip = new();
 		readonly Timer timer = new();
 
+		/// <summary>
+		/// The font assigned to the list view (the 100% zoom baseline). Kept separate from the
+		/// effective <see cref="Control.Font"/>, which is the baseline scaled by the editor zoom.
+		/// </summary>
+		Font baseFont;
+
 		internal bool AllowTabKey { get; set; }
 		public ImageList ImageList { get; set; }
 		internal int AppearInterval { get { return timer.Interval; } set { timer.Interval = value; } }
@@ -235,10 +241,11 @@ namespace FastColoredTextBoxNS {
 
 		internal AutocompleteListView(FastColoredTextBox tb) {
 			SetStyle(ControlStyles.AllPaintingInWmPaint | ControlStyles.OptimizedDoubleBuffer | ControlStyles.UserPaint, true);
-			base.Font = new Font(FontFamily.GenericSansSerif, 9);
+			baseFont = new Font(FontFamily.GenericSansSerif, 9);
+			base.Font = baseFont;
 			visibleItems = new List<AutocompleteItem>();
 			VerticalScroll.SmallChange = ItemHeight;
-			MaximumSize = new Size(Size.Width, 180);
+			MaximumSize = new Size(Size.Width, AutocompletePopupMetrics.BaseMaxHeight);
 			toolTip.ShowAlways = false;
 			AppearInterval = 500;
 			timer.Tick += new EventHandler(Timer_Tick);
@@ -252,6 +259,10 @@ namespace FastColoredTextBoxNS {
 			tb.KeyDown += new KeyEventHandler(Tb_KeyDown);
 			tb.SelectionChanged += new EventHandler(Tb_SelectionChanged);
 			tb.KeyPressed += new KeyPressEventHandler(Tb_KeyPressed);
+			tb.ZoomChanged += new EventHandler(Tb_ZoomChanged);
+
+			//apply the editor's current zoom to the freshly-built effective font
+			ApplyZoom();
 
 			Form form = tb.FindForm();
 			if (form != null) {
@@ -275,6 +286,51 @@ namespace FastColoredTextBoxNS {
 			};
 		}
 
+		/// <summary>
+		/// The font assigned to the popup. Setting it updates the 100% baseline; the effective font
+		/// shown is this scaled by the current editor zoom (see <see cref="ApplyZoom"/>).
+		/// </summary>
+		public override Font Font {
+			get { return base.Font; }
+			set {
+				baseFont = value;
+				ApplyZoom();
+			}
+		}
+
+		void Tb_ZoomChanged(object sender, EventArgs e) {
+			ApplyZoom();
+		}
+
+		/// <summary>
+		/// Recomputes the effective font from the base font and the editor's current zoom, then,
+		/// if the menu is visible, recalculates size and repositions so it tracks the zoom live.
+		/// </summary>
+		void ApplyZoom() {
+			if (baseFont == null)
+				return;
+
+			var metrics = AutocompletePopupMetrics.Compute(baseFont.SizeInPoints, tb.Zoom);
+
+			var newFont = new Font(baseFont.FontFamily, metrics.FontSizeInPoints, baseFont.Style);
+			var oldFont = base.Font;
+			base.Font = newFont;
+			//do not dispose the base font itself (it backs the 100% baseline)
+			if (oldFont != null && oldFont != baseFont)
+				oldFont.Dispose();
+
+			//scale the max-height cap so a comparable number of the (now taller) rows stays visible
+			MaximumSize = new Size(MaximumSize.Width, metrics.MaxHeight);
+
+			VerticalScroll.SmallChange = ItemHeight;
+
+			if (Menu != null && !Menu.IsDisposed && Menu.Visible) {
+				oldItemCount = -1; //force AdjustScroll to recompute the height at the new item size
+				AdjustScroll();
+				Invalidate();
+			}
+		}
+
 		private void ToolTip_Popup(object sender, PopupEventArgs e) {
 			if (MaxToolTipSize.Height > 0 && MaxToolTipSize.Width > 0)
 				e.ToolTipSize = MaxToolTipSize;
@@ -289,6 +345,7 @@ namespace FastColoredTextBoxNS {
 				tb.KeyDown -= Tb_KeyDown;
 				tb.KeyPressed -= Tb_KeyPressed;
 				tb.SelectionChanged -= Tb_SelectionChanged;
+				tb.ZoomChanged -= Tb_ZoomChanged;
 			}
 
 			if (timer != null) {
@@ -337,6 +394,9 @@ namespace FastColoredTextBoxNS {
 				Menu.Close();
 				return;
 			}
+
+			//re-apply zoom in case it changed while the menu was closed
+			ApplyZoom();
 
 			visibleItems.Clear();
 			FocussedItemIndex = 0;
@@ -479,7 +539,13 @@ namespace FastColoredTextBoxNS {
 			int finishI = (VerticalScroll.Value + ClientSize.Height) / itemHeight + 1;
 			startI = Math.Max(startI, 0);
 			finishI = Math.Min(finishI, visibleItems.Count);
-			int leftPadding = 18;
+			//scale the icon and the text/icon gutter with the editor zoom
+			var metrics = AutocompletePopupMetrics.Compute(baseFont.SizeInPoints, tb.Zoom);
+			int iconSize = metrics.IconSize;
+			int leftPadding = metrics.Gutter;
+			//downscale the 64px source icons crisply
+			e.Graphics.InterpolationMode = InterpolationMode.HighQualityBicubic;
+			e.Graphics.PixelOffsetMode = PixelOffsetMode.HighQuality;
 			for (int i = startI; i < finishI; i++) {
 				int y = i * itemHeight - VerticalScroll.Value;
 
@@ -490,7 +556,7 @@ namespace FastColoredTextBoxNS {
 						e.Graphics.FillRectangle(brush, 1, y, ClientSize.Width - 1 - 1, itemHeight - 1);
 
 				if (ImageList != null && visibleItems[i].ImageIndex >= 0)
-					e.Graphics.DrawImage(ImageList.Images[item.ImageIndex], 1, y);
+					e.Graphics.DrawImage(ImageList.Images[item.ImageIndex], new Rectangle(1, y + (itemHeight - iconSize) / 2, iconSize, iconSize));
 
 				if (i == FocussedItemIndex)
 					using (var selectedBrush = new LinearGradientBrush(new Point(0, y - 3), new Point(0, y + itemHeight), Color.Transparent, SelectedColor))

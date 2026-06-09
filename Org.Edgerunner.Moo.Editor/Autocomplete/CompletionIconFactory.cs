@@ -47,10 +47,12 @@ namespace Org.Edgerunner.Moo.Editor.Autocomplete;
 /// Paints the autocomplete popup category icons at runtime using GDI+ (no external image assets).
 /// </summary>
 /// <remarks>
-/// Each icon is rendered into a 16x16 32bpp-ARGB <see cref="Bitmap"/>. The source designs are the
+/// Each icon is rendered into a 64x64 32bpp-ARGB <see cref="Bitmap"/>. The source designs are the
 /// 24x24 viewBox SVGs defined in <c>docs/keyword-icon-picker.html</c>; coordinates are translated
-/// here and uniformly scaled by 16/24 via a world transform, so the GDI+ geometry mirrors the SVG
-/// path data 1:1 at 24 units before scaling.
+/// here and uniformly scaled by 64/24 via a world transform, so the GDI+ geometry mirrors the SVG
+/// path data 1:1 at 24 units before scaling. The base resolution is deliberately higher than the
+/// nominal 16px display size so the autocomplete popup can downscale crisply when the editor is
+/// zoomed (sharp through ~400% zoom — a pure downscale from 64px).
 /// Styles: CHIP = filled accent circle with a white centred glyph; LINE = the glyph stroked in the
 /// accent colour on a transparent background; SOLID = a filled accent shape (with white detail
 /// where noted).
@@ -59,7 +61,7 @@ namespace Org.Edgerunner.Moo.Editor.Autocomplete;
 /// </remarks>
 public static class CompletionIconFactory
 {
-   private const int IconSize = 16;
+   private const int IconSize = 64;
 
    // Source viewBox of the reference SVGs.
    private const float ViewBox = 24f;
@@ -83,10 +85,10 @@ public static class CompletionIconFactory
    };
 
    /// <summary>
-   /// Builds a freshly-rendered 16x16 icon bitmap for the supplied <paramref name="category"/>.
+   /// Builds a freshly-rendered 64x64 icon bitmap for the supplied <paramref name="category"/>.
    /// </summary>
    /// <param name="category">The completion category to render.</param>
-   /// <returns>A new 16x16 32bpp-ARGB <see cref="Image"/>. The caller owns the returned instance.</returns>
+   /// <returns>A new 64x64 32bpp-ARGB <see cref="Image"/>. The caller owns the returned instance.</returns>
    public static Image GetIcon(CompletionIconCategory category)
    {
       var bmp = new Bitmap(IconSize, IconSize, System.Drawing.Imaging.PixelFormat.Format32bppArgb);
@@ -97,7 +99,7 @@ public static class CompletionIconFactory
       g.PixelOffsetMode = PixelOffsetMode.HighQuality;
       g.InterpolationMode = InterpolationMode.HighQualityBicubic;
 
-      // Draw using the 24-unit reference coordinate system, scaled down to 16px.
+      // Draw using the 24-unit reference coordinate system, scaled up to the 64px base resolution.
       g.ScaleTransform(Scale, Scale);
 
       Draw(g, category, Colors[category]);

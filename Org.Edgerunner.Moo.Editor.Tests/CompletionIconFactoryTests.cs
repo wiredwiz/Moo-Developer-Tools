@@ -10,21 +10,21 @@ namespace Org.Edgerunner.Moo.Editor.Tests;
 public class CompletionIconFactoryTests
 {
    [Fact]
-   public void CreateImageList_ReturnsEightSixteenBySixteenImages()
+   public void CreateImageList_ReturnsEightSixtyFourBySixtyFourImages()
    {
       var imageList = CompletionIconFactory.CreateImageList();
 
       imageList.Should().NotBeNull();
       imageList.Images.Count.Should().Be(8);
-      imageList.ImageSize.Width.Should().Be(16);
-      imageList.ImageSize.Height.Should().Be(16);
+      imageList.ImageSize.Width.Should().Be(64);
+      imageList.ImageSize.Height.Should().Be(64);
 
       for (var i = 0; i < imageList.Images.Count; i++)
       {
          var image = imageList.Images[i];
          image.Should().NotBeNull();
-         image.Width.Should().Be(16);
-         image.Height.Should().Be(16);
+         image.Width.Should().Be(64);
+         image.Height.Should().Be(64);
       }
    }
 
@@ -38,14 +38,14 @@ public class CompletionIconFactoryTests
    }
 
    [Fact]
-   public void GetIcon_ReturnsNonNull16x16ForEveryCategory()
+   public void GetIcon_ReturnsNonNull64x64ForEveryCategory()
    {
       foreach (CompletionIconCategory category in Enum.GetValues(typeof(CompletionIconCategory)))
       {
          using var icon = CompletionIconFactory.GetIcon(category);
          icon.Should().NotBeNull($"category {category} should have an icon");
-         icon.Width.Should().Be(16);
-         icon.Height.Should().Be(16);
+         icon.Width.Should().Be(64);
+         icon.Height.Should().Be(64);
       }
    }
 
