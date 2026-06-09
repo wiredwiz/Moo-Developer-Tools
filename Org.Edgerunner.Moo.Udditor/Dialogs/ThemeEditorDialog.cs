@@ -341,8 +341,22 @@ namespace Org.Edgerunner.Moo.Udditor.Dialogs
       {
          var isTransparent = color.A == 0;
          var fill = isTransparent ? SystemColors.Control : color;
-         swatch.StateCommon.Back.Color1 = fill;
-         swatch.StateCommon.Back.Color2 = fill;
+
+         // Pin the fill on every interactive state (common/normal/hover/pressed). Clicking the
+         // swatch opens a modal ColorDialog and leaves the button focused/pressed afterward;
+         // without overriding these states it falls back to the palette's grey button color
+         // until the swatch loses focus.
+         foreach (var back in new[]
+                  {
+                     swatch.StateCommon.Back, swatch.StateNormal.Back,
+                     swatch.StateTracking.Back, swatch.StatePressed.Back
+                  })
+         {
+            back.ColorStyle = Krypton.Toolkit.PaletteColorStyle.Solid;
+            back.Color1 = fill;
+            back.Color2 = fill;
+         }
+
          // Pin the label color so "(none)" stays readable on the light fill even when the
          // dialog palette (dark mode) would otherwise paint button text white.
          swatch.StateCommon.Content.ShortText.Color1 = Color.DimGray;
