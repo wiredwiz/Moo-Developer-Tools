@@ -53,6 +53,11 @@ public class RootMessageProcessor : IMessageProcessor
     /// </summary>
     private MessageProcessingState _State;
 
+    /// <summary>
+    /// Holds the most recent incomplete out-of-band line awaiting the remainder of its data.
+    /// </summary>
+    private string _PartialLine = string.Empty;
+
    /// <summary>
    /// Initializes a new instance of the <see cref="RootMessageProcessor" /> class.
    /// </summary>
@@ -95,6 +100,23 @@ public class RootMessageProcessor : IMessageProcessor
    /// <exception cref="MessagingException">An error occurred during the processing of the message.</exception>
    public virtual bool ProcessMessage(IClientTerminal client, string message)
     {
+        // Reassemble out-of-band lines split across network reads. The transport flushes complete
+        // lines with a trailing '\n' and incomplete partials without one. An OOB line (one beginning
+        // with the OOB prefix) that lacks its terminator is incomplete: hold it and stitch the next
+        // piece onto it before processing, so a line split across reads is parsed as a single line.
+        if (_PartialLine.Length > 0)
+        {
+           message = _PartialLine + message;
+           _PartialLine = string.Empty;
+        }
+        if (!message.EndsWith("\n")
+            && (message.StartsWith(OutOfBandPrefix, StringComparison.Ordinal)
+                || OutOfBandPrefix.StartsWith(message, StringComparison.Ordinal)))
+        {
+           _PartialLine = message;
+           return true; // consumed; wait for the remainder of this line
+        }
+
         // If we have been in an Out of Band message processing state too long
         // Or if the previous message processing state was finished.
         // we reset the state along with all out of band processors.
