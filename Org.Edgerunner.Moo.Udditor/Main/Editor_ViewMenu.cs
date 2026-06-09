@@ -44,7 +44,7 @@ public partial class Editor
    private void mnuItemTheme_Click(object sender, EventArgs e)
    {
       var configPath = ApplicationPaths.GetWritableDataFile("Moo.Editor.config");
-      using var dialog = new ThemeEditorDialog(WindowManager, configPath);
+      using var dialog = new ThemeEditorDialog(WindowManager, configPath, kryptonPalette1, kryptonManager);
       dialog.StartPosition = FormStartPosition.CenterParent;
       dialog.ShowDialog(this);
    }

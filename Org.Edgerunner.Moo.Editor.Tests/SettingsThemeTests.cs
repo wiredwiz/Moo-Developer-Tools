@@ -122,4 +122,143 @@ public class SettingsThemeTests
             File.Delete(tempFile);
       }
    }
+
+   [Fact]
+   public void ExportThemeToJson_ThenImport_RoundTripsAllThemeValues()
+   {
+      var source = CreatePopulatedSettings();
+      source.KeywordBackgroundColor = Color.Transparent;
+      source.KeywordFontStyle = FontStyle.Bold | FontStyle.Italic;
+      source.EditorDarkTheme = true;
+      source.EditorBackgroundColor = Color.FromArgb(255, 30, 30, 30);
+      source.EditorFontFamily = FontFamily.GenericMonospace;
+      source.EditorFontSize = 11f;
+      source.ErrorIndicatorColor = Color.OrangeRed;
+
+      var tempFile = Path.Combine(Path.GetTempPath(), $"moo-theme-test-{Guid.NewGuid():N}.mood");
+
+      try
+      {
+         source.ExportThemeToJson(tempFile);
+
+         var target = new Settings();
+         target.LoadDefaults();
+         var result = target.ImportThemeFromJson(tempFile);
+
+         result.Should().NotBeNull();
+         result.MissingFontName.Should().BeNull();
+
+         // Colors, including the Transparent background.
+         target.KeywordColor.ToArgb().Should().Be(source.KeywordColor.ToArgb());
+         target.KeywordBackgroundColor.ToArgb().Should().Be(Color.Transparent.ToArgb());
+         target.EditorBackgroundColor.ToArgb().Should().Be(source.EditorBackgroundColor.ToArgb());
+         target.ErrorIndicatorColor.ToArgb().Should().Be(source.ErrorIndicatorColor.ToArgb());
+
+         // Combined font style.
+         target.KeywordFontStyle.Should().Be(FontStyle.Bold | FontStyle.Italic);
+
+         // Font + flag.
+         target.EditorFontFamily.Name.Should().Be(source.EditorFontFamily.Name);
+         target.EditorFontSize.Should().Be(source.EditorFontSize);
+         target.EditorDarkTheme.Should().BeTrue();
+      }
+      finally
+      {
+         if (File.Exists(tempFile))
+            File.Delete(tempFile);
+      }
+   }
+
+   [Fact]
+   public void ImportThemeFromJson_AppliesOnlyPresentKeys_LeavesOmittedAndBehaviorUnchanged()
+   {
+      // Target carries a behavior value and an appearance key that the file omits.
+      var target = new Settings();
+      target.LoadDefaults();
+      target.EditorTabLength = 7;
+      target.CommentColor = Color.HotPink;
+
+      var tempFile = Path.Combine(Path.GetTempPath(), $"moo-theme-test-{Guid.NewGuid():N}.mood");
+      var json = "{\"name\":\"Partial\",\"formatVersion\":1,\"settings\":{\"KeywordColor\":\"#123456\"}}";
+
+      try
+      {
+         File.WriteAllText(tempFile, json);
+
+         var result = target.ImportThemeFromJson(tempFile);
+
+         result.Should().NotBeNull();
+         result.MissingFontName.Should().BeNull();
+
+         // Present appearance key applied.
+         target.KeywordColor.ToArgb().Should().Be(ColorTranslator.FromHtml("#123456").ToArgb());
+         // Omitted appearance key unchanged.
+         target.CommentColor.ToArgb().Should().Be(Color.HotPink.ToArgb());
+         // Behavior value untouched.
+         target.EditorTabLength.Should().Be(7);
+      }
+      finally
+      {
+         if (File.Exists(tempFile))
+            File.Delete(tempFile);
+      }
+   }
+
+   [Fact]
+   public void ImportThemeFromJson_MissingFont_FallsBackToMonospaceAndReportsName()
+   {
+      const string absentFont = "Definitely Not A Real Font 12345";
+
+      var target = new Settings();
+      target.LoadDefaults();
+
+      var tempFile = Path.Combine(Path.GetTempPath(), $"moo-theme-test-{Guid.NewGuid():N}.mood");
+      var json = "{\"name\":\"FontTest\",\"formatVersion\":1,\"settings\":{" +
+                 "\"EditorFontFamily\":\"" + absentFont + "\",\"EditorFontSize\":\"13\"}}";
+
+      try
+      {
+         File.WriteAllText(tempFile, json);
+
+         var result = target.ImportThemeFromJson(tempFile);
+
+         result.MissingFontName.Should().Be(absentFont);
+         target.EditorFontFamily.Name.Should().Be(FontFamily.GenericMonospace.Name);
+         target.EditorFontSize.Should().Be(13f);
+      }
+      finally
+      {
+         if (File.Exists(tempFile))
+            File.Delete(tempFile);
+      }
+   }
+
+   [Fact]
+   public void ImportThemeFromJson_MalformedFile_ThrowsAndLeavesTargetUnchanged()
+   {
+      var target = new Settings();
+      target.LoadDefaults();
+      // Sentinel values that must survive a failed import.
+      var sentinelColor = Color.Chartreuse;
+      target.KeywordColor = sentinelColor;
+      target.EditorTabLength = 5;
+
+      var tempFile = Path.Combine(Path.GetTempPath(), $"moo-theme-test-{Guid.NewGuid():N}.mood");
+
+      try
+      {
+         File.WriteAllText(tempFile, "this is not valid json at all }{");
+
+         Action act = () => target.ImportThemeFromJson(tempFile);
+
+         act.Should().Throw<Exception>();
+         target.KeywordColor.ToArgb().Should().Be(sentinelColor.ToArgb());
+         target.EditorTabLength.Should().Be(5);
+      }
+      finally
+      {
+         if (File.Exists(tempFile))
+            File.Delete(tempFile);
+      }
+   }
 }
