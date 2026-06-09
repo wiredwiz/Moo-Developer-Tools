@@ -37,6 +37,7 @@
 using Org.Edgerunner.Mud.Communication;
 using Org.Edgerunner.Mud.Communication.Interfaces;
 using Org.Edgerunner.Mud.Communication.OutOfBand;
+using Org.Edgerunner.Mud.MCP.Interfaces;
 
 namespace Org.Edgerunner.Mud.MCP;
 
@@ -53,6 +54,20 @@ public class McpOobHandler : IOutOfBandMessageHandler
    public McpOobHandler(Version minVersion, Version maxVersion)
    {
       _dispatcher = new McpMessageDispatcher(minVersion, maxVersion);
+   }
+
+   /// <summary>
+   /// Initializes a new instance of <see cref="McpOobHandler"/> that also registers a set of
+   /// extra application-supplied packages with the dispatcher before connection.
+   /// </summary>
+   /// <param name="minVersion">The minimum supported MCP protocol version.</param>
+   /// <param name="maxVersion">The maximum supported MCP protocol version.</param>
+   /// <param name="extraPackages">Additional packages to register (e.g. dns-org-mud-moo-simpleedit).</param>
+   public McpOobHandler(Version minVersion, Version maxVersion, IEnumerable<IMcpPackage> extraPackages)
+      : this(minVersion, maxVersion)
+   {
+      foreach (var package in extraPackages)
+         _dispatcher.RegisterPackage(package);
    }
 
    /// <inheritdoc/>

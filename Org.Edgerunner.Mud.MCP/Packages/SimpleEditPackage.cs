@@ -1,0 +1,106 @@
+#region BSD 3-Clause License
+// <copyright company="Edgerunner.org" file="SimpleEditPackage.cs">
+// Copyright (c)  2022
+// </copyright>
+//
+// BSD 3-Clause License
+//
+// Copyright (c) 2022,
+// All rights reserved.
+//
+// Redistribution and use in source and binary forms, with or without
+// modification, are permitted provided that the following conditions are met:
+//
+// 1. Redistributions of source code must retain the above copyright notice, this
+//    list of conditions and the following disclaimer.
+//
+// 2. Redistributions in binary form must reproduce the above copyright notice,
+//    this list of conditions and the following disclaimer in the documentation
+//    and/or other materials provided with the distribution.
+//
+// 3. Neither the name of the copyright holder nor the names of its
+//    contributors may be used to endorse or promote products derived from
+//    this software without specific prior written permission.
+//
+// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+// DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE
+// FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+// DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
+// SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+// CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
+// OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+// OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+#endregion
+
+using Org.Edgerunner.Mud.Communication.Interfaces;
+using Org.Edgerunner.Mud.MCP.Interfaces;
+
+namespace Org.Edgerunner.Mud.MCP.Packages;
+
+/// <summary>
+/// Implements client support for the <c>dns-org-mud-moo-simpleedit</c> MCP package (v1.0).
+/// Receives <c>…-content</c> messages from the server and presents them for editing via an
+/// <see cref="ISimpleEditConsumer"/>. The outbound <c>…-set</c> message is sent by the
+/// <see cref="SimpleEditUploader"/> attached to the opened editor.
+/// </summary>
+/// <seealso cref="IMcpPackage" />
+public class SimpleEditPackage : IMcpPackage
+{
+   /// <summary>The MCP message name carrying an inbound edit request.</summary>
+   public const string ContentMessageName = "dns-org-mud-moo-simpleedit-content";
+
+   private readonly ISimpleEditConsumer _consumer;
+   private McpClientSession? _session;
+
+   /// <summary>
+   /// Initializes a new instance of the <see cref="SimpleEditPackage"/> class.
+   /// </summary>
+   /// <param name="consumer">The consumer that presents an editing surface for incoming requests.</param>
+   public SimpleEditPackage(ISimpleEditConsumer consumer)
+   {
+      _consumer = consumer;
+   }
+
+   /// <inheritdoc/>
+   public string Name { get; set; } = "dns-org-mud-moo-simpleedit";
+
+   /// <inheritdoc/>
+   public double MinimumVersion { get; set; } = 1.0;
+
+   /// <inheritdoc/>
+   public double MaximumVersion { get; set; } = 1.0;
+
+   /// <inheritdoc/>
+   public void SetSession(McpClientSession session) => _session = session;
+
+   /// <inheritdoc/>
+   public bool CanHandleMessage(Message message) =>
+      message.Name.Equals(ContentMessageName, StringComparison.OrdinalIgnoreCase);
+
+   /// <inheritdoc/>
+   public bool ProcessMessage(IClientTerminal client, Message message)
+   {
+      if (_session == null) return false;
+      if (!CanHandleMessage(message)) return false;
+
+      // Parser keys are lowercased with a trailing colon. reference and content are required.
+      if (!message.Data.TryGetValue("reference:", out var reference) || string.IsNullOrEmpty(reference))
+         return false;
+      if (!message.Data.TryGetValue("content:", out var content))
+         return false;
+
+      message.Data.TryGetValue("name:", out var name);
+      message.Data.TryGetValue("type:", out var type);
+
+      var request = new EditRequest(reference, name ?? string.Empty, type ?? string.Empty, content);
+      var uploader = new SimpleEditUploader(client, _session.Key, reference, type ?? string.Empty);
+
+      _consumer.PresentEdit(request, uploader);
+      return true;
+   }
+
+   /// <inheritdoc/>
+   public void Reset() { }
+}

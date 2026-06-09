@@ -135,21 +135,76 @@ public static class McpUtils
       }
 
       foreach (var (k, v) in data)
-      {
-         sb.Append(' ');
-         sb.Append(k);
-         sb.Append(' ');
-         if (NeedsQuoting(v))
-         {
-            sb.Append('"');
-            sb.Append(v);
-            sb.Append('"');
-         }
-         else
-            sb.Append(v);
-      }
+         AppendField(sb, k, v);
 
       return sb.ToString();
+   }
+
+   /// <summary>
+   /// Formats an outbound MCP multiline message block (without the leading <c>#$#</c> prefix on any line).
+   /// </summary>
+   /// <param name="name">The MCP message name.</param>
+   /// <param name="key">The authentication key, or <see cref="string.Empty"/> if none.</param>
+   /// <param name="simpleFields">The simple (single-line) keyword/value pairs, formatted with the standard quoting rules.</param>
+   /// <param name="multilineKeyword">The multiline field keyword (without the trailing <c>*:</c>), e.g. <c>content</c>.</param>
+   /// <param name="contentLines">The literal multiline content lines (sent verbatim, never quoted).</param>
+   /// <param name="dataTag">The data-tag correlating the continuation lines for this block.</param>
+   /// <returns>The ordered wire lines: the initial message line, one continuation line per content line, then the closing line.</returns>
+   public static IEnumerable<string> FormatMultilineMessage(
+      string name,
+      string key,
+      Dictionary<string, string> simpleFields,
+      string multilineKeyword,
+      IEnumerable<string> contentLines,
+      string dataTag)
+   {
+      var lines = new List<string>();
+
+      // Initial line: name [key] <simple fields...> <keyword>*: "" _data-tag: <dataTag>
+      var sb = new StringBuilder();
+      sb.Append(name);
+      if (!string.IsNullOrEmpty(key))
+      {
+         sb.Append(' ');
+         sb.Append(key);
+      }
+
+      foreach (var (k, v) in simpleFields)
+         AppendField(sb, k, v);
+
+      // The value after "<keyword>*:" is syntactically required but ignored; "" is conventional.
+      sb.Append(' ');
+      sb.Append(multilineKeyword);
+      sb.Append("*: \"\" _data-tag: ");
+      sb.Append(dataTag);
+      lines.Add(sb.ToString());
+
+      // One continuation line per content line. The content is literal — never quoted.
+      foreach (var line in contentLines)
+         lines.Add($"* {dataTag} {multilineKeyword}: {line}");
+
+      // Closing line.
+      lines.Add($": {dataTag}");
+
+      return lines;
+   }
+
+   /// <summary>
+   /// Appends a single " <keyword> <value>" segment to the builder, quoting the value if required.
+   /// </summary>
+   private static void AppendField(StringBuilder sb, string keyword, string value)
+   {
+      sb.Append(' ');
+      sb.Append(keyword);
+      sb.Append(' ');
+      if (NeedsQuoting(value))
+      {
+         sb.Append('"');
+         sb.Append(value);
+         sb.Append('"');
+      }
+      else
+         sb.Append(value);
    }
 
    private static bool NeedsQuoting(string value) =>

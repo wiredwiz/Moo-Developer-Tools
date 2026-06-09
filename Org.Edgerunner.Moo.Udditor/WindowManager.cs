@@ -45,6 +45,8 @@ using Org.Edgerunner.Mud.Communication.OutOfBand;
 using Org.Edgerunner.Moo.Editor.Controls;
 using Org.Edgerunner.Moo.Udditor.Communication.OutOfBand;
 using Org.Edgerunner.Mud.MCP;
+using Org.Edgerunner.Mud.MCP.Interfaces;
+using Org.Edgerunner.Mud.MCP.Packages;
 using Krypton.Workspace;
 using NLog;
 
@@ -335,7 +337,9 @@ public class WindowManager
          var oobPrefix = "#$#";
          var oobHandler = new OutOfBandMessageProcessor();
          oobHandler.RegisterHandler(new LocalEditHandler(this));
-         oobHandler.RegisterHandler(new McpOobHandler(new Version(2, 1), new Version(2, 1)));
+         var simpleEdit = new SimpleEditPackage(new WindowManagerSimpleEditConsumer(this));
+         oobHandler.RegisterHandler(new McpOobHandler(new Version(2, 1), new Version(2, 1),
+            new IMcpPackage[] { simpleEdit }));
          var processor = new RootMessageProcessor(oobPrefix, oobHandler);
          processor.OutOfBandMessagingTimeout = 500000;
          var page = new TerminalPage(this, processor, world, useTls);
