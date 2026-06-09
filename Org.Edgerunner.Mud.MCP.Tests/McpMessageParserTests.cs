@@ -164,6 +164,40 @@ public class McpMessageParserTests
     }
 
     [Fact]
+    public void FeedLine_ContinuationLinesWithTrailingNewline_DoNotDoubleSpaceContent()
+    {
+        // Mirrors production: the OOB transport delivers each line with a trailing "\n".
+        _parser.FeedLine("dns-org-mud-moo-simpleedit-content KEY reference: \"#2:rport\" name: \"x\" type: moo-code content*: \"\" _data-tag: TAG\n");
+        _parser.FeedLine("* TAG content: if (!args)\n");
+        _parser.FeedLine("* TAG content:   return x;\n");
+        _parser.FeedLine("* TAG content:     deeply indented\n");
+        _parser.FeedLine("* TAG content: \n");
+        _parser.FeedLine("* TAG content: tail line\n");
+        var result = _parser.FeedLine(": TAG\n");
+
+        result.Should().Be(McpParseState.Complete);
+        _parser.Result!.Name.Should().Be("dns-org-mud-moo-simpleedit-content");
+        _parser.Result.Key.Should().Be("KEY");
+        // Lines joined by a SINGLE "\n" with no doubled/blank lines, indentation intact,
+        // and the empty content line preserved as a single blank line.
+        _parser.Result.Data["content:"].Should().Be(
+            "if (!args)\n  return x;\n    deeply indented\n\ntail line");
+        _parser.Result.Data.Should().NotContainKey("_data-tag:");
+    }
+
+    [Fact]
+    public void FeedLine_ContinuationLinesWithCrLfTerminator_CollapseCorrectly()
+    {
+        _parser.FeedLine("mcp-edit-set abc123 content*: \"\" _data-tag: dt42\r\n");
+        _parser.FeedLine("* dt42 content: first line\r\n");
+        _parser.FeedLine("* dt42 content:   second indented\r\n");
+        var result = _parser.FeedLine(": dt42\r\n");
+
+        result.Should().Be(McpParseState.Complete);
+        _parser.Result!.Data["content:"].Should().Be("first line\n  second indented");
+    }
+
+    [Fact]
     public void Reset_AfterMultilineInProgress_AllowsFreshParse()
     {
         _parser.FeedLine("mcp-edit-set abc123 content*: dt42");
