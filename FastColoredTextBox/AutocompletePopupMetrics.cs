@@ -14,6 +14,13 @@ namespace FastColoredTextBoxNS {
 		public const int BaseMaxHeight = 180;
 		/// <summary>Effective font never drops below this (pt).</summary>
 		public const float MinFontSizeInPoints = 6f;
+		/// <summary>
+		/// Effective font never exceeds this (pt). Mirrors the editor's own zoom cap
+		/// (<see cref="FastColoredTextBox.DoZoom"/> rejects sizes &gt; 300pt) so GDI+ is never
+		/// asked for a degenerate font: <see cref="FastColoredTextBox.Zoom"/> stores its raw value
+		/// even when the editor refuses an out-of-range zoom, so the popup must clamp independently.
+		/// </summary>
+		public const float MaxFontSizeInPoints = 300f;
 		/// <summary>Effective icon never drops below this (px).</summary>
 		public const int MinIconSize = 8;
 
@@ -42,7 +49,7 @@ namespace FastColoredTextBoxNS {
 		public static AutocompletePopupMetrics Compute(float baseFontSizeInPoints, int zoomPercent) {
 			float scale = zoomPercent / 100f;
 
-			float fontSize = Math.Max(baseFontSizeInPoints * scale, MinFontSizeInPoints);
+			float fontSize = Math.Clamp(baseFontSizeInPoints * scale, MinFontSizeInPoints, MaxFontSizeInPoints);
 			int iconSize = Math.Max((int)Math.Round(BaseIconSize * scale), MinIconSize);
 			int gutter = iconSize + 2;
 			int maxHeight = (int)Math.Round(BaseMaxHeight * scale);

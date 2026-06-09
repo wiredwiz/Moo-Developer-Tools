@@ -44,6 +44,15 @@ public class AutocompletePopupMetricsTests {
 	}
 
 	[Fact]
+	public void Compute_AtExtremeZoom_ClampsFontToCeiling() {
+		// tb.Zoom keeps climbing even after the editor caps its own font at 300pt, so the popup
+		// must clamp independently or GDI+ is asked for a degenerate font and Font.Height throws.
+		var metrics = AutocompletePopupMetrics.Compute(BaseFontPt, 100_000);
+
+		metrics.FontSizeInPoints.Should().Be(AutocompletePopupMetrics.MaxFontSizeInPoints);
+	}
+
+	[Fact]
 	public void Compute_GutterAlwaysTrailsIconByTwo() {
 		var metrics = AutocompletePopupMetrics.Compute(BaseFontPt, 175);
 
