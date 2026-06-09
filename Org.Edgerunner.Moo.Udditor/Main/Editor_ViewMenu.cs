@@ -49,6 +49,14 @@ public partial class Editor
       dialog.ShowDialog(this);
    }
 
+   private void mnuItemOptions_Click(object sender, EventArgs e)
+   {
+      var configPath = ApplicationPaths.GetWritableDataFile("Moo.Editor.config");
+      using var dialog = new EditorOptionsDialog(WindowManager, configPath);
+      dialog.StartPosition = FormStartPosition.CenterParent;
+      dialog.ShowDialog(this);
+   }
+
    private void mnuItemWordWrap_CheckStateChanged(object sender, EventArgs e)
    {
       if (CurrentPage is MooEditorPage editorPage)
