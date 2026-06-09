@@ -343,6 +343,10 @@ namespace Org.Edgerunner.Moo.Udditor.Dialogs
          var fill = isTransparent ? SystemColors.Control : color;
          swatch.StateCommon.Back.Color1 = fill;
          swatch.StateCommon.Back.Color2 = fill;
+         // Pin the label color so "(none)" stays readable on the light fill even when the
+         // dialog palette (dark mode) would otherwise paint button text white.
+         swatch.StateCommon.Content.ShortText.Color1 = Color.DimGray;
+         swatch.StateCommon.Content.ShortText.Color2 = Color.DimGray;
          swatch.Values.Text = isTransparent ? "(none)" : string.Empty;
       }
 
