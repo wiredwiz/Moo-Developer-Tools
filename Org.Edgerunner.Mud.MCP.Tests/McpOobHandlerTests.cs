@@ -41,7 +41,7 @@ public class McpOobHandlerTests
         var state = new MessageProcessingState();
         var handler = new McpOobHandler(new Version(2, 1), new Version(2, 1));
 
-        handler.ProcessMessage(client, "mcp-edit-set abc123 content*: dt42", ref state);
+        handler.ProcessMessage(client, "mcp-edit-set abc123 content*: \"\" _data-tag: dt42", ref state);
 
         state.CurrentProcessor.Should().Be(handler);
         state.Finished.Should().BeFalse();
@@ -54,7 +54,7 @@ public class McpOobHandlerTests
         var state = new MessageProcessingState();
         var handler = new McpOobHandler(new Version(2, 1), new Version(2, 1));
 
-        handler.ProcessMessage(client, "mcp-edit-set abc123 content*: dt42", ref state);
+        handler.ProcessMessage(client, "mcp-edit-set abc123 content*: \"\" _data-tag: dt42", ref state);
         handler.ProcessMessage(client, "* dt42 content: hello", ref state);
         handler.ProcessMessage(client, ": dt42", ref state);
 
@@ -82,7 +82,7 @@ public class McpOobHandlerTests
         var state = new MessageProcessingState();
         var handler = new McpOobHandler(new Version(2, 1), new Version(2, 1));
 
-        handler.ProcessMessage(client, "mcp-edit-set abc123 content*: dt42", ref state);
+        handler.ProcessMessage(client, "mcp-edit-set abc123 content*: \"\" _data-tag: dt42", ref state);
         handler.Reset();
 
         // After reset, a complete single-line message should parse cleanly

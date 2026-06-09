@@ -56,16 +56,20 @@ Unquoted values must match `[^ \t"*:]+`. All others must be quoted.
 
 ### Multiline values
 
-A keyword suffixed with `*` signals a multiline value. The value on the same line is a **data-tag** (unique identifier for this multi-line block). Subsequent lines prefixed with `#$#*` carry the data, and `#$#:` closes the block:
+A keyword suffixed with `*` signals a multiline value (a **multiline field**), identified by its field **name** (the keyword without the trailing `*`). The value written on the same line as a `*:` keyword is ignored (conventionally the empty string `""`).
+
+The framing data-tag for the entire message is supplied once, via a separate `_data-tag:` keyword on the initial line. The data-tag is a unique identifier for this multiline block; subsequent lines prefixed with `#$#*` carry the data, and `#$#:` closes the block:
 
 ```
-#$#mcp-edit-set 1234 name: foo content*: dt42
+#$#mcp-edit-set 1234 name: foo content*: "" _data-tag: dt42
 #$#* dt42 content: first line of content
 #$#* dt42 content: second line of content
 #$#: dt42
 ```
 
-A single message may have multiple multiline fields, each using a different data-tag. The closing `#$#:` indicates the entire message (not just one field) is complete.
+Each continuation line has the form `#$#* <data-tag> <keyword>: <value>`. The `<value>` is **literal** — everything after the single space following `<keyword>:` is taken verbatim (embedded quotes, colons, and leading spaces are all preserved; the value is not re-parsed or unquoted). A line is appended to a field's buffer only when its `<data-tag>` matches the message's data-tag and `<keyword>` matches a declared multiline field.
+
+A single message may have **multiple multiline fields**. They all **share the one `_data-tag`** for the message and are distinguished by their **keyword** on the `#$#*` continuation lines — they do *not* each get a different data-tag. The closing `#$#: <data-tag>` indicates the entire message (not just one field) is complete. A message that declares a `*:` field but carries no `_data-tag:` is malformed.
 
 ---
 
