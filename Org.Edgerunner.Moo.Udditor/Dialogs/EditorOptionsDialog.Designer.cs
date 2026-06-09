@@ -32,13 +32,10 @@ namespace Org.Edgerunner.Moo.Udditor.Dialogs
          var resources = new System.ComponentModel.ComponentResourceManager(typeof(EditorOptionsDialog));
 
          tabControl1 = new TabControl();
-         tabPageSyntaxColors = new TabPage();
-         tabPageFontStyles = new TabPage();
-         tabPageChromeColors = new TabPage();
          tabPageEditorFont = new TabPage();
          tabPageIndentation = new TabPage();
          tabPageCodeFeatures = new TabPage();
-         tabPageTheme = new TabPage();
+         tabPageGrammar = new TabPage();
 
          panelButtons = new Panel();
          buttonOk = new Button();
@@ -50,13 +47,10 @@ namespace Org.Edgerunner.Moo.Udditor.Dialogs
          SuspendLayout();
 
          // tabControl1
-         tabControl1.Controls.Add(tabPageSyntaxColors);
-         tabControl1.Controls.Add(tabPageFontStyles);
-         tabControl1.Controls.Add(tabPageChromeColors);
          tabControl1.Controls.Add(tabPageEditorFont);
          tabControl1.Controls.Add(tabPageIndentation);
          tabControl1.Controls.Add(tabPageCodeFeatures);
-         tabControl1.Controls.Add(tabPageTheme);
+         tabControl1.Controls.Add(tabPageGrammar);
          tabControl1.Dock = DockStyle.Fill;
          tabControl1.Location = new Point(0, 0);
          tabControl1.Name = "tabControl1";
@@ -64,39 +58,12 @@ namespace Org.Edgerunner.Moo.Udditor.Dialogs
          tabControl1.Size = new Size(700, 500);
          tabControl1.TabIndex = 0;
 
-         // tabPageSyntaxColors
-         tabPageSyntaxColors.Location = new Point(4, 24);
-         tabPageSyntaxColors.Name = "tabPageSyntaxColors";
-         tabPageSyntaxColors.Padding = new Padding(3);
-         tabPageSyntaxColors.Size = new Size(692, 472);
-         tabPageSyntaxColors.TabIndex = 0;
-         tabPageSyntaxColors.Text = "Syntax Highlighting Colors";
-         tabPageSyntaxColors.UseVisualStyleBackColor = true;
-
-         // tabPageFontStyles
-         tabPageFontStyles.Location = new Point(4, 24);
-         tabPageFontStyles.Name = "tabPageFontStyles";
-         tabPageFontStyles.Padding = new Padding(3);
-         tabPageFontStyles.Size = new Size(692, 472);
-         tabPageFontStyles.TabIndex = 1;
-         tabPageFontStyles.Text = "Font Styles";
-         tabPageFontStyles.UseVisualStyleBackColor = true;
-
-         // tabPageChromeColors
-         tabPageChromeColors.Location = new Point(4, 24);
-         tabPageChromeColors.Name = "tabPageChromeColors";
-         tabPageChromeColors.Padding = new Padding(3);
-         tabPageChromeColors.Size = new Size(692, 472);
-         tabPageChromeColors.TabIndex = 2;
-         tabPageChromeColors.Text = "Editor Chrome Colors";
-         tabPageChromeColors.UseVisualStyleBackColor = true;
-
          // tabPageEditorFont
          tabPageEditorFont.Location = new Point(4, 24);
          tabPageEditorFont.Name = "tabPageEditorFont";
          tabPageEditorFont.Padding = new Padding(3);
          tabPageEditorFont.Size = new Size(692, 472);
-         tabPageEditorFont.TabIndex = 3;
+         tabPageEditorFont.TabIndex = 0;
          tabPageEditorFont.Text = "Editor Font & Display";
          tabPageEditorFont.UseVisualStyleBackColor = true;
 
@@ -105,7 +72,7 @@ namespace Org.Edgerunner.Moo.Udditor.Dialogs
          tabPageIndentation.Name = "tabPageIndentation";
          tabPageIndentation.Padding = new Padding(3);
          tabPageIndentation.Size = new Size(692, 472);
-         tabPageIndentation.TabIndex = 4;
+         tabPageIndentation.TabIndex = 1;
          tabPageIndentation.Text = "Indentation & Wrapping";
          tabPageIndentation.UseVisualStyleBackColor = true;
 
@@ -114,18 +81,18 @@ namespace Org.Edgerunner.Moo.Udditor.Dialogs
          tabPageCodeFeatures.Name = "tabPageCodeFeatures";
          tabPageCodeFeatures.Padding = new Padding(3);
          tabPageCodeFeatures.Size = new Size(692, 472);
-         tabPageCodeFeatures.TabIndex = 5;
+         tabPageCodeFeatures.TabIndex = 2;
          tabPageCodeFeatures.Text = "Code Features";
          tabPageCodeFeatures.UseVisualStyleBackColor = true;
 
-         // tabPageTheme
-         tabPageTheme.Location = new Point(4, 24);
-         tabPageTheme.Name = "tabPageTheme";
-         tabPageTheme.Padding = new Padding(3);
-         tabPageTheme.Size = new Size(692, 472);
-         tabPageTheme.TabIndex = 6;
-         tabPageTheme.Text = "Theme & Grammar";
-         tabPageTheme.UseVisualStyleBackColor = true;
+         // tabPageGrammar
+         tabPageGrammar.Location = new Point(4, 24);
+         tabPageGrammar.Name = "tabPageGrammar";
+         tabPageGrammar.Padding = new Padding(3);
+         tabPageGrammar.Size = new Size(692, 472);
+         tabPageGrammar.TabIndex = 3;
+         tabPageGrammar.Text = "Grammar";
+         tabPageGrammar.UseVisualStyleBackColor = true;
 
          // panelButtons
          panelButtons.Controls.Add(buttonCancel);
@@ -193,13 +160,10 @@ namespace Org.Edgerunner.Moo.Udditor.Dialogs
       #endregion
 
       private TabControl tabControl1;
-      private TabPage tabPageSyntaxColors;
-      private TabPage tabPageFontStyles;
-      private TabPage tabPageChromeColors;
       private TabPage tabPageEditorFont;
       private TabPage tabPageIndentation;
       private TabPage tabPageCodeFeatures;
-      private TabPage tabPageTheme;
+      private TabPage tabPageGrammar;
 
       private Panel panelButtons;
       private Button buttonOk;
