@@ -78,114 +78,13 @@ namespace Org.Edgerunner.Moo.Udditor.Dialogs
       /// </summary>
       private void BuildTabs()
       {
-         BuildSyntaxHighlightingColorsTab();
-         BuildFontStylesTab();
-         BuildChromeColorsTab();
          BuildEditorFontTab();
          BuildIndentationTab();
          BuildCodeFeaturesTab();
-         BuildThemeTab();
+         BuildGrammarTab();
       }
 
       #region Tab Building Methods
-
-      private void BuildSyntaxHighlightingColorsTab()
-      {
-         var panel = new TableLayoutPanel
-         {
-            Dock = DockStyle.Fill,
-            AutoScroll = true,
-            ColumnCount = 1,
-            Padding = new Padding(8)
-         };
-         panel.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100f));
-
-         var group = CreateGroupBox("Syntax Token Colors", CreateColorGrid(new[]
-         {
-            ("Default Word", nameof(Settings.DefaultWordColor), nameof(Settings.DefaultWordBackgroundColor)),
-            ("Keyword", nameof(Settings.KeywordColor), nameof(Settings.KeywordBackgroundColor)),
-            ("Comment", nameof(Settings.CommentColor), nameof(Settings.CommentBackgroundColor)),
-            ("String", nameof(Settings.StringColor), nameof(Settings.StringBackgroundColor)),
-            ("Literal", nameof(Settings.LiteralColor), nameof(Settings.LiteralBackgroundColor)),
-            ("Symbol", nameof(Settings.SymbolColor), nameof(Settings.SymbolBackgroundColor)),
-            ("Operator", nameof(Settings.OperatorColor), nameof(Settings.OperatorBackgroundColor)),
-            ("Parenthesis", nameof(Settings.ParenthesisColor), nameof(Settings.ParenthesisBackgroundColor)),
-            ("Bracket", nameof(Settings.BracketColor), nameof(Settings.BracketBackgroundColor)),
-            ("Curly Brace", nameof(Settings.CurlyBraceColor), nameof(Settings.CurlyBraceBackgroundColor)),
-            ("Object", nameof(Settings.ObjectColor), nameof(Settings.ObjectBackgroundColor)),
-            ("Core Reference", nameof(Settings.CoreReferenceColor), nameof(Settings.CoreReferenceBackgroundColor)),
-            ("Builtin Variable", nameof(Settings.BuiltinVariableColor), nameof(Settings.BuiltinVariableBackgroundColor)),
-            ("Builtin Function", nameof(Settings.BuiltinFunctionColor), nameof(Settings.BuiltinFunctionBackgroundColor)),
-            ("Verb", nameof(Settings.VerbColor), nameof(Settings.VerbBackgroundColor)),
-            ("Property", nameof(Settings.PropertyColor), nameof(Settings.PropertyBackgroundColor))
-         }));
-
-         panel.Controls.Add(group);
-         tabPageSyntaxColors.Controls.Add(panel);
-      }
-
-      private void BuildFontStylesTab()
-      {
-         var panel = new TableLayoutPanel
-         {
-            Dock = DockStyle.Fill,
-            AutoScroll = true,
-            ColumnCount = 1,
-            Padding = new Padding(8)
-         };
-         panel.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100f));
-
-         var group = CreateGroupBox("Token Font Styles", CreateFontStyleGrid(new[]
-         {
-            ("Default Word", nameof(Settings.DefaultWordFontStyle)),
-            ("Keyword", nameof(Settings.KeywordFontStyle)),
-            ("Comment", nameof(Settings.CommentFontStyle)),
-            ("String", nameof(Settings.StringFontStyle)),
-            ("Literal", nameof(Settings.LiteralFontStyle)),
-            ("Symbol", nameof(Settings.SymbolFontStyle)),
-            ("Operator", nameof(Settings.OperatorFontStyle)),
-            ("Parenthesis", nameof(Settings.ParenthesisFontStyle)),
-            ("Bracket", nameof(Settings.BracketFontStyle)),
-            ("Curly Brace", nameof(Settings.CurlyBraceFontStyle)),
-            ("Object", nameof(Settings.ObjectFontStyle)),
-            ("Core Reference", nameof(Settings.CoreReferenceFontStyle))
-         }));
-
-         panel.Controls.Add(group);
-         tabPageFontStyles.Controls.Add(panel);
-      }
-
-      private void BuildChromeColorsTab()
-      {
-         var panel = new TableLayoutPanel
-         {
-            Dock = DockStyle.Fill,
-            AutoScroll = true,
-            ColumnCount = 1,
-            Padding = new Padding(8)
-         };
-         panel.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100f));
-
-         var group = CreateGroupBox("Editor Chrome", CreateChromeColorGrid(new[]
-         {
-            ("Text Color", nameof(Settings.EditorTextColor)),
-            ("Background Color", nameof(Settings.EditorBackgroundColor)),
-            ("Caret Color", nameof(Settings.EditorCaretColor)),
-            ("Line Number Color", nameof(Settings.EditorLineNumberColor)),
-            ("Current Line Color", nameof(Settings.EditorCurrentLineColor)),
-            ("Selection Color", nameof(Settings.EditorTextSelectionColor)),
-            ("Folding Indicator Color", nameof(Settings.EditorFoldingIndicatorColor)),
-            ("Changed Line Color", nameof(Settings.EditorChangedLineColor)),
-            ("Indent Background Color", nameof(Settings.EditorIndentBackColor)),
-            ("Bookmark Color", nameof(Settings.EditorBookmarkColor)),
-            ("Service Line Color", nameof(Settings.EditorServiceLineColor)),
-            ("Folding Highlight Color", nameof(Settings.EditorFoldingHighlightColor)),
-            ("Error Indicator Color", nameof(Settings.ErrorIndicatorColor))
-         }));
-
-         panel.Controls.Add(group);
-         tabPageChromeColors.Controls.Add(panel);
-      }
 
       private void BuildEditorFontTab()
       {
@@ -323,7 +222,7 @@ namespace Org.Edgerunner.Moo.Udditor.Dialogs
          tabPageCodeFeatures.Controls.Add(panel);
       }
 
-      private void BuildThemeTab()
+      private void BuildGrammarTab()
       {
          var panel = new TableLayoutPanel
          {
@@ -332,15 +231,10 @@ namespace Org.Edgerunner.Moo.Udditor.Dialogs
             AutoSizeMode = AutoSizeMode.GrowAndShrink,
             ColumnCount = 2,
             Padding = new Padding(8),
-            RowCount = 2
+            RowCount = 1
          };
          panel.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 200f));
          panel.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100f));
-
-         // Dark Theme
-         var chkDarkTheme = new CheckBox { Text = "Use Dark Theme", Name = nameof(Settings.EditorDarkTheme), AutoSize = true };
-         panel.Controls.Add(chkDarkTheme);
-         panel.Controls.Add(new Label());
 
          // Default Dialect
          var lblDialect = new Label { Text = "Default Grammar Dialect:", AutoSize = true };
@@ -349,160 +243,12 @@ namespace Org.Edgerunner.Moo.Udditor.Dialogs
          panel.Controls.Add(lblDialect);
          panel.Controls.Add(cmbDialect);
 
-         tabPageTheme.Controls.Add(panel);
+         tabPageGrammar.Controls.Add(panel);
       }
 
       #endregion
 
       #region Helper Methods for Tab Building
-
-      private GroupBox CreateGroupBox(string title, Control contentControl)
-      {
-         var group = new GroupBox
-         {
-            Text = title,
-            Dock = DockStyle.Top,
-            AutoSize = true,
-            AutoSizeMode = AutoSizeMode.GrowAndShrink,
-            Padding = new Padding(8)
-         };
-         group.Controls.Add(contentControl);
-         return group;
-      }
-
-      private Control CreateColorGrid((string label, string fgProperty, string bgProperty)[] rows)
-      {
-         var table = new TableLayoutPanel
-         {
-            Dock = DockStyle.Top,
-            AutoSize = true,
-            AutoSizeMode = AutoSizeMode.GrowAndShrink,
-            ColumnCount = 3,
-            Padding = new Padding(4),
-            GrowStyle = TableLayoutPanelGrowStyle.AddRows
-         };
-         table.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 130f));
-         table.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 80f));
-         table.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 80f));
-
-         // Header
-         table.Controls.Add(new Label { Text = "Token", AutoSize = true });
-         table.Controls.Add(new Label { Text = "Foreground", AutoSize = true });
-         table.Controls.Add(new Label { Text = "Background", AutoSize = true });
-
-         foreach (var (label, fgProp, bgProp) in rows)
-         {
-            table.Controls.Add(new Label { Text = label, AutoSize = true });
-            var fgBtn = CreateColorButton(fgProp);
-            var bgBtn = CreateColorButton(bgProp);
-            table.Controls.Add(fgBtn);
-            table.Controls.Add(bgBtn);
-         }
-
-         return table;
-      }
-
-      private Control CreateFontStyleGrid((string label, string property)[] rows)
-      {
-         var table = new TableLayoutPanel
-         {
-            Dock = DockStyle.Top,
-            AutoSize = true,
-            AutoSizeMode = AutoSizeMode.GrowAndShrink,
-            ColumnCount = 2,
-            Padding = new Padding(4),
-            GrowStyle = TableLayoutPanelGrowStyle.AddRows
-         };
-         table.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 130f));
-         table.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 150f));
-
-         // Header
-         table.Controls.Add(new Label { Text = "Token", AutoSize = true });
-         table.Controls.Add(new Label { Text = "Font Style", AutoSize = true });
-
-         foreach (var (label, property) in rows)
-         {
-            table.Controls.Add(new Label { Text = label, AutoSize = true });
-            var styleCombo = CreateFontStyleCombo(property);
-            table.Controls.Add(styleCombo);
-         }
-
-         return table;
-      }
-
-      private Control CreateChromeColorGrid((string label, string property)[] rows)
-      {
-         var table = new TableLayoutPanel
-         {
-            Dock = DockStyle.Top,
-            AutoSize = true,
-            AutoSizeMode = AutoSizeMode.GrowAndShrink,
-            ColumnCount = 2,
-            Padding = new Padding(4),
-            GrowStyle = TableLayoutPanelGrowStyle.AddRows
-         };
-         table.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 180f));
-         table.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 80f));
-
-         // Header
-         table.Controls.Add(new Label { Text = "Element", AutoSize = true });
-         table.Controls.Add(new Label { Text = "Color", AutoSize = true });
-
-         foreach (var (label, property) in rows)
-         {
-            table.Controls.Add(new Label { Text = label, AutoSize = true });
-            var colorBtn = CreateColorButton(property);
-            table.Controls.Add(colorBtn);
-         }
-
-         return table;
-      }
-
-      private Button CreateColorButton(string propertyName)
-      {
-         var btn = new Button
-         {
-            Name = propertyName,
-            Width = 60,
-            Height = 24,
-            FlatStyle = FlatStyle.Flat,
-            Tag = propertyName
-         };
-
-         // Get current color from settings
-         var prop = typeof(Settings).GetProperty(propertyName);
-         if (prop != null && prop.GetValue(_working) is Color color)
-            btn.BackColor = color;
-
-         btn.FlatAppearance.BorderColor = Color.Gray;
-         btn.FlatAppearance.BorderSize = 1;
-
-         btn.Click += (_, _) => OnColorButtonClick(btn, propertyName);
-
-         return btn;
-      }
-
-      private ComboBox CreateFontStyleCombo(string propertyName)
-      {
-         var combo = new ComboBox
-         {
-            Name = propertyName,
-            DropDownStyle = ComboBoxStyle.DropDownList,
-            Width = 140,
-            Tag = propertyName
-         };
-
-         combo.Items.AddRange(new object[] { "Regular", "Bold", "Italic", "Bold + Italic", "Underline", "Strikeout" });
-
-         // Set current font style
-         var prop = typeof(Settings).GetProperty(propertyName);
-         if (prop != null && prop.GetValue(_working) is FontStyle style)
-            combo.SelectedIndex = FontStyleToIndex(style);
-         else
-            combo.SelectedIndex = 0;
-
-         return combo;
-      }
 
       private void PopulateFontCombo(ComboBox combo)
       {
@@ -515,52 +261,6 @@ namespace Org.Edgerunner.Moo.Udditor.Dialogs
             combo.SelectedItem = fontFamily.Name;
          else if (combo.Items.Count > 0)
             combo.SelectedIndex = 0;
-      }
-
-      private void OnColorButtonClick(Button btn, string propertyName)
-      {
-         using var dialog = new ColorDialog
-         {
-            Color = btn.BackColor,
-            FullOpen = true,
-            AnyColor = true
-         };
-
-         if (dialog.ShowDialog(this) == DialogResult.OK)
-         {
-            btn.BackColor = dialog.Color;
-            var prop = typeof(Settings).GetProperty(propertyName);
-            if (prop != null)
-               prop.SetValue(_working, dialog.Color);
-         }
-      }
-
-      private static int FontStyleToIndex(FontStyle style)
-      {
-         if (style.HasFlag(FontStyle.Bold) && style.HasFlag(FontStyle.Italic))
-            return 3;
-         if (style.HasFlag(FontStyle.Italic))
-            return 2;
-         if (style.HasFlag(FontStyle.Bold))
-            return 1;
-         if (style.HasFlag(FontStyle.Underline))
-            return 4;
-         if (style.HasFlag(FontStyle.Strikeout))
-            return 5;
-         return 0;
-      }
-
-      private static FontStyle IndexToFontStyle(int index)
-      {
-         return index switch
-         {
-            1 => FontStyle.Bold,
-            2 => FontStyle.Italic,
-            3 => FontStyle.Bold | FontStyle.Italic,
-            4 => FontStyle.Underline,
-            5 => FontStyle.Strikeout,
-            _ => FontStyle.Regular
-         };
       }
 
       #endregion
@@ -582,9 +282,7 @@ namespace Org.Edgerunner.Moo.Udditor.Dialogs
 
             var value = prop.GetValue(_working);
 
-            if (control is Button btn && value is Color color)
-               btn.BackColor = color;
-            else if (control is CheckBox chk && value is bool boolValue)
+            if (control is CheckBox chk && value is bool boolValue)
                chk.Checked = boolValue;
             else if (control is NumericUpDown nud && value != null)
             {
@@ -621,9 +319,7 @@ namespace Org.Edgerunner.Moo.Udditor.Dialogs
 
             object value = null;
 
-            if (control is Button btn)
-               value = btn.BackColor;
-            else if (control is CheckBox chk)
+            if (control is CheckBox chk)
                value = chk.Checked;
             else if (control is NumericUpDown nud)
             {
