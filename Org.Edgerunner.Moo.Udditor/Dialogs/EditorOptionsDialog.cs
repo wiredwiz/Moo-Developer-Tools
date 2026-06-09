@@ -157,13 +157,13 @@ namespace Org.Edgerunner.Moo.Udditor.Dialogs
          var chkWordWrap = new KryptonCheckBox { Name = nameof(Settings.EditorWordWrap), AutoSize = true };
          chkWordWrap.Values.Text = "Enable Word Wrap";
          panel.Controls.Add(chkWordWrap);
-         panel.Controls.Add(new KryptonLabel());
+         panel.Controls.Add(new KryptonLabel { Values = { Text = string.Empty } });
 
          // Word Wrap Auto Indent
          var chkWordWrapIndent = new KryptonCheckBox { Name = nameof(Settings.EditorWordWrapAutoIndent), AutoSize = true };
          chkWordWrapIndent.Values.Text = "Word Wrap Auto Indent";
          panel.Controls.Add(chkWordWrapIndent);
-         panel.Controls.Add(new KryptonLabel());
+         panel.Controls.Add(new KryptonLabel { Values = { Text = string.Empty } });
 
          // Word Wrap Indent
          var lblWrapIndent = new KryptonLabel { AutoSize = true };
@@ -176,13 +176,13 @@ namespace Org.Edgerunner.Moo.Udditor.Dialogs
          var chkAutoIndent = new KryptonCheckBox { Name = nameof(Settings.EditorAutoIndent), AutoSize = true };
          chkAutoIndent.Values.Text = "Enable Auto Indent";
          panel.Controls.Add(chkAutoIndent);
-         panel.Controls.Add(new KryptonLabel());
+         panel.Controls.Add(new KryptonLabel { Values = { Text = string.Empty } });
 
          // Show Text Indent Guides
          var chkIndentGuides = new KryptonCheckBox { Name = nameof(Settings.EditorShowTextIndentGuides), AutoSize = true };
          chkIndentGuides.Values.Text = "Show Text Indent Guides";
          panel.Controls.Add(chkIndentGuides);
-         panel.Controls.Add(new KryptonLabel());
+         panel.Controls.Add(new KryptonLabel { Values = { Text = string.Empty } });
 
          tabPageIndentation.Controls.Add(panel);
       }
@@ -205,19 +205,19 @@ namespace Org.Edgerunner.Moo.Udditor.Dialogs
          var chkCodeFolding = new KryptonCheckBox { Name = nameof(Settings.EditorShowCodeFolding), AutoSize = true };
          chkCodeFolding.Values.Text = "Enable Code Folding";
          panel.Controls.Add(chkCodeFolding);
-         panel.Controls.Add(new KryptonLabel());
+         panel.Controls.Add(new KryptonLabel { Values = { Text = string.Empty } });
 
          // Show Folding Block Highlights
          var chkFoldHighlight = new KryptonCheckBox { Name = nameof(Settings.EditorShowFoldingBlockHighlights), AutoSize = true };
          chkFoldHighlight.Values.Text = "Show Folding Block Highlights";
          panel.Controls.Add(chkFoldHighlight);
-         panel.Controls.Add(new KryptonLabel());
+         panel.Controls.Add(new KryptonLabel { Values = { Text = string.Empty } });
 
          // Auto Brackets
          var chkAutoBrackets = new KryptonCheckBox { Name = nameof(Settings.EditorAutoBrackets), AutoSize = true };
          chkAutoBrackets.Values.Text = "Enable Auto Brackets";
          panel.Controls.Add(chkAutoBrackets);
-         panel.Controls.Add(new KryptonLabel());
+         panel.Controls.Add(new KryptonLabel { Values = { Text = string.Empty } });
 
          // Parser Message Font Family
          var lblParserFont = new KryptonLabel { AutoSize = true };
