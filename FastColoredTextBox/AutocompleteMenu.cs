@@ -191,7 +191,15 @@ namespace FastColoredTextBoxNS {
 		readonly int hoveredItemIndex = -1;
 
 		private int ItemHeight {
-			get { return Font.Height + 2; }
+			get {
+				try {
+					return Font.Height + 2;
+				} catch (ArgumentException) {
+					//defensive: a popup font hiccup must never crash the host editor; fall back to an
+					//approximate row height derived from the baseline point size (≈1.3 px per point).
+					return (int)Math.Ceiling(baseFontSizeInPoints * 1.3f) + 2;
+				}
+			}
 		}
 
 		AutocompleteMenu Menu { get { return Parent as AutocompleteMenu; } }
@@ -205,6 +213,16 @@ namespace FastColoredTextBoxNS {
 		/// effective <see cref="Control.Font"/>, which is the baseline scaled by the editor zoom.
 		/// </summary>
 		Font baseFont;
+
+		// Immutable copies of the baseline font's identity, captured whenever baseFont is assigned.
+		// The effective (zoomed) font is rebuilt from the family NAME, not from baseFont.FontFamily:
+		// when the ToolStripControlHost pushes its own Font onto this control (through the Font
+		// setter) and WinForms later disposes that pushed font, anything sharing its FontFamily is
+		// invalidated and Font.Height throws "Parameter is not valid". Building from the name gives
+		// each effective font its own family, immune to that disposal.
+		string baseFontFamilyName = FontFamily.GenericSansSerif.Name;
+		float baseFontSizeInPoints = 9f;
+		FontStyle baseFontStyle = FontStyle.Regular;
 
 		internal bool AllowTabKey { get; set; }
 		public ImageList ImageList { get; set; }
@@ -242,6 +260,7 @@ namespace FastColoredTextBoxNS {
 		internal AutocompleteListView(FastColoredTextBox tb) {
 			SetStyle(ControlStyles.AllPaintingInWmPaint | ControlStyles.OptimizedDoubleBuffer | ControlStyles.UserPaint, true);
 			baseFont = new Font(FontFamily.GenericSansSerif, 9);
+			CaptureBaseFontIdentity();
 			base.Font = baseFont;
 			visibleItems = new List<AutocompleteItem>();
 			VerticalScroll.SmallChange = ItemHeight;
@@ -294,8 +313,22 @@ namespace FastColoredTextBoxNS {
 			get { return base.Font; }
 			set {
 				baseFont = value;
+				CaptureBaseFontIdentity();
 				ApplyZoom();
 			}
+		}
+
+		/// <summary>
+		/// Snapshots the baseline font's family name, point size and style into immutable fields
+		/// while <see cref="baseFont"/> is freshly assigned (and still valid), so the effective font
+		/// can later be rebuilt without touching a font WinForms may have disposed.
+		/// </summary>
+		void CaptureBaseFontIdentity() {
+			if (baseFont == null)
+				return;
+			baseFontFamilyName = baseFont.FontFamily.Name;
+			baseFontSizeInPoints = baseFont.SizeInPoints;
+			baseFontStyle = baseFont.Style;
 		}
 
 		void Tb_ZoomChanged(object sender, EventArgs e) {
@@ -307,17 +340,31 @@ namespace FastColoredTextBoxNS {
 		/// if the menu is visible, recalculates size and repositions so it tracks the zoom live.
 		/// </summary>
 		void ApplyZoom() {
-			if (baseFont == null)
+			var metrics = AutocompletePopupMetrics.Compute(baseFontSizeInPoints, tb.Zoom);
+
+			Font newFont;
+			try {
+				//build from the family NAME so the effective font owns its own family and survives
+				//WinForms disposing whatever font it pushed onto us as the baseline (see field notes)
+				newFont = new Font(baseFontFamilyName, metrics.FontSizeInPoints, baseFontStyle);
+			} catch (ArgumentException) {
+				//never let popup font sizing crash the host editor
 				return;
+			}
 
-			var metrics = AutocompletePopupMetrics.Compute(baseFont.SizeInPoints, tb.Zoom);
-
-			var newFont = new Font(baseFont.FontFamily, metrics.FontSizeInPoints, baseFont.Style);
+			//Control.Font compares by VALUE: assigning a font equal to the current one is a no-op and
+			//leaves the existing object in place. The previous code then disposed that still-live object
+			//(it differs by reference from baseFont), so the next paint drew with a disposed font and
+			//threw "Parameter is not valid". Only swap+dispose when the new font actually differs.
 			var oldFont = base.Font;
-			base.Font = newFont;
-			//do not dispose the base font itself (it backs the 100% baseline)
-			if (oldFont != null && oldFont != baseFont)
-				oldFont.Dispose();
+			if (newFont.Equals(oldFont)) {
+				newFont.Dispose(); //redundant; keep the font already in use
+			} else {
+				base.Font = newFont;
+				//do not dispose the baseline font (it backs the 100% baseline)
+				if (oldFont != null && oldFont != baseFont)
+					oldFont.Dispose();
+			}
 
 			//scale the max-height cap so a comparable number of the (now taller) rows stays visible
 			MaximumSize = new Size(MaximumSize.Width, metrics.MaxHeight);
@@ -540,7 +587,7 @@ namespace FastColoredTextBoxNS {
 			startI = Math.Max(startI, 0);
 			finishI = Math.Min(finishI, visibleItems.Count);
 			//scale the icon and the text/icon gutter with the editor zoom
-			var metrics = AutocompletePopupMetrics.Compute(baseFont.SizeInPoints, tb.Zoom);
+			var metrics = AutocompletePopupMetrics.Compute(baseFontSizeInPoints, tb.Zoom);
 			int iconSize = metrics.IconSize;
 			int leftPadding = metrics.Gutter;
 			//downscale the 64px source icons crisply

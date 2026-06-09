@@ -120,10 +120,18 @@ public class FontFamilyLifecycleTests {
 				tb.GoEnd(); // caret after "retu"
 
 				menu.Show(true);          // first popup; host pushes its font onto the list view
+				menu.Items.Refresh();     // force WM_PAINT -> OnPaint -> DrawString(..., Font, ...)
+				System.Windows.Forms.Application.DoEvents();
+
 				tb.Zoom = 130;            // any zoom change
 				menu.Show(true);          // DoAutocomplete -> ApplyZoom at the new zoom
+				menu.Items.Refresh();
+				System.Windows.Forms.Application.DoEvents();
+
 				tb.Zoom = 80;
 				menu.Show(true);
+				menu.Items.Refresh();
+				System.Windows.Forms.Application.DoEvents();
 			} finally {
 				menu.Dispose();
 				form.Close();
@@ -131,10 +139,43 @@ public class FontFamilyLifecycleTests {
 		});
 	}
 
+	// Regression guard for the actual defect: Control.Font compares by value, so re-applying an
+	// equal-by-value font is a no-op that leaves the existing object in place; the old ApplyZoom then
+	// disposed that still-live object, so base.Font became a disposed Font and Font.Height threw.
+	// Here the family/size still read fine but Height throws iff the font object was disposed.
+	[Fact]
+	public void EffectiveFont_RemainsUsable_AfterZoomThenReshow() {
+		bool heightThrew = false;
+		RunSta(() => {
+			using var form = new System.Windows.Forms.Form();
+			using var tb = new FastColoredTextBoxNS.FastColoredTextBox { Text = "verb foo\n  retu", Dock = System.Windows.Forms.DockStyle.Fill };
+			form.Controls.Add(tb);
+			var menu = new AutocompleteMenu(tb);
+			menu.Items.SetAutocompleteItems(new[] { "return", "retry", "result" });
+			menu.MinFragmentLength = 1;
+			form.Show();
+			try {
+				tb.GoEnd();
+				menu.Show(true);   // sets the effective font for zoom 100
+				tb.Zoom = 130;     // new-sized effective font
+				menu.Show(true);   // re-applies an equal-by-value font -> exercises the dispose path
+
+				try { _ = menu.Items.Font.Height; } catch (ArgumentException) { heightThrew = true; }
+			} finally {
+				menu.Dispose();
+				form.Close();
+			}
+		});
+		heightThrew.Should().BeFalse("the effective font must remain valid (not disposed) after a zoom change");
+	}
+
 	static void RunSta(System.Action action) {
 		System.Exception captured = null;
 		var t = new System.Threading.Thread(() => {
-			try { action(); } catch (System.Exception ex) { captured = ex; }
+			// route WinForms message-loop exceptions to us instead of the unhandled-exception dialog
+			System.Windows.Forms.Application.SetUnhandledExceptionMode(System.Windows.Forms.UnhandledExceptionMode.ThrowException);
+			System.Windows.Forms.Application.ThreadException += (s, e) => { captured ??= e.Exception; };
+			try { action(); } catch (System.Exception ex) { captured ??= ex; }
 		});
 		t.SetApartmentState(System.Threading.ApartmentState.STA);
 		t.Start();
