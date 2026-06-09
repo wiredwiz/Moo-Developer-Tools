@@ -66,7 +66,8 @@ public class McpMessageParser
    /// <summary>
    /// Feeds the next line of server output into the parser.
    /// </summary>
-   /// <param name="line">A single line of text (without the terminating newline).</param>
+   /// <param name="line">A single line of text. A single optional trailing line terminator
+   /// (one <c>"\n"</c> with an optional preceding <c>"\r"</c>) is tolerated and stripped.</param>
    /// <returns>
    /// <see cref="McpParseState.Complete"/> when a full message has been assembled,
    /// <see cref="McpParseState.InProgress"/> when more lines are expected, or
@@ -75,6 +76,18 @@ public class McpMessageParser
    public McpParseState FeedLine(string line)
    {
       Result = null;
+
+      // The OOB transport delivers each line with a trailing newline; strip a single
+      // line terminator so multiline continuation values don't retain it (which would
+      // double-space assembled content). Other line types are unaffected (the normal
+      // path trims via the tokenizer).
+      if (line.EndsWith("\n"))
+      {
+         line = line.Substring(0, line.Length - 1);
+         if (line.EndsWith("\r"))
+            line = line.Substring(0, line.Length - 1);
+      }
+
       return _state == InternalState.Normal
          ? ProcessNormalLine(line)
          : ProcessMultilineLine(line);
