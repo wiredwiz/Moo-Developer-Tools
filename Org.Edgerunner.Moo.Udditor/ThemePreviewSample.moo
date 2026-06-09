@@ -1,5 +1,7 @@
 "This verb demonstrates every syntax token category for theme preview.";
 "It is sample code only and is never executed.";
+/* This is a sample code comment.
+   It will get deleted upon compilation. */
 counter = 0;
 limit = 10;
 ratio = 3.14;
