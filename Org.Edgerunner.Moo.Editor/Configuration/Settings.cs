@@ -36,11 +36,42 @@
 
 using System.Configuration;
 using System.Diagnostics.CodeAnalysis;
+using System.Drawing.Text;
+using System.Globalization;
 using System.Text;
+using System.Text.Json;
+using System.Text.Json.Serialization;
 using System.Xml;
 
 namespace Org.Edgerunner.Moo.Editor.Configuration
 {
+   /// <summary>
+   /// Describes the outcome of an <see cref="Settings.ImportThemeFromJson"/> call.
+   /// </summary>
+   public sealed class ThemeImportResult
+   {
+      /// <summary>
+      /// Gets the name of a requested font family that was not installed locally, or <see langword="null"/>
+      /// when the imported font (if any) was available.
+      /// </summary>
+      /// <value>The missing font family name, or <see langword="null"/>.</value>
+      public string MissingFontName { get; init; }
+   }
+
+   /// <summary>
+   /// Wrapper object describing the JSON theme file shape (name, format version and settings map).
+   /// </summary>
+   internal sealed class ThemeFile
+   {
+      [JsonPropertyName("name")]
+      public string Name { get; set; }
+
+      [JsonPropertyName("formatVersion")]
+      public int FormatVersion { get; set; }
+
+      [JsonPropertyName("settings")]
+      public Dictionary<string, string> Settings { get; set; }
+   }
    /// <summary>
    /// Class that represents various code editor settings.
    /// </summary>
@@ -549,6 +580,327 @@ namespace Org.Edgerunner.Moo.Editor.Configuration
                return defaultStyle;
 
          return result;
+      }
+
+      /// <summary>
+      /// The current theme JSON format version written by <see cref="ExportThemeToJson"/>.
+      /// </summary>
+      private const int ThemeFormatVersion = 1;
+
+      /// <summary>
+      /// Builds the appearance-only key/value dictionary that the JSON theme file persists.
+      /// </summary>
+      /// <returns>An ordered dictionary of theme keys to their serialized string values.</returns>
+      /// <remarks>
+      /// The scope is deliberately the appearance subset only: every syntax-token foreground,
+      /// background and font style, every editor-chrome color, <see cref="ErrorIndicatorColor"/>,
+      /// <see cref="EditorFontFamily"/>, <see cref="EditorFontSize"/> and <see cref="EditorDarkTheme"/>.
+      /// Behavior settings (word wrap, tab length, autocomplete delay, dialect, zoom, etc.) are excluded.
+      /// </remarks>
+      private Dictionary<string, string> BuildThemeDictionary()
+      {
+         return new Dictionary<string, string>
+         {
+            // Syntax highlighting
+            ["DefaultWordColor"] = SerializeColor(DefaultWordColor),
+            ["DefaultWordBackgroundColor"] = SerializeColor(DefaultWordBackgroundColor),
+            ["DefaultWordFontStyle"] = SerializeFontStyle(DefaultWordFontStyle),
+            ["CommentColor"] = SerializeColor(CommentColor),
+            ["CommentBackgroundColor"] = SerializeColor(CommentBackgroundColor),
+            ["CommentFontStyle"] = SerializeFontStyle(CommentFontStyle),
+            ["KeywordColor"] = SerializeColor(KeywordColor),
+            ["KeywordBackgroundColor"] = SerializeColor(KeywordBackgroundColor),
+            ["KeywordFontStyle"] = SerializeFontStyle(KeywordFontStyle),
+            ["LiteralColor"] = SerializeColor(LiteralColor),
+            ["LiteralBackgroundColor"] = SerializeColor(LiteralBackgroundColor),
+            ["LiteralFontStyle"] = SerializeFontStyle(LiteralFontStyle),
+            ["StringColor"] = SerializeColor(StringColor),
+            ["StringBackgroundColor"] = SerializeColor(StringBackgroundColor),
+            ["StringFontStyle"] = SerializeFontStyle(StringFontStyle),
+            ["SymbolColor"] = SerializeColor(SymbolColor),
+            ["SymbolBackgroundColor"] = SerializeColor(SymbolBackgroundColor),
+            ["SymbolFontStyle"] = SerializeFontStyle(SymbolFontStyle),
+            ["OperatorColor"] = SerializeColor(OperatorColor),
+            ["OperatorBackgroundColor"] = SerializeColor(OperatorBackgroundColor),
+            ["OperatorFontStyle"] = SerializeFontStyle(OperatorFontStyle),
+            ["ParenthesisColor"] = SerializeColor(ParenthesisColor),
+            ["ParenthesisBackgroundColor"] = SerializeColor(ParenthesisBackgroundColor),
+            ["ParenthesisFontStyle"] = SerializeFontStyle(ParenthesisFontStyle),
+            ["CurlyBraceColor"] = SerializeColor(CurlyBraceColor),
+            ["CurlyBraceBackgroundColor"] = SerializeColor(CurlyBraceBackgroundColor),
+            ["CurlyBraceFontStyle"] = SerializeFontStyle(CurlyBraceFontStyle),
+            ["BracketColor"] = SerializeColor(BracketColor),
+            ["BracketBackgroundColor"] = SerializeColor(BracketBackgroundColor),
+            ["BracketFontStyle"] = SerializeFontStyle(BracketFontStyle),
+            ["ObjectColor"] = SerializeColor(ObjectColor),
+            ["ObjectBackgroundColor"] = SerializeColor(ObjectBackgroundColor),
+            ["ObjectFontStyle"] = SerializeFontStyle(ObjectFontStyle),
+            ["CoreReferenceColor"] = SerializeColor(CoreReferenceColor),
+            ["CoreReferenceBackgroundColor"] = SerializeColor(CoreReferenceBackgroundColor),
+            ["CoreReferenceFontStyle"] = SerializeFontStyle(CoreReferenceFontStyle),
+            ["BuiltinVariableColor"] = SerializeColor(BuiltinVariableColor),
+            ["BuiltinVariableBackgroundColor"] = SerializeColor(BuiltinVariableBackgroundColor),
+            ["BuiltinVariableFontStyle"] = SerializeFontStyle(BuiltinVariableFontStyle),
+            ["BuiltinFunctionColor"] = SerializeColor(BuiltinFunctionColor),
+            ["BuiltinFunctionBackgroundColor"] = SerializeColor(BuiltinFunctionBackgroundColor),
+            ["BuiltinFunctionFontStyle"] = SerializeFontStyle(BuiltinFunctionFontStyle),
+            ["VerbColor"] = SerializeColor(VerbColor),
+            ["VerbBackgroundColor"] = SerializeColor(VerbBackgroundColor),
+            ["VerbFontStyle"] = SerializeFontStyle(VerbFontStyle),
+            ["PropertyColor"] = SerializeColor(PropertyColor),
+            ["PropertyBackgroundColor"] = SerializeColor(PropertyBackgroundColor),
+            ["PropertyFontStyle"] = SerializeFontStyle(PropertyFontStyle),
+
+            // Editor fonts
+            ["EditorFontFamily"] = EditorFontFamily?.Name ?? string.Empty,
+            ["EditorFontSize"] = EditorFontSize.ToString(CultureInfo.InvariantCulture),
+
+            // Editor chrome colors
+            ["EditorTextColor"] = SerializeColor(EditorTextColor),
+            ["EditorBackgroundColor"] = SerializeColor(EditorBackgroundColor),
+            ["EditorCaretColor"] = SerializeColor(EditorCaretColor),
+            ["EditorLineNumberColor"] = SerializeColor(EditorLineNumberColor),
+            ["EditorCurrentLineColor"] = SerializeColor(EditorCurrentLineColor),
+            ["EditorTextSelectionColor"] = SerializeColor(EditorTextSelectionColor),
+            ["EditorFoldingIndicatorColor"] = SerializeColor(EditorFoldingIndicatorColor),
+            ["EditorChangedLineColor"] = SerializeColor(EditorChangedLineColor),
+            ["EditorIndentBackColor"] = SerializeColor(EditorIndentBackColor),
+            ["EditorBookmarkColor"] = SerializeColor(EditorBookmarkColor),
+            ["EditorServiceLineColor"] = SerializeColor(EditorServiceLineColor),
+            ["EditorFoldingHighlightColor"] = SerializeColor(EditorFoldingHighlightColor),
+            ["ErrorIndicatorColor"] = SerializeColor(ErrorIndicatorColor),
+
+            // Theme flag
+            ["EditorDarkTheme"] = EditorDarkTheme.ToString()
+         };
+      }
+
+      /// <summary>
+      /// Exports the appearance subset of this <see cref="Settings"/> instance to a JSON theme file.
+      /// </summary>
+      /// <param name="filePath">The destination file path.</param>
+      /// <exception cref="T:System.ArgumentNullException"><paramref name="filePath"/> is <see langword="null"/> or empty.</exception>
+      /// <exception cref="T:System.IO.IOException">The file could not be written.</exception>
+      /// <remarks>
+      /// The written keys, color formats and font-style formats match what <see cref="ImportThemeFromJson"/>
+      /// reads, so a subsequent import round-trips every theme value. Behavior settings are not exported.
+      /// </remarks>
+      public void ExportThemeToJson([NotNull] string filePath)
+      {
+         if (string.IsNullOrEmpty(filePath))
+            throw new ArgumentNullException(nameof(filePath));
+
+         var theme = new ThemeFile
+         {
+            Name = Path.GetFileNameWithoutExtension(filePath),
+            FormatVersion = ThemeFormatVersion,
+            Settings = BuildThemeDictionary()
+         };
+
+         try
+         {
+            var directory = Path.GetDirectoryName(filePath);
+            if (!string.IsNullOrEmpty(directory))
+               Directory.CreateDirectory(directory);
+
+            var json = JsonSerializer.Serialize(theme, new JsonSerializerOptions { WriteIndented = true });
+            File.WriteAllText(filePath, json, new UTF8Encoding(false));
+         }
+         catch (Exception ex)
+         {
+            throw new IOException($"Failed to export theme to '{filePath}': {ex.Message}", ex);
+         }
+      }
+
+      /// <summary>
+      /// Imports the appearance subset of a JSON theme file into this <see cref="Settings"/> instance.
+      /// </summary>
+      /// <param name="filePath">The source file path.</param>
+      /// <returns>A <see cref="ThemeImportResult"/> describing any font fallback that occurred.</returns>
+      /// <exception cref="T:System.ArgumentNullException"><paramref name="filePath"/> is <see langword="null"/> or empty.</exception>
+      /// <exception cref="T:System.IO.InvalidDataException">The file could not be read or is not a valid theme file.</exception>
+      /// <remarks>
+      /// Only keys present in the file's <c>settings</c> map are applied; absent keys and any behavior
+      /// settings keep their current value, and unparseable values keep their current value. The file is
+      /// fully read, deserialized and validated <em>before</em> this instance is mutated, so a malformed or
+      /// unreadable file throws and leaves this instance completely unchanged.
+      /// </remarks>
+      public ThemeImportResult ImportThemeFromJson([NotNull] string filePath)
+      {
+         if (string.IsNullOrEmpty(filePath))
+            throw new ArgumentNullException(nameof(filePath));
+
+         // Fully read, parse and validate the wrapper BEFORE touching this instance (atomicity).
+         ThemeFile theme;
+         try
+         {
+            var json = File.ReadAllText(filePath);
+            theme = JsonSerializer.Deserialize<ThemeFile>(json);
+         }
+         catch (Exception ex) when (ex is JsonException or IOException or UnauthorizedAccessException or ArgumentException)
+         {
+            throw new InvalidDataException($"The theme file '{filePath}' could not be read: {ex.Message}", ex);
+         }
+
+         if (theme == null)
+            throw new InvalidDataException($"The theme file '{filePath}' did not contain a valid theme.");
+
+         var values = theme.Settings;
+         if (values == null || values.Count == 0)
+            return new ThemeImportResult();
+
+         string missingFontName = null;
+
+         foreach (var pair in values)
+         {
+            var key = pair.Key;
+            var value = pair.Value;
+            if (value == null)
+               continue;
+
+            switch (key)
+            {
+               case "EditorFontFamily":
+                  if (!string.IsNullOrEmpty(value))
+                     EditorFontFamily = ResolveFontFamily(value, out missingFontName);
+                  break;
+               case "EditorFontSize":
+                  if (float.TryParse(value, NumberStyles.Float, CultureInfo.InvariantCulture, out var fontSize))
+                     EditorFontSize = fontSize;
+                  break;
+               case "EditorDarkTheme":
+                  if (bool.TryParse(value, out var darkTheme))
+                     EditorDarkTheme = darkTheme;
+                  break;
+               default:
+                  ApplyThemeColorOrStyle(key, value);
+                  break;
+            }
+         }
+
+         return new ThemeImportResult { MissingFontName = missingFontName };
+      }
+
+      /// <summary>
+      /// Resolves a font family name, falling back to generic monospace when the named family is not installed.
+      /// </summary>
+      /// <param name="name">The requested font family name.</param>
+      /// <param name="missingFontName">Set to <paramref name="name"/> when the family was not available; otherwise unchanged.</param>
+      /// <returns>The resolved <see cref="FontFamily"/>.</returns>
+      private static FontFamily ResolveFontFamily(string name, out string missingFontName)
+      {
+         missingFontName = null;
+         try
+         {
+            return new FontFamily(name);
+         }
+         catch (ArgumentException)
+         {
+            missingFontName = name;
+            return FontFamily.GenericMonospace;
+         }
+      }
+
+      /// <summary>
+      /// Applies a single color or font-style theme value by key, ignoring unrecognized keys and
+      /// keeping the current value when a color value fails to parse.
+      /// </summary>
+      /// <param name="key">The theme key.</param>
+      /// <param name="value">The serialized value.</param>
+      private void ApplyThemeColorOrStyle(string key, string value)
+      {
+         switch (key)
+         {
+            // Font styles
+            case "DefaultWordFontStyle": DefaultWordFontStyle = ParseFontStyles(value, DefaultWordFontStyle); break;
+            case "CommentFontStyle": CommentFontStyle = ParseFontStyles(value, CommentFontStyle); break;
+            case "KeywordFontStyle": KeywordFontStyle = ParseFontStyles(value, KeywordFontStyle); break;
+            case "LiteralFontStyle": LiteralFontStyle = ParseFontStyles(value, LiteralFontStyle); break;
+            case "StringFontStyle": StringFontStyle = ParseFontStyles(value, StringFontStyle); break;
+            case "SymbolFontStyle": SymbolFontStyle = ParseFontStyles(value, SymbolFontStyle); break;
+            case "OperatorFontStyle": OperatorFontStyle = ParseFontStyles(value, OperatorFontStyle); break;
+            case "ParenthesisFontStyle": ParenthesisFontStyle = ParseFontStyles(value, ParenthesisFontStyle); break;
+            case "CurlyBraceFontStyle": CurlyBraceFontStyle = ParseFontStyles(value, CurlyBraceFontStyle); break;
+            case "BracketFontStyle": BracketFontStyle = ParseFontStyles(value, BracketFontStyle); break;
+            case "ObjectFontStyle": ObjectFontStyle = ParseFontStyles(value, ObjectFontStyle); break;
+            case "CoreReferenceFontStyle": CoreReferenceFontStyle = ParseFontStyles(value, CoreReferenceFontStyle); break;
+            case "BuiltinVariableFontStyle": BuiltinVariableFontStyle = ParseFontStyles(value, BuiltinVariableFontStyle); break;
+            case "BuiltinFunctionFontStyle": BuiltinFunctionFontStyle = ParseFontStyles(value, BuiltinFunctionFontStyle); break;
+            case "VerbFontStyle": VerbFontStyle = ParseFontStyles(value, VerbFontStyle); break;
+            case "PropertyFontStyle": PropertyFontStyle = ParseFontStyles(value, PropertyFontStyle); break;
+
+            // Colors
+            case "DefaultWordColor": DefaultWordColor = ParseColor(value, DefaultWordColor); break;
+            case "DefaultWordBackgroundColor": DefaultWordBackgroundColor = ParseColor(value, DefaultWordBackgroundColor); break;
+            case "CommentColor": CommentColor = ParseColor(value, CommentColor); break;
+            case "CommentBackgroundColor": CommentBackgroundColor = ParseColor(value, CommentBackgroundColor); break;
+            case "KeywordColor": KeywordColor = ParseColor(value, KeywordColor); break;
+            case "KeywordBackgroundColor": KeywordBackgroundColor = ParseColor(value, KeywordBackgroundColor); break;
+            case "LiteralColor": LiteralColor = ParseColor(value, LiteralColor); break;
+            case "LiteralBackgroundColor": LiteralBackgroundColor = ParseColor(value, LiteralBackgroundColor); break;
+            case "StringColor": StringColor = ParseColor(value, StringColor); break;
+            case "StringBackgroundColor": StringBackgroundColor = ParseColor(value, StringBackgroundColor); break;
+            case "SymbolColor": SymbolColor = ParseColor(value, SymbolColor); break;
+            case "SymbolBackgroundColor": SymbolBackgroundColor = ParseColor(value, SymbolBackgroundColor); break;
+            case "OperatorColor": OperatorColor = ParseColor(value, OperatorColor); break;
+            case "OperatorBackgroundColor": OperatorBackgroundColor = ParseColor(value, OperatorBackgroundColor); break;
+            case "ParenthesisColor": ParenthesisColor = ParseColor(value, ParenthesisColor); break;
+            case "ParenthesisBackgroundColor": ParenthesisBackgroundColor = ParseColor(value, ParenthesisBackgroundColor); break;
+            case "CurlyBraceColor": CurlyBraceColor = ParseColor(value, CurlyBraceColor); break;
+            case "CurlyBraceBackgroundColor": CurlyBraceBackgroundColor = ParseColor(value, CurlyBraceBackgroundColor); break;
+            case "BracketColor": BracketColor = ParseColor(value, BracketColor); break;
+            case "BracketBackgroundColor": BracketBackgroundColor = ParseColor(value, BracketBackgroundColor); break;
+            case "ObjectColor": ObjectColor = ParseColor(value, ObjectColor); break;
+            case "ObjectBackgroundColor": ObjectBackgroundColor = ParseColor(value, ObjectBackgroundColor); break;
+            case "CoreReferenceColor": CoreReferenceColor = ParseColor(value, CoreReferenceColor); break;
+            case "CoreReferenceBackgroundColor": CoreReferenceBackgroundColor = ParseColor(value, CoreReferenceBackgroundColor); break;
+            case "BuiltinVariableColor": BuiltinVariableColor = ParseColor(value, BuiltinVariableColor); break;
+            case "BuiltinVariableBackgroundColor": BuiltinVariableBackgroundColor = ParseColor(value, BuiltinVariableBackgroundColor); break;
+            case "BuiltinFunctionColor": BuiltinFunctionColor = ParseColor(value, BuiltinFunctionColor); break;
+            case "BuiltinFunctionBackgroundColor": BuiltinFunctionBackgroundColor = ParseColor(value, BuiltinFunctionBackgroundColor); break;
+            case "VerbColor": VerbColor = ParseColor(value, VerbColor); break;
+            case "VerbBackgroundColor": VerbBackgroundColor = ParseColor(value, VerbBackgroundColor); break;
+            case "PropertyColor": PropertyColor = ParseColor(value, PropertyColor); break;
+            case "PropertyBackgroundColor": PropertyBackgroundColor = ParseColor(value, PropertyBackgroundColor); break;
+
+            // Editor chrome colors
+            case "EditorTextColor": EditorTextColor = ParseColor(value, EditorTextColor); break;
+            case "EditorBackgroundColor": EditorBackgroundColor = ParseColor(value, EditorBackgroundColor); break;
+            case "EditorCaretColor": EditorCaretColor = ParseColor(value, EditorCaretColor); break;
+            case "EditorLineNumberColor": EditorLineNumberColor = ParseColor(value, EditorLineNumberColor); break;
+            case "EditorCurrentLineColor": EditorCurrentLineColor = ParseColor(value, EditorCurrentLineColor); break;
+            case "EditorTextSelectionColor": EditorTextSelectionColor = ParseColor(value, EditorTextSelectionColor); break;
+            case "EditorFoldingIndicatorColor": EditorFoldingIndicatorColor = ParseColor(value, EditorFoldingIndicatorColor); break;
+            case "EditorChangedLineColor": EditorChangedLineColor = ParseColor(value, EditorChangedLineColor); break;
+            case "EditorIndentBackColor": EditorIndentBackColor = ParseColor(value, EditorIndentBackColor); break;
+            case "EditorBookmarkColor": EditorBookmarkColor = ParseColor(value, EditorBookmarkColor); break;
+            case "EditorServiceLineColor": EditorServiceLineColor = ParseColor(value, EditorServiceLineColor); break;
+            case "EditorFoldingHighlightColor": EditorFoldingHighlightColor = ParseColor(value, EditorFoldingHighlightColor); break;
+            case "ErrorIndicatorColor": ErrorIndicatorColor = ParseColor(value, ErrorIndicatorColor); break;
+
+            // Unknown / future keys are ignored (forward-compatible).
+         }
+      }
+
+      /// <summary>
+      /// Parses an HTML/named color string, returning <paramref name="currentValue"/> when the value is empty or invalid.
+      /// </summary>
+      /// <param name="value">The serialized color value.</param>
+      /// <param name="currentValue">The value to keep when parsing fails.</param>
+      /// <returns>The parsed color, or <paramref name="currentValue"/>.</returns>
+      private static Color ParseColor(string value, Color currentValue)
+      {
+         if (string.IsNullOrEmpty(value))
+            return currentValue;
+
+         try
+         {
+            return ColorTranslator.FromHtml(value);
+         }
+         catch (Exception)
+         {
+            return currentValue;
+         }
       }
 
       /// <summary>

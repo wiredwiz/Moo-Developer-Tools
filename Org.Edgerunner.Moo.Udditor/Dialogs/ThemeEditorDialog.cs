@@ -55,6 +55,15 @@ namespace Org.Edgerunner.Moo.Udditor.Dialogs
       private readonly WindowManager _manager;
       private readonly string _configPath;
 
+      /// <summary>The shared dark custom palette supplied by the main form, used for dialog-local and global dark preview.</summary>
+      private readonly KryptonCustomPaletteBase _darkPalette;
+
+      /// <summary>The application's global Krypton manager, committed to on Apply/OK.</summary>
+      private readonly KryptonManager _kryptonManager;
+
+      /// <summary>Suppresses the mode-dropdown handler while it is being populated programmatically.</summary>
+      private bool _suppressModeChange;
+
       /// <summary>The working copy of the settings being edited.</summary>
       private readonly Settings _working;
 
@@ -92,15 +101,21 @@ namespace Org.Edgerunner.Moo.Udditor.Dialogs
       /// </summary>
       /// <param name="manager">The window manager used to apply the theme to open editors.</param>
       /// <param name="configPath">The path the working theme is persisted to on Apply/OK.</param>
-      public ThemeEditorDialog(WindowManager manager, string configPath)
+      /// <param name="darkPalette">The shared dark custom palette used for the dialog-local and global dark preview.</param>
+      /// <param name="kryptonManager">The application's global Krypton manager, committed to on Apply/OK.</param>
+      public ThemeEditorDialog(WindowManager manager, string configPath, KryptonCustomPaletteBase darkPalette, KryptonManager kryptonManager)
       {
          _manager = manager;
          _configPath = configPath;
+         _darkPalette = darkPalette;
+         _kryptonManager = kryptonManager;
          _working = Settings.Instance.Clone();
 
          InitializeComponent();
          BuildPreview();
          BuildLeftControls();
+         InitializeModeDropdown();
+         ApplyDialogPalette();
 
          // Auto-indent selects the whole sample while the text loads. Collapse the selection once
          // the form is shown, deferred to the end of the message queue so it runs after any pending
@@ -174,7 +189,7 @@ namespace Org.Edgerunner.Moo.Udditor.Dialogs
          var tokenRows = BuildTokenRowDefinitions();
          var chromeRows = BuildChromeRowDefinitions();
 
-         var layout = new TableLayoutPanel
+         var layout = new KryptonTableLayoutPanel
          {
             Dock = DockStyle.Top,
             AutoSize = true,
@@ -191,9 +206,23 @@ namespace Org.Edgerunner.Moo.Udditor.Dialogs
          leftScrollPanel.Controls.Add(layout);
       }
 
-      private GroupBox BuildSyntaxGroup(IList<TokenRowDefinition> rows)
+      private static KryptonLabel HeaderLabel(string text)
       {
-         var table = new TableLayoutPanel
+         var label = new KryptonLabel { AutoSize = true, Anchor = AnchorStyles.Left };
+         label.Values.Text = text;
+         return label;
+      }
+
+      private static KryptonLabel RowLabel(string text)
+      {
+         var label = new KryptonLabel { AutoSize = true, Anchor = AnchorStyles.Left, Margin = new Padding(3, 6, 3, 3) };
+         label.Values.Text = text;
+         return label;
+      }
+
+      private KryptonGroupBox BuildSyntaxGroup(IList<TokenRowDefinition> rows)
+      {
+         var table = new KryptonTableLayoutPanel
          {
             Dock = DockStyle.Top,
             AutoSize = true,
@@ -208,35 +237,34 @@ namespace Org.Edgerunner.Moo.Udditor.Dialogs
          table.ColumnStyles.Add(new ColumnStyle(SizeType.AutoSize));
 
          // Header row
-         table.Controls.Add(new Label { Text = "Token", AutoSize = true, Anchor = AnchorStyles.Left });
-         table.Controls.Add(new Label { Text = "Foreground", AutoSize = true, Anchor = AnchorStyles.Left });
-         table.Controls.Add(new Label { Text = "Background", AutoSize = true, Anchor = AnchorStyles.Left });
-         table.Controls.Add(new Label { Text = "Style", AutoSize = true, Anchor = AnchorStyles.Left });
+         table.Controls.Add(HeaderLabel("Token"));
+         table.Controls.Add(HeaderLabel("Foreground"));
+         table.Controls.Add(HeaderLabel("Background"));
+         table.Controls.Add(HeaderLabel("Style"));
 
          foreach (var row in rows)
          {
-            table.Controls.Add(new Label { Text = row.Label, AutoSize = true, Anchor = AnchorStyles.Left, Margin = new Padding(3, 6, 3, 3) });
+            table.Controls.Add(RowLabel(row.Label));
             table.Controls.Add(CreateForegroundSwatch(row.GetForeground, row.SetForeground));
             table.Controls.Add(CreateBackgroundSwatch(row.GetBackground, row.SetBackground));
             table.Controls.Add(CreateFontStyleControl(row.GetFontStyle, row.SetFontStyle));
          }
 
-         var group = new GroupBox
+         var group = new KryptonGroupBox
          {
-            Text = "Syntax",
             Dock = DockStyle.Top,
             AutoSize = true,
             AutoSizeMode = AutoSizeMode.GrowAndShrink,
-            Padding = new Padding(4, 8, 4, 8),
             Margin = new Padding(3)
          };
-         group.Controls.Add(table);
+         group.Values.Heading = "Syntax";
+         group.Panel.Controls.Add(table);
          return group;
       }
 
-      private GroupBox BuildChromeGroup(IList<ChromeRowDefinition> rows)
+      private KryptonGroupBox BuildChromeGroup(IList<ChromeRowDefinition> rows)
       {
-         var table = new TableLayoutPanel
+         var table = new KryptonTableLayoutPanel
          {
             Dock = DockStyle.Top,
             AutoSize = true,
@@ -250,20 +278,19 @@ namespace Org.Edgerunner.Moo.Udditor.Dialogs
 
          foreach (var row in rows)
          {
-            table.Controls.Add(new Label { Text = row.Label, AutoSize = true, Anchor = AnchorStyles.Left, Margin = new Padding(3, 6, 3, 3) });
+            table.Controls.Add(RowLabel(row.Label));
             table.Controls.Add(CreateForegroundSwatch(row.GetColor, row.SetColor));
          }
 
-         var group = new GroupBox
+         var group = new KryptonGroupBox
          {
-            Text = "Editor chrome",
             Dock = DockStyle.Top,
             AutoSize = true,
             AutoSizeMode = AutoSizeMode.GrowAndShrink,
-            Padding = new Padding(4, 8, 4, 8),
             Margin = new Padding(3)
          };
-         group.Controls.Add(table);
+         group.Values.Heading = "Editor chrome";
+         group.Panel.Controls.Add(table);
          return group;
       }
 
@@ -272,19 +299,11 @@ namespace Org.Edgerunner.Moo.Udditor.Dialogs
       /// </summary>
       private Control CreateForegroundSwatch(Func<Color> get, Action<Color> set)
       {
-         var swatch = new Button
-         {
-            Width = 60,
-            Height = 24,
-            FlatStyle = FlatStyle.Flat,
-            BackColor = get(),
-            Margin = new Padding(3)
-         };
-         swatch.FlatAppearance.BorderColor = Color.Gray;
-         swatch.FlatAppearance.BorderSize = 1;
+         var swatch = CreateColorChip();
 
-         void Refresh() => swatch.BackColor = get();
+         void Refresh() => SetChipColor(swatch, get());
          _refreshers[swatch] = Refresh;
+         Refresh();
 
          swatch.Click += (_, _) =>
          {
@@ -301,46 +320,69 @@ namespace Org.Edgerunner.Moo.Udditor.Dialogs
       }
 
       /// <summary>
+      /// Creates a flat <see cref="KryptonButton"/> color chip that paints a solid color regardless of palette.
+      /// </summary>
+      private static KryptonButton CreateColorChip()
+      {
+         var swatch = new KryptonButton
+         {
+            Width = 60,
+            Height = 24,
+            Margin = new Padding(3)
+         };
+         swatch.StateCommon.Back.ColorStyle = Krypton.Toolkit.PaletteColorStyle.Solid;
+         return swatch;
+      }
+
+      /// <summary>
+      /// Paints a color chip with the supplied color (solid draw style) and a neutral fill when transparent.
+      /// </summary>
+      private static void SetChipColor(KryptonButton swatch, Color color)
+      {
+         var isTransparent = color.A == 0;
+         var fill = isTransparent ? SystemColors.Control : color;
+         swatch.StateCommon.Back.Color1 = fill;
+         swatch.StateCommon.Back.Color2 = fill;
+         // Pin the label color so "(none)" stays readable on the light fill even when the
+         // dialog palette (dark mode) would otherwise paint button text white.
+         swatch.StateCommon.Content.ShortText.Color1 = Color.DimGray;
+         swatch.StateCommon.Content.ShortText.Color2 = Color.DimGray;
+         swatch.Values.Text = isTransparent ? "(none)" : string.Empty;
+      }
+
+      /// <summary>
       /// Creates a background swatch with both a color picker and a "Transparent" affordance,
       /// since <see cref="ColorDialog"/> cannot express transparency.
       /// </summary>
       private Control CreateBackgroundSwatch(Func<Color> get, Action<Color> set)
       {
-         var container = new FlowLayoutPanel
+         // A small transparent-background KryptonPanel holds the chip + checkbox so the themed parent
+         // shows through (KryptonPanel has no flow layout, so the children are positioned manually).
+         var container = new KryptonPanel
+         {
+            Size = new Size(200, 30),
+            Margin = new Padding(0)
+         };
+         container.StateCommon.Color1 = Color.Transparent;
+         container.StateCommon.Color2 = Color.Transparent;
+
+         var swatch = CreateColorChip();
+         swatch.Location = new Point(3, 3);
+
+         var transparentBox = new KryptonCheckBox
          {
             AutoSize = true,
-            AutoSizeMode = AutoSizeMode.GrowAndShrink,
-            FlowDirection = FlowDirection.LeftToRight,
-            Margin = new Padding(0),
-            WrapContents = false
+            Location = new Point(swatch.Right + 6, 5)
          };
-
-         var swatch = new Button
-         {
-            Width = 60,
-            Height = 24,
-            FlatStyle = FlatStyle.Flat,
-            Margin = new Padding(3)
-         };
-         swatch.FlatAppearance.BorderColor = Color.Gray;
-         swatch.FlatAppearance.BorderSize = 1;
-
-         var transparentBox = new CheckBox
-         {
-            Text = "Transparent",
-            AutoSize = true,
-            Margin = new Padding(3, 5, 3, 3)
-         };
+         transparentBox.Values.Text = "Transparent";
 
          void Refresh()
          {
             var color = get();
             var isTransparent = color.A == 0;
             transparentBox.Checked = isTransparent;
-            // Show a checkerboard-ish neutral when transparent so the user sees "no color".
-            swatch.BackColor = isTransparent ? SystemColors.Control : color;
-            swatch.Text = isTransparent ? "(none)" : string.Empty;
-            swatch.ForeColor = Color.Gray;
+            // Show a neutral fill when transparent so the user sees "no color".
+            SetChipColor(swatch, color);
          }
 
          _refreshers[swatch] = Refresh;
@@ -390,7 +432,7 @@ namespace Org.Edgerunner.Moo.Udditor.Dialogs
       /// </summary>
       private Control CreateFontStyleControl(Func<FontStyle> get, Action<FontStyle> set)
       {
-         var combo = new ComboBox
+         var combo = new KryptonComboBox
          {
             DropDownStyle = ComboBoxStyle.DropDownList,
             Width = 110,
@@ -515,7 +557,154 @@ namespace Org.Edgerunner.Moo.Udditor.Dialogs
 
          Settings.Instance.CopyFrom(_working);
          _manager?.ApplyThemeToOpenEditors();
+
+         // Commit the global Krypton chrome to match the selected mode so the whole app updates live.
+         if (_kryptonManager != null)
+         {
+            if (_working.EditorDarkTheme && _darkPalette != null)
+            {
+               _kryptonManager.GlobalPalette = _darkPalette;
+            }
+            else
+            {
+               // Mirror the application default for light mode (the designer leaves the manager at
+               // its builtin Microsoft365Blue palette mode).
+               _kryptonManager.GlobalPaletteMode = PaletteMode.Microsoft365Blue;
+            }
+         }
+
          return true;
+      }
+
+      /// <summary>
+      /// Populates the dark/light mode dropdown and selects the entry matching the working theme.
+      /// </summary>
+      private void InitializeModeDropdown()
+      {
+         _suppressModeChange = true;
+         try
+         {
+            cboMode.Items.Clear();
+            cboMode.Items.AddRange(new object[] { "Light", "Dark" });
+            cboMode.SelectedIndex = _working.EditorDarkTheme ? 1 : 0;
+         }
+         finally
+         {
+            _suppressModeChange = false;
+         }
+      }
+
+      /// <summary>
+      /// Applies the dialog-local Krypton palette to match the working dark/light flag. Affects this dialog only.
+      /// </summary>
+      private void ApplyDialogPalette()
+      {
+         var mode = _working.EditorDarkTheme
+            ? PaletteMode.Microsoft365BlackDarkMode
+            : PaletteMode.Microsoft365Blue;
+         ApplyPaletteModeRecursive(this, mode);
+      }
+
+      /// <summary>
+      /// Applies a local <see cref="PaletteMode"/> to <paramref name="control"/> and all descendant
+      /// Krypton controls (any control exposing a settable <c>PaletteMode</c> property), so the dialog
+      /// previews the chosen chrome without altering the global palette. Non-Krypton controls are skipped.
+      /// </summary>
+      private static void ApplyPaletteModeRecursive(Control control, PaletteMode mode)
+      {
+         var prop = control.GetType().GetProperty("PaletteMode", typeof(PaletteMode));
+         if (prop != null && prop.CanWrite)
+            prop.SetValue(control, mode);
+
+         foreach (Control child in control.Controls)
+            ApplyPaletteModeRecursive(child, mode);
+      }
+
+      private void cboMode_SelectedIndexChanged(object sender, EventArgs e)
+      {
+         if (_suppressModeChange)
+            return;
+
+         _working.EditorDarkTheme = cboMode.SelectedIndex == 1;
+         ApplyDialogPalette();
+      }
+
+      /// <summary>
+      /// Clears and rebuilds the left-pane controls so they reflect the current working settings.
+      /// </summary>
+      private void RebuildLeftControls()
+      {
+         leftScrollPanel.Controls.Clear();
+         _refreshers.Clear();
+         BuildLeftControls();
+      }
+
+      private void btnExport_Click(object sender, EventArgs e)
+      {
+         using var dialog = new SaveFileDialog
+         {
+            Filter = "Moo theme (*.mood)|*.mood",
+            DefaultExt = "mood",
+            AddExtension = true
+         };
+
+         if (dialog.ShowDialog(this) != DialogResult.OK)
+            return;
+
+         try
+         {
+            _working.ExportThemeToJson(dialog.FileName);
+         }
+         catch (Exception ex)
+         {
+            MessageBox.Show(this,
+               $"The theme could not be exported:{Environment.NewLine}{ex.Message}",
+               "Theme Export Error",
+               MessageBoxButtons.OK,
+               MessageBoxIcon.Error);
+         }
+      }
+
+      private void btnImport_Click(object sender, EventArgs e)
+      {
+         using var dialog = new OpenFileDialog
+         {
+            Filter = "Moo theme (*.mood)|*.mood",
+            DefaultExt = "mood",
+            CheckFileExists = true
+         };
+
+         if (dialog.ShowDialog(this) != DialogResult.OK)
+            return;
+
+         try
+         {
+            var result = _working.ImportThemeFromJson(dialog.FileName);
+
+            // Rebuild the UI to reflect the imported values.
+            RebuildLeftControls();
+            InitializeModeDropdown();
+            ApplyDialogPalette();
+            RefreshPreview();
+
+            if (result?.MissingFontName != null)
+            {
+               MessageBox.Show(this,
+                  $"Theme font '{result.MissingFontName}' isn't installed; using a monospace fallback.",
+                  "Theme Font Unavailable",
+                  MessageBoxButtons.OK,
+                  MessageBoxIcon.Information);
+            }
+         }
+         catch (Exception ex)
+         {
+            // Import is atomic, so the working copy and controls are unchanged on failure.
+            MessageBox.Show(this,
+               $"The theme could not be imported:{Environment.NewLine}{ex.Message}",
+               "Theme Import Error",
+               MessageBoxButtons.OK,
+               MessageBoxIcon.Error);
+         }
       }
 
       private void btnApply_Click(object sender, EventArgs e)
