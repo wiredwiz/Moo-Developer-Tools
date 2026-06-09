@@ -49,4 +49,48 @@ public class McpUtilsTests
 
         result.Should().Be("mcp-negotiate-can abc123 package: mcp-edit min-version: 1.0 max-version: 1.0");
     }
+
+    [Fact]
+    public void FormatMessage_ValueWithColon_QuotesValue()
+    {
+        var result = McpUtils.FormatMessage("mcp-negotiate-can", "abc123", new Dictionary<string, string>
+        {
+            ["package:"] = "a:b"
+        });
+
+        result.Should().Be("mcp-negotiate-can abc123 package: \"a:b\"");
+    }
+
+    [Fact]
+    public void FormatMessage_ValueWithAsterisk_QuotesValue()
+    {
+        var result = McpUtils.FormatMessage("mcp-negotiate-can", "abc123", new Dictionary<string, string>
+        {
+            ["package:"] = "a*b"
+        });
+
+        result.Should().Be("mcp-negotiate-can abc123 package: \"a*b\"");
+    }
+
+    [Fact]
+    public void FormatMessage_ValueWithQuote_QuotesValue()
+    {
+        var result = McpUtils.FormatMessage("mcp-negotiate-can", "abc123", new Dictionary<string, string>
+        {
+            ["package:"] = "a\"b"
+        });
+
+        result.Should().Be("mcp-negotiate-can abc123 package: \"a\"b\"");
+    }
+
+    [Fact]
+    public void FormatMessage_PlainValue_DoesNotQuote()
+    {
+        var result = McpUtils.FormatMessage("mcp-negotiate-can", "abc123", new Dictionary<string, string>
+        {
+            ["package:"] = "foo"
+        });
+
+        result.Should().Be("mcp-negotiate-can abc123 package: foo");
+    }
 }

@@ -153,7 +153,7 @@ public static class McpUtils
    }
 
    private static bool NeedsQuoting(string value) =>
-      string.IsNullOrEmpty(value) || value.Any(c => c == ' ' || c == '\t');
+      string.IsNullOrEmpty(value) || value.Any(c => c == ' ' || c == '\t' || c == '"' || c == '*' || c == ':');
 
    /// <summary>
    /// Generates a randomized session key.

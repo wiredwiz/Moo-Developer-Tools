@@ -238,7 +238,7 @@ Signals that the sender is closing the cord:
 | Line classification (`#$#` vs `#$"`) | Implemented | `Org.Edgerunner.Mud.Communication/OutOfBand/` |
 | `mcp` handshake / version negotiation | Implemented | `McpClientSessionManager.NegotiationMcpSession()` |
 | Auth key generation | Implemented | `McpUtils.GenerateSessionKey()` |
-| `mcp-negotiate-can` / `mcp-negotiate-end` | Not yet implemented | `Org.Edgerunner.Mud.MCP` |
-| Concrete `IMcpPackage` implementations | Not yet implemented | `Org.Edgerunner.Mud.MCP` |
-| `mcp-cord` support | Not yet implemented | `Org.Edgerunner.Mud.MCP` |
-| Multiline (`*`) message parsing | Unknown / verify | `Org.Edgerunner.Mud.MCP` |
+| `mcp-negotiate-can` / `mcp-negotiate-end` | Implemented | `Org.Edgerunner.Mud.MCP/Packages/McpNegotiatePackage.cs` + `McpMessageDispatcher.cs` |
+| Concrete `IMcpPackage` implementations | Implemented (mcp-negotiate, mcp-cord) | `Org.Edgerunner.Mud.MCP/Packages/` |
+| `mcp-cord` support | Implemented | `Org.Edgerunner.Mud.MCP/Packages/McpCordPackage.cs`, `McpCord.cs` |
+| Multiline (`*`) message parsing | Implemented | `Org.Edgerunner.Mud.MCP/McpMessageParser.cs` |
