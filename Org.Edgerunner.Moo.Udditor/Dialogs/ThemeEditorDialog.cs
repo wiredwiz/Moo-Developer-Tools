@@ -595,16 +595,25 @@ namespace Org.Edgerunner.Moo.Udditor.Dialogs
       /// </summary>
       private void ApplyDialogPalette()
       {
-         if (_working.EditorDarkTheme && _darkPalette != null)
-         {
-            PaletteMode = PaletteMode.Custom;
-            Palette = _darkPalette;
-         }
-         else
-         {
-            Palette = null;
-            PaletteMode = PaletteMode.Microsoft365Blue;
-         }
+         var mode = _working.EditorDarkTheme
+            ? PaletteMode.Microsoft365BlackDarkMode
+            : PaletteMode.Microsoft365Blue;
+         ApplyPaletteModeRecursive(this, mode);
+      }
+
+      /// <summary>
+      /// Applies a local <see cref="PaletteMode"/> to <paramref name="control"/> and all descendant
+      /// Krypton controls (any control exposing a settable <c>PaletteMode</c> property), so the dialog
+      /// previews the chosen chrome without altering the global palette. Non-Krypton controls are skipped.
+      /// </summary>
+      private static void ApplyPaletteModeRecursive(Control control, PaletteMode mode)
+      {
+         var prop = control.GetType().GetProperty("PaletteMode", typeof(PaletteMode));
+         if (prop != null && prop.CanWrite)
+            prop.SetValue(control, mode);
+
+         foreach (Control child in control.Controls)
+            ApplyPaletteModeRecursive(child, mode);
       }
 
       private void cboMode_SelectedIndexChanged(object sender, EventArgs e)
