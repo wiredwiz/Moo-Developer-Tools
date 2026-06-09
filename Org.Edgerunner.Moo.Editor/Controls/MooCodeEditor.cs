@@ -362,14 +362,25 @@ namespace Org.Edgerunner.Moo.Editor.Controls
       /// </summary>
       /// <remarks>
       /// Used after the active color theme changes. Clears the <see cref="StyleRegistry"/> cache,
-      /// removes existing styles, then re-colorizes the tokens (guarding against empty text).
+      /// clears existing styles per-line (preserving fold/visible state), then re-colorizes the
+      /// tokens (guarding against empty text).
       /// </remarks>
       public void RefreshTheme()
       {
          StyleRegistry.Clear();
-         ClearAllStyles();
+
+         // Clear styles per line WITHOUT resetting fold/visible state. The inherited
+         // FastColoredTextBox.ClearAllStyles() also forces every line back to
+         // VisibleState.Visible, which expands any folds the user had collapsed — so
+         // calling it here wiped the collapsed fold state on every theme refresh.
+         // Line.ClearAllStyles() clears only the line's character styles.
+         for (int i = 0; i < LinesCount; i++)
+            this[i].ClearAllStyles();
+
          if (!string.IsNullOrEmpty(Text))
             ColorizeTokens(null);
+
+         Invalidate();
       }
 
       /// <summary>
