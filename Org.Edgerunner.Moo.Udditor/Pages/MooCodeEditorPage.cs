@@ -63,6 +63,17 @@ public class MooCodeEditorPage : MooEditorPage
     public IMooWorldQueryProvider? QueryProvider { get; set; }
 
     /// <summary>
+    /// Gets or sets the object the edited verb lives on (the meaning of <c>this</c> in the
+    /// edited code), parsed from the local-edit upload command or simpleedit reference.
+    /// </summary>
+    /// <value>
+    /// The context object id, or <c>null</c> for file-based or otherwise unattributed edits.
+    /// </value>
+    public MooObjectId? ContextObjectId { get; set; }
+
+    private MemberCompletionController? _memberCompletionController;
+
+    /// <summary>
     /// Initializes a new instance of the <see cref="MooCodeEditorPage"/> class.
     /// </summary>
     /// <param name="manager">The window manager.</param>
@@ -274,7 +285,8 @@ public class MooCodeEditorPage : MooEditorPage
         codeEditor.AutocompleteMenu = new AutocompleteMenu(codeEditor);
 
         codeEditor.AutocompleteMenu.ImageList = CompletionIconFactory.CreateImageList();
-        codeEditor.AutocompleteMenu.SearchPattern = @"[\w\.:=!<>+-/*%&|^]";
+        // $ and # are fragment characters so member contexts ($foo, #123:verb) reach the items.
+        codeEditor.AutocompleteMenu.SearchPattern = @"[\w\.:=!<>+-/*%&|^$#]";
         codeEditor.AutocompleteMenu.AllowTabKey = true;
         codeEditor.AutocompleteMenu.MinFragmentLength = 1;
 
@@ -294,9 +306,38 @@ public class MooCodeEditorPage : MooEditorPage
         items.Add(new InsertSpaceSnippet(@"^(\w+)([=<>!&|%-+*/]+)(\w+)$"));
         items.Add(new FormatCommaSnippet(@"^(\w+)(([,]+)(\w+))+$"));
 
+        // member completion: world-queried verbs/properties/core references injected ahead of
+        // the static items whenever the caret sits in a member context on a connected world.
+        _memberCompletionController?.Dispose();
+        _memberCompletionController = new MemberCompletionController(
+            () => QueryProvider,
+            () => ContextObjectId,
+            action =>
+            {
+                if (!codeEditor.IsDisposed && codeEditor.IsHandleCreated)
+                    codeEditor.BeginInvoke(action);
+            },
+            () =>
+            {
+                var menu = codeEditor.AutocompleteMenu;
+                if (menu is { Visible: true })
+                    menu.Show(false);
+            });
+
         //set as autocomplete source
-        codeEditor.AutocompleteMenu.Items.SetAutocompleteItems(items);
+        codeEditor.AutocompleteMenu.Items.SetAutocompleteItems(
+            new DynamicCompletionSource(items, _memberCompletionController, () => GetCaretLinePrefix(codeEditor)));
         codeEditor.AutocompleteMenu.AppearInterval = Settings.Instance.EditorAutocompleteDelay;
+    }
+
+    private static string GetCaretLinePrefix(MooCodeEditor codeEditor)
+    {
+        var place = codeEditor.Selection.Start;
+        if (place.iLine < 0 || place.iLine >= codeEditor.LinesCount || place.iChar <= 0)
+            return string.Empty;
+
+        var line = codeEditor.GetLineText(place.iLine);
+        return line.Substring(0, Math.Min(place.iChar, line.Length));
     }
 
     /// <summary>
