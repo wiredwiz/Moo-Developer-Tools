@@ -35,6 +35,7 @@
 #endregion
 
 using NLog;
+using Org.Edgerunner.Mud.Common.Querying;
 using Org.Edgerunner.Mud.Communication.Interfaces;
 using Org.Edgerunner.Mud.MCP;
 using Org.Edgerunner.Mud.MCP.Interfaces;
@@ -73,11 +74,16 @@ public class WindowManagerSimpleEditConsumer : ISimpleEditConsumer
       if (string.Equals(request.EditType, "moo-code", StringComparison.OrdinalIgnoreCase))
       {
          Logger.Trace("SimpleEdit: opening code editor");
-         page = _WindowManager.CreateMooCodeEditorPage(
+         var codePage = _WindowManager.CreateMooCodeEditorPage(
             request.Name,
             world,
             Settings.Instance.DefaultGrammarDialect,
             request.Content);
+         // Attach the world query provider and edited-object identity so the editor can
+         // offer contextual member completion (verbs/properties/core references).
+         codePage.QueryProvider = uploader.ClientTerminal.QueryProviders.Query;
+         codePage.ContextObjectId = MooObjectReferenceParser.FindFirstObjectId(request.Reference);
+         page = codePage;
       }
       else
       {
