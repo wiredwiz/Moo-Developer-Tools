@@ -36,6 +36,7 @@
 
 using System.Text;
 using NLog;
+using Org.Edgerunner.Mud.Common.Querying;
 using Org.Edgerunner.Mud.Communication;
 using Org.Edgerunner.Mud.Communication.Interfaces;
 using Org.Edgerunner.Mud.Communication.OutOfBand;
@@ -112,10 +113,15 @@ public class LocalEditHandler : IOutOfBandMessageHandler
             if (DocumentName.Contains(":"))
             {
                Logger.Trace("Opening code editor");
-               page = _WindowManager.CreateMooCodeEditorPage(DocumentName,
+               var codePage = _WindowManager.CreateMooCodeEditorPage(DocumentName,
                                                       client.World,
                                                       Settings.Instance.DefaultGrammarDialect,
                                                       DocumentSource.ToString().Trim());
+               // Attach the world query provider and edited-object identity so the editor can
+               // offer contextual member completion (verbs/properties/core references).
+               codePage.QueryProvider = client.QueryProviders.Query;
+               codePage.ContextObjectId = MooObjectReferenceParser.FindFirstObjectId(UploadCommand);
+               page = codePage;
             }
             else
             {
