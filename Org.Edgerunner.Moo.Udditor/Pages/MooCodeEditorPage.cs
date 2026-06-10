@@ -158,6 +158,14 @@ public class MooCodeEditorPage : MooEditorPage
         Editor.Selection = new TextSelectionRange(SourceEditor, 0, 0, 0, 0);
     }
 
+    /// <inheritdoc/>
+    protected override void Dispose(bool disposing)
+    {
+        if (disposing)
+            _memberCompletionController?.Dispose();
+        base.Dispose(disposing);
+    }
+
     /// <summary>
     /// Occurs when [parsing complete].
     /// </summary>
@@ -319,6 +327,9 @@ public class MooCodeEditorPage : MooEditorPage
             },
             () =>
             {
+                if (codeEditor.IsDisposed)
+                    return;
+
                 var menu = codeEditor.AutocompleteMenu;
                 if (menu is { Visible: true })
                     menu.Show(false);
