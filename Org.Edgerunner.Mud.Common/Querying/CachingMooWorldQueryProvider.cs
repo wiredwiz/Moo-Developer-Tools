@@ -79,6 +79,9 @@ public class CachingMooWorldQueryProvider : IMooWorldQueryProvider, IDisposable
       /// <summary>The <see cref="IMooWorldQueryProvider.GetPropertiesAsync"/> operation.</summary>
       GetProperties,
 
+      /// <summary>The <see cref="IMooWorldQueryProvider.GetPropertyDocumentationAsync"/> operation.</summary>
+      GetPropertyDocumentation,
+
       /// <summary>The <see cref="IMooWorldQueryProvider.GetVerbInfoAsync"/> operation.</summary>
       GetVerbInfo,
 
@@ -266,6 +269,14 @@ public class CachingMooWorldQueryProvider : IMooWorldQueryProvider, IDisposable
       return GetOrAddAsync(
          new CacheKey(Operation.GetProperties, objectId, null),
          () => _inner.GetPropertiesAsync(objectId, cancellationToken));
+   }
+
+   /// <inheritdoc/>
+   public Task<IReadOnlyList<string>> GetPropertyDocumentationAsync(MooObjectId objectId, string propName, CancellationToken cancellationToken)
+   {
+      return GetOrAddAsync(
+         new CacheKey(Operation.GetPropertyDocumentation, objectId, propName),
+         () => _inner.GetPropertyDocumentationAsync(objectId, propName, cancellationToken));
    }
 
    /// <inheritdoc/>

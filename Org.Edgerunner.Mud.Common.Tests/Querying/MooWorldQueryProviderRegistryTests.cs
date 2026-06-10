@@ -350,6 +350,66 @@ public class MooWorldQueryProviderRegistryTests
     }
 
     [Fact]
+    public async Task GetPropertyDocumentation_HigherPriorityProvider_AnswersFirst()
+    {
+        var low = new FakeQueryProvider
+        {
+            OnGetPropertyDocumentation = (_, _) => Task.FromResult<IReadOnlyList<string>>(new[] { "low" }),
+        };
+        var high = new FakeQueryProvider
+        {
+            OnGetPropertyDocumentation = (_, _) => Task.FromResult<IReadOnlyList<string>>(new[] { "high" }),
+        };
+
+        var registry = new MooWorldQueryProviderRegistry();
+        registry.Register(low, 1);
+        registry.Register(high, 10);
+
+        var result = await registry.GetPropertyDocumentationAsync(new MooObjectId(3), "desc", CancellationToken.None);
+
+        result.Should().ContainSingle().Which.Should().Be("high");
+    }
+
+    [Fact]
+    public async Task GetPropertyDocumentation_NotImplementedException_FallsThroughToNextProvider()
+    {
+        var unsupported = new FakeQueryProvider();
+        var supported = new FakeQueryProvider
+        {
+            OnGetPropertyDocumentation = (_, _) => Task.FromResult<IReadOnlyList<string>>(new[] { "fallback" }),
+        };
+
+        var registry = new MooWorldQueryProviderRegistry();
+        registry.Register(unsupported, 10);
+        registry.Register(supported, 1);
+
+        var result = await registry.GetPropertyDocumentationAsync(new MooObjectId(3), "desc", CancellationToken.None);
+
+        result.Should().ContainSingle().Which.Should().Be("fallback");
+    }
+
+    [Fact]
+    public async Task GetPropertyDocumentation_Exhaustion_ReturnsEmpty()
+    {
+        var registry = new MooWorldQueryProviderRegistry();
+        registry.Register(new FakeQueryProvider(), 1); // unsupported
+
+        var result = await registry.GetPropertyDocumentationAsync(new MooObjectId(3), "desc", CancellationToken.None);
+
+        result.Should().BeEmpty();
+    }
+
+    [Fact]
+    public async Task GetPropertyDocumentation_NoProviders_ReturnsEmpty()
+    {
+        var registry = new MooWorldQueryProviderRegistry();
+
+        var result = await registry.GetPropertyDocumentationAsync(new MooObjectId(3), "desc", CancellationToken.None);
+
+        result.Should().BeEmpty();
+    }
+
+    [Fact]
     public void Register_And_Unregister_Fire_ProvidersChanged()
     {
         var registry = new MooWorldQueryProviderRegistry();

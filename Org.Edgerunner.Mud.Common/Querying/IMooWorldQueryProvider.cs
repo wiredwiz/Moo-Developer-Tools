@@ -116,6 +116,18 @@ public interface IMooWorldQueryProvider
    Task<IReadOnlyList<MooPropertySummary>> GetPropertiesAsync(MooObjectId objectId, CancellationToken cancellationToken);
 
    /// <summary>
+   /// Gets the documentation lines for the specified property.
+   /// </summary>
+   /// <param name="objectId">The object id queried for the property.</param>
+   /// <param name="propName">The property name.</param>
+   /// <param name="cancellationToken">The cancellation token.</param>
+   /// <returns>
+   /// A read-only list of documentation/value-preview lines for the property; an empty list when the
+   /// property has no documentation or the operation is unsupported.
+   /// </returns>
+   Task<IReadOnlyList<string>> GetPropertyDocumentationAsync(MooObjectId objectId, string propName, CancellationToken cancellationToken);
+
+   /// <summary>
    /// Gets detailed information about the specified verb.
    /// </summary>
    /// <param name="objectId">The object id queried for the verb.</param>

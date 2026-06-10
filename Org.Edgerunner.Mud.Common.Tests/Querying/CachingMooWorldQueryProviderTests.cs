@@ -280,6 +280,67 @@ public class CachingMooWorldQueryProviderTests
     }
 
     [Fact]
+    public async Task GetPropertyDocumentation_CacheHit_DoesNotCallInnerAgain()
+    {
+        var calls = 0;
+        var inner = new FakeQueryProvider
+        {
+            OnGetPropertyDocumentation = (_, _) =>
+            {
+                calls++;
+                return Task.FromResult<IReadOnlyList<string>>(new[] { "line" });
+            },
+        };
+        using var cache = new CachingMooWorldQueryProvider(inner, TimeSpan.FromMinutes(5));
+
+        var first = await cache.GetPropertyDocumentationAsync(new MooObjectId(5), "desc", CancellationToken.None);
+        var second = await cache.GetPropertyDocumentationAsync(new MooObjectId(5), "desc", CancellationToken.None);
+
+        first.Should().BeSameAs(second);
+        calls.Should().Be(1);
+    }
+
+    [Fact]
+    public async Task GetPropertyDocumentation_EmptyResult_IsCached()
+    {
+        var calls = 0;
+        var inner = new FakeQueryProvider
+        {
+            OnGetPropertyDocumentation = (_, _) =>
+            {
+                calls++;
+                return Task.FromResult<IReadOnlyList<string>>(Array.Empty<string>());
+            },
+        };
+        using var cache = new CachingMooWorldQueryProvider(inner, TimeSpan.FromMinutes(5));
+
+        await cache.GetPropertyDocumentationAsync(new MooObjectId(5), "desc", CancellationToken.None);
+        await cache.GetPropertyDocumentationAsync(new MooObjectId(5), "desc", CancellationToken.None);
+
+        calls.Should().Be(1);
+    }
+
+    [Fact]
+    public async Task GetPropertyDocumentation_DifferentNames_AreCachedSeparately()
+    {
+        var calls = 0;
+        var inner = new FakeQueryProvider
+        {
+            OnGetPropertyDocumentation = (_, name) =>
+            {
+                calls++;
+                return Task.FromResult<IReadOnlyList<string>>(new[] { name });
+            },
+        };
+        using var cache = new CachingMooWorldQueryProvider(inner, TimeSpan.FromMinutes(5));
+
+        await cache.GetPropertyDocumentationAsync(new MooObjectId(5), "desc", CancellationToken.None);
+        await cache.GetPropertyDocumentationAsync(new MooObjectId(5), "name", CancellationToken.None);
+
+        calls.Should().Be(2);
+    }
+
+    [Fact]
     public async Task Invalidate_SpecificKey_ForcesReFetch()
     {
         var inner = new FakeQueryProvider

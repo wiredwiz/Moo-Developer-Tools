@@ -197,6 +197,7 @@ public class SimpleEditTests
       public void SendOutOfBandLines(IEnumerable<string> lines) => SentOutOfBandLines = lines.ToList();
 
       // Unused members.
+      public Org.Edgerunner.Mud.Common.Querying.MooWorldQueryService QueryProviders { get; } = new();
       public System.Drawing.Color ConsoleForegroundColor { get; set; }
       public System.Drawing.Color ConsoleBackgroundColor { get; set; }
       public string Host => string.Empty;

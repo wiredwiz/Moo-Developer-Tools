@@ -42,6 +42,7 @@ using Org.Edgerunner.Moo.Udditor.Pages;
 using System;
 using Org.Edgerunner.Mud.Communication;
 using Org.Edgerunner.Mud.Communication.OutOfBand;
+using Org.Edgerunner.Mud.Communication.Sdwc;
 using Org.Edgerunner.Moo.Editor.Controls;
 using Org.Edgerunner.Moo.Udditor.Communication.OutOfBand;
 using Org.Edgerunner.Mud.MCP;
@@ -340,6 +341,7 @@ public class WindowManager
          var simpleEdit = new SimpleEditPackage(new WindowManagerSimpleEditConsumer(this));
          oobHandler.RegisterHandler(new McpOobHandler(new Version(2, 1), new Version(2, 1),
             new IMcpPackage[] { simpleEdit }));
+         oobHandler.RegisterHandler(new SdwcOobHandler());
          var processor = new RootMessageProcessor(oobPrefix, oobHandler);
          processor.OutOfBandMessagingTimeout = 500000;
          var page = new TerminalPage(this, processor, world, useTls);

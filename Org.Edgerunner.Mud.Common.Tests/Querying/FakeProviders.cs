@@ -24,6 +24,8 @@ public class FakeQueryProvider : IMooWorldQueryProvider
 
     public Func<MooObjectId, string, Task<MooVerbInfo?>>? OnGetVerbInfo { get; set; }
 
+    public Func<MooObjectId, string, Task<IReadOnlyList<string>>>? OnGetPropertyDocumentation { get; set; }
+
     /// <summary>
     /// Gets the number of times <see cref="GetObjectsAsync"/> has been invoked.
     /// </summary>
@@ -90,6 +92,13 @@ public class FakeQueryProvider : IMooWorldQueryProvider
     public Task<IReadOnlyList<MooPropertySummary>> GetPropertiesAsync(MooObjectId objectId, CancellationToken cancellationToken)
     {
         throw new NotImplementedException();
+    }
+
+    public Task<IReadOnlyList<string>> GetPropertyDocumentationAsync(MooObjectId objectId, string propName, CancellationToken cancellationToken)
+    {
+        if (OnGetPropertyDocumentation == null)
+            throw new NotImplementedException();
+        return OnGetPropertyDocumentation(objectId, propName);
     }
 
     public Task<MooVerbInfo?> GetVerbInfoAsync(MooObjectId objectId, string verbName, CancellationToken cancellationToken)

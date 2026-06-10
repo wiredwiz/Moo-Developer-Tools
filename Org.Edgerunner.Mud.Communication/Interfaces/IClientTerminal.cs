@@ -35,11 +35,20 @@
 #endregion
 
 using System.Drawing;
+using Org.Edgerunner.Mud.Common.Querying;
 
 namespace Org.Edgerunner.Mud.Communication.Interfaces;
 
 public interface IClientTerminal
 {
+   /// <summary>
+   /// Gets the per-connection MOO world query service that aggregates developer-info query providers.
+   /// </summary>
+   /// <value>
+   /// The query service, delegating to the underlying client session.
+   /// </value>
+   public MooWorldQueryService QueryProviders { get; }
+
    /// <summary>
    /// Gets or sets the color of the console foreground.
    /// </summary>

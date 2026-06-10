@@ -208,6 +208,12 @@ public class MooWorldQueryProviderRegistry : IMooWorldQueryProvider
    }
 
    /// <inheritdoc/>
+   public Task<IReadOnlyList<string>> GetPropertyDocumentationAsync(MooObjectId objectId, string propName, CancellationToken cancellationToken)
+   {
+      return QueryAsync(p => p.GetPropertyDocumentationAsync(objectId, propName, cancellationToken), (IReadOnlyList<string>)Array.Empty<string>());
+   }
+
+   /// <inheritdoc/>
    public Task<MooVerbInfo?> GetVerbInfoAsync(MooObjectId objectId, string verbName, CancellationToken cancellationToken)
    {
       return QueryAsync<MooVerbInfo?>(p => p.GetVerbInfoAsync(objectId, verbName, cancellationToken), null);
