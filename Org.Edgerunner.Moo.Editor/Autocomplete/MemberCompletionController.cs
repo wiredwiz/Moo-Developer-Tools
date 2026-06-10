@@ -54,7 +54,9 @@ namespace Org.Edgerunner.Moo.Editor.Autocomplete;
 /// owner marshals there), but a lock guards the cache and in-flight state anyway so that hosts
 /// (and tests) with an immediate marshal are also safe. Member completion is best-effort: provider
 /// failures (timeout, cancellation, disconnect, protocol errors) are swallowed and simply leave
-/// the static completion list in place.
+/// the static completion list in place. The menu-refresh callback is invoked outside the state
+/// lock and may therefore fire after disposal; owners must supply a callback that is safe to call
+/// on a closed editor (the production callback only re-shows an open popup).
 /// </remarks>
 public sealed class MemberCompletionController : IDisposable
 {
@@ -141,8 +143,10 @@ public sealed class MemberCompletionController : IDisposable
          if (provider is null || _inflightKey == key)
             return Array.Empty<AutocompleteItem>();
 
-         _fetchCancellation?.Cancel();
+         var staleFetchCancellation = _fetchCancellation;
          _fetchCancellation = new CancellationTokenSource();
+         staleFetchCancellation?.Cancel();
+         staleFetchCancellation?.Dispose();
          _inflightKey = key;
          _ = FetchAsync(provider, context.Kind, objectId.Value, key, _fetchCancellation.Token);
       }
@@ -159,7 +163,10 @@ public sealed class MemberCompletionController : IDisposable
             return;
 
          _disposed = true;
-         _fetchCancellation?.Cancel();
+         var fetchCancellation = _fetchCancellation;
+         _fetchCancellation = null;
+         fetchCancellation?.Cancel();
+         fetchCancellation?.Dispose();
       }
    }
 
