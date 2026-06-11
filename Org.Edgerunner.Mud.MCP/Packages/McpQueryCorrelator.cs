@@ -64,6 +64,15 @@ public class McpQueryCorrelator
    {
       var source = new TaskCompletionSource<string>(TaskCreationOptions.RunContinuationsAsynchronously);
       _pending[tag] = source;
+
+      // Observe faults eagerly: if the awaiting consumer times out and abandons this task while a
+      // racing CompleteError still faults it, the exception must not surface as unobserved.
+      _ = source.Task.ContinueWith(
+         static t => _ = t.Exception,
+         CancellationToken.None,
+         TaskContinuationOptions.OnlyOnFaulted | TaskContinuationOptions.ExecuteSynchronously,
+         TaskScheduler.Default);
+
       return source.Task;
    }
 
