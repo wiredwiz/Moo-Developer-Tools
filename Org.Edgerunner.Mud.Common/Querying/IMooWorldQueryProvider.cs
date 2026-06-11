@@ -49,11 +49,11 @@ namespace Org.Edgerunner.Mud.Common.Querying;
 public interface IMooWorldQueryProvider
 {
    /// <summary>
-   /// Gets the collection of known objects in the world.
+   /// Gets the collection of known core (<c>$</c>-registered) objects in the world.
    /// </summary>
    /// <param name="cancellationToken">The cancellation token.</param>
    /// <returns>A read-only list of <see cref="MooObjectSummary"/>.</returns>
-   Task<IReadOnlyList<MooObjectSummary>> GetObjectsAsync(CancellationToken cancellationToken);
+   Task<IReadOnlyList<MooObjectSummary>> GetCoreObjectsAsync(CancellationToken cancellationToken);
 
    /// <summary>
    /// Gets the immediate children of the specified object.

@@ -129,7 +129,7 @@ public class SdwcQueryProviderTests
       var id = new MooObjectId(1);
       var ct = CancellationToken.None;
 
-      await ((Func<Task>)(() => provider.GetObjectsAsync(ct))).Should().ThrowAsync<NotImplementedException>();
+      await ((Func<Task>)(() => provider.GetCoreObjectsAsync(ct))).Should().ThrowAsync<NotImplementedException>();
       await ((Func<Task>)(() => provider.GetChildrenAsync(id, ct))).Should().ThrowAsync<NotImplementedException>();
       await ((Func<Task>)(() => provider.GetOwnedObjectsAsync(ct))).Should().ThrowAsync<NotImplementedException>();
       await ((Func<Task>)(() => provider.GetOwnedObjectsAsync(id, ct))).Should().ThrowAsync<NotImplementedException>();

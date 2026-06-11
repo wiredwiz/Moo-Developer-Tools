@@ -45,7 +45,7 @@ all 13 interface operations.
 | Summary payloads | **Queried object only — no definers.** Verb/property list replies carry names only; the client fills `DefiningObject` with the queried object id. `q`/`r` (queried/resolved) appear ONLY on `-verb-info` / `-verb-doc` / `-verb-code`, where the interface contract explicitly models resolution |
 | Correlation | Client-generated `tag` field echoed by the server; client correlator keyed by tag |
 | Permissions | Every server handler runs under `set_task_perms()` of the connected player — normal MOO read rules decide visibility |
-| `GetObjects` scope | Core (`$`-registered) objects only — the `#0` property registry walk |
+| `GetCoreObjects` scope | Core (`$`-registered) objects only — the `#0` property registry walk |
 | Error handling | Shared `-error` reply; client degrades to `null`/empty per the interface contract but **always logs** the event (never silent) |
 | Provider priority | 200 (SDWC = 100) |
 
@@ -59,7 +59,7 @@ a `tag: "<n>"` field, and the parameters below. Every reply echoes the tag and c
 
 | Request | Params (besides `tag`) | Reply | JSON payload |
 |---|---|---|---|
-| `-objects` | — | `-objects-reply` | `{"d":[[num,name,[aliases]],…]}` — one row per `$`-registered object |
+| `-core-objects` | — | `-core-objects-reply` | `{"d":[[num,name,[aliases]],…]}` — one row per `$`-registered object |
 | `-children` | `object` | `-children-reply` | `{"d":[[num,name,[aliases]],…]}` |
 | `-owned` | `owner` (optional; defaults to the connected player) | `-owned-reply` | `{"d":[[num,name,[aliases]],…]}` |
 | `-parent` | `object` | `-parent-reply` | `{"p":num}` (−1 = no parent) |
@@ -116,7 +116,7 @@ reference). Metadata properties:
 
 ### Handler verbs
 
-One per inbound message, framework-convention named (dashes → underscores): `handle_objects`,
+One per inbound message, framework-convention named (dashes → underscores): `handle_core_objects`,
 `handle_children`, `handle_owned`, `handle_parent`, `handle_verbs`, `handle_verb_info`,
 `handle_verb_doc`, `handle_verb_code`, `handle_props`, `handle_prop_info`, `handle_prop_doc`,
 `handle_prop_value`.
@@ -147,7 +147,7 @@ dump loads on any JHCore-style core regardless of server family.
 
 | Op | Server behavior |
 |---|---|
-| `objects` | Walk `properties(#0)`; for each property whose value is a valid object: row `[num, .name, [.aliases]]` |
+| `core-objects` | Walk `properties(#0)`; for each property whose value is a valid object: row `[num, .name, [.aliases]]` |
 | `children` | `children(object)` → summary rows |
 | `owned` | Target player's `.owned_objects` (core bookkeeping maintained by `@create`/`@recycle`). Property absent → `-error E_INVARG` (no DB walk, ever) |
 | `parent` | `parent(object)`; `#-1` → `{"p":-1}` |
@@ -251,7 +251,7 @@ for registry fall-through by partial providers.
 written against: package identity/version, negotiation behavior, full message catalog with
 parameters, JSON payload schema and a worked example per message, encoding conventions
 (minified, short keys, positional rows, bare-int objnums, raw verb-names strings), chunking
-rules, the error message and code semantics, permission model, and the `GetObjects` core-registry
+rules, the error message and code semantics, permission model, and the `GetCoreObjects` core-registry
 scope. The server dump's `description` property carries a condensed version.
 
 ## Testing

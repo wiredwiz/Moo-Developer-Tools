@@ -10,7 +10,7 @@ namespace Org.Edgerunner.Mud.Common.Tests.Querying;
 /// </summary>
 public class FakeQueryProvider : IMooWorldQueryProvider
 {
-    public Func<Task<IReadOnlyList<MooObjectSummary>>>? OnGetObjects { get; set; }
+    public Func<Task<IReadOnlyList<MooObjectSummary>>>? OnGetCoreObjects { get; set; }
 
     public Func<Task<IReadOnlyList<MooObjectSummary>>>? OnGetOwnedObjectsForPlayer { get; set; }
 
@@ -27,9 +27,9 @@ public class FakeQueryProvider : IMooWorldQueryProvider
     public Func<MooObjectId, string, Task<IReadOnlyList<string>>>? OnGetPropertyDocumentation { get; set; }
 
     /// <summary>
-    /// Gets the number of times <see cref="GetObjectsAsync"/> has been invoked.
+    /// Gets the number of times <see cref="GetCoreObjectsAsync"/> has been invoked.
     /// </summary>
-    public int GetObjectsCallCount { get; private set; }
+    public int GetCoreObjectsCallCount { get; private set; }
 
     /// <summary>
     /// Gets the number of times the current-player <see cref="GetOwnedObjectsAsync(CancellationToken)"/> overload has been invoked.
@@ -41,12 +41,12 @@ public class FakeQueryProvider : IMooWorldQueryProvider
     /// </summary>
     public int GetOwnedObjectsForOwnerCallCount { get; private set; }
 
-    public Task<IReadOnlyList<MooObjectSummary>> GetObjectsAsync(CancellationToken cancellationToken)
+    public Task<IReadOnlyList<MooObjectSummary>> GetCoreObjectsAsync(CancellationToken cancellationToken)
     {
-        GetObjectsCallCount++;
-        if (OnGetObjects == null)
+        GetCoreObjectsCallCount++;
+        if (OnGetCoreObjects == null)
             throw new NotImplementedException();
-        return OnGetObjects();
+        return OnGetCoreObjects();
     }
 
     public Task<IReadOnlyList<MooObjectSummary>> GetChildrenAsync(MooObjectId objectId, CancellationToken cancellationToken)
