@@ -160,9 +160,9 @@ public class MooWorldQueryProviderRegistry : IMooWorldQueryProvider
    }
 
    /// <inheritdoc/>
-   public Task<IReadOnlyList<MooObjectSummary>> GetObjectsAsync(CancellationToken cancellationToken)
+   public Task<IReadOnlyList<MooObjectSummary>> GetCoreObjectsAsync(CancellationToken cancellationToken)
    {
-      return QueryAsync(p => p.GetObjectsAsync(cancellationToken), Array.Empty<MooObjectSummary>());
+      return QueryAsync(p => p.GetCoreObjectsAsync(cancellationToken), Array.Empty<MooObjectSummary>());
    }
 
    /// <inheritdoc/>

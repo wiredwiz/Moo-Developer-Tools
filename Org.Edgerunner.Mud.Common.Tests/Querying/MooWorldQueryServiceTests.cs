@@ -17,11 +17,11 @@ public class MooWorldQueryServiceTests
         using var service = new MooWorldQueryService(TimeSpan.FromMinutes(5));
         var provider = new FakeQueryProvider
         {
-            OnGetObjects = () => Task.FromResult<IReadOnlyList<MooObjectSummary>>(new[] { Summary(1, "x") }),
+            OnGetCoreObjects = () => Task.FromResult<IReadOnlyList<MooObjectSummary>>(new[] { Summary(1, "x") }),
         };
         service.Register(provider, 1);
 
-        var result = await service.Query.GetObjectsAsync(CancellationToken.None);
+        var result = await service.Query.GetCoreObjectsAsync(CancellationToken.None);
 
         result.Should().ContainSingle().Which.Name.Should().Be("x");
     }
@@ -32,19 +32,19 @@ public class MooWorldQueryServiceTests
         using var service = new MooWorldQueryService(TimeSpan.FromMinutes(5));
         var provider = new FakeQueryProvider
         {
-            OnGetObjects = () => Task.FromResult<IReadOnlyList<MooObjectSummary>>(new[] { Summary(1, "x") }),
+            OnGetCoreObjects = () => Task.FromResult<IReadOnlyList<MooObjectSummary>>(new[] { Summary(1, "x") }),
         };
         service.Register(provider, 1);
 
         // Prime the cache.
-        await service.Query.GetObjectsAsync(CancellationToken.None);
-        provider.GetObjectsCallCount.Should().Be(1);
+        await service.Query.GetCoreObjectsAsync(CancellationToken.None);
+        provider.GetCoreObjectsCallCount.Should().Be(1);
 
         // Registering another provider raises ProvidersChanged, which clears the cache.
         service.Register(new FakeQueryProvider(), 0);
 
-        await service.Query.GetObjectsAsync(CancellationToken.None);
-        provider.GetObjectsCallCount.Should().Be(2);
+        await service.Query.GetCoreObjectsAsync(CancellationToken.None);
+        provider.GetCoreObjectsCallCount.Should().Be(2);
     }
 
     [Fact]
@@ -93,14 +93,14 @@ public class MooWorldQueryServiceTests
         using var service = new MooWorldQueryService(TimeSpan.FromMinutes(5));
         var provider = new FakeQueryProvider
         {
-            OnGetObjects = () => Task.FromResult<IReadOnlyList<MooObjectSummary>>(new[] { Summary(1, "x") }),
+            OnGetCoreObjects = () => Task.FromResult<IReadOnlyList<MooObjectSummary>>(new[] { Summary(1, "x") }),
         };
         service.Register(provider, 1);
 
-        await service.Query.GetObjectsAsync(CancellationToken.None);
+        await service.Query.GetCoreObjectsAsync(CancellationToken.None);
         service.Clear();
-        await service.Query.GetObjectsAsync(CancellationToken.None);
+        await service.Query.GetCoreObjectsAsync(CancellationToken.None);
 
-        provider.GetObjectsCallCount.Should().Be(2);
+        provider.GetCoreObjectsCallCount.Should().Be(2);
     }
 }

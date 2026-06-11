@@ -16,15 +16,15 @@ public class CachingMooWorldQueryProviderTests
     {
         var inner = new FakeQueryProvider
         {
-            OnGetObjects = () => Task.FromResult<IReadOnlyList<MooObjectSummary>>(new[] { Summary(1, "a") }),
+            OnGetCoreObjects = () => Task.FromResult<IReadOnlyList<MooObjectSummary>>(new[] { Summary(1, "a") }),
         };
         using var cache = new CachingMooWorldQueryProvider(inner, TimeSpan.FromMinutes(5));
 
-        var first = await cache.GetObjectsAsync(CancellationToken.None);
-        var second = await cache.GetObjectsAsync(CancellationToken.None);
+        var first = await cache.GetCoreObjectsAsync(CancellationToken.None);
+        var second = await cache.GetCoreObjectsAsync(CancellationToken.None);
 
         first.Should().BeSameAs(second);
-        inner.GetObjectsCallCount.Should().Be(1);
+        inner.GetCoreObjectsCallCount.Should().Be(1);
     }
 
     [Fact]
@@ -32,14 +32,14 @@ public class CachingMooWorldQueryProviderTests
     {
         var inner = new FakeQueryProvider
         {
-            OnGetObjects = () => Task.FromResult<IReadOnlyList<MooObjectSummary>>(Array.Empty<MooObjectSummary>()),
+            OnGetCoreObjects = () => Task.FromResult<IReadOnlyList<MooObjectSummary>>(Array.Empty<MooObjectSummary>()),
         };
         using var cache = new CachingMooWorldQueryProvider(inner, TimeSpan.FromMinutes(5));
 
-        await cache.GetObjectsAsync(CancellationToken.None);
-        await cache.GetObjectsAsync(CancellationToken.None);
+        await cache.GetCoreObjectsAsync(CancellationToken.None);
+        await cache.GetCoreObjectsAsync(CancellationToken.None);
 
-        inner.GetObjectsCallCount.Should().Be(1);
+        inner.GetCoreObjectsCallCount.Should().Be(1);
     }
 
     [Fact]
@@ -68,7 +68,7 @@ public class CachingMooWorldQueryProviderTests
         var attempts = 0;
         var inner = new FakeQueryProvider
         {
-            OnGetObjects = () =>
+            OnGetCoreObjects = () =>
             {
                 attempts++;
                 throw new InvalidOperationException("boom");
@@ -76,8 +76,8 @@ public class CachingMooWorldQueryProviderTests
         };
         using var cache = new CachingMooWorldQueryProvider(inner, TimeSpan.FromMinutes(5));
 
-        await ((Func<Task>)(() => cache.GetObjectsAsync(CancellationToken.None))).Should().ThrowAsync<InvalidOperationException>();
-        await ((Func<Task>)(() => cache.GetObjectsAsync(CancellationToken.None))).Should().ThrowAsync<InvalidOperationException>();
+        await ((Func<Task>)(() => cache.GetCoreObjectsAsync(CancellationToken.None))).Should().ThrowAsync<InvalidOperationException>();
+        await ((Func<Task>)(() => cache.GetCoreObjectsAsync(CancellationToken.None))).Should().ThrowAsync<InvalidOperationException>();
 
         attempts.Should().Be(2);
     }
@@ -87,15 +87,15 @@ public class CachingMooWorldQueryProviderTests
     {
         var inner = new FakeQueryProvider
         {
-            OnGetObjects = () => Task.FromResult<IReadOnlyList<MooObjectSummary>>(new[] { Summary(1, "a") }),
+            OnGetCoreObjects = () => Task.FromResult<IReadOnlyList<MooObjectSummary>>(new[] { Summary(1, "a") }),
         };
         using var cache = new CachingMooWorldQueryProvider(inner, TimeSpan.FromMilliseconds(30));
 
-        await cache.GetObjectsAsync(CancellationToken.None);
+        await cache.GetCoreObjectsAsync(CancellationToken.None);
         await Task.Delay(80);
-        await cache.GetObjectsAsync(CancellationToken.None);
+        await cache.GetCoreObjectsAsync(CancellationToken.None);
 
-        inner.GetObjectsCallCount.Should().Be(2);
+        inner.GetCoreObjectsCallCount.Should().Be(2);
     }
 
     [Fact]
@@ -127,15 +127,15 @@ public class CachingMooWorldQueryProviderTests
     {
         var inner = new FakeQueryProvider
         {
-            OnGetObjects = () => Task.FromResult<IReadOnlyList<MooObjectSummary>>(new[] { Summary(1, "a") }),
+            OnGetCoreObjects = () => Task.FromResult<IReadOnlyList<MooObjectSummary>>(new[] { Summary(1, "a") }),
         };
         using var cache = new CachingMooWorldQueryProvider(inner, TimeSpan.FromMinutes(5));
 
-        await cache.GetObjectsAsync(CancellationToken.None);
+        await cache.GetCoreObjectsAsync(CancellationToken.None);
         cache.Clear();
-        await cache.GetObjectsAsync(CancellationToken.None);
+        await cache.GetCoreObjectsAsync(CancellationToken.None);
 
-        inner.GetObjectsCallCount.Should().Be(2);
+        inner.GetCoreObjectsCallCount.Should().Be(2);
     }
 
     [Fact]
@@ -345,14 +345,14 @@ public class CachingMooWorldQueryProviderTests
     {
         var inner = new FakeQueryProvider
         {
-            OnGetObjects = () => Task.FromResult<IReadOnlyList<MooObjectSummary>>(new[] { Summary(1, "a") }),
+            OnGetCoreObjects = () => Task.FromResult<IReadOnlyList<MooObjectSummary>>(new[] { Summary(1, "a") }),
         };
         using var cache = new CachingMooWorldQueryProvider(inner, TimeSpan.FromMinutes(5));
 
-        await cache.GetObjectsAsync(CancellationToken.None);
-        cache.Invalidate(CachingMooWorldQueryProvider.Operation.GetObjects, MooObjectId.Nothing);
-        await cache.GetObjectsAsync(CancellationToken.None);
+        await cache.GetCoreObjectsAsync(CancellationToken.None);
+        cache.Invalidate(CachingMooWorldQueryProvider.Operation.GetCoreObjects, MooObjectId.Nothing);
+        await cache.GetCoreObjectsAsync(CancellationToken.None);
 
-        inner.GetObjectsCallCount.Should().Be(2);
+        inner.GetCoreObjectsCallCount.Should().Be(2);
     }
 }

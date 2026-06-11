@@ -155,7 +155,7 @@ public sealed class SdwcQueryProvider : IMooWorldQueryProvider
    }
 
    /// <inheritdoc/>
-   public Task<IReadOnlyList<MooObjectSummary>> GetObjectsAsync(CancellationToken cancellationToken)
+   public Task<IReadOnlyList<MooObjectSummary>> GetCoreObjectsAsync(CancellationToken cancellationToken)
    {
       throw new NotImplementedException();
    }

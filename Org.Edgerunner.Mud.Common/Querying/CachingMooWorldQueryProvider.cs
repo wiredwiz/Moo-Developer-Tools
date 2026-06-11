@@ -55,8 +55,8 @@ public class CachingMooWorldQueryProvider : IMooWorldQueryProvider, IDisposable
    /// </summary>
    public enum Operation
    {
-      /// <summary>The <see cref="IMooWorldQueryProvider.GetObjectsAsync"/> operation.</summary>
-      GetObjects,
+      /// <summary>The <see cref="IMooWorldQueryProvider.GetCoreObjectsAsync"/> operation.</summary>
+      GetCoreObjects,
 
       /// <summary>The <see cref="IMooWorldQueryProvider.GetChildrenAsync"/> operation.</summary>
       GetChildren,
@@ -205,11 +205,11 @@ public class CachingMooWorldQueryProvider : IMooWorldQueryProvider, IDisposable
    }
 
    /// <inheritdoc/>
-   public Task<IReadOnlyList<MooObjectSummary>> GetObjectsAsync(CancellationToken cancellationToken)
+   public Task<IReadOnlyList<MooObjectSummary>> GetCoreObjectsAsync(CancellationToken cancellationToken)
    {
       return GetOrAddAsync(
-         new CacheKey(Operation.GetObjects, MooObjectId.Nothing, null),
-         () => _inner.GetObjectsAsync(cancellationToken));
+         new CacheKey(Operation.GetCoreObjects, MooObjectId.Nothing, null),
+         () => _inner.GetCoreObjectsAsync(cancellationToken));
    }
 
    /// <inheritdoc/>

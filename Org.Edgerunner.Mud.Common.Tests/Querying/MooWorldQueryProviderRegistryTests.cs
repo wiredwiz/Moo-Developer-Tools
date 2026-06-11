@@ -16,43 +16,43 @@ public class MooWorldQueryProviderRegistryTests
     {
         var low = new FakeQueryProvider
         {
-            OnGetObjects = () => Task.FromResult<IReadOnlyList<MooObjectSummary>>(new[] { Summary(1, "low") }),
+            OnGetCoreObjects = () => Task.FromResult<IReadOnlyList<MooObjectSummary>>(new[] { Summary(1, "low") }),
         };
         var high = new FakeQueryProvider
         {
-            OnGetObjects = () => Task.FromResult<IReadOnlyList<MooObjectSummary>>(new[] { Summary(2, "high") }),
+            OnGetCoreObjects = () => Task.FromResult<IReadOnlyList<MooObjectSummary>>(new[] { Summary(2, "high") }),
         };
 
         var registry = new MooWorldQueryProviderRegistry();
         registry.Register(low, 1);
         registry.Register(high, 10);
 
-        var result = await registry.GetObjectsAsync(CancellationToken.None);
+        var result = await registry.GetCoreObjectsAsync(CancellationToken.None);
 
         result.Should().ContainSingle().Which.Name.Should().Be("high");
-        low.GetObjectsCallCount.Should().Be(0);
-        high.GetObjectsCallCount.Should().Be(1);
+        low.GetCoreObjectsCallCount.Should().Be(0);
+        high.GetCoreObjectsCallCount.Should().Be(1);
     }
 
     [Fact]
     public async Task NotImplementedException_FallsThroughToNextProvider()
     {
-        // First provider (higher priority) does not support GetObjects (throws NotImplementedException).
+        // First provider (higher priority) does not support GetCoreObjects (throws NotImplementedException).
         var unsupported = new FakeQueryProvider();
         var supported = new FakeQueryProvider
         {
-            OnGetObjects = () => Task.FromResult<IReadOnlyList<MooObjectSummary>>(new[] { Summary(5, "fallback") }),
+            OnGetCoreObjects = () => Task.FromResult<IReadOnlyList<MooObjectSummary>>(new[] { Summary(5, "fallback") }),
         };
 
         var registry = new MooWorldQueryProviderRegistry();
         registry.Register(unsupported, 10);
         registry.Register(supported, 1);
 
-        var result = await registry.GetObjectsAsync(CancellationToken.None);
+        var result = await registry.GetCoreObjectsAsync(CancellationToken.None);
 
         result.Should().ContainSingle().Which.Name.Should().Be("fallback");
-        unsupported.GetObjectsCallCount.Should().Be(1);
-        supported.GetObjectsCallCount.Should().Be(1);
+        unsupported.GetCoreObjectsCallCount.Should().Be(1);
+        supported.GetCoreObjectsCallCount.Should().Be(1);
     }
 
     [Fact]
@@ -60,21 +60,21 @@ public class MooWorldQueryProviderRegistryTests
     {
         var throwing = new FakeQueryProvider
         {
-            OnGetObjects = () => throw new InvalidOperationException("boom"),
+            OnGetCoreObjects = () => throw new InvalidOperationException("boom"),
         };
         var supported = new FakeQueryProvider
         {
-            OnGetObjects = () => Task.FromResult<IReadOnlyList<MooObjectSummary>>(new[] { Summary(9, "should-not-reach") }),
+            OnGetCoreObjects = () => Task.FromResult<IReadOnlyList<MooObjectSummary>>(new[] { Summary(9, "should-not-reach") }),
         };
 
         var registry = new MooWorldQueryProviderRegistry();
         registry.Register(throwing, 10);
         registry.Register(supported, 1);
 
-        var act = async () => await registry.GetObjectsAsync(CancellationToken.None);
+        var act = async () => await registry.GetCoreObjectsAsync(CancellationToken.None);
 
         await act.Should().ThrowAsync<InvalidOperationException>().WithMessage("boom");
-        supported.GetObjectsCallCount.Should().Be(0);
+        supported.GetCoreObjectsCallCount.Should().Be(0);
     }
 
     [Fact]
@@ -83,7 +83,7 @@ public class MooWorldQueryProviderRegistryTests
         var registry = new MooWorldQueryProviderRegistry();
         registry.Register(new FakeQueryProvider(), 1); // unsupported
 
-        var result = await registry.GetObjectsAsync(CancellationToken.None);
+        var result = await registry.GetCoreObjectsAsync(CancellationToken.None);
 
         result.Should().BeEmpty();
     }
@@ -93,7 +93,7 @@ public class MooWorldQueryProviderRegistryTests
     {
         var registry = new MooWorldQueryProviderRegistry();
 
-        var result = await registry.GetObjectsAsync(CancellationToken.None);
+        var result = await registry.GetCoreObjectsAsync(CancellationToken.None);
 
         result.Should().BeEmpty();
     }
@@ -114,18 +114,18 @@ public class MooWorldQueryProviderRegistryTests
     {
         var first = new FakeQueryProvider
         {
-            OnGetObjects = () => Task.FromResult<IReadOnlyList<MooObjectSummary>>(new[] { Summary(1, "first") }),
+            OnGetCoreObjects = () => Task.FromResult<IReadOnlyList<MooObjectSummary>>(new[] { Summary(1, "first") }),
         };
         var second = new FakeQueryProvider
         {
-            OnGetObjects = () => Task.FromResult<IReadOnlyList<MooObjectSummary>>(new[] { Summary(2, "second") }),
+            OnGetCoreObjects = () => Task.FromResult<IReadOnlyList<MooObjectSummary>>(new[] { Summary(2, "second") }),
         };
 
         var registry = new MooWorldQueryProviderRegistry();
         registry.Register(first, 5);
         registry.Register(second, 5);
 
-        var result = await registry.GetObjectsAsync(CancellationToken.None);
+        var result = await registry.GetCoreObjectsAsync(CancellationToken.None);
 
         result.Should().ContainSingle().Which.Name.Should().Be("first");
     }
@@ -429,13 +429,13 @@ public class MooWorldQueryProviderRegistryTests
     {
         var provider = new FakeQueryProvider
         {
-            OnGetObjects = () => Task.FromResult<IReadOnlyList<MooObjectSummary>>(new[] { Summary(1, "x") }),
+            OnGetCoreObjects = () => Task.FromResult<IReadOnlyList<MooObjectSummary>>(new[] { Summary(1, "x") }),
         };
         var registry = new MooWorldQueryProviderRegistry();
         registry.Register(provider, 1);
         registry.Unregister(provider);
 
-        var result = await registry.GetObjectsAsync(CancellationToken.None);
+        var result = await registry.GetCoreObjectsAsync(CancellationToken.None);
 
         result.Should().BeEmpty();
     }
