@@ -16,6 +16,10 @@
   </ItemGroup>
 
   <ItemGroup>
+    <PackageReference Include="NLog" Version="5.2.8" />
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference Include="..\Org.Edgerunner.Mud.Common\Org.Edgerunner.Mud.Common.csproj" />
     <ProjectReference Include="..\Org.Edgerunner.Mud.Communication\Org.Edgerunner.Mud.Communication.csproj" />
   </ItemGroup>

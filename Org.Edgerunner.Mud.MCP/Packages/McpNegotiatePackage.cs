@@ -80,13 +80,13 @@ public class McpNegotiatePackage : IMcpPackage
    {
       return message.Name.ToLowerInvariant() switch
       {
-         "mcp-negotiate-can" => ProcessNegotiateCan(message),
+         "mcp-negotiate-can" => ProcessNegotiateCan(client, message),
          "mcp-negotiate-end" => ProcessNegotiateEnd(),
          _ => false
       };
    }
 
-   private bool ProcessNegotiateCan(Message message)
+   private bool ProcessNegotiateCan(IClientTerminal client, Message message)
    {
       if (_session == null) return false;
 
@@ -105,6 +105,10 @@ public class McpNegotiatePackage : IMcpPackage
          return true;
 
       _session.SupportedPackages[packageName.ToLowerInvariant()] = pkg;
+
+      if (pkg is IPackageNegotiationListener listener)
+         listener.OnPackageSupported(client);
+
       return true;
    }
 
