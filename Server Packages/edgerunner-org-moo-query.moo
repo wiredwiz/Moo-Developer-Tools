@@ -56,10 +56,11 @@ endtry
 if (caller != this)
   raise(E_PERM);
 endif
-set_task_perms(session.connection);
+me = session.connection;
+set_task_perms(me);
 try
   if (owner == "" || owner == 0)
-    target = session.connection;
+    target = me;
   else
     target = toobj(owner);
   endif
@@ -327,6 +328,7 @@ endtry
 @program #XXX:find_verb_definer
 "Usage: :find_verb_definer(object, verbname) => first ancestor whose verb_info answers; raises E_VERBNF";
 {o, vname} = args;
+set_task_perms(caller_perms());
 what = o;
 while (valid(what))
   if (`verb_info(what, vname) ! E_VERBNF => 0')
@@ -343,6 +345,7 @@ raise(E_VERBNF);
 "Usage: :summary_json(list of objects) => '{\"d\":[[num,name,[aliases]],...]}'";
 "Object numbers are converted with tonum() BEFORE encoding so generate_json never sees objnums.";
 {objs} = args;
+set_task_perms(caller_perms());
 rows = {};
 for o in (objs)
   name = `o.name ! ANY => ""';
