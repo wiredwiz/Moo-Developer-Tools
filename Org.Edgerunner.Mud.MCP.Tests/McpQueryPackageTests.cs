@@ -152,4 +152,79 @@ public class McpQueryPackageTests
 
       package.ProcessMessage(terminal, message).Should().BeFalse();
    }
+
+   // Fix 1: re-register the provider when the session key changes on renegotiation.
+   [Fact]
+   public async Task OnPackageSupported_SessionKeyChange_ReRegistersProviderWithNewKey()
+   {
+      var package = new McpQueryPackage(TimeSpan.FromSeconds(10));
+      var terminal = new FakeQueryTerminal();
+
+      // Confirm support with key A.
+      package.SetSession(CreateSession("KEY-A"));
+      package.OnPackageSupported(terminal);
+
+      // Fire-and-forget a query; it should use KEY-A on the wire.
+      _ = terminal.QueryProviders.Query.GetVerbsAsync(new MooObjectId(1), CancellationToken.None);
+      terminal.SentOutOfBandLines.Should().ContainSingle()
+         .Which.Should().Contain("KEY-A");
+
+      terminal.SentOutOfBandLines.Clear();
+
+      // Renegotiation: new session with key B.
+      var registrations = 0;
+      terminal.QueryProviders.ProvidersChanged += (_, _) => registrations++;
+
+      package.SetSession(CreateSession("KEY-B"));
+      package.OnPackageSupported(terminal);
+
+      // ProvidersChanged fired for Unregister + Register = 2 events.
+      registrations.Should().Be(2);
+
+      // New query must use KEY-B on the wire.
+      _ = terminal.QueryProviders.Query.GetVerbsAsync(new MooObjectId(2), CancellationToken.None);
+      terminal.SentOutOfBandLines.Should().ContainSingle()
+         .Which.Should().Contain("KEY-B");
+
+      await Task.CompletedTask; // satisfy async signature
+   }
+
+   [Fact]
+   public void OnPackageSupported_SameKeyCalledTwice_DoesNotReRegister()
+   {
+      var package = new McpQueryPackage();
+      var terminal = new FakeQueryTerminal();
+      package.SetSession(CreateSession("KEY123"));
+
+      var registrations = 0;
+      terminal.QueryProviders.ProvidersChanged += (_, _) => registrations++;
+
+      package.OnPackageSupported(terminal);
+      package.OnPackageSupported(terminal); // idempotent — same key, must not re-register
+
+      registrations.Should().Be(1);
+   }
+
+   // Fix 2: drop path for a reply message with no tag.
+   [Fact]
+   public void ProcessMessage_ReplyWithNoTag_IsHandledAndDropped()
+   {
+      var (package, terminal) = CreateRegisteredPackage();
+
+      var noTagReply = new Message("edgerunner-org-moo-query-verbs-reply", "KEY123",
+         new Dictionary<string, string> { ["data:"] = "{\"d\":[]}" }); // no "tag:" key
+
+      package.ProcessMessage(terminal, noTagReply).Should().BeTrue();
+   }
+
+   [Fact]
+   public void ProcessMessage_ReplyWithEmptyTag_IsHandledAndDropped()
+   {
+      var (package, terminal) = CreateRegisteredPackage();
+
+      var emptyTagReply = new Message("edgerunner-org-moo-query-verbs-reply", "KEY123",
+         new Dictionary<string, string> { ["tag:"] = string.Empty, ["data:"] = "{\"d\":[]}" });
+
+      package.ProcessMessage(terminal, emptyTagReply).Should().BeTrue();
+   }
 }

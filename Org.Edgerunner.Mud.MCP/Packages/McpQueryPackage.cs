@@ -76,6 +76,12 @@ public class McpQueryPackage : IMcpPackage, IPackageNegotiationListener
    private McpQueryProvider? _provider;
 
    /// <summary>
+   /// The session key that was in effect when <see cref="_provider"/> was last registered.
+   /// Used to detect a mid-session re-handshake that supplies a new key.
+   /// </summary>
+   private string? _providerKey;
+
+   /// <summary>
    /// Initializes a new instance of the <see cref="McpQueryPackage"/> class.
    /// </summary>
    /// <param name="timeout">An optional per-request timeout override for the provider (testing hook).</param>
@@ -94,6 +100,8 @@ public class McpQueryPackage : IMcpPackage, IPackageNegotiationListener
    public double MaximumVersion { get; set; } = 1.0;
 
    /// <inheritdoc/>
+   // Both SetSession and OnPackageSupported are invoked on the single OOB dispatch thread, so the
+   // unguarded write here and the locked read in OnPackageSupported do not race in practice.
    public void SetSession(McpClientSession session) => _session = session;
 
    /// <inheritdoc/>
@@ -141,18 +149,37 @@ public class McpQueryPackage : IMcpPackage, IPackageNegotiationListener
    }
 
    /// <inheritdoc/>
+   /// <remarks>
+   /// A mid-session re-handshake produces a new <see cref="McpClientSession"/> with a fresh key
+   /// and calls this method again. In that case the stale provider is unregistered first so that
+   /// subsequent queries carry the new authentication key; skipping the swap would cause every
+   /// query to time out while the server rejects the outdated key.
+   /// </remarks>
    public void OnPackageSupported(IClientTerminal client)
    {
       lock (_registrationLock)
       {
-         if (_provider != null)
+         if (_session == null)
+         {
+            Logger.Warn("edgerunner-org-moo-query confirmed but no MCP session is set; provider not registered.");
+            return;
+         }
+
+         // Idempotent: same key confirmed again — nothing to do.
+         if (_provider != null && _providerKey == _session.Key)
             return;
 
-         if (_session == null)
-            return;
+         // Renegotiation with a new key: unregister the stale provider first.
+         if (_provider != null)
+         {
+            Logger.Debug("Re-registering MCP query provider for renegotiated session (key changed).");
+            client.QueryProviders.Unregister(_provider);
+            _provider = null;
+         }
 
          _provider = new McpQueryProvider(client, _session.Key, _correlator, _timeout);
          client.QueryProviders.Register(_provider, ProviderPriority);
+         _providerKey = _session.Key;
       }
    }
 
