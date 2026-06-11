@@ -189,4 +189,81 @@ public class McpQueryProviderTests
       (await first)[0].Name.Should().Be("a");
       (await second)[0].Name.Should().Be("b");
    }
+
+   [Fact]
+   public async Task GetChildrenAsync_SendsObjectParameter()
+   {
+      var (provider, correlator, terminal) = CreateProvider();
+
+      var task = provider.GetChildrenAsync(Target, CancellationToken.None);
+
+      terminal.SentOutOfBandLines.Should().ContainSingle()
+         .Which.Should().Be("edgerunner-org-moo-query-children KEY123 tag: 1 object: #123");
+
+      correlator.Complete("1", "{\"d\":[]}");
+      (await task).Should().BeEmpty();
+   }
+
+   [Fact]
+   public async Task GetVerbDocumentationAsync_SendsVerbParameter()
+   {
+      var (provider, correlator, terminal) = CreateProvider();
+
+      var task = provider.GetVerbDocumentationAsync(Target, "look", CancellationToken.None);
+
+      terminal.SentOutOfBandLines.Should().ContainSingle()
+         .Which.Should().Be("edgerunner-org-moo-query-verb-doc KEY123 tag: 1 object: #123 verb: look");
+
+      correlator.Complete("1", "{\"q\":123,\"r\":6,\"l\":[\"Usage: look\"]}");
+      var result = await task;
+
+      result!.Lines.Should().Equal("Usage: look");
+   }
+
+   [Fact]
+   public async Task GetVerbCodeAsync_SendsVerbParameter()
+   {
+      var (provider, correlator, terminal) = CreateProvider();
+
+      var task = provider.GetVerbCodeAsync(Target, "look", CancellationToken.None);
+
+      terminal.SentOutOfBandLines.Should().ContainSingle()
+         .Which.Should().Be("edgerunner-org-moo-query-verb-code KEY123 tag: 1 object: #123 verb: look");
+
+      correlator.Complete("1", "{\"q\":123,\"r\":6,\"l\":[\"return 1;\"]}");
+      var result = await task;
+
+      result!.Lines.Should().Equal("return 1;");
+   }
+
+   [Fact]
+   public async Task GetPropertyDocumentationAsync_SendsPropParameter()
+   {
+      var (provider, correlator, terminal) = CreateProvider();
+
+      var task = provider.GetPropertyDocumentationAsync(Target, "name", CancellationToken.None);
+
+      terminal.SentOutOfBandLines.Should().ContainSingle()
+         .Which.Should().Be("edgerunner-org-moo-query-prop-doc KEY123 tag: 1 object: #123 prop: name");
+
+      correlator.Complete("1", "{\"l\":[\"\\\"Wizard\\\"\"]}");
+      (await task).Should().Equal("\"Wizard\"");
+   }
+
+   [Fact]
+   public async Task GetPropertyValueAsync_SendsPropParameter()
+   {
+      var (provider, correlator, terminal) = CreateProvider();
+
+      var task = provider.GetPropertyValueAsync(Target, "name", CancellationToken.None);
+
+      terminal.SentOutOfBandLines.Should().ContainSingle()
+         .Which.Should().Be("edgerunner-org-moo-query-prop-value KEY123 tag: 1 object: #123 prop: name");
+
+      correlator.Complete("1", "{\"t\":2,\"v\":\"\\\"Wizard\\\"\"}");
+      var result = await task;
+
+      result!.Type.Should().Be(2);
+      result.Literal.Should().Be("\"Wizard\"");
+   }
 }
