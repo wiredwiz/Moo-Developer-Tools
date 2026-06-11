@@ -1,9 +1,34 @@
+@prop #XXX.use_generate_json 0
+@prop #XXX.version_range {}
+@prop #XXX.messages_in {}
+@prop #XXX.messages_out {}
+@prop #XXX.aliases {}
+@prop #XXX.description {}
+
 ;;#XXX.("use_generate_json") = -1
 ;;#XXX.("version_range") = {"1.0", "1.0"}
 ;;#XXX.("messages_in") = {{"core-objects", {"tag"}}, {"children", {"tag", "object"}}, {"owned", {"tag", "owner"}}, {"parent", {"tag", "object"}}, {"verbs", {"tag", "object"}}, {"verb-info", {"tag", "object", "verb"}}, {"verb-doc", {"tag", "object", "verb"}}, {"verb-code", {"tag", "object", "verb"}}, {"props", {"tag", "object"}}, {"prop-info", {"tag", "object", "prop"}}, {"prop-doc", {"tag", "object", "prop"}}, {"prop-value", {"tag", "object", "prop"}}}
 ;;#XXX.("messages_out") = {{"core-objects-reply", {"tag", "data"}}, {"children-reply", {"tag", "data"}}, {"owned-reply", {"tag", "data"}}, {"parent-reply", {"tag", "data"}}, {"verbs-reply", {"tag", "data"}}, {"verb-info-reply", {"tag", "data"}}, {"verb-doc-reply", {"tag", "data"}}, {"verb-code-reply", {"tag", "data"}}, {"props-reply", {"tag", "data"}}, {"prop-info-reply", {"tag", "data"}}, {"prop-doc-reply", {"tag", "data"}}, {"prop-value-reply", {"tag", "data"}}, {"error", {"tag", "code", "message"}}}
 ;;#XXX.("aliases") = {"edgerunner-org-moo-query"}
 ;;#XXX.("description") = {"Developer-information query package for MCP 2.1 clients (v1.0).", "", "Each C->S request carries a client-generated tag; each S->C reply echoes the", "tag and carries one data* multiline field holding minified JSON.", "Object numbers are bare JSON ints; verb names are raw MOO names strings.", "", "Requests (params besides tag):", " -core-objects ()            -> {\"d\":[[num,name,[aliases]],...]}", " -children (object)          -> {\"d\":[[num,name,[aliases]],...]}", " -owned (owner)              -> {\"d\":[[num,name,[aliases]],...]}  owner \"\" = player", " -parent (object)            -> {\"p\":num}  -1 = no parent", " -verbs (object)             -> {\"d\":[\"g*et put\",...]}  local+inherited, deduped", " -verb-info (object, verb)   -> {\"q\",\"r\",\"a\",\"o\",\"p\",\"g\"}", " -verb-doc (object, verb)    -> {\"q\",\"r\",\"l\":[lines]}", " -verb-code (object, verb)   -> {\"q\",\"r\",\"l\":[lines]}", " -props (object)             -> {\"d\":[\"name\",...]}  local+inherited, deduped", " -prop-info (object, prop)   -> {\"n\",\"o\",\"p\",\"t\",\"v\"}  v = 80-char preview", " -prop-doc (object, prop)    -> {\"l\":[lines]}  toliteral split <=78 chars, max 50", " -prop-value (object, prop)  -> {\"t\",\"v\"}  full toliteral", "", "Shared error reply: -error (tag, code, message) where code is the MOO error", "name (E_PERM, E_INVARG, E_VERBNF, E_PROPNF, ...).", "", "Every handler runs under set_task_perms() of the connected player; normal MOO", "read rules decide visibility.", "", "Normative protocol: docs/edgerunner-org-moo-query-protocol.md in the", "Moo Developer Tools repository (https://github.com/.../Moo-Developer-Tools)."}
+
+@verb #XXX:"handle_core_objects" this none this rxd
+@verb #XXX:"handle_children" this none this rxd
+@verb #XXX:"handle_owned" this none this rxd
+@verb #XXX:"handle_parent" this none this rxd
+@verb #XXX:"handle_verbs" this none this rxd
+@verb #XXX:"handle_verb_info" this none this rxd
+@verb #XXX:"handle_verb_doc" this none this rxd
+@verb #XXX:"handle_verb_code" this none this rxd
+@verb #XXX:"handle_props" this none this rxd
+@verb #XXX:"handle_prop_info" this none this rxd
+@verb #XXX:"handle_prop_doc" this none this rxd
+@verb #XXX:"handle_prop_value" this none this rxd
+@verb #XXX:"find_verb_definer" this none this rxd
+@verb #XXX:"summary_json" this none this rxd
+@verb #XXX:"json_encode" this none this rxd
+@verb #XXX:"send_reply" this none this rxd
+@verb #XXX:"send_error" this none this rxd
 
 @args #XXX:"handle_core_objects" this none this
 @chown #XXX:handle_core_objects #2

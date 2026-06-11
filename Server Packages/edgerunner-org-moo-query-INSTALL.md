@@ -32,48 +32,20 @@ repository. The package object's `description` property carries a condensed copy
    occurrence of `#XXX` with your object number. Also review the two `@chown … #2` lines per
    verb: `#2` assumes your archwizard is `#2`; adjust if not.
 
-3. **Add the properties.** The framework may already define some metadata properties on the
-   parent. For each property the dump assigns (`use_generate_json`, `version_range`,
-   `messages_in`, `messages_out`, `aliases`, `description`), create it on your object if the
-   parent doesn't provide it:
+3. **Properties and verbs are created by the dump.** The dump file now contains `@prop` lines
+   for all six metadata properties (`use_generate_json`, `version_range`, `messages_in`,
+   `messages_out`, `aliases`, `description`) and `@verb` lines for all 17 handler verbs, so
+   no manual pre-creation is needed. If your MCP package parent already defines some of those
+   metadata properties (e.g. `aliases`, `description`), the corresponding `@prop` lines will
+   fail with a harmless "property already defined"-style error; the `;;` assignment that
+   follows will still set the value on the inherited property as expected.
 
-   ```
-   @property #231.use_generate_json -1
-   ```
+4. **Load the dump.** Paste the edited file into your wizard connection (or use your usual
+   dump-loading mechanism). The `@prop`/`@verb` lines create the properties and verbs; the
+   `;;` lines then set the property values; and the `@args`/`@program` blocks set the verb
+   argument specs and program the verbs.
 
-   (repeat for the others, or rely on inherited definitions).
-
-4. **Create the verbs.** On most cores `@program` and `@args` require the verb to already exist
-   on the object. Before loading the dump, create all 17 verbs with `@verb`:
-
-   ```
-   @verb #231:"handle_core_objects" this none this rxd
-   @verb #231:"handle_children" this none this rxd
-   @verb #231:"handle_owned" this none this rxd
-   @verb #231:"handle_parent" this none this rxd
-   @verb #231:"handle_verbs" this none this rxd
-   @verb #231:"handle_verb_info" this none this rxd
-   @verb #231:"handle_verb_doc" this none this rxd
-   @verb #231:"handle_verb_code" this none this rxd
-   @verb #231:"handle_props" this none this rxd
-   @verb #231:"handle_prop_info" this none this rxd
-   @verb #231:"handle_prop_doc" this none this rxd
-   @verb #231:"handle_prop_value" this none this rxd
-   @verb #231:"find_verb_definer" this none this rxd
-   @verb #231:"summary_json" this none this rxd
-   @verb #231:"json_encode" this none this rxd
-   @verb #231:"send_reply" this none this rxd
-   @verb #231:"send_error" this none this rxd
-   ```
-
-   (Replace `#231` with your actual object number.) Cores whose dump-loading mechanism
-   auto-creates verbs may skip this step.
-
-5. **Load the dump.** Paste the edited file into your wizard connection (or use your usual
-   dump-loading mechanism). The `;;` lines set the properties; the `@args`/`@program` blocks
-   set the verb argument specs and program the now-existing verbs.
-
-6. **Adapt the session accessors if needed.** All wire output is isolated in two verbs:
+5. **Adapt the session accessors if needed.** All wire output is isolated in two verbs:
    `send_reply` and `send_error`. They assume the session object exposes:
    - `session.key` — the MCP session authentication key, and
    - `session.connection` — the connected player object.
@@ -82,11 +54,11 @@ repository. The package object's `description` property carries a condensed copy
    (and the `set_task_perms(session.connection)` line at the top of each handler) — nothing else
    touches the session.
 
-7. **Register the package** with your core's MCP package registry, exactly the way your
+6. **Register the package** with your core's MCP package registry, exactly the way your
    simpleedit package is registered (e.g. adding the object to the MCP registry's package list —
    consult how `dns-org-mud-moo-simpleedit` was installed on your core).
 
-8. **Verify.** Connect with Moo Udditor. The client advertises `edgerunner-org-moo-query 1.0`
+7. **Verify.** Connect with Moo Udditor. The client advertises `edgerunner-org-moo-query 1.0`
    during the MCP handshake; once the server's `mcp-negotiate-can` confirms it, Udditor's query
    features go live. Quick manual check from a raw client:
 
