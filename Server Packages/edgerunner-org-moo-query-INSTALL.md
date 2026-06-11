@@ -10,7 +10,11 @@ repository. The package object's `description` property carries a condensed copy
 ## Prerequisites
 
 - A working server-side MCP 2.1 framework with package dispatch (handler verbs named
-  `handle_<message>` called as `(session, @params)`), as used by your simpleedit package.
+  `handle_<message>` called as `(session, @params)`), as used by your simpleedit package. Note
+  that message names containing dashes must map to underscores in the handler verb name — e.g.
+  the `verb-info` request dispatches to `handle_verb_info`. Verify how your core's MCP dispatcher
+  derives handler names, since the reference `dns-org-mud-moo-simpleedit` package only
+  demonstrates dash-less message names.
 - A wizard character.
 
 ## Steps
@@ -39,11 +43,37 @@ repository. The package object's `description` property carries a condensed copy
 
    (repeat for the others, or rely on inherited definitions).
 
-4. **Load the dump.** Paste the edited file into your wizard connection (or use your usual
-   dump-loading mechanism). The `;;` lines set the properties; the `@args`/`@program` blocks
-   create the verbs.
+4. **Create the verbs.** On most cores `@program` and `@args` require the verb to already exist
+   on the object. Before loading the dump, create all 17 verbs with `@verb`:
 
-5. **Adapt the session accessors if needed.** All wire output is isolated in two verbs:
+   ```
+   @verb #231:"handle_core_objects" this none this rxd
+   @verb #231:"handle_children" this none this rxd
+   @verb #231:"handle_owned" this none this rxd
+   @verb #231:"handle_parent" this none this rxd
+   @verb #231:"handle_verbs" this none this rxd
+   @verb #231:"handle_verb_info" this none this rxd
+   @verb #231:"handle_verb_doc" this none this rxd
+   @verb #231:"handle_verb_code" this none this rxd
+   @verb #231:"handle_props" this none this rxd
+   @verb #231:"handle_prop_info" this none this rxd
+   @verb #231:"handle_prop_doc" this none this rxd
+   @verb #231:"handle_prop_value" this none this rxd
+   @verb #231:"find_verb_definer" this none this rxd
+   @verb #231:"summary_json" this none this rxd
+   @verb #231:"json_encode" this none this rxd
+   @verb #231:"send_reply" this none this rxd
+   @verb #231:"send_error" this none this rxd
+   ```
+
+   (Replace `#231` with your actual object number.) Cores whose dump-loading mechanism
+   auto-creates verbs may skip this step.
+
+5. **Load the dump.** Paste the edited file into your wizard connection (or use your usual
+   dump-loading mechanism). The `;;` lines set the properties; the `@args`/`@program` blocks
+   set the verb argument specs and program the now-existing verbs.
+
+6. **Adapt the session accessors if needed.** All wire output is isolated in two verbs:
    `send_reply` and `send_error`. They assume the session object exposes:
    - `session.key` — the MCP session authentication key, and
    - `session.connection` — the connected player object.
@@ -52,11 +82,11 @@ repository. The package object's `description` property carries a condensed copy
    (and the `set_task_perms(session.connection)` line at the top of each handler) — nothing else
    touches the session.
 
-6. **Register the package** with your core's MCP package registry, exactly the way your
+7. **Register the package** with your core's MCP package registry, exactly the way your
    simpleedit package is registered (e.g. adding the object to the MCP registry's package list —
    consult how `dns-org-mud-moo-simpleedit` was installed on your core).
 
-7. **Verify.** Connect with Moo Udditor. The client advertises `edgerunner-org-moo-query 1.0`
+8. **Verify.** Connect with Moo Udditor. The client advertises `edgerunner-org-moo-query 1.0`
    during the MCP handshake; once the server's `mcp-negotiate-can` confirms it, Udditor's query
    features go live. Quick manual check from a raw client:
 
