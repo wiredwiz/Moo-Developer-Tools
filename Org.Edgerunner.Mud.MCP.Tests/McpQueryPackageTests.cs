@@ -1,0 +1,155 @@
+using FluentAssertions;
+using Org.Edgerunner.Mud.Common.Querying;
+using Org.Edgerunner.Mud.MCP.Interfaces;
+using Org.Edgerunner.Mud.MCP.Packages;
+using Xunit;
+
+namespace Org.Edgerunner.Mud.MCP.Tests;
+
+public class McpQueryPackageTests
+{
+   private static McpClientSession CreateSession(string key = "KEY123")
+   {
+      var manager = new McpClientSessionManager(new Version(2, 1), new Version(2, 1), new List<IMcpPackage>());
+      return new McpClientSession(manager, key, new Version(2, 1));
+   }
+
+   private static (McpQueryPackage Package, FakeQueryTerminal Terminal) CreateRegisteredPackage()
+   {
+      var package = new McpQueryPackage();
+      var terminal = new FakeQueryTerminal();
+      package.SetSession(CreateSession());
+      package.OnPackageSupported(terminal);
+      return (package, terminal);
+   }
+
+   private static Message Reply(string suffix, string tag, string data) =>
+      new($"edgerunner-org-moo-query-{suffix}", "KEY123", new Dictionary<string, string>
+      {
+         ["tag:"] = tag,
+         ["data:"] = data
+      });
+
+   [Theory]
+   [InlineData("edgerunner-org-moo-query-verbs-reply", true)]
+   [InlineData("EDGERUNNER-ORG-MOO-QUERY-PROPS-REPLY", true)]
+   [InlineData("edgerunner-org-moo-query-error", true)]
+   [InlineData("edgerunner-org-moo-query-verbs", false)]
+   [InlineData("mcp-negotiate-can", false)]
+   [InlineData("dns-org-mud-moo-simpleedit-content", false)]
+   public void CanHandleMessage_MatchesRepliesAndErrorOnly(string name, bool expected)
+   {
+      var package = new McpQueryPackage();
+
+      package.CanHandleMessage(new Message(name, "KEY123", new Dictionary<string, string>()))
+         .Should().Be(expected);
+   }
+
+   [Fact]
+   public void Package_AdvertisesNameAndVersion()
+   {
+      var package = new McpQueryPackage();
+
+      package.Name.Should().Be("edgerunner-org-moo-query");
+      package.MinimumVersion.Should().Be(1.0);
+      package.MaximumVersion.Should().Be(1.0);
+   }
+
+   [Fact]
+   public void OnPackageSupported_RegistersProviderExactlyOnce()
+   {
+      var package = new McpQueryPackage();
+      var terminal = new FakeQueryTerminal();
+      package.SetSession(CreateSession());
+
+      var registrations = 0;
+      terminal.QueryProviders.ProvidersChanged += (_, _) => registrations++;
+
+      package.OnPackageSupported(terminal);
+      package.OnPackageSupported(terminal);
+
+      registrations.Should().Be(1);
+   }
+
+   [Fact]
+   public void OnPackageSupported_WithoutSession_DoesNotRegister()
+   {
+      var package = new McpQueryPackage();
+      var terminal = new FakeQueryTerminal();
+
+      var registrations = 0;
+      terminal.QueryProviders.ProvidersChanged += (_, _) => registrations++;
+
+      package.OnPackageSupported(terminal);
+
+      registrations.Should().Be(0);
+   }
+
+   [Fact]
+   public async Task RoundTrip_QueryThroughRegistry_ReplyCompletesRequest()
+   {
+      var (package, terminal) = CreateRegisteredPackage();
+
+      var task = terminal.QueryProviders.Query.GetVerbsAsync(new MooObjectId(123), CancellationToken.None);
+
+      terminal.SentOutOfBandLines.Should().ContainSingle()
+         .Which.Should().Be("edgerunner-org-moo-query-verbs KEY123 tag: 1 object: #123");
+
+      var handled = package.ProcessMessage(terminal, Reply("verbs-reply", "1", "{\"d\":[\"look\"]}"));
+
+      handled.Should().BeTrue();
+      var result = await task;
+      result.Should().ContainSingle();
+      result[0].Aliases.Should().Equal("look");
+   }
+
+   [Fact]
+   public async Task RoundTrip_MultilineChunks_AreReassembledWithoutSeparator()
+   {
+      var (package, terminal) = CreateRegisteredPackage();
+
+      var task = terminal.QueryProviders.Query.GetVerbsAsync(new MooObjectId(123), CancellationToken.None);
+
+      // The parser joins multiline 'data' continuation lines with '\n'; the package must strip them.
+      package.ProcessMessage(terminal, Reply("verbs-reply", "1", "{\"d\":[\"lo\nok\"]}"));
+
+      var result = await task;
+      result[0].Aliases.Should().Equal("look");
+   }
+
+   [Fact]
+   public async Task ErrorReply_CompletesRequestWithDegradedResult()
+   {
+      var (package, terminal) = CreateRegisteredPackage();
+
+      var task = terminal.QueryProviders.Query.GetVerbInfoAsync(new MooObjectId(123), "look", CancellationToken.None);
+
+      var error = new Message("edgerunner-org-moo-query-error", "KEY123", new Dictionary<string, string>
+      {
+         ["tag:"] = "1",
+         ["code:"] = "E_VERBNF",
+         ["message:"] = "no such verb"
+      });
+
+      package.ProcessMessage(terminal, error).Should().BeTrue();
+      (await task).Should().BeNull();
+   }
+
+   [Fact]
+   public void StaleTagReply_IsHandledAndDropped()
+   {
+      var (package, terminal) = CreateRegisteredPackage();
+
+      package.ProcessMessage(terminal, Reply("verbs-reply", "99", "{\"d\":[]}")).Should().BeTrue();
+   }
+
+   [Fact]
+   public void NonMatchingMessage_IsNotHandled()
+   {
+      var (package, terminal) = CreateRegisteredPackage();
+
+      var message = new Message("dns-org-mud-moo-simpleedit-content", "KEY123", new Dictionary<string, string>());
+
+      package.ProcessMessage(terminal, message).Should().BeFalse();
+   }
+}
