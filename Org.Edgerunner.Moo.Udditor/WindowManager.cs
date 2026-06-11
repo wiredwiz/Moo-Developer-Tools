@@ -339,8 +339,9 @@ public class WindowManager
          var oobHandler = new OutOfBandMessageProcessor();
          oobHandler.RegisterHandler(new LocalEditHandler(this));
          var simpleEdit = new SimpleEditPackage(new WindowManagerSimpleEditConsumer(this));
+         var queryPackage = new McpQueryPackage();
          oobHandler.RegisterHandler(new McpOobHandler(new Version(2, 1), new Version(2, 1),
-            new IMcpPackage[] { simpleEdit }));
+            new IMcpPackage[] { simpleEdit, queryPackage }));
          oobHandler.RegisterHandler(new SdwcOobHandler());
          var processor = new RootMessageProcessor(oobPrefix, oobHandler);
          processor.OutOfBandMessagingTimeout = 500000;
