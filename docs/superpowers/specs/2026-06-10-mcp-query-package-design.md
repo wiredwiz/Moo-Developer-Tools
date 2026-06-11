@@ -185,13 +185,17 @@ absent, consistent with the rest of the solution):
 - `ProcessMessage`: extract `tag`; reassemble the `data` multiline field (concatenate lines
   verbatim); complete the matching pending request via the correlator with either the JSON
   payload or the error (code, message). Unknown/stale tags are dropped and logged at Trace.
-- On negotiation confirming the server offers the package at a compatible version, constructs
-  the provider (client terminal + session key are available at that point) and registers it
+- Package support is negotiated **during the initial MCP handshake**: the `mcp` startup
+  exchange followed by `mcp-negotiate`, where each side advertises its packages and versions.
+  The client advertises `edgerunner-org-moo-query 1.0`; when the completed handshake shows the
+  server offers it at a compatible version, the package constructs the provider (client
+  terminal + session key are available at that point) and registers it
   `client.QueryProviders.Register(provider, 200)` — exactly once, idempotent, the
-  `SdwcOobHandler.EnsureProviderRegistered` pattern.
-- Integration point to verify during planning: whether the negotiate layer already exposes a
-  "server supports package X" signal to packages; if not, add a small event/callback to
-  `McpNegotiatePackage`. The design depends only on *some* confirmation signal existing.
+  `SdwcOobHandler.EnsureProviderRegistered` pattern. No support → no registration; the
+  registry falls through to SDWC or returns the contract defaults.
+- Integration point to verify during planning: how `McpNegotiatePackage` surfaces the
+  negotiated package set to package implementations when the handshake completes; if no such
+  signal exists yet, add a small event/callback to `McpNegotiatePackage`.
 
 ### `McpQueryCorrelator`
 
@@ -277,8 +281,10 @@ the dump into the EdgeRunner moo per the install doc and exercises queries from 
 
 ## Implementation Risks (validate during planning)
 
-1. **Negotiation confirmation hook** — confirm how the client learns the server's package list
-   post-`mcp-negotiate`; add a notification to `McpNegotiatePackage` if absent.
+1. **Negotiation confirmation hook** — package support is settled during the initial MCP
+   handshake (`mcp` + `mcp-negotiate`); confirm how `McpNegotiatePackage` exposes the
+   negotiated package set to package implementations at handshake completion, and add a small
+   notification if absent.
 2. **Multiline reassembly** — confirm `McpMessageParser` preserves `data` line content
    verbatim and in order for concatenation (it implements the MCP 2.1 `_data-tag` model per
    udd-u5v; verify no separator/trim behavior).
