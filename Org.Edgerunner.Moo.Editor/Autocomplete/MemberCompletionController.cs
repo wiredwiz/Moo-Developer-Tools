@@ -57,7 +57,8 @@ namespace Org.Edgerunner.Moo.Editor.Autocomplete;
 /// failures (timeout, cancellation, disconnect, protocol errors) are swallowed and simply leave
 /// the static completion list in place. The menu-refresh callback is invoked outside the state
 /// lock and may therefore fire after disposal; owners must supply a callback that is safe to call
-/// on a closed editor (the production callback only re-shows an open popup).
+/// on a closed editor (the production callback re-shows an open popup and may open a
+   /// closed one when the editor is focused and member results arrive).
 /// <para>
 /// Core-name operands (<c>$foo</c>) are resolved asynchronously: the controller queries
 /// <c>#0</c>'s property value for the name to obtain the target object id, then proceeds with
