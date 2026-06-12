@@ -14,11 +14,15 @@ public class MemberCompletionControllerTests
       public List<MooPropertySummary> Properties { get; } = new();
       public int VerbCalls;
       public int PropertyCalls;
+      public int PropValueCalls;
+      public MooObjectId? LastVerbQueryObjectId;
       public TaskCompletionSource? Gate;
       public Exception? ThrowOnVerbs;
+      public Dictionary<string, MooPropertyValue?> PropertyValues { get; } = new(StringComparer.OrdinalIgnoreCase);
 
       public async Task<IReadOnlyList<MooVerbSummary>> GetVerbsAsync(MooObjectId objectId, CancellationToken cancellationToken)
       {
+         LastVerbQueryObjectId = objectId;
          Interlocked.Increment(ref VerbCalls);
          if (Gate is not null)
             await Gate.Task.WaitAsync(cancellationToken);
@@ -35,6 +39,13 @@ public class MemberCompletionControllerTests
          return Properties;
       }
 
+      public Task<MooPropertyValue?> GetPropertyValueAsync(MooObjectId objectId, string propName, CancellationToken cancellationToken)
+      {
+         Interlocked.Increment(ref PropValueCalls);
+         PropertyValues.TryGetValue(propName, out var value);
+         return Task.FromResult(value);
+      }
+
       public Task<IReadOnlyList<MooObjectSummary>> GetCoreObjectsAsync(CancellationToken cancellationToken) => throw new NotImplementedException();
       public Task<IReadOnlyList<MooObjectSummary>> GetChildrenAsync(MooObjectId objectId, CancellationToken cancellationToken) => throw new NotImplementedException();
       public Task<IReadOnlyList<MooObjectSummary>> GetOwnedObjectsAsync(CancellationToken cancellationToken) => throw new NotImplementedException();
@@ -43,7 +54,6 @@ public class MemberCompletionControllerTests
       public Task<MooVerbInfo?> GetVerbInfoAsync(MooObjectId objectId, string verbName, CancellationToken cancellationToken) => throw new NotImplementedException();
       public Task<MooPropertyInfo?> GetPropertyInfoAsync(MooObjectId objectId, string propName, CancellationToken cancellationToken) => throw new NotImplementedException();
       public Task<MooVerbCode?> GetVerbCodeAsync(MooObjectId objectId, string verbName, CancellationToken cancellationToken) => throw new NotImplementedException();
-      public Task<MooPropertyValue?> GetPropertyValueAsync(MooObjectId objectId, string propName, CancellationToken cancellationToken) => throw new NotImplementedException();
       public Task<MooVerbDocumentation?> GetVerbDocumentationAsync(MooObjectId objectId, string verbName, CancellationToken cancellationToken) => throw new NotImplementedException();
       public Task<IReadOnlyList<string>> GetPropertyDocumentationAsync(MooObjectId objectId, string propName, CancellationToken cancellationToken) => throw new NotImplementedException();
    }
@@ -198,5 +208,92 @@ public class MemberCompletionControllerTests
 
       provider.VerbCalls.Should().Be(1);
       provider.Gate.SetResult();
+   }
+
+   // Core-name ($name) operand tests
+
+   [Fact]
+   public void CoreName_verb_context_resolves_via_property_value_and_fetches_verbs()
+   {
+      var provider = new FakeQueryProvider();
+      provider.PropertyValues["network"] = new MooPropertyValue(1, "#62");
+      provider.Verbs.Add(new MooVerbSummary(new[] { "tell" }, new MooObjectId(62)));
+      using var controller = CreateController(provider);
+
+      controller.GetMemberItems("$network:").Should().BeEmpty("first call only starts the resolve");
+      WaitForCache(controller, "$network:");
+
+      var items = controller.GetMemberItems("$network:");
+      items.Select(i => i.Text).Should().Contain("tell");
+      items.Should().AllSatisfy(i => i.ImageIndex.Should().Be((int)CompletionIconCategory.Verb));
+      provider.PropValueCalls.Should().Be(1);
+      provider.VerbCalls.Should().Be(1);
+      provider.LastVerbQueryObjectId.Should().Be(new MooObjectId(62));
+   }
+
+   [Fact]
+   public void CoreName_property_context_resolves_and_fetches_properties_with_property_icon()
+   {
+      var provider = new FakeQueryProvider();
+      provider.PropertyValues["network"] = new MooPropertyValue(1, "#62");
+      provider.Properties.Add(new MooPropertySummary("ip", new MooObjectId(62)));
+      using var controller = CreateController(provider);
+
+      controller.GetMemberItems("$network.");
+      WaitForCache(controller, "$network.");
+
+      var items = controller.GetMemberItems("$network.");
+      items.Select(i => i.Text).Should().Contain("ip");
+      items.Should().AllSatisfy(i => i.ImageIndex.Should().Be((int)CompletionIconCategory.Property),
+         "Property context must use Property icon, not CoreReference icon");
+   }
+
+   [Fact]
+   public void CoreName_resolution_is_cached_so_property_value_not_queried_again()
+   {
+      var provider = new FakeQueryProvider();
+      provider.PropertyValues["network"] = new MooPropertyValue(1, "#62");
+      provider.Verbs.Add(new MooVerbSummary(new[] { "tell" }, new MooObjectId(62)));
+      provider.Properties.Add(new MooPropertySummary("ip", new MooObjectId(62)));
+      using var controller = CreateController(provider);
+
+      // Resolve the verb context first
+      controller.GetMemberItems("$network:");
+      WaitForCache(controller, "$network:");
+
+      // Now request the property context; name is already resolved so PropValueCalls must not grow
+      controller.GetMemberItems("$network.");
+      SpinWait.SpinUntil(() => controller.GetMemberItems("$network.").Count > 0, TimeSpan.FromSeconds(5));
+
+      provider.PropValueCalls.Should().Be(1, "the core-name cache should prevent a second #0 property-value query");
+   }
+
+   [Fact]
+   public void CoreName_non_object_property_value_yields_empty_and_no_member_fetch()
+   {
+      var provider = new FakeQueryProvider();
+      provider.PropertyValues["mylist"] = new MooPropertyValue(4, "{1, 2, 3}"); // LIST type, not OBJ
+      using var controller = CreateController(provider);
+
+      controller.GetMemberItems("$mylist:");
+      Thread.Sleep(250); // allow the faulted resolve to finish
+
+      controller.GetMemberItems("$mylist:").Should().BeEmpty();
+      provider.VerbCalls.Should().Be(0);
+      provider.PropertyCalls.Should().Be(0);
+   }
+
+   [Fact]
+   public void CoreName_null_property_value_yields_empty_and_no_member_fetch()
+   {
+      var provider = new FakeQueryProvider();
+      // "unknown" is not in PropertyValues, so GetPropertyValueAsync returns null
+      using var controller = CreateController(provider);
+
+      controller.GetMemberItems("$unknown:");
+      Thread.Sleep(250);
+
+      controller.GetMemberItems("$unknown:").Should().BeEmpty();
+      provider.VerbCalls.Should().Be(0);
    }
 }

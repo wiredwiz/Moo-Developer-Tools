@@ -57,6 +57,13 @@ namespace Org.Edgerunner.Moo.Editor.Autocomplete;
 /// the static completion list in place. The menu-refresh callback is invoked outside the state
 /// lock and may therefore fire after disposal; owners must supply a callback that is safe to call
 /// on a closed editor (the production callback only re-shows an open popup).
+/// <para>
+/// Core-name operands (<c>$foo</c>) are resolved asynchronously: the controller queries
+/// <c>#0</c>'s property value for the name to obtain the target object id, then proceeds with
+/// the normal verb/property fetch. Resolved names are cached alongside member lists (using the
+/// same <c>_cacheTimeToLive</c>), keyed case-insensitively since MOO property lookup is
+/// case-insensitive.
+/// </para>
 /// </remarks>
 public sealed class MemberCompletionController : IDisposable
 {
@@ -77,7 +84,12 @@ public sealed class MemberCompletionController : IDisposable
 
    private readonly Dictionary<(MemberContextKind Kind, int ObjectNumber), CacheEntry> _cache = new();
 
+   private readonly Dictionary<string, (MooObjectId Id, DateTime CreatedUtc)> _coreNameCache =
+      new(StringComparer.OrdinalIgnoreCase);
+
    private (MemberContextKind Kind, int ObjectNumber)? _inflightKey;
+
+   private (MemberContextKind Kind, string Name)? _inflightCoreName;
 
    private CancellationTokenSource? _fetchCancellation;
 
@@ -122,8 +134,52 @@ public sealed class MemberCompletionController : IDisposable
          return Array.Empty<AutocompleteItem>();
 
       var objectId = MemberOperandResolver.Resolve(context, _contextObjectAccessor());
+
       if (objectId is null)
-         return Array.Empty<AutocompleteItem>();
+      {
+         // Check for a core-name operand ($foo) that needs async resolution.
+         if (!MemberOperandResolver.TryGetCoreName(context, out var coreName))
+            return Array.Empty<AutocompleteItem>();
+
+         lock (_stateLock)
+         {
+            if (_disposed)
+               return Array.Empty<AutocompleteItem>();
+
+            // Check if the core name is already resolved (and not stale).
+            if (_coreNameCache.TryGetValue(coreName, out var coreEntry))
+            {
+               if (DateTime.UtcNow - coreEntry.CreatedUtc < _cacheTimeToLive)
+               {
+                  // Name is resolved — fall through to the regular member fetch below using the cached id.
+                  objectId = coreEntry.Id;
+               }
+               else
+               {
+                  _coreNameCache.Remove(coreName);
+               }
+            }
+
+            if (objectId is null)
+            {
+               // Need to resolve the name first.
+               var provider = _providerAccessor();
+               var inflightKey = (context.Kind, coreName);
+               if (provider is null || (_inflightCoreName.HasValue &&
+                   _inflightCoreName.Value.Kind == context.Kind &&
+                   string.Equals(_inflightCoreName.Value.Name, coreName, StringComparison.OrdinalIgnoreCase)))
+                  return Array.Empty<AutocompleteItem>();
+
+               var staleFetchCancellation = _fetchCancellation;
+               _fetchCancellation = new CancellationTokenSource();
+               staleFetchCancellation?.Cancel();
+               staleFetchCancellation?.Dispose();
+               _inflightCoreName = inflightKey;
+               _ = FetchCoreNameAsync(provider, context.Kind, coreName, _fetchCancellation.Token);
+               return Array.Empty<AutocompleteItem>();
+            }
+         }
+      }
 
       var key = (context.Kind, objectId.Value.Number);
       lock (_stateLock)
@@ -209,6 +265,84 @@ public sealed class MemberCompletionController : IDisposable
             {
                if (!_disposed && _inflightKey == key)
                   _inflightKey = null;
+            }
+         });
+      }
+   }
+
+   private async Task FetchCoreNameAsync(
+      IMooWorldQueryProvider provider,
+      MemberContextKind kind,
+      string name,
+      CancellationToken cancellationToken)
+   {
+      var inflightKey = (kind, name);
+      try
+      {
+         var value = await provider.GetPropertyValueAsync(new MooObjectId(0), name, cancellationToken)
+                                   .ConfigureAwait(false);
+
+         // Validate: must be a non-null object-typed value with a parsable #N literal.
+         if (value is null || value.Type != 1 ||
+             !value.Literal.StartsWith('#') ||
+             !int.TryParse(value.Literal[1..], out var number))
+         {
+            // Resolution failed — clear the inflight marker, do NOT cache, do NOT refresh.
+            _uiMarshal(() =>
+            {
+               lock (_stateLock)
+               {
+                  if (!_disposed &&
+                      _inflightCoreName.HasValue &&
+                      _inflightCoreName.Value.Kind == inflightKey.kind &&
+                      string.Equals(_inflightCoreName.Value.Name, inflightKey.name, StringComparison.OrdinalIgnoreCase))
+                     _inflightCoreName = null;
+               }
+            });
+            return;
+         }
+
+         var resolvedId = new MooObjectId(number);
+
+         // Now fetch the member list for the resolved object.
+         IReadOnlyList<AutocompleteItem> items;
+         if (kind == MemberContextKind.Verb)
+            items = BuildVerbItems(await provider.GetVerbsAsync(resolvedId, cancellationToken).ConfigureAwait(false));
+         else
+            items = BuildPropertyItems(await provider.GetPropertiesAsync(resolvedId, cancellationToken).ConfigureAwait(false), kind);
+
+         var memberKey = (kind, resolvedId.Number);
+
+         _uiMarshal(() =>
+         {
+            lock (_stateLock)
+            {
+               if (_disposed || cancellationToken.IsCancellationRequested)
+                  return;
+
+               _coreNameCache[name] = (resolvedId, DateTime.UtcNow);
+               _cache[memberKey] = new CacheEntry(items, DateTime.UtcNow);
+               if (_inflightCoreName.HasValue &&
+                   _inflightCoreName.Value.Kind == inflightKey.kind &&
+                   string.Equals(_inflightCoreName.Value.Name, inflightKey.name, StringComparison.OrdinalIgnoreCase))
+                  _inflightCoreName = null;
+            }
+
+            _menuRefresh();
+         });
+      }
+      catch (Exception)
+      {
+         // Best-effort completion: any failure leaves only the static list in place.
+         _uiMarshal(() =>
+         {
+            lock (_stateLock)
+            {
+               if (!_disposed &&
+                   _inflightCoreName.HasValue &&
+                   _inflightCoreName.Value.Kind == inflightKey.kind &&
+                   string.Equals(_inflightCoreName.Value.Name, inflightKey.name, StringComparison.OrdinalIgnoreCase))
+                  _inflightCoreName = null;
             }
          });
       }

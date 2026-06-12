@@ -34,6 +34,7 @@
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #endregion
 
+using System.Text.RegularExpressions;
 using Org.Edgerunner.Mud.Common.Querying;
 
 namespace Org.Edgerunner.Moo.Editor.Autocomplete;
@@ -44,17 +45,22 @@ namespace Org.Edgerunner.Moo.Editor.Autocomplete;
 /// <remarks>
 /// Resolution is deliberately conservative: only operands whose object identity is knowable
 /// client-side resolve. <c>me</c>/<c>player</c> are deferred until a player-object-id source
-/// exists; barewords and core-reference operands are unresolvable and yield <c>null</c>,
-/// which silently skips member completion.
+/// exists; barewords remain unresolvable and yield <c>null</c>, which silently skips member
+/// completion. Core-name operands (<c>$foo</c>) are resolved asynchronously by the controller
+/// via a <c>#0</c> property-value lookup; <see cref="Resolve"/> still returns <c>null</c> for
+/// them so the controller can distinguish them via <see cref="TryGetCoreName"/>.
 /// </remarks>
 public static class MemberOperandResolver
 {
+   private static readonly Regex CoreNamePattern =
+      new(@"^\$([A-Za-z_]\w*)$", RegexOptions.Compiled);
+
    /// <summary>
    /// Resolves the operand of the supplied context to an object id.
    /// </summary>
    /// <param name="context">The detected member completion context.</param>
    /// <param name="contextObjectId">The object the edited verb lives on (the meaning of <c>this</c>), when known.</param>
-   /// <returns>The object to query, or <c>null</c> when the operand cannot be resolved.</returns>
+   /// <returns>The object to query, or <c>null</c> when the operand cannot be resolved synchronously.</returns>
    public static MooObjectId? Resolve(MemberCompletionContext context, MooObjectId? contextObjectId)
    {
       switch (context.Kind)
@@ -72,5 +78,33 @@ public static class MemberOperandResolver
          default:
             return null;
       }
+   }
+
+   /// <summary>
+   /// Returns <c>true</c> when the context is a Verb or Property context whose operand is a
+   /// core-name reference (<c>$identifier</c>), setting <paramref name="name"/> to the bare
+   /// name (without the leading <c>$</c>). Returns <c>false</c> with <paramref name="name"/>
+   /// set to <see cref="string.Empty"/> for any other context or operand shape.
+   /// </summary>
+   /// <param name="context">The detected member completion context.</param>
+   /// <param name="name">
+   /// On return, the bare identifier (e.g. <c>"network"</c> for operand <c>"$network"</c>),
+   /// or <see cref="string.Empty"/> when the method returns <c>false</c>.
+   /// </param>
+   /// <returns><c>true</c> when the operand is a valid core-name reference.</returns>
+   public static bool TryGetCoreName(MemberCompletionContext context, out string name)
+   {
+      if (context.Kind == MemberContextKind.Verb || context.Kind == MemberContextKind.Property)
+      {
+         var m = CoreNamePattern.Match(context.Operand);
+         if (m.Success)
+         {
+            name = m.Groups[1].Value;
+            return true;
+         }
+      }
+
+      name = string.Empty;
+      return false;
    }
 }

@@ -71,4 +71,50 @@ public class MemberOperandResolverTests
 
       result.Should().BeNull();
    }
+
+   // TryGetCoreName tests
+
+   [Theory]
+   [InlineData(MemberContextKind.Verb, "$network", "network")]
+   [InlineData(MemberContextKind.Property, "$network", "network")]
+   [InlineData(MemberContextKind.Verb, "$_private", "_private")]
+   [InlineData(MemberContextKind.Verb, "$a", "a")]
+   public void TryGetCoreName_returns_true_for_dollar_identifier_in_verb_or_property_context(
+      MemberContextKind kind, string operand, string expectedName)
+   {
+      var context = new MemberCompletionContext(kind, operand);
+
+      var result = MemberOperandResolver.TryGetCoreName(context, out var name);
+
+      result.Should().BeTrue();
+      name.Should().Be(expectedName);
+   }
+
+   [Theory]
+   [InlineData(MemberContextKind.Verb, "this")]
+   [InlineData(MemberContextKind.Verb, "#5")]
+   [InlineData(MemberContextKind.Verb, "foo")]
+   [InlineData(MemberContextKind.CoreReference, "")]
+   [InlineData(MemberContextKind.None, "")]
+   public void TryGetCoreName_returns_false_for_non_core_name_operands(MemberContextKind kind, string operand)
+   {
+      var context = new MemberCompletionContext(kind, operand);
+
+      var result = MemberOperandResolver.TryGetCoreName(context, out var name);
+
+      result.Should().BeFalse();
+      name.Should().BeEmpty();
+   }
+
+   [Fact]
+   public void TryGetCoreName_returns_false_for_dollar_with_leading_digit()
+   {
+      // $1abc is not a valid identifier so TryGetCoreName must reject it
+      var context = new MemberCompletionContext(MemberContextKind.Verb, "$1abc");
+
+      var result = MemberOperandResolver.TryGetCoreName(context, out var name);
+
+      result.Should().BeFalse();
+      name.Should().BeEmpty();
+   }
 }
