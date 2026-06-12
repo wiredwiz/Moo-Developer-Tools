@@ -39,11 +39,13 @@ public class MemberCompletionControllerTests
          return Properties;
       }
 
-      public Task<MooPropertyValue?> GetPropertyValueAsync(MooObjectId objectId, string propName, CancellationToken cancellationToken)
+      public async Task<MooPropertyValue?> GetPropertyValueAsync(MooObjectId objectId, string propName, CancellationToken cancellationToken)
       {
          Interlocked.Increment(ref PropValueCalls);
+         if (Gate is not null)
+            await Gate.Task.WaitAsync(cancellationToken);
          PropertyValues.TryGetValue(propName, out var value);
-         return Task.FromResult(value);
+         return value;
       }
 
       public Task<IReadOnlyList<MooObjectSummary>> GetCoreObjectsAsync(CancellationToken cancellationToken) => throw new NotImplementedException();
@@ -295,5 +297,88 @@ public class MemberCompletionControllerTests
 
       controller.GetMemberItems("$unknown:").Should().BeEmpty();
       provider.VerbCalls.Should().Be(0);
+   }
+
+   [Fact]
+   public void CoreName_negative_object_number_yields_empty_and_no_member_fetch()
+   {
+      var provider = new FakeQueryProvider();
+      provider.PropertyValues["network"] = new MooPropertyValue(1, "#-1"); // unset corified value
+      using var controller = CreateController(provider);
+
+      controller.GetMemberItems("$network:");
+      Thread.Sleep(250);
+
+      controller.GetMemberItems("$network:").Should().BeEmpty("negative object numbers must be rejected");
+      provider.VerbCalls.Should().Be(0);
+      provider.PropertyCalls.Should().Be(0);
+   }
+
+   [Fact]
+   public void CoreName_repeated_trigger_does_not_start_a_second_prop_value_fetch()
+   {
+      // Dedup test (I2): with a gated provider the first GetMemberItems parks the core-name
+      // resolve on the gate; a second call for the same $name must not start another fetch.
+      var provider = new FakeQueryProvider
+      {
+         Gate = new TaskCompletionSource()
+      };
+      provider.PropertyValues["network"] = new MooPropertyValue(1, "#62");
+      provider.Verbs.Add(new MooVerbSummary(new[] { "tell" }, new MooObjectId(62)));
+      using var controller = CreateController(provider);
+
+      controller.GetMemberItems("$network:");   // starts resolve, parked on gate
+      controller.GetMemberItems("$network:t");  // same core name — must NOT start a second fetch
+
+      provider.PropValueCalls.Should().Be(1, "the inflight marker must suppress the duplicate fetch");
+
+      provider.Gate.SetResult();  // release the parked call
+
+      WaitForCache(controller, "$network:");
+      controller.GetMemberItems("$network:").Select(i => i.Text).Should().Contain("tell");
+   }
+
+   [Fact]
+   public void CoreName_cancellation_releases_marker_so_retry_can_succeed()
+   {
+      // Cancellation-releases-marker test (I2, covers I1):
+      // 1. Start $network: resolve — parks on gate.
+      // 2. Switch to #7. — cancels the in-flight core resolve CTS.
+      // 3. Release gate — the parked prop-value awaitable throws OperationCanceledException.
+      //    The catch handler must clear _inflightCoreName so a subsequent $network: call can
+      //    start a brand-new resolve.
+      // 4. Assert $network: cache was NOT populated by the cancelled fetch.
+      // 5. Assert a retry does start a new resolve (PropValueCalls reaches 2) and eventually
+      //    populates the cache.
+      var provider = new FakeQueryProvider
+      {
+         Gate = new TaskCompletionSource()
+      };
+      provider.PropertyValues["network"] = new MooPropertyValue(1, "#62");
+      provider.Verbs.Add(new MooVerbSummary(new[] { "tell" }, new MooObjectId(62)));
+      using var controller = CreateController(provider, contextObject: new MooObjectId(7));
+
+      controller.GetMemberItems("$network:");  // parks prop-value call on gate
+      controller.GetMemberItems("#7.");        // cancels the parked core resolve, starts member fetch
+
+      provider.Gate.SetResult();  // release both the cancelled prop-value call and any subsequent calls
+
+      // Wait for the #7. fetch to complete (uses the now-open gate immediately).
+      SpinWait.SpinUntil(() => controller.GetMemberItems("#7.").Count >= 0, TimeSpan.FromSeconds(5));
+
+      // The cancelled $network: resolve must NOT have populated the cache.
+      // (Gate is now open so GetMemberItems triggers a new resolve synchronously in tests.)
+      // Give the cancellation path a moment to finish its marshalled cleanup.
+      SpinWait.SpinUntil(() =>
+      {
+         // Trigger a retry; once the marker is cleared this starts a new fetch.
+         controller.GetMemberItems("$network:");
+         return provider.PropValueCalls >= 2;
+      }, TimeSpan.FromSeconds(5))
+              .Should().BeTrue("cancellation must release the inflight marker so a retry can start a new resolve");
+
+      // With the gate already open the second resolve completes synchronously in tests.
+      WaitForCache(controller, "$network:");
+      controller.GetMemberItems("$network:").Select(i => i.Text).Should().Contain("tell");
    }
 }

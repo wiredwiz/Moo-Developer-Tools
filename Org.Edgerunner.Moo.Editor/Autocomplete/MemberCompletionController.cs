@@ -36,6 +36,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -69,6 +70,9 @@ public sealed class MemberCompletionController : IDisposable
 {
    /// <summary>The default lifetime of a cached member list.</summary>
    public static readonly TimeSpan DefaultCacheTimeToLive = TimeSpan.FromSeconds(30);
+
+   /// <summary>The MOO value type code for object references.</summary>
+   private const int ObjectTypeCode = 1;
 
    private readonly Func<IMooWorldQueryProvider?> _providerAccessor;
 
@@ -245,12 +249,17 @@ public sealed class MemberCompletionController : IDisposable
          {
             lock (_stateLock)
             {
+               // Always release the inflight marker when this fetch owns it, even if we are
+               // about to discard the results due to disposal or cancellation.  Failing to do so
+               // would leave the marker set permanently and silently suppress all future fetches
+               // for this key.
+               if (_inflightKey == key)
+                  _inflightKey = null;
+
                if (_disposed || cancellationToken.IsCancellationRequested)
                   return;
 
                _cache[key] = new CacheEntry(items, DateTime.UtcNow);
-               if (_inflightKey == key)
-                  _inflightKey = null;
             }
 
             _menuRefresh();
@@ -263,7 +272,7 @@ public sealed class MemberCompletionController : IDisposable
          {
             lock (_stateLock)
             {
-               if (!_disposed && _inflightKey == key)
+               if (_inflightKey == key)
                   _inflightKey = null;
             }
          });
@@ -276,26 +285,25 @@ public sealed class MemberCompletionController : IDisposable
       string name,
       CancellationToken cancellationToken)
    {
-      var inflightKey = (kind, name);
+      var inflightKey = (Kind: kind, Name: name);
       try
       {
          var value = await provider.GetPropertyValueAsync(new MooObjectId(0), name, cancellationToken)
                                    .ConfigureAwait(false);
 
-         // Validate: must be a non-null object-typed value with a parsable #N literal.
-         if (value is null || value.Type != 1 ||
+         // Validate: must be a non-null object-typed value with a parsable #N literal where N >= 0.
+         // Use NumberStyles.None to reject whitespace and sign prefixes such as #+62 or #-1.
+         if (value is null || value.Type != ObjectTypeCode ||
              !value.Literal.StartsWith('#') ||
-             !int.TryParse(value.Literal[1..], out var number))
+             !int.TryParse(value.Literal.AsSpan(1), NumberStyles.None, CultureInfo.InvariantCulture, out var number) ||
+             number < 0)
          {
             // Resolution failed — clear the inflight marker, do NOT cache, do NOT refresh.
             _uiMarshal(() =>
             {
                lock (_stateLock)
                {
-                  if (!_disposed &&
-                      _inflightCoreName.HasValue &&
-                      _inflightCoreName.Value.Kind == inflightKey.kind &&
-                      string.Equals(_inflightCoreName.Value.Name, inflightKey.name, StringComparison.OrdinalIgnoreCase))
+                  if (InflightCoreNameMatches(inflightKey))
                      _inflightCoreName = null;
                }
             });
@@ -317,15 +325,18 @@ public sealed class MemberCompletionController : IDisposable
          {
             lock (_stateLock)
             {
+               // Always release the inflight marker when this fetch owns it, even if we are
+               // about to discard the results due to disposal or cancellation.  Failing to do so
+               // would leave the marker set permanently and silently suppress all future fetches
+               // for this core name.
+               if (InflightCoreNameMatches(inflightKey))
+                  _inflightCoreName = null;
+
                if (_disposed || cancellationToken.IsCancellationRequested)
                   return;
 
                _coreNameCache[name] = (resolvedId, DateTime.UtcNow);
                _cache[memberKey] = new CacheEntry(items, DateTime.UtcNow);
-               if (_inflightCoreName.HasValue &&
-                   _inflightCoreName.Value.Kind == inflightKey.kind &&
-                   string.Equals(_inflightCoreName.Value.Name, inflightKey.name, StringComparison.OrdinalIgnoreCase))
-                  _inflightCoreName = null;
             }
 
             _menuRefresh();
@@ -338,15 +349,23 @@ public sealed class MemberCompletionController : IDisposable
          {
             lock (_stateLock)
             {
-               if (!_disposed &&
-                   _inflightCoreName.HasValue &&
-                   _inflightCoreName.Value.Kind == inflightKey.kind &&
-                   string.Equals(_inflightCoreName.Value.Name, inflightKey.name, StringComparison.OrdinalIgnoreCase))
+               if (InflightCoreNameMatches(inflightKey))
                   _inflightCoreName = null;
             }
          });
       }
    }
+
+   /// <summary>
+   /// Returns <c>true</c> when <see cref="_inflightCoreName"/> matches the supplied fetch key.
+   /// Must be called under <see cref="_stateLock"/>.
+   /// </summary>
+   /// <param name="fetchKey">The <c>(Kind, Name)</c> tuple that identifies the fetch in progress.</param>
+   /// <returns><c>true</c> when the current inflight marker belongs to this fetch.</returns>
+   private bool InflightCoreNameMatches((MemberContextKind Kind, string Name) fetchKey) =>
+      _inflightCoreName.HasValue &&
+      _inflightCoreName.Value.Kind == fetchKey.Kind &&
+      string.Equals(_inflightCoreName.Value.Name, fetchKey.Name, StringComparison.OrdinalIgnoreCase);
 
    private static IReadOnlyList<AutocompleteItem> BuildVerbItems(IReadOnlyList<MooVerbSummary> verbs)
    {
