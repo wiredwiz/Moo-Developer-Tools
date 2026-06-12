@@ -42,6 +42,7 @@ using System;
 using FastColoredTextBoxNS;
 using FastColoredTextBoxNS.Types;
 using Krypton.Toolkit;
+using NLog;
 using Org.Edgerunner.Moo.Editor.Autocomplete;
 using Org.Edgerunner.Moo.Editor.Configuration;
 using Org.Edgerunner.Mud.Common.Querying;
@@ -50,6 +51,7 @@ namespace Org.Edgerunner.Moo.Udditor.Pages;
 
 public class MooCodeEditorPage : MooEditorPage
 {
+    private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
     /// <summary>
     /// Gets or sets the MOO world query provider used to power code-completion popups and tooltips.
     /// </summary>
@@ -332,8 +334,22 @@ public class MooCodeEditorPage : MooEditorPage
 
                 var menu = codeEditor.AutocompleteMenu;
                 if (menu is { Visible: true })
+                {
+                    // Results arrived while the popup was already open — refresh its item list.
                     menu.Show(false);
-            });
+                }
+                else if (codeEditor.Focused &&
+                         _memberCompletionController is not null &&
+                         _memberCompletionController.GetMemberItems(GetCaretLinePrefix(codeEditor)).Count > 0)
+                {
+                    // Results arrived after the popup closed (it closed because the first
+                    // DoAutocomplete call found an empty list).  Re-open it now that items are
+                    // available; Show(false) runs the menu's own fragment matching so it stays
+                    // closed if nothing matches the current fragment.
+                    menu?.Show(false);
+                }
+            },
+            diagnostic: (message, ex) => Logger.Warn(ex, message));
 
         //set as autocomplete source
         codeEditor.AutocompleteMenu.Items.SetAutocompleteItems(

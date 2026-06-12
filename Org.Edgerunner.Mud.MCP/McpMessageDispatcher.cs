@@ -34,6 +34,7 @@
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #endregion
 
+using NLog;
 using Org.Edgerunner.Mud.Communication.Interfaces;
 using Org.Edgerunner.Mud.MCP.Exceptions;
 using Org.Edgerunner.Mud.MCP.Interfaces;
@@ -44,6 +45,8 @@ namespace Org.Edgerunner.Mud.MCP;
 /// <summary>Routes fully-assembled MCP messages to registered package handlers.</summary>
 public class McpMessageDispatcher
 {
+   private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
+
    private readonly McpClientSessionManager _sessionManager;
    private readonly Dictionary<string, IMcpPackage> _packages = new();
 
@@ -80,7 +83,11 @@ public class McpMessageDispatcher
       }
 
       if (Session == null) return;
-      if (message.Key != Session.Key) return;
+      if (message.Key != Session.Key)
+      {
+         Logger.Warn("Discarding MCP message '{0}': auth key '{1}' does not match session key '{2}'.", message.Name, message.Key, Session.Key);
+         return;
+      }
 
       var lowerName = message.Name.ToLowerInvariant();
       var packageName = _packages.Keys

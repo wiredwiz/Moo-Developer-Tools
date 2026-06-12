@@ -65,6 +65,12 @@ namespace Org.Edgerunner.Moo.Editor.Autocomplete;
 /// same <c>_cacheTimeToLive</c>), keyed case-insensitively since MOO property lookup is
 /// case-insensitive.
 /// </para>
+/// <para>
+/// An optional <c>diagnostic</c> callback (see constructor) receives a message string and
+/// optional exception for fetch failures and core-name validation failures. It is invoked
+/// outside any lock; if the callback itself throws the exception is silently swallowed so a
+/// faulty diagnostic handler can never break completion.
+/// </para>
 /// </remarks>
 public sealed class MemberCompletionController : IDisposable
 {
@@ -81,6 +87,8 @@ public sealed class MemberCompletionController : IDisposable
    private readonly Action<Action> _uiMarshal;
 
    private readonly Action _menuRefresh;
+
+   private readonly Action<string, Exception?>? _diagnostic;
 
    private readonly TimeSpan _cacheTimeToLive;
 
@@ -109,19 +117,26 @@ public sealed class MemberCompletionController : IDisposable
    /// <param name="uiMarshal">Runs the supplied action on the UI thread (tests may invoke immediately).</param>
    /// <param name="menuRefresh">Asks the owner to refresh the autocomplete popup if it is open.</param>
    /// <param name="cacheTimeToLive">Cache entry lifetime; defaults to <see cref="DefaultCacheTimeToLive"/>.</param>
-   /// <exception cref="ArgumentNullException">Thrown when any callback is <c>null</c>.</exception>
+   /// <param name="diagnostic">
+   /// Optional callback invoked when a fetch fails or a core-name validation fails. Receives a
+   /// descriptive message and, for exception-based failures, the exception (otherwise <c>null</c>).
+   /// Invoked outside any lock; exceptions thrown by the callback are silently swallowed.
+   /// </param>
+   /// <exception cref="ArgumentNullException">Thrown when any required callback is <c>null</c>.</exception>
    public MemberCompletionController(
       Func<IMooWorldQueryProvider?> providerAccessor,
       Func<MooObjectId?> contextObjectAccessor,
       Action<Action> uiMarshal,
       Action menuRefresh,
-      TimeSpan? cacheTimeToLive = null)
+      TimeSpan? cacheTimeToLive = null,
+      Action<string, Exception?>? diagnostic = null)
    {
       _providerAccessor = providerAccessor ?? throw new ArgumentNullException(nameof(providerAccessor));
       _contextObjectAccessor = contextObjectAccessor ?? throw new ArgumentNullException(nameof(contextObjectAccessor));
       _uiMarshal = uiMarshal ?? throw new ArgumentNullException(nameof(uiMarshal));
       _menuRefresh = menuRefresh ?? throw new ArgumentNullException(nameof(menuRefresh));
       _cacheTimeToLive = cacheTimeToLive ?? DefaultCacheTimeToLive;
+      _diagnostic = diagnostic;
    }
 
    /// <summary>
@@ -263,9 +278,11 @@ public sealed class MemberCompletionController : IDisposable
             _menuRefresh();
          });
       }
-      catch (Exception)
+      catch (Exception ex)
       {
          // Best-effort completion: any failure leaves only the static list in place.
+         InvokeDiagnostic(
+            $"Member completion fetch failed for kind={kind}, object #{objectId.Number}.", ex);
          _uiMarshal(() =>
          {
             lock (_stateLock)
@@ -297,6 +314,14 @@ public sealed class MemberCompletionController : IDisposable
              number < 0)
          {
             // Resolution failed — clear the inflight marker, do NOT cache, do NOT refresh.
+            string diagnosticMessage;
+            if (value is null)
+               diagnosticMessage = $"Core reference ${name} did not resolve to an object: property value was null.";
+            else if (value.Type != ObjectTypeCode)
+               diagnosticMessage = $"Core reference ${name} did not resolve to an object: property value was type {value.Type}.";
+            else
+               diagnosticMessage = $"Core reference ${name} did not resolve to an object: literal '{value.Literal}' is not a valid object number.";
+            InvokeDiagnostic(diagnosticMessage, null);
             _uiMarshal(() =>
             {
                lock (_stateLock)
@@ -340,9 +365,11 @@ public sealed class MemberCompletionController : IDisposable
             _menuRefresh();
          });
       }
-      catch (Exception)
+      catch (Exception ex)
       {
          // Best-effort completion: any failure leaves only the static list in place.
+         InvokeDiagnostic(
+            $"Member completion fetch failed for core name ${name} (kind={kind}).", ex);
          _uiMarshal(() =>
          {
             lock (_stateLock)
@@ -352,6 +379,20 @@ public sealed class MemberCompletionController : IDisposable
             }
          });
       }
+   }
+
+   /// <summary>
+   /// Invokes the optional <see cref="_diagnostic"/> callback with the supplied message and
+   /// exception. Exceptions thrown by the callback are silently swallowed so that a faulty
+   /// diagnostic handler can never break completion.
+   /// </summary>
+   /// <param name="message">A human-readable description of the failure.</param>
+   /// <param name="ex">The exception that caused the failure, or <c>null</c> for validation failures.</param>
+   private void InvokeDiagnostic(string message, Exception? ex)
+   {
+      if (_diagnostic is null) return;
+      try { _diagnostic(message, ex); }
+      catch { /* swallow: a faulty diagnostic must not break completion */ }
    }
 
    /// <summary>

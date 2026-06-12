@@ -63,13 +63,15 @@ public class MemberCompletionControllerTests
    private static MemberCompletionController CreateController(
       FakeQueryProvider provider,
       MooObjectId? contextObject = null,
-      Action? refresh = null)
+      Action? refresh = null,
+      Action<string, Exception?>? diagnostic = null)
    {
       return new MemberCompletionController(
          () => provider,
          () => contextObject,
          action => action(),          // immediate marshal: deterministic single-threaded tests
-         refresh ?? (() => { }));
+         refresh ?? (() => { }),
+         diagnostic: diagnostic);
    }
 
    private static MemberCompletionController CreateControllerWithQueuedMarshal(
@@ -518,5 +520,90 @@ public class MemberCompletionControllerTests
 
       controller.GetMemberItems("this:").Select(i => i.Text).Should().Contain("get",
          "after draining the retry lambda the cache should be populated");
+   }
+
+   // Diagnostic callback tests
+
+   [Fact]
+   public void Diagnostic_invoked_with_exception_when_provider_throws()
+   {
+      var provider = new FakeQueryProvider { ThrowOnVerbs = new TimeoutException("SDWC timed out") };
+      string? capturedMessage = null;
+      Exception? capturedException = null;
+      using var controller = CreateController(
+         provider,
+         contextObject: new MooObjectId(5),
+         diagnostic: (msg, ex) => { capturedMessage = msg; capturedException = ex; });
+
+      controller.GetMemberItems("this:");
+      Thread.Sleep(250); // allow the faulted fetch to finish
+
+      capturedMessage.Should().NotBeNullOrEmpty("diagnostic must receive a message on provider throw");
+      capturedMessage.Should().Contain("5", "message should include the object number");
+      capturedException.Should().BeOfType<TimeoutException>("diagnostic must receive the originating exception");
+   }
+
+   [Fact]
+   public void Diagnostic_invoked_with_null_exception_when_core_name_validation_fails()
+   {
+      var provider = new FakeQueryProvider();
+      // Type 2 = STR, not OBJ — validation should fail
+      provider.PropertyValues["network"] = new MooPropertyValue(2, "\"hello\"");
+      string? capturedMessage = null;
+      Exception? capturedException = null;
+      var diagnosticInvoked = false;
+      using var controller = CreateController(
+         provider,
+         diagnostic: (msg, ex) =>
+         {
+            capturedMessage = msg;
+            capturedException = ex;
+            diagnosticInvoked = true;
+         });
+
+      controller.GetMemberItems("$network:");
+      Thread.Sleep(250); // allow the faulted resolve to finish
+
+      diagnosticInvoked.Should().BeTrue("diagnostic must be invoked on core-name validation failure");
+      capturedMessage.Should().NotBeNullOrEmpty("diagnostic must receive a message describing the failure");
+      capturedMessage.Should().Contain("network", "message should name the core reference");
+      capturedException.Should().BeNull("validation failures carry no exception");
+   }
+
+   [Fact]
+   public void Diagnostic_callback_that_throws_does_not_break_completion()
+   {
+      var provider = new FakeQueryProvider { ThrowOnVerbs = new InvalidOperationException("boom") };
+      using var controller = CreateController(
+         provider,
+         contextObject: new MooObjectId(5),
+         diagnostic: (_, _) => throw new Exception("bad diagnostic"));
+
+      // Completion must not throw even though both the provider and the diagnostic callback throw.
+      var act = () =>
+      {
+         controller.GetMemberItems("this:");
+         Thread.Sleep(250);
+         controller.GetMemberItems("this:x");
+      };
+
+      act.Should().NotThrow("a faulty diagnostic callback must not propagate out of the controller");
+   }
+
+   [Fact]
+   public void Constructor_without_diagnostic_parameter_still_works()
+   {
+      // Prove the existing 4-parameter factory path (no diagnostic) compiles and functions.
+      var provider = new FakeQueryProvider();
+      provider.Verbs.Add(new MooVerbSummary(new[] { "tell" }, new MooObjectId(5)));
+      using var controller = new MemberCompletionController(
+         () => provider,
+         () => new MooObjectId(5),
+         action => action(),
+         () => { });
+
+      controller.GetMemberItems("this:");
+      WaitForCache(controller, "this:");
+      controller.GetMemberItems("this:").Should().NotBeEmpty("basic operation must work without a diagnostic callback");
    }
 }
