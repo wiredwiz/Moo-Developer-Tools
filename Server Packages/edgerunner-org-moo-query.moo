@@ -125,7 +125,7 @@ try
   if (!valid(o))
     raise(E_INVARG);
   endif
-  this:send_reply(session, "parent-reply", tag, tostr("{\"p\":", tonum(parent(o)), "}"));
+  this:send_reply(session, "parent-reply", tag, tostr("{\"p\":", toint(parent(o)), "}"));
 except v (ANY)
   this:send_error(session, tag, v);
 endtry
@@ -178,7 +178,7 @@ try
   r = this:find_verb_definer(o, vname);
   info = verb_info(r, vname);
   vargs = verb_args(r, vname);
-  json = tostr("{\"q\":", tonum(o), ",\"r\":", tonum(r), ",\"a\":", this:json_encode(info[3]), ",\"o\":", tonum(info[1]), ",\"p\":", this:json_encode(info[2]), ",\"g\":", this:json_encode(vargs), "}");
+  json = tostr("{\"q\":", toint(o), ",\"r\":", toint(r), ",\"a\":", this:json_encode(info[3]), ",\"o\":", toint(info[1]), ",\"p\":", this:json_encode(info[2]), ",\"g\":", this:json_encode(vargs), "}");
   this:send_reply(session, "verb-info-reply", tag, json);
 except v (ANY)
   this:send_error(session, tag, v);
@@ -212,7 +212,7 @@ try
       break;
     endif
   endfor
-  json = tostr("{\"q\":", tonum(o), ",\"r\":", tonum(r), ",\"l\":", this:json_encode(docs), "}");
+  json = tostr("{\"q\":", toint(o), ",\"r\":", toint(r), ",\"l\":", this:json_encode(docs), "}");
   this:send_reply(session, "verb-doc-reply", tag, json);
 except v (ANY)
   this:send_error(session, tag, v);
@@ -235,7 +235,7 @@ try
   endif
   r = this:find_verb_definer(o, vname);
   lines = verb_code(r, vname);
-  json = tostr("{\"q\":", tonum(o), ",\"r\":", tonum(r), ",\"l\":", this:json_encode(lines), "}");
+  json = tostr("{\"q\":", toint(o), ",\"r\":", toint(r), ",\"l\":", this:json_encode(lines), "}");
   this:send_reply(session, "verb-code-reply", tag, json);
 except v (ANY)
   this:send_error(session, tag, v);
@@ -290,7 +290,7 @@ try
   value = o.(pname);
   lit = toliteral(value);
   preview = lit[1..min(80, length(lit))];
-  json = tostr("{\"n\":", this:json_encode(pname), ",\"o\":", tonum(info[1]), ",\"p\":", this:json_encode(info[2]), ",\"t\":", typeof(value), ",\"v\":", this:json_encode(preview), "}");
+  json = tostr("{\"n\":", this:json_encode(pname), ",\"o\":", toint(info[1]), ",\"p\":", this:json_encode(info[2]), ",\"t\":", typeof(value), ",\"v\":", this:json_encode(preview), "}");
   this:send_reply(session, "prop-info-reply", tag, json);
 except v (ANY)
   this:send_error(session, tag, v);
@@ -368,7 +368,7 @@ raise(E_VERBNF);
 @chown #XXX:summary_json #2
 @program #XXX:summary_json
 "Usage: :summary_json(list of objects) => '{\"d\":[[num,name,[aliases]],...]}'";
-"Object numbers are converted with tonum() BEFORE encoding so generate_json never sees objnums.";
+"Object numbers are converted with toint() BEFORE encoding so generate_json never sees objnums.";
 {objs} = args;
 set_task_perms(caller_perms());
 rows = {};
@@ -387,7 +387,7 @@ for o in (objs)
       strs = {@strs, a};
     endif
   endfor
-  rows = {@rows, {tonum(o), name, strs}};
+  rows = {@rows, {toint(o), name, strs}};
 endfor
 return tostr("{\"d\":", this:json_encode(rows), "}");
 .
@@ -397,7 +397,7 @@ return tostr("{\"d\":", this:json_encode(rows), "}");
 @program #XXX:json_encode
 "Usage: :json_encode(value) => minified JSON for strings, numbers, floats, objnums (bare ints), lists";
 "Probes the generate_json() builtin once (cached in .use_generate_json: -1 unknown, 1 yes, 0 no).";
-"Callers must convert objnums with tonum() first; the OBJ branch below is only a safety net for";
+"Callers must convert objnums with toint() first; the OBJ branch below is only a safety net for";
 "the fallback encoder (ToastStunt generate_json would encode objnums as \"#123\" strings).";
 {value} = args;
 use = this.use_generate_json;
@@ -412,7 +412,7 @@ t = typeof(value);
 if (t == STR)
   return tostr("\"", strsub(strsub(value, "\\", "\\\\"), "\"", "\\\""), "\"");
 elseif (t == OBJ)
-  return tostr(tonum(value));
+  return tostr(toint(value));
 elseif (t == LIST)
   parts = "";
   for item in (value)
