@@ -85,7 +85,7 @@ public class McpMessageDispatcher
       if (Session == null) return;
       if (message.Key != Session.Key)
       {
-         Logger.Warn("Discarding MCP message '{0}': auth key '{1}' does not match session key '{2}'.", message.Name, message.Key, Session.Key);
+         Logger.Warn("Discarding MCP message '{0}': received auth key '{1}' does not match the session key.", message.Name, message.Key);
          return;
       }
 
