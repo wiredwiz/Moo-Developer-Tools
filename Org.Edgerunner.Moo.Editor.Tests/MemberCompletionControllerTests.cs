@@ -72,6 +72,19 @@ public class MemberCompletionControllerTests
          refresh ?? (() => { }));
    }
 
+   private static MemberCompletionController CreateControllerWithQueuedMarshal(
+      FakeQueryProvider provider,
+      List<Action> marshalQueue,
+      MooObjectId? contextObject = null,
+      Action? refresh = null)
+   {
+      return new MemberCompletionController(
+         () => provider,
+         () => contextObject,
+         action => marshalQueue.Add(action),  // queuing marshal: deferred execution for I1 regression tests
+         refresh ?? (() => { }));
+   }
+
    private static void WaitForCache(MemberCompletionController controller, string linePrefix)
    {
       // The fetch completes asynchronously; poll briefly until the marshalled cache write lands.
@@ -341,7 +354,7 @@ public class MemberCompletionControllerTests
    [Fact]
    public void CoreName_cancellation_releases_marker_so_retry_can_succeed()
    {
-      // Cancellation-releases-marker test (I2, covers I1):
+      // Catch-path marker-release test (covers the CATCH handler in FetchCoreNameAsync):
       // 1. Start $network: resolve — parks on gate.
       // 2. Switch to #7. — cancels the in-flight core resolve CTS.
       // 3. Release gate — the parked prop-value awaitable throws OperationCanceledException.
@@ -363,22 +376,147 @@ public class MemberCompletionControllerTests
 
       provider.Gate.SetResult();  // release both the cancelled prop-value call and any subsequent calls
 
-      // Wait for the #7. fetch to complete (uses the now-open gate immediately).
-      SpinWait.SpinUntil(() => controller.GetMemberItems("#7.").Count >= 0, TimeSpan.FromSeconds(5));
+      // Wait for the #7. member fetch to land in its cache (proves the gate is fully drained).
+      SpinWait.SpinUntil(() => controller.GetMemberItems("#7.").Count > 0, TimeSpan.FromSeconds(5));
 
-      // The cancelled $network: resolve must NOT have populated the cache.
-      // (Gate is now open so GetMemberItems triggers a new resolve synchronously in tests.)
-      // Give the cancellation path a moment to finish its marshalled cleanup.
-      SpinWait.SpinUntil(() =>
-      {
-         // Trigger a retry; once the marker is cleared this starts a new fetch.
-         controller.GetMemberItems("$network:");
-         return provider.PropValueCalls >= 2;
-      }, TimeSpan.FromSeconds(5))
-              .Should().BeTrue("cancellation must release the inflight marker so a retry can start a new resolve");
-
-      // With the gate already open the second resolve completes synchronously in tests.
+      // The catch handler clears _inflightCoreName; once clear a new $network: resolve starts
+      // immediately (gate is open so the immediate-marshal path completes synchronously).
+      // WaitForCache polls GetMemberItems; the first successful poll triggers the retry resolve.
       WaitForCache(controller, "$network:");
+      provider.PropValueCalls.Should().Be(2,
+         "cancellation must release the inflight marker so a retry can start a new resolve");
       controller.GetMemberItems("$network:").Select(i => i.Text).Should().Contain("tell");
+   }
+
+   [Fact]
+   public void CoreName_queued_marshal_cancellation_releases_inflight_marker_so_retry_can_succeed()
+   {
+      // I1 regression test for FetchCoreNameAsync success-lambda path:
+      // With a queuing marshal the success lambda is deferred.  The cancellation token is
+      // checked INSIDE the lambda (after the marker clear).  This test proves that the
+      // marker is cleared even when cancellation arrives before the lambda runs, so that a
+      // subsequent $network: call is not permanently suppressed.
+      //
+      // Sequence:
+      //   (a) GetMemberItems("$network:") — provider has no gate so GetPropertyValueAsync
+      //       and GetVerbsAsync both return completed tasks; FetchCoreNameAsync runs to
+      //       completion synchronously, queuing the success lambda before GetMemberItems
+      //       returns.
+      //   (b) GetMemberItems("#7.") — swaps/cancels _fetchCancellation, invalidating the
+      //       token captured by the queued lambda; also queues the #7. success lambda.
+      //   (c) Drain the queue — both lambdas execute; the $network: lambda sees
+      //       IsCancellationRequested, clears the marker, and does NOT populate the cache.
+      //   (d) Assert $network: cache is empty, then issue a retry call; assert PropValueCalls
+      //       reaches 2 (new resolve started), drain the newly queued lambda, and assert
+      //       items are now returned.
+      var provider = new FakeQueryProvider();
+      provider.PropertyValues["network"] = new MooPropertyValue(1, "#62");
+      provider.Verbs.Add(new MooVerbSummary(new[] { "tell" }, new MooObjectId(62)));
+      provider.Properties.Add(new MooPropertySummary("name", new MooObjectId(7)));
+
+      var marshalQueue = new List<Action>();
+      using var controller = CreateControllerWithQueuedMarshal(
+         provider, marshalQueue, contextObject: new MooObjectId(7));
+
+      // (a) Start core-name resolve for $network: — success lambda queued immediately.
+      controller.GetMemberItems("$network:");
+      SpinWait.SpinUntil(() => marshalQueue.Count > 0, TimeSpan.FromSeconds(5))
+              .Should().BeTrue("success lambda should be queued synchronously by the ungated provider");
+
+      // (b) Switch context — cancels the queued lambda's token, queues #7. success lambda.
+      controller.GetMemberItems("#7.");
+
+      // (c) Drain all queued actions.
+      var snapshot = marshalQueue.ToList();
+      marshalQueue.Clear();
+      foreach (var action in snapshot)
+         action();
+
+      // (d) Retry: single call — starts a new resolve (marker was cleared) and returns empty
+      //     while the new lambda is queued.  PropValueCalls must reach 2, proving the marker
+      //     was released so the retry was not suppressed.
+      var retryResult = controller.GetMemberItems("$network:");
+      retryResult.Should().BeEmpty("the cache must be empty and the retry must start a new resolve");
+      provider.PropValueCalls.Should().Be(2,
+         "cancellation inside the success lambda must release the inflight marker so a retry starts a new resolve");
+
+      // Drain the retry's queued lambda and verify items appear.
+      var retrySnapshot = marshalQueue.ToList();
+      marshalQueue.Clear();
+      foreach (var action in retrySnapshot)
+         action();
+
+      controller.GetMemberItems("$network:").Select(i => i.Text).Should().Contain("tell",
+         "after draining the retry lambda the cache should be populated");
+   }
+
+   [Fact]
+   public void MemberFetch_queued_marshal_cancellation_releases_inflight_marker_so_retry_can_succeed()
+   {
+      // I1 regression test for FetchAsync success-lambda path:
+      // Same queueing-marshal technique, but targeting _inflightKey rather than _inflightCoreName.
+      //
+      // The cancellation trigger must cancel the CTS WITHOUT overwriting _inflightKey, otherwise
+      // the unfixed code would not wedge (the key would be overwritten by the new context).
+      // A core-name ($network:) call does exactly that: it sets _inflightCoreName and cancels the
+      // CTS, leaving _inflightKey = (Verb, 5) intact.  So when the queued this: lambda runs with
+      // the cancelled token, the unfixed early-return sees _inflightKey == key and returns without
+      // clearing it — the wedge.
+      //
+      // Sequence:
+      //   (a) GetMemberItems("this:") — GetVerbsAsync returns a completed task; FetchAsync
+      //       runs to completion synchronously, queuing the success lambda before returning.
+      //       _inflightKey = (Verb, 5).
+      //   (b) GetMemberItems("$network:") — cancels the CTS (invalidating the this: lambda's
+      //       token) and sets _inflightCoreName, leaving _inflightKey = (Verb, 5) intact.
+      //       FetchCoreNameAsync also completes synchronously, queuing a second lambda.
+      //   (c) Drain the queue — the this: lambda sees IsCancellationRequested while
+      //       _inflightKey is still (Verb, 5); unfixed code early-returns WITHOUT clearing it.
+      //       Fixed code clears _inflightKey first, then early-returns.
+      //   (d) Retry GetMemberItems("this:"); assert VerbCalls reaches 2 (new fetch started —
+      //       only possible if _inflightKey was cleared), drain, assert items appear.
+      var provider = new FakeQueryProvider();
+      provider.Verbs.Add(new MooVerbSummary(new[] { "get" }, new MooObjectId(5)));
+      provider.PropertyValues["network"] = new MooPropertyValue(1, "#62");
+      // Add verbs for #62 so FetchCoreNameAsync succeeds without error (does not affect VerbCalls
+      // for key (Verb, 5) since it queries object #62, not object #5).
+      provider.Verbs.Add(new MooVerbSummary(new[] { "tell" }, new MooObjectId(62)));
+
+      var marshalQueue = new List<Action>();
+      using var controller = CreateControllerWithQueuedMarshal(
+         provider, marshalQueue, contextObject: new MooObjectId(5));
+
+      // (a) Start member fetch for this: (object #5, Verb context) — success lambda queued immediately.
+      controller.GetMemberItems("this:");
+      SpinWait.SpinUntil(() => marshalQueue.Count > 0, TimeSpan.FromSeconds(5))
+              .Should().BeTrue("success lambda should be queued synchronously by the ungated provider");
+
+      // (b) $network: cancels the this: lambda's token, sets _inflightCoreName, leaves _inflightKey
+      //     = (Verb, 5) intact.  FetchCoreNameAsync also completes synchronously, queuing its lambda.
+      controller.GetMemberItems("$network:");
+
+      // (c) Drain all queued actions.
+      var snapshot = marshalQueue.ToList();
+      marshalQueue.Clear();
+      foreach (var action in snapshot)
+         action();
+
+      // (d) Retry: single call — _inflightKey must be null (fixed) so a new fetch starts.
+      //     VerbCalls was 2 after step (a)+(b) (this: fetch + $network: fetch for #62).
+      //     After drain and retry it must be 3.
+      var verbCallsAfterSetup = provider.VerbCalls;
+      var retryResult = controller.GetMemberItems("this:");
+      retryResult.Should().BeEmpty("the cache must be empty and the retry must start a new fetch");
+      provider.VerbCalls.Should().Be(verbCallsAfterSetup + 1,
+         "cancellation inside the success lambda must release _inflightKey so a retry starts a new fetch");
+
+      // Drain the retry's queued lambda and verify items now appear.
+      var retrySnapshot = marshalQueue.ToList();
+      marshalQueue.Clear();
+      foreach (var action in retrySnapshot)
+         action();
+
+      controller.GetMemberItems("this:").Select(i => i.Text).Should().Contain("get",
+         "after draining the retry lambda the cache should be populated");
    }
 }

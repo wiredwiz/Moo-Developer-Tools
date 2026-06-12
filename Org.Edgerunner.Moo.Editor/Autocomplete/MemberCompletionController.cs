@@ -169,9 +169,7 @@ public sealed class MemberCompletionController : IDisposable
                // Need to resolve the name first.
                var provider = _providerAccessor();
                var inflightKey = (context.Kind, coreName);
-               if (provider is null || (_inflightCoreName.HasValue &&
-                   _inflightCoreName.Value.Kind == context.Kind &&
-                   string.Equals(_inflightCoreName.Value.Name, coreName, StringComparison.OrdinalIgnoreCase)))
+               if (provider is null || InflightCoreNameMatches(inflightKey))
                   return Array.Empty<AutocompleteItem>();
 
                var staleFetchCancellation = _fetchCancellation;
