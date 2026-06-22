@@ -12,28 +12,28 @@
 ;;#XXX.("aliases") = {"edgerunner-org-moo-query"}
 ;;#XXX.("description") = {"Developer-information query package for MCP 2.1 clients (v1.0).", "", "Each C->S request carries a client-generated tag; each S->C reply echoes the", "tag and carries one data* multiline field holding minified JSON.", "Object numbers are bare JSON ints; verb names are raw MOO names strings.", "", "Requests (params besides tag):", " -core-objects ()            -> {\"d\":[[num,name,[aliases]],...]}", " -children (object)          -> {\"d\":[[num,name,[aliases]],...]}", " -owned (owner)              -> {\"d\":[[num,name,[aliases]],...]}  owner \"\" = player", " -parent (object)            -> {\"p\":num}  -1 = no parent", " -verbs (object)             -> {\"d\":[\"g*et put\",...]}  local+inherited, deduped", " -verb-info (object, verb)   -> {\"q\",\"r\",\"a\",\"o\",\"p\",\"g\"}", " -verb-doc (object, verb)    -> {\"q\",\"r\",\"l\":[lines]}", " -verb-code (object, verb)   -> {\"q\",\"r\",\"l\":[lines]}", " -props (object)             -> {\"d\":[\"name\",...]}  local+inherited, deduped", " -prop-info (object, prop)   -> {\"n\",\"o\",\"p\",\"t\",\"v\"}  v = 80-char preview", " -prop-doc (object, prop)    -> {\"l\":[lines]}  toliteral split <=78 chars, max 50", " -prop-value (object, prop)  -> {\"t\",\"v\"}  full toliteral", "", "Shared error reply: -error (tag, code, message) where code is the MOO error", "name (E_PERM, E_INVARG, E_VERBNF, E_PROPNF, ...).", "", "Every handler runs under set_task_perms() of the connected player; normal MOO", "read rules decide visibility.", "", "Normative protocol: docs/edgerunner-org-moo-query-protocol.md in the", "Moo Developer Tools repository (https://github.com/.../Moo-Developer-Tools)."}
 
-@verb #XXX:"handle_core_objects" this none this rxd
+@verb #XXX:"handle_core-objects" this none this rxd
 @verb #XXX:"handle_children" this none this rxd
 @verb #XXX:"handle_owned" this none this rxd
 @verb #XXX:"handle_parent" this none this rxd
 @verb #XXX:"handle_verbs" this none this rxd
-@verb #XXX:"handle_verb_info" this none this rxd
-@verb #XXX:"handle_verb_doc" this none this rxd
-@verb #XXX:"handle_verb_code" this none this rxd
+@verb #XXX:"handle_verb-info" this none this rxd
+@verb #XXX:"handle_verb-doc" this none this rxd
+@verb #XXX:"handle_verb-code" this none this rxd
 @verb #XXX:"handle_props" this none this rxd
-@verb #XXX:"handle_prop_info" this none this rxd
-@verb #XXX:"handle_prop_doc" this none this rxd
-@verb #XXX:"handle_prop_value" this none this rxd
+@verb #XXX:"handle_prop-info" this none this rxd
+@verb #XXX:"handle_prop-doc" this none this rxd
+@verb #XXX:"handle_prop-value" this none this rxd
 @verb #XXX:"find_verb_definer" this none this rxd
 @verb #XXX:"summary_json" this none this rxd
 @verb #XXX:"json_encode" this none this rxd
 @verb #XXX:"send_reply" this none this rxd
 @verb #XXX:"send_error" this none this rxd
 
-@args #XXX:"handle_core_objects" this none this
-@chown #XXX:handle_core_objects #2
-@program #XXX:handle_core_objects
-"Usage: :handle_core_objects(session, tag)";
+@args #XXX:"handle_core-objects" this none this
+@chown #XXX:handle_core-objects #2
+@program #XXX:handle_core-objects
+"Usage: :handle_core-objects(session, tag)";
 {session, tag} = args;
 if (caller != this)
   raise(E_PERM);
@@ -161,10 +161,10 @@ except v (ANY)
 endtry
 .
 
-@args #XXX:"handle_verb_info" this none this
-@chown #XXX:handle_verb_info #2
-@program #XXX:handle_verb_info
-"Usage: :handle_verb_info(session, tag, object, verb)";
+@args #XXX:"handle_verb-info" this none this
+@chown #XXX:handle_verb-info #2
+@program #XXX:handle_verb-info
+"Usage: :handle_verb-info(session, tag, object, verb)";
 {session, tag, object, vname} = args;
 if (caller != this)
   raise(E_PERM);
@@ -185,10 +185,10 @@ except v (ANY)
 endtry
 .
 
-@args #XXX:"handle_verb_doc" this none this
-@chown #XXX:handle_verb_doc #2
-@program #XXX:handle_verb_doc
-"Usage: :handle_verb_doc(session, tag, object, verb) -- leading string-literal lines of the code";
+@args #XXX:"handle_verb-doc" this none this
+@chown #XXX:handle_verb-doc #2
+@program #XXX:handle_verb-doc
+"Usage: :handle_verb-doc(session, tag, object, verb) -- leading string-literal lines of the code";
 {session, tag, object, vname} = args;
 if (caller != this)
   raise(E_PERM);
@@ -219,10 +219,10 @@ except v (ANY)
 endtry
 .
 
-@args #XXX:"handle_verb_code" this none this
-@chown #XXX:handle_verb_code #2
-@program #XXX:handle_verb_code
-"Usage: :handle_verb_code(session, tag, object, verb)";
+@args #XXX:"handle_verb-code" this none this
+@chown #XXX:handle_verb-code #2
+@program #XXX:handle_verb-code
+"Usage: :handle_verb-code(session, tag, object, verb)";
 {session, tag, object, vname} = args;
 if (caller != this)
   raise(E_PERM);
@@ -272,10 +272,10 @@ except v (ANY)
 endtry
 .
 
-@args #XXX:"handle_prop_info" this none this
-@chown #XXX:handle_prop_info #2
-@program #XXX:handle_prop_info
-"Usage: :handle_prop_info(session, tag, object, prop)";
+@args #XXX:"handle_prop-info" this none this
+@chown #XXX:handle_prop-info #2
+@program #XXX:handle_prop-info
+"Usage: :handle_prop-info(session, tag, object, prop)";
 {session, tag, object, pname} = args;
 if (caller != this)
   raise(E_PERM);
@@ -297,10 +297,10 @@ except v (ANY)
 endtry
 .
 
-@args #XXX:"handle_prop_doc" this none this
-@chown #XXX:handle_prop_doc #2
-@program #XXX:handle_prop_doc
-"Usage: :handle_prop_doc(session, tag, object, prop) -- toliteral split into <=78-char lines, max 50";
+@args #XXX:"handle_prop-doc" this none this
+@chown #XXX:handle_prop-doc #2
+@program #XXX:handle_prop-doc
+"Usage: :handle_prop-doc(session, tag, object, prop) -- toliteral split into <=78-char lines, max 50";
 {session, tag, object, pname} = args;
 if (caller != this)
   raise(E_PERM);
@@ -326,10 +326,10 @@ except v (ANY)
 endtry
 .
 
-@args #XXX:"handle_prop_value" this none this
-@chown #XXX:handle_prop_value #2
-@program #XXX:handle_prop_value
-"Usage: :handle_prop_value(session, tag, object, prop)";
+@args #XXX:"handle_prop-value" this none this
+@chown #XXX:handle_prop-value #2
+@program #XXX:handle_prop-value
+"Usage: :handle_prop-value(session, tag, object, prop)";
 {session, tag, object, pname} = args;
 if (caller != this)
   raise(E_PERM);

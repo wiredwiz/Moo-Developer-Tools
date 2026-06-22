@@ -118,10 +118,16 @@ reference). Metadata properties:
 
 ### Handler verbs
 
-One per inbound message, framework-convention named (dashes → underscores): `handle_core_objects`,
-`handle_children`, `handle_owned`, `handle_parent`, `handle_verbs`, `handle_verb_info`,
-`handle_verb_doc`, `handle_verb_code`, `handle_props`, `handle_prop_info`, `handle_prop_doc`,
-`handle_prop_value`.
+One per inbound message, named to **exactly match the wire message name** as `handle_<message-name>`:
+`handle_core-objects`, `handle_children`, `handle_owned`, `handle_parent`, `handle_verbs`,
+`handle_verb-info`, `handle_verb-doc`, `handle_verb-code`, `handle_props`, `handle_prop-info`,
+`handle_prop-doc`, `handle_prop-value`.
+
+> **Critical (udd-7fd):** the stock JHCore MCP dispatcher resolves a handler as `"handle_" + message`
+> with **no** hyphen→underscore translation (see `#215:message_name_to_verbname` / `#215:dispatch`).
+> Multi-word messages therefore MUST use **hyphenated** verb names (`handle_prop-value`, *not*
+> `handle_prop_value`) — otherwise the dispatcher silently finds no verb and drops the request (no
+> reply, no error, no traceback). This is why the verb names keep the hyphens of their message names.
 
 Skeleton (mirrors simpleedit `handle_set`):
 
