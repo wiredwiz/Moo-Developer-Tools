@@ -133,7 +133,7 @@ public static class SdwcMapping
          foreach (var verb in verbs.EnumerateArray())
          {
             var name = verb.TryGetProperty("name", out var nameElement) ? nameElement.GetString() : null;
-            result.Add(new MooVerbSummary(SplitAliases(name), defining));
+            result.Add(new MooVerbSummary(SplitAliases(name), defining, MemberOrigin.Unknown));
          }
 
       return result;
@@ -153,7 +153,7 @@ public static class SdwcMapping
       var result = new List<MooPropertySummary>();
       if (root.TryGetProperty("props", out var props) && props.ValueKind == JsonValueKind.Object)
          foreach (var prop in props.EnumerateObject())
-            result.Add(new MooPropertySummary(prop.Name, defining));
+            result.Add(new MooPropertySummary(prop.Name, defining, MemberOrigin.Unknown));
 
       return result;
    }

@@ -82,6 +82,8 @@ public static class CompletionIconFactory
       [CompletionIconCategory.Function]      = ColorTranslator.FromHtml("#EC5C9B"), // pink
       [CompletionIconCategory.Snippet]       = ColorTranslator.FromHtml("#8FBF3F"), // lime
       [CompletionIconCategory.Keyword]       = ColorTranslator.FromHtml("#5E7CA8"), // steel
+      [CompletionIconCategory.VerbInherited]     = ColorTranslator.FromHtml("#A06CF0"), // purple (same body as Verb)
+      [CompletionIconCategory.PropertyInherited] = ColorTranslator.FromHtml("#15B5C9"), // cyan (same body as Property)
    };
 
    /// <summary>
@@ -165,7 +167,52 @@ public static class CompletionIconFactory
          case CompletionIconCategory.Snippet:
             DrawSnippet(g, accent);
             break;
+         case CompletionIconCategory.VerbInherited:
+            DrawVerb(g, accent);
+            DrawInheritedBadge(g);
+            break;
+         case CompletionIconCategory.PropertyInherited:
+            DrawProperty(g, accent);
+            DrawInheritedBadge(g);
+            break;
       }
+   }
+
+   /// <summary>
+   /// Draws the inherited-member badge: a small up-chevron ("^"-shaped, pointing up) in the
+   /// top-right corner of the 24-unit coordinate space (roughly x 16–22, y 3–8). It is stroked
+   /// twice — first a thicker dark halo (~#202530), then a thinner gold stroke (~#FFC400) on top —
+   /// so the glyph's edges read both on the colored icon body and on the white popup background.
+   /// The badge is a colorblind-safe structural cue (shape + light/dark contrast), not a hue cue.
+   /// </summary>
+   /// <param name="g">The graphics surface (already scaled to the 24-unit world transform).</param>
+   private static void DrawInheritedBadge(Graphics g)
+   {
+      // Up-chevron points in the 24-unit space: bottom-left, apex (top), bottom-right.
+      var points = new[]
+      {
+         new PointF(16.2f, 7.6f),
+         new PointF(19.1f, 3.6f),
+         new PointF(22.0f, 7.6f),
+      };
+
+      // Dark halo stroke (thicker, drawn first).
+      using (var halo = new Pen(ColorTranslator.FromHtml("#202530"), 2.4f)
+      {
+         StartCap = LineCap.Round,
+         EndCap = LineCap.Round,
+         LineJoin = LineJoin.Round
+      })
+         g.DrawLines(halo, points);
+
+      // Gold stroke (thinner, drawn on top).
+      using (var gold = new Pen(ColorTranslator.FromHtml("#FFC400"), 1.3f)
+      {
+         StartCap = LineCap.Round,
+         EndCap = LineCap.Round,
+         LineJoin = LineJoin.Round
+      })
+         g.DrawLines(gold, points);
    }
 
    /// <summary>

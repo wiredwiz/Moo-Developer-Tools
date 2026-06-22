@@ -45,18 +45,37 @@ namespace Org.Edgerunner.Mud.Common.Querying;
 public record MooObjectSummary(MooObjectId Id, string Name, IReadOnlyList<string> Aliases);
 
 /// <summary>
+/// Where a summarized member is defined relative to the queried object.
+/// </summary>
+public enum MemberOrigin
+{
+   /// <summary>Provenance not supplied by the provider (e.g. SDWC). Renders as the local icon.</summary>
+   Unknown = 0,
+
+   /// <summary>Defined on the queried object itself.</summary>
+   Local,
+
+   /// <summary>Inherited from an ancestor of the queried object.</summary>
+   Inherited
+}
+
+/// <summary>
 /// Summary information describing a MOO verb.
 /// </summary>
 /// <param name="Aliases">The verb names/aliases.</param>
 /// <param name="DefiningObject">The object on which the verb is defined.</param>
-public record MooVerbSummary(IReadOnlyList<string> Aliases, MooObjectId DefiningObject);
+/// <param name="Origin">Where the verb is defined relative to the queried object.</param>
+public record MooVerbSummary(IReadOnlyList<string> Aliases, MooObjectId DefiningObject,
+                             MemberOrigin Origin = MemberOrigin.Unknown);
 
 /// <summary>
 /// Summary information describing a MOO property.
 /// </summary>
 /// <param name="Name">The property name.</param>
 /// <param name="DefiningObject">The object on which the property is defined.</param>
-public record MooPropertySummary(string Name, MooObjectId DefiningObject);
+/// <param name="Origin">Where the property is defined relative to the queried object.</param>
+public record MooPropertySummary(string Name, MooObjectId DefiningObject,
+                                 MemberOrigin Origin = MemberOrigin.Unknown);
 
 /// <summary>
 /// Detailed information describing a MOO verb.

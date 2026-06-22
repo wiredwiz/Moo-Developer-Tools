@@ -409,29 +409,68 @@ public sealed class MemberCompletionController : IDisposable
 
    private static IReadOnlyList<AutocompleteItem> BuildVerbItems(IReadOnlyList<MooVerbSummary> verbs)
    {
-      // Flatten aliases, strip MOO prefix-match stars ("g*et" => "get"), de-duplicate and sort.
-      var names = new SortedSet<string>(StringComparer.OrdinalIgnoreCase);
+      // Flatten aliases, strip MOO prefix-match stars ("g*et" => "get"), de-duplicate and sort,
+      // carrying each name's origin so inherited verbs get the badged icon.
+      var origins = new Dictionary<string, MemberOrigin>(StringComparer.OrdinalIgnoreCase);
       foreach (var verb in verbs)
          foreach (var alias in verb.Aliases)
          {
             var name = alias.Replace("*", string.Empty);
             if (name.Length > 0)
-               names.Add(name);
+               MergeOrigin(origins, name, verb.Origin);
          }
 
-      return names.Select(name => (AutocompleteItem)new MemberCompletionItem(name, CompletionIconCategory.Verb)).ToList();
+      return origins.Keys
+                    .OrderBy(name => name, StringComparer.OrdinalIgnoreCase)
+                    .Select(name => (AutocompleteItem)new MemberCompletionItem(
+                       name,
+                       origins[name] == MemberOrigin.Inherited
+                          ? CompletionIconCategory.VerbInherited
+                          : CompletionIconCategory.Verb))
+                    .ToList();
    }
 
    private static IReadOnlyList<AutocompleteItem> BuildPropertyItems(IReadOnlyList<MooPropertySummary> properties, MemberContextKind kind)
    {
-      var category = kind == MemberContextKind.CoreReference
-                        ? CompletionIconCategory.CoreReference
-                        : CompletionIconCategory.Property;
-      var names = new SortedSet<string>(StringComparer.OrdinalIgnoreCase);
+      var baseCategory = kind == MemberContextKind.CoreReference
+                            ? CompletionIconCategory.CoreReference
+                            : CompletionIconCategory.Property;
+      var origins = new Dictionary<string, MemberOrigin>(StringComparer.OrdinalIgnoreCase);
       foreach (var property in properties)
          if (!string.IsNullOrEmpty(property.Name))
-            names.Add(property.Name);
+            MergeOrigin(origins, property.Name, property.Origin);
 
-      return names.Select(name => (AutocompleteItem)new MemberCompletionItem(name, category)).ToList();
+      return origins.Keys
+                    .OrderBy(name => name, StringComparer.OrdinalIgnoreCase)
+                    .Select(name => (AutocompleteItem)new MemberCompletionItem(
+                       name,
+                       // CoreReference keeps its own icon; only the regular property context
+                       // distinguishes inherited members.
+                       baseCategory == CompletionIconCategory.Property && origins[name] == MemberOrigin.Inherited
+                          ? CompletionIconCategory.PropertyInherited
+                          : baseCategory))
+                    .ToList();
+   }
+
+   /// <summary>
+   /// Records the origin for a member name, de-duplicating case-insensitively. When the same name
+   /// appears under two origins (which the server dedup should prevent), a known origin
+   /// (<see cref="MemberOrigin.Local"/>/<see cref="MemberOrigin.Inherited"/>) deterministically
+   /// wins over <see cref="MemberOrigin.Unknown"/>.
+   /// </summary>
+   /// <param name="origins">The accumulated name-to-origin map.</param>
+   /// <param name="name">The member name.</param>
+   /// <param name="origin">The origin to merge in.</param>
+   private static void MergeOrigin(IDictionary<string, MemberOrigin> origins, string name, MemberOrigin origin)
+   {
+      if (!origins.TryGetValue(name, out var existing))
+      {
+         origins[name] = origin;
+         return;
+      }
+
+      // A known origin beats Unknown; otherwise keep the first-seen value (stable, deterministic).
+      if (existing == MemberOrigin.Unknown && origin != MemberOrigin.Unknown)
+         origins[name] = origin;
    }
 }

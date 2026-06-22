@@ -85,11 +85,11 @@ All names below are suffixes of `edgerunner-org-moo-query`. Every request also c
 | `-children` | `object` | `-children-reply` | `{"d":[[num,name,[aliases]],…]}` — immediate children |
 | `-owned` | `owner` | `-owned-reply` | `{"d":[[num,name,[aliases]],…]}` — from the target's `.owned_objects` bookkeeping; a core without that property answers `-error E_INVARG` (servers MUST NOT fall back to a DB walk) |
 | `-parent` | `object` | `-parent-reply` | `{"p":num}`; `-1` = no parent |
-| `-verbs` | `object` | `-verbs-reply` | `{"d":["g*et put","look_self",…]}` — raw verb-names strings, local + inherited (ancestor walk), deduped; unreadable ancestors contribute nothing |
+| `-verbs` | `object` | `-verbs-reply` | `{"d":[["g*et put",isLocal],…]}` — each row is `[raw verb-names string, isLocal]` where `isLocal` is `1` when the name is local to the queried object and `0` when inherited; local + inherited (ancestor walk), deduped (nearest definition wins); unreadable ancestors contribute nothing |
 | `-verb-info` | `object`, `verb` | `-verb-info-reply` | `{"q":num,"r":num,"a":"names","o":num,"p":"rxd","g":["this","none","this"]}` — `a` = raw names string, `o` = owner, `p` = permission flags, `g` = dobj/prep/iobj specs as returned by `verb_args()` |
 | `-verb-doc` | `object`, `verb` | `-verb-doc-reply` | `{"q":num,"r":num,"l":[lines]}` — `l` = the leading string-literal lines of the verb code (unescaped) |
 | `-verb-code` | `object`, `verb` | `-verb-code-reply` | `{"q":num,"r":num,"l":[lines]}` — `verb_code()` lines |
-| `-props` | `object` | `-props-reply` | `{"d":["name",…]}` — property names only, local + inherited, deduped |
+| `-props` | `object` | `-props-reply` | `{"d":[["name",isLocal],…]}` — each row is `[property name, isLocal]` where `isLocal` is `1` when the name is local to the queried object and `0` when inherited; local + inherited, deduped (nearest definition wins) |
 | `-prop-info` | `object`, `prop` | `-prop-info-reply` | `{"n":"name","o":num,"p":"rc","t":typecode,"v":"preview"}` — `t` = `typeof()` code, `v` = first 80 characters of `toliteral(value)` |
 | `-prop-doc` | `object`, `prop` | `-prop-doc-reply` | `{"l":[lines]}` — `toliteral(value)` split into ≤78-char lines, capped at 50 lines |
 | `-prop-value` | `object`, `prop` | `-prop-value-reply` | `{"t":typecode,"v":"literal"}` — full `toliteral(value)` |
@@ -103,7 +103,7 @@ No match anywhere on the chain → `-error E_VERBNF`.
 ```
 C→S: #$#edgerunner-org-moo-query-verbs K7% tag: 12 object: #123
 S→C: #$#edgerunner-org-moo-query-verbs-reply K7% tag: "12" data*: "" _data-tag: 9911
-     #$#* 9911 data: {"d":["g*et put","look_self"]}
+     #$#* 9911 data: {"d":[["g*et put",1],["look_self",0]]}
      #$#: 9911
 ```
 

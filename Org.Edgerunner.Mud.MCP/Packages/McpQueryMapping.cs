@@ -127,7 +127,10 @@ public static class McpQueryMapping
    }
 
    /// <summary>
-   /// Maps a <c>{"d":["g*et put",…]}</c> payload to verb summaries of the queried object.
+   /// Maps a <c>{"d":[["g*et put",1],…]}</c> payload to verb summaries of the queried object.
+   /// Each row may be a 2-element <c>["name", 1|0]</c> array (1 = local to the queried object,
+   /// 0 = inherited) or, for an older server, a bare <c>"name"</c> string (origin unknown).
+   /// Malformed rows degrade to <see cref="MemberOrigin.Unknown"/> without throwing.
    /// </summary>
    /// <param name="json">The reply JSON.</param>
    /// <param name="queried">The queried object id, used as every row's <c>DefiningObject</c>.</param>
@@ -138,14 +141,17 @@ public static class McpQueryMapping
       var result = new List<MooVerbSummary>();
       if (document.RootElement.TryGetProperty("d", out var rows) && rows.ValueKind == JsonValueKind.Array)
          foreach (var row in rows.EnumerateArray())
-            if (row.ValueKind == JsonValueKind.String)
-               result.Add(new MooVerbSummary(SdwcMapping.SplitAliases(row.GetString()), queried));
+            if (TryReadSummaryRow(row, out var name, out var origin))
+               result.Add(new MooVerbSummary(SdwcMapping.SplitAliases(name), queried, origin));
 
       return result;
    }
 
    /// <summary>
-   /// Maps a <c>{"d":["name",…]}</c> payload to property summaries of the queried object.
+   /// Maps a <c>{"d":[["name",1],…]}</c> payload to property summaries of the queried object.
+   /// Each row may be a 2-element <c>["name", 1|0]</c> array (1 = local to the queried object,
+   /// 0 = inherited) or, for an older server, a bare <c>"name"</c> string (origin unknown).
+   /// Malformed rows degrade to <see cref="MemberOrigin.Unknown"/> without throwing.
    /// </summary>
    /// <param name="json">The reply JSON.</param>
    /// <param name="queried">The queried object id, used as every row's <c>DefiningObject</c>.</param>
@@ -156,10 +162,43 @@ public static class McpQueryMapping
       var result = new List<MooPropertySummary>();
       if (document.RootElement.TryGetProperty("d", out var rows) && rows.ValueKind == JsonValueKind.Array)
          foreach (var row in rows.EnumerateArray())
-            if (row.ValueKind == JsonValueKind.String)
-               result.Add(new MooPropertySummary(row.GetString()!, queried));
+            if (TryReadSummaryRow(row, out var name, out var origin) && name.Length > 0)
+               result.Add(new MooPropertySummary(name, queried, origin));
 
       return result;
+   }
+
+   /// <summary>
+   /// Tolerantly reads a member-summary row: either a 2-element <c>["name", 1|0]</c> array
+   /// (origin = local for 1, inherited for 0) or a bare <c>"name"</c> string (origin unknown).
+   /// Malformed rows yield <c>false</c> rather than throwing.
+   /// </summary>
+   /// <param name="row">The JSON row element.</param>
+   /// <param name="name">The decoded member name (empty when not decodable).</param>
+   /// <param name="origin">The decoded origin.</param>
+   /// <returns><c>true</c> when a usable name was decoded; otherwise <c>false</c>.</returns>
+   private static bool TryReadSummaryRow(JsonElement row, out string name, out MemberOrigin origin)
+   {
+      origin = MemberOrigin.Unknown;
+      name = string.Empty;
+
+      if (row.ValueKind == JsonValueKind.String)
+      {
+         name = row.GetString() ?? string.Empty;
+         return true;
+      }
+
+      if (row.ValueKind == JsonValueKind.Array && row.GetArrayLength() >= 2 &&
+          row[0].ValueKind == JsonValueKind.String)
+      {
+         name = row[0].GetString() ?? string.Empty;
+         if (row[1].ValueKind == JsonValueKind.Number && row[1].TryGetInt32(out var isLocal))
+            origin = isLocal != 0 ? MemberOrigin.Local : MemberOrigin.Inherited;
+
+         return true;
+      }
+
+      return false;
    }
 
    /// <summary>

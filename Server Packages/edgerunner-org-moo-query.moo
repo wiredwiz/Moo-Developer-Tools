@@ -10,7 +10,7 @@
 ;;#XXX.("messages_in") = {{"core-objects", {"tag"}}, {"children", {"tag", "object"}}, {"owned", {"tag", "owner"}}, {"parent", {"tag", "object"}}, {"verbs", {"tag", "object"}}, {"verb-info", {"tag", "object", "verb"}}, {"verb-doc", {"tag", "object", "verb"}}, {"verb-code", {"tag", "object", "verb"}}, {"props", {"tag", "object"}}, {"prop-info", {"tag", "object", "prop"}}, {"prop-doc", {"tag", "object", "prop"}}, {"prop-value", {"tag", "object", "prop"}}}
 ;;#XXX.("messages_out") = {{"core-objects-reply", {"tag", "data"}}, {"children-reply", {"tag", "data"}}, {"owned-reply", {"tag", "data"}}, {"parent-reply", {"tag", "data"}}, {"verbs-reply", {"tag", "data"}}, {"verb-info-reply", {"tag", "data"}}, {"verb-doc-reply", {"tag", "data"}}, {"verb-code-reply", {"tag", "data"}}, {"props-reply", {"tag", "data"}}, {"prop-info-reply", {"tag", "data"}}, {"prop-doc-reply", {"tag", "data"}}, {"prop-value-reply", {"tag", "data"}}, {"error", {"tag", "code", "message"}}}
 ;;#XXX.("aliases") = {"edgerunner-org-moo-query"}
-;;#XXX.("description") = {"Developer-information query package for MCP 2.1 clients (v1.0).", "", "Each C->S request carries a client-generated tag; each S->C reply echoes the", "tag and carries one data* multiline field holding minified JSON.", "Object numbers are bare JSON ints; verb names are raw MOO names strings.", "", "Requests (params besides tag):", " -core-objects ()            -> {\"d\":[[num,name,[aliases]],...]}", " -children (object)          -> {\"d\":[[num,name,[aliases]],...]}", " -owned (owner)              -> {\"d\":[[num,name,[aliases]],...]}  owner \"\" = player", " -parent (object)            -> {\"p\":num}  -1 = no parent", " -verbs (object)             -> {\"d\":[\"g*et put\",...]}  local+inherited, deduped", " -verb-info (object, verb)   -> {\"q\",\"r\",\"a\",\"o\",\"p\",\"g\"}", " -verb-doc (object, verb)    -> {\"q\",\"r\",\"l\":[lines]}", " -verb-code (object, verb)   -> {\"q\",\"r\",\"l\":[lines]}", " -props (object)             -> {\"d\":[\"name\",...]}  local+inherited, deduped", " -prop-info (object, prop)   -> {\"n\",\"o\",\"p\",\"t\",\"v\"}  v = 80-char preview", " -prop-doc (object, prop)    -> {\"l\":[lines]}  toliteral split <=78 chars, max 50", " -prop-value (object, prop)  -> {\"t\",\"v\"}  full toliteral", "", "Shared error reply: -error (tag, code, message) where code is the MOO error", "name (E_PERM, E_INVARG, E_VERBNF, E_PROPNF, ...).", "", "Every handler runs under set_task_perms() of the connected player; normal MOO", "read rules decide visibility.", "", "Normative protocol: docs/edgerunner-org-moo-query-protocol.md in the", "Moo Developer Tools repository (https://github.com/.../Moo-Developer-Tools)."}
+;;#XXX.("description") = {"Developer-information query package for MCP 2.1 clients (v1.0).", "", "Each C->S request carries a client-generated tag; each S->C reply echoes the", "tag and carries one data* multiline field holding minified JSON.", "Object numbers are bare JSON ints; verb names are raw MOO names strings.", "", "Requests (params besides tag):", " -core-objects ()            -> {\"d\":[[num,name,[aliases]],...]}", " -children (object)          -> {\"d\":[[num,name,[aliases]],...]}", " -owned (owner)              -> {\"d\":[[num,name,[aliases]],...]}  owner \"\" = player", " -parent (object)            -> {\"p\":num}  -1 = no parent", " -verbs (object)             -> {\"d\":[[\"g*et put\",isLocal],...]}  isLocal 1=local 0=inherited, deduped", " -verb-info (object, verb)   -> {\"q\",\"r\",\"a\",\"o\",\"p\",\"g\"}", " -verb-doc (object, verb)    -> {\"q\",\"r\",\"l\":[lines]}", " -verb-code (object, verb)   -> {\"q\",\"r\",\"l\":[lines]}", " -props (object)             -> {\"d\":[[\"name\",isLocal],...]}  isLocal 1=local 0=inherited, deduped", " -prop-info (object, prop)   -> {\"n\",\"o\",\"p\",\"t\",\"v\"}  v = 80-char preview", " -prop-doc (object, prop)    -> {\"l\":[lines]}  toliteral split <=78 chars, max 50", " -prop-value (object, prop)  -> {\"t\",\"v\"}  full toliteral", "", "Shared error reply: -error (tag, code, message) where code is the MOO error", "name (E_PERM, E_INVARG, E_VERBNF, E_PROPNF, ...).", "", "Every handler runs under set_task_perms() of the connected player; normal MOO", "read rules decide visibility.", "", "Normative protocol: docs/edgerunner-org-moo-query-protocol.md in the", "Moo Developer Tools repository (https://github.com/.../Moo-Developer-Tools)."}
 
 @verb #XXX:"handle_core-objects" this none this rxd
 @verb #XXX:"handle_children" this none this rxd
@@ -134,7 +134,9 @@ endtry
 @args #XXX:"handle_verbs" this none this
 @chown #XXX:handle_verbs #2
 @program #XXX:handle_verbs
-"Usage: :handle_verbs(session, tag, object) -- local + inherited verb-names strings, deduped";
+"Usage: :handle_verbs(session, tag, object) -- local + inherited verb-names, deduped";
+"Each reply row is {name, isLocal}: isLocal is 1 when the name was found on the queried";
+"object itself (the first iteration, what == o) and 0 when inherited from an ancestor.";
 {session, tag, object} = args;
 if (caller != this)
   raise(E_PERM);
@@ -146,16 +148,20 @@ try
     raise(E_INVARG);
   endif
   names = {};
+  rows = {};
   what = o;
   while (valid(what))
+    local = (what == o);
     for vname in (`verbs(what) ! E_PERM => {}')
+      "Nearest definition wins, so an overridden name keeps its local isLocal=1 flag.";
       if (!(vname in names))
         names = {@names, vname};
+        rows = {@rows, {vname, local ? 1 | 0}};
       endif
     endfor
     what = parent(what);
   endwhile
-  this:send_reply(session, "verbs-reply", tag, tostr("{\"d\":", this:json_encode(names), "}"));
+  this:send_reply(session, "verbs-reply", tag, tostr("{\"d\":", this:json_encode(rows), "}"));
 except v (ANY)
   this:send_error(session, tag, v);
 endtry
@@ -246,6 +252,8 @@ endtry
 @chown #XXX:handle_props #2
 @program #XXX:handle_props
 "Usage: :handle_props(session, tag, object) -- local + inherited property names, deduped";
+"Each reply row is {name, isLocal}: isLocal is 1 when the name was found on the queried";
+"object itself (the first iteration, what == o) and 0 when inherited from an ancestor.";
 {session, tag, object} = args;
 if (caller != this)
   raise(E_PERM);
@@ -257,16 +265,20 @@ try
     raise(E_INVARG);
   endif
   names = {};
+  rows = {};
   what = o;
   while (valid(what))
+    local = (what == o);
     for pname in (`properties(what) ! E_PERM => {}')
+      "Nearest definition wins, so an overridden name keeps its local isLocal=1 flag.";
       if (!(pname in names))
         names = {@names, pname};
+        rows = {@rows, {pname, local ? 1 | 0}};
       endif
     endfor
     what = parent(what);
   endwhile
-  this:send_reply(session, "props-reply", tag, tostr("{\"d\":", this:json_encode(names), "}"));
+  this:send_reply(session, "props-reply", tag, tostr("{\"d\":", this:json_encode(rows), "}"));
 except v (ANY)
   this:send_error(session, tag, v);
 endtry

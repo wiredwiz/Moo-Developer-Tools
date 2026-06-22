@@ -37,6 +37,7 @@ public class SdwcMappingTests
       verbs.Should().ContainSingle();
       verbs[0].DefiningObject.Should().Be(new MooObjectId(73));
       verbs[0].Aliases.Should().Equal("look", "l", "examine");
+      verbs[0].Origin.Should().Be(MemberOrigin.Unknown);
    }
 
    [Fact]
@@ -62,6 +63,7 @@ public class SdwcMappingTests
 
       props.Select(p => p.Name).Should().BeEquivalentTo(new[] { "description", "weight" });
       props.Should().OnlyContain(p => p.DefiningObject == new MooObjectId(73));
+      props.Should().OnlyContain(p => p.Origin == MemberOrigin.Unknown);
    }
 
    [Fact]
