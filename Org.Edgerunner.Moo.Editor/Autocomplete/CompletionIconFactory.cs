@@ -179,29 +179,30 @@ public static class CompletionIconFactory
    }
 
    /// <summary>
-   /// Draws the inherited-member badge: a small up-arrow ("↑" — a vertical stem with an arrowhead
-   /// on top) in the top-right corner of the 24-unit coordinate space (roughly x 16–22, y 3–10).
+   /// Draws the inherited-member badge: a bold up-arrow ("↑" — a vertical stem with an arrowhead
+   /// on top) in the lower-right corner of the 24-unit coordinate space (roughly x 13–22, y 8–22).
    /// It is stroked twice — first a thicker dark halo (~#202530), then a thinner gold stroke
    /// (~#FFC400) on top — so the glyph's edges read both on the colored icon body and on the white
-   /// popup background. The badge is a colorblind-safe structural cue (shape + light/dark
+   /// popup background. The strokes are deliberately heavy so the stem survives the popup's
+   /// downscale to ~16px. The badge is a colorblind-safe structural cue (shape + light/dark
    /// contrast), not a hue cue.
    /// </summary>
    /// <param name="g">The graphics surface (already scaled to the 24-unit world transform).</param>
    private static void DrawInheritedBadge(Graphics g)
    {
-      // Up-arrow in the 24-unit space: a vertical stem from the tip down, plus an arrowhead
-      // (left barb, tip, right barb) at the top.
-      const float tipX = 19.1f, tipY = 3.0f, stemBottomY = 9.6f;
+      // Bold up-arrow in the lower-right of the 24-unit space: a long vertical stem from the tip
+      // down, plus an arrowhead (left barb, tip, right barb) at the top. ~2x the previous size.
+      const float tipX = 17.5f, tipY = 8.5f, stemBottomY = 21.8f;
       var head = new[]
       {
-         new PointF(16.8f, 6.5f),
+         new PointF(13.3f, 14.2f),
          new PointF(tipX, tipY),
-         new PointF(21.4f, 6.5f),
+         new PointF(21.7f, 14.2f),
       };
 
       // Dark halo (thicker, drawn first), then the gold stroke on top. Each draws the stem then
       // the arrowhead.
-      using (var halo = new Pen(ColorTranslator.FromHtml("#202530"), 2.4f)
+      using (var halo = new Pen(ColorTranslator.FromHtml("#202530"), 4.4f)
       {
          StartCap = LineCap.Round,
          EndCap = LineCap.Round,
@@ -212,7 +213,7 @@ public static class CompletionIconFactory
          g.DrawLines(halo, head);
       }
 
-      using (var gold = new Pen(ColorTranslator.FromHtml("#FFC400"), 1.3f)
+      using (var gold = new Pen(ColorTranslator.FromHtml("#FFC400"), 2.7f)
       {
          StartCap = LineCap.Round,
          EndCap = LineCap.Round,
