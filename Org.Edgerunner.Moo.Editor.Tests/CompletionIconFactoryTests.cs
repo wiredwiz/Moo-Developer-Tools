@@ -10,12 +10,12 @@ namespace Org.Edgerunner.Moo.Editor.Tests;
 public class CompletionIconFactoryTests
 {
    [Fact]
-   public void CreateImageList_ReturnsEightSixtyFourBySixtyFourImages()
+   public void CreateImageList_ReturnsTenSixtyFourBySixtyFourImages()
    {
       var imageList = CompletionIconFactory.CreateImageList();
 
       imageList.Should().NotBeNull();
-      imageList.Images.Count.Should().Be(8);
+      imageList.Images.Count.Should().Be(10);
       imageList.ImageSize.Width.Should().Be(64);
       imageList.ImageSize.Height.Should().Be(64);
 
@@ -26,6 +26,32 @@ public class CompletionIconFactoryTests
          image.Width.Should().Be(64);
          image.Height.Should().Be(64);
       }
+   }
+
+   [Theory]
+   [InlineData(CompletionIconCategory.VerbInherited, CompletionIconCategory.Verb)]
+   [InlineData(CompletionIconCategory.PropertyInherited, CompletionIconCategory.Property)]
+   public void InheritedIcon_IsNotPixelIdenticalToItsBaseIcon(
+      CompletionIconCategory inherited, CompletionIconCategory baseCategory)
+   {
+      using var inheritedIcon = (System.Drawing.Bitmap)CompletionIconFactory.GetIcon(inherited);
+      using var baseIcon = (System.Drawing.Bitmap)CompletionIconFactory.GetIcon(baseCategory);
+
+      BitmapsAreIdentical(inheritedIcon, baseIcon).Should().BeFalse(
+         $"{inherited} must paint a distinguishing badge over {baseCategory}");
+   }
+
+   private static bool BitmapsAreIdentical(System.Drawing.Bitmap a, System.Drawing.Bitmap b)
+   {
+      if (a.Width != b.Width || a.Height != b.Height)
+         return false;
+
+      for (var y = 0; y < a.Height; y++)
+         for (var x = 0; x < a.Width; x++)
+            if (a.GetPixel(x, y) != b.GetPixel(x, y))
+               return false;
+
+      return true;
    }
 
    [Fact]

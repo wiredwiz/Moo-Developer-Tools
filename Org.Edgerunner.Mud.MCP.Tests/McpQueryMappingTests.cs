@@ -43,7 +43,22 @@ public class McpQueryMappingTests
    }
 
    [Fact]
-   public void MapVerbSummaries_SplitsAliasesAndFillsDefiningObjectWithQueriedId()
+   public void MapVerbSummaries_PairRows_SetLocalAndInheritedOrigin()
+   {
+      var json = "{\"d\":[[\"g*et put\",1],[\"look_self\",0]]}";
+
+      var result = McpQueryMapping.MapVerbSummaries(json, Queried);
+
+      result.Should().HaveCount(2);
+      result[0].Aliases.Should().Equal("g*et", "put");
+      result[0].DefiningObject.Should().Be(Queried);
+      result[0].Origin.Should().Be(MemberOrigin.Local);
+      result[1].Aliases.Should().Equal("look_self");
+      result[1].Origin.Should().Be(MemberOrigin.Inherited);
+   }
+
+   [Fact]
+   public void MapVerbSummaries_LegacyStringRows_OriginUnknown()
    {
       var json = "{\"d\":[\"g*et put\",\"look_self\"]}";
 
@@ -52,12 +67,53 @@ public class McpQueryMappingTests
       result.Should().HaveCount(2);
       result[0].Aliases.Should().Equal("g*et", "put");
       result[0].DefiningObject.Should().Be(Queried);
-      result[1].Aliases.Should().Equal("look_self");
-      result[1].DefiningObject.Should().Be(Queried);
+      result.Should().OnlyContain(v => v.Origin == MemberOrigin.Unknown);
    }
 
    [Fact]
-   public void MapPropertySummaries_FillsDefiningObjectWithQueriedId()
+   public void MapVerbSummaries_MalformedRows_DegradeToUnknownWithoutThrowing()
+   {
+      // A bare number row, an empty array, and a non-string first element are all malformed.
+      var json = "{\"d\":[42,[],[7,1],[\"good\",0]]}";
+
+      IReadOnlyList<MooVerbSummary> result = null!;
+      var act = () => result = McpQueryMapping.MapVerbSummaries(json, Queried);
+
+      act.Should().NotThrow();
+      result.Should().ContainSingle();
+      result[0].Aliases.Should().Equal("good");
+      result[0].Origin.Should().Be(MemberOrigin.Inherited);
+   }
+
+   [Fact]
+   public void MapVerbSummaries_PairRowWithoutNumericFlag_OriginUnknown()
+   {
+      var json = "{\"d\":[[\"g*et put\",\"oops\"]]}";
+
+      var result = McpQueryMapping.MapVerbSummaries(json, Queried);
+
+      result.Should().ContainSingle();
+      result[0].Aliases.Should().Equal("g*et", "put");
+      result[0].Origin.Should().Be(MemberOrigin.Unknown);
+   }
+
+   [Fact]
+   public void MapPropertySummaries_PairRows_SetLocalAndInheritedOrigin()
+   {
+      var json = "{\"d\":[[\"name\",1],[\"aliases\",0]]}";
+
+      var result = McpQueryMapping.MapPropertySummaries(json, Queried);
+
+      result.Should().HaveCount(2);
+      result[0].Name.Should().Be("name");
+      result[0].DefiningObject.Should().Be(Queried);
+      result[0].Origin.Should().Be(MemberOrigin.Local);
+      result[1].Name.Should().Be("aliases");
+      result[1].Origin.Should().Be(MemberOrigin.Inherited);
+   }
+
+   [Fact]
+   public void MapPropertySummaries_LegacyStringRows_OriginUnknown()
    {
       var json = "{\"d\":[\"name\",\"aliases\"]}";
 
@@ -66,6 +122,21 @@ public class McpQueryMappingTests
       result.Should().HaveCount(2);
       result[0].Name.Should().Be("name");
       result[0].DefiningObject.Should().Be(Queried);
+      result.Should().OnlyContain(p => p.Origin == MemberOrigin.Unknown);
+   }
+
+   [Fact]
+   public void MapPropertySummaries_MalformedRows_DegradeToUnknownWithoutThrowing()
+   {
+      var json = "{\"d\":[42,[],[7,1],[\"good\",1]]}";
+
+      IReadOnlyList<MooPropertySummary> result = null!;
+      var act = () => result = McpQueryMapping.MapPropertySummaries(json, Queried);
+
+      act.Should().NotThrow();
+      result.Should().ContainSingle();
+      result[0].Name.Should().Be("good");
+      result[0].Origin.Should().Be(MemberOrigin.Local);
    }
 
    [Fact]

@@ -522,6 +522,62 @@ public class MemberCompletionControllerTests
          "after draining the retry lambda the cache should be populated");
    }
 
+   // Inherited-member origin tests
+
+   [Fact]
+   public void Verb_items_use_VerbInherited_icon_only_for_inherited_origin()
+   {
+      var provider = new FakeQueryProvider();
+      provider.Verbs.Add(new MooVerbSummary(new[] { "get" }, new MooObjectId(5), MemberOrigin.Local));
+      provider.Verbs.Add(new MooVerbSummary(new[] { "look" }, new MooObjectId(1), MemberOrigin.Inherited));
+      provider.Verbs.Add(new MooVerbSummary(new[] { "drop" }, new MooObjectId(5), MemberOrigin.Unknown));
+      using var controller = CreateController(provider, contextObject: new MooObjectId(5));
+
+      controller.GetMemberItems("this:");
+      WaitForCache(controller, "this:");
+      var items = controller.GetMemberItems("this:");
+
+      IconFor(items, "get").Should().Be((int)CompletionIconCategory.Verb, "local verbs keep the plain icon");
+      IconFor(items, "drop").Should().Be((int)CompletionIconCategory.Verb, "unknown-origin verbs keep the plain icon");
+      IconFor(items, "look").Should().Be((int)CompletionIconCategory.VerbInherited, "inherited verbs get the badged icon");
+   }
+
+   [Fact]
+   public void Property_items_use_PropertyInherited_icon_only_for_inherited_origin()
+   {
+      var provider = new FakeQueryProvider();
+      provider.Properties.Add(new MooPropertySummary("name", new MooObjectId(5), MemberOrigin.Local));
+      provider.Properties.Add(new MooPropertySummary("description", new MooObjectId(1), MemberOrigin.Inherited));
+      provider.Properties.Add(new MooPropertySummary("weight", new MooObjectId(5), MemberOrigin.Unknown));
+      using var controller = CreateController(provider, contextObject: new MooObjectId(5));
+
+      controller.GetMemberItems("this.");
+      WaitForCache(controller, "this.");
+      var items = controller.GetMemberItems("this.");
+
+      IconFor(items, "name").Should().Be((int)CompletionIconCategory.Property, "local properties keep the plain icon");
+      IconFor(items, "weight").Should().Be((int)CompletionIconCategory.Property, "unknown-origin properties keep the plain icon");
+      IconFor(items, "description").Should().Be((int)CompletionIconCategory.PropertyInherited, "inherited properties get the badged icon");
+   }
+
+   [Fact]
+   public void CoreReference_items_keep_core_icon_even_for_inherited_origin()
+   {
+      var provider = new FakeQueryProvider();
+      provider.Properties.Add(new MooPropertySummary("room", new MooObjectId(0), MemberOrigin.Inherited));
+      using var controller = CreateController(provider);
+
+      controller.GetMemberItems("$ro");
+      WaitForCache(controller, "$ro");
+      var items = controller.GetMemberItems("$ro");
+
+      IconFor(items, "room").Should().Be((int)CompletionIconCategory.CoreReference,
+         "core-reference context keeps the CoreReference icon regardless of origin");
+   }
+
+   private static int IconFor(IReadOnlyList<AutocompleteItem> items, string text) =>
+      items.Single(i => i.Text == text).ImageIndex;
+
    // Diagnostic callback tests
 
    [Fact]

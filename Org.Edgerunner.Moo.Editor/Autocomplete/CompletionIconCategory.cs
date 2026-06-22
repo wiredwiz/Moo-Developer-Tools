@@ -70,5 +70,11 @@ public enum CompletionIconCategory
    Snippet = 6,
 
    /// <summary>A control-flow keyword (if, while, for, try, ...). CHIP, steel.</summary>
-   Keyword = 7
+   Keyword = 7,
+
+   /// <summary>An inherited verb. SOLID purple bolt with a gold up-chevron badge.</summary>
+   VerbInherited = 8,
+
+   /// <summary>An inherited property. SOLID cyan tag with a gold up-chevron badge.</summary>
+   PropertyInherited = 9
 }
