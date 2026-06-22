@@ -29,8 +29,10 @@ all 13 interface operations.
 - No change to `IMooWorldQueryProvider` or its typed models — this is purely a new provider.
 - No server-side MCP framework: the package targets cores that already have a JHCore-style
   server MCP implementation (like the simpleedit reference in
-  `docs/reference/dns-org-mud-moo-simpleedit.moo`). Core-agnostic self-contained dispatch is
-  out of scope.
+  `docs/reference/dns-org-mud-moo-simpleedit.moo`) and **reuses that framework's outbound
+  send path** (`session:send` + `:parse_send_args`) rather than re-emitting the wire
+  format itself. Hand-rolling `notify("#$#"...)` is explicitly out of scope: it duplicates
+  key-stamping/prefix/multiline framing and desynced the auth key (regression udd-7fd).
 - No streaming/cord usage — plain request/reply messages only (cords would add round trips).
 - No editor/UI changes; existing consumers (contextual autocomplete, future object browser)
   pick the provider up through the registry automatically.
@@ -116,16 +118,22 @@ reference). Metadata properties:
 
 ### Handler verbs
 
-One per inbound message, framework-convention named (dashes → underscores): `handle_core_objects`,
-`handle_children`, `handle_owned`, `handle_parent`, `handle_verbs`, `handle_verb_info`,
-`handle_verb_doc`, `handle_verb_code`, `handle_props`, `handle_prop_info`, `handle_prop_doc`,
-`handle_prop_value`.
+One per inbound message, named to **exactly match the wire message name** as `handle_<message-name>`:
+`handle_core-objects`, `handle_children`, `handle_owned`, `handle_parent`, `handle_verbs`,
+`handle_verb-info`, `handle_verb-doc`, `handle_verb-code`, `handle_props`, `handle_prop-info`,
+`handle_prop-doc`, `handle_prop-value`.
+
+> **Critical (udd-7fd):** the stock JHCore MCP dispatcher resolves a handler as `"handle_" + message`
+> with **no** hyphen→underscore translation (see `#215:message_name_to_verbname` / `#215:dispatch`).
+> Multi-word messages therefore MUST use **hyphenated** verb names (`handle_prop-value`, *not*
+> `handle_prop_value`) — otherwise the dispatcher silently finds no verb and drops the request (no
+> reply, no error, no traceback). This is why the verb names keep the hyphens of their message names.
 
 Skeleton (mirrors simpleedit `handle_set`):
 
 1. `caller == this` guard (raise `E_PERM` otherwise)
 2. `set_task_perms(session.connection)`
-3. Parse params → compute → JSON-encode → send reply chunked at ≤4000 chars/line
+3. Parse params → compute → JSON-encode → `this:send_reply(session, "<msg>-reply", tag, json)`, which delegates to the core framework's `session:send` (the helper only splits the JSON into ≤4000-char lines for the multiline `data*` field; it never emits `#$#` framing or the auth key itself)
 4. Entire body wrapped in `try/except`: any raised error is sent as the `-error` reply with
    the MOO error name as `code` and the error message as `message`
 

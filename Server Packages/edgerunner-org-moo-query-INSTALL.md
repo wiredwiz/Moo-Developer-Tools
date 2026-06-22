@@ -10,11 +10,15 @@ repository. The package object's `description` property carries a condensed copy
 ## Prerequisites
 
 - A working server-side MCP 2.1 framework with package dispatch (handler verbs named
-  `handle_<message>` called as `(session, @params)`), as used by your simpleedit package. Note
-  that message names containing dashes must map to underscores in the handler verb name — e.g.
-  the `verb-info` request dispatches to `handle_verb_info`. Verify how your core's MCP dispatcher
-  derives handler names, since the reference `dns-org-mud-moo-simpleedit` package only
-  demonstrates dash-less message names.
+  `handle_<message>`, called as `(session, @params)`), as used by your simpleedit package.
+  **The handler verb name must match the wire message name exactly, including dashes** — the
+  `verb-info` request dispatches to a verb literally named `handle_verb-info`. The stock JHCore
+  dispatcher derives the handler as `"handle_" + message` with **no** dash→underscore translation
+  (see `message_name_to_verbname`), so the dump names every multi-word handler with hyphens
+  (`handle_prop-value`, *not* `handle_prop_value`). The reference `dns-org-mud-moo-simpleedit`
+  package uses only single-word messages, so it never reveals this; a mis-named handler is
+  silently dropped (no reply, no error, no traceback). If you confirm your core's dispatcher
+  *does* translate dashes to underscores, rename the handlers to underscores to match.
 - A wizard character.
 
 ## Steps
@@ -45,14 +49,19 @@ repository. The package object's `description` property carries a condensed copy
    `;;` lines then set the property values; and the `@args`/`@program` blocks set the verb
    argument specs and program the verbs.
 
-5. **Adapt the session accessors if needed.** All wire output is isolated in two verbs:
-   `send_reply` and `send_error`. They assume the session object exposes:
-   - `session.key` — the MCP session authentication key, and
-   - `session.connection` — the connected player object.
+5. **Adapt the session/send accessors if needed.** All wire output is isolated in two verbs,
+   `send_reply` and `send_error`. They do **not** build MCP lines by hand — they hand the reply to
+   your core's framework via `session:send(<message>, this:parse_send_args(<message>, …))`, which
+   stamps the session authentication key, adds the package prefix, and chunks the multiline `data*`
+   field. The package assumes the session object exposes:
+   - `session:send(message, alist)` — the framework's outbound send entry (the same path your
+     simpleedit package reaches, e.g. via the generic `send_*` verb), and
+   - `session.connection` — the connected player object (used by `set_task_perms(session.connection)`
+     at the top of each handler).
 
-   If your core's MCP session object uses different property names, fix them in those two verbs
-   (and the `set_task_perms(session.connection)` line at the top of each handler) — nothing else
-   touches the session.
+   The package never references the auth key directly — the framework supplies it from wherever your
+   core stores it. If your core's session uses a different send entry or connection accessor, adjust
+   those two verbs (and the `set_task_perms` line); nothing else touches the session.
 
 6. **Register the package** with your core's MCP package registry, exactly the way your
    simpleedit package is registered (e.g. adding the object to the MCP registry's package list —
@@ -67,9 +76,13 @@ repository. The package object's `description` property carries a condensed copy
    #$#mcp-negotiate-can TEST package: edgerunner-org-moo-query min-version: "1.0" max-version: "1.0"
    #$#mcp-negotiate-end TEST
    #$#edgerunner-org-moo-query-parent TEST tag: 1 object: #1
+   #$#edgerunner-org-moo-query-prop-value TEST tag: 2 object: #1 prop: name
    ```
 
-   Expect a `-parent-reply` multiline block whose data is `{"p":<n>}`.
+   Expect a `-parent-reply` (data `{"p":<n>}`) and a `-prop-value-reply` (data `{"t":2,"v":"…"}`).
+   The second line is the important one: it exercises a **hyphenated** message name, which is
+   exactly where a non-translating dispatcher silently drops the request if the handler isn't
+   named `handle_prop-value`.
 
 ## Notes
 
