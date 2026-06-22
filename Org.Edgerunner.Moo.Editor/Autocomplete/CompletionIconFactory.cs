@@ -179,40 +179,49 @@ public static class CompletionIconFactory
    }
 
    /// <summary>
-   /// Draws the inherited-member badge: a small up-chevron ("^"-shaped, pointing up) in the
-   /// top-right corner of the 24-unit coordinate space (roughly x 16–22, y 3–8). It is stroked
-   /// twice — first a thicker dark halo (~#202530), then a thinner gold stroke (~#FFC400) on top —
-   /// so the glyph's edges read both on the colored icon body and on the white popup background.
-   /// The badge is a colorblind-safe structural cue (shape + light/dark contrast), not a hue cue.
+   /// Draws the inherited-member badge: a small up-arrow ("↑" — a vertical stem with an arrowhead
+   /// on top) in the top-right corner of the 24-unit coordinate space (roughly x 16–22, y 3–10).
+   /// It is stroked twice — first a thicker dark halo (~#202530), then a thinner gold stroke
+   /// (~#FFC400) on top — so the glyph's edges read both on the colored icon body and on the white
+   /// popup background. The badge is a colorblind-safe structural cue (shape + light/dark
+   /// contrast), not a hue cue.
    /// </summary>
    /// <param name="g">The graphics surface (already scaled to the 24-unit world transform).</param>
    private static void DrawInheritedBadge(Graphics g)
    {
-      // Up-chevron points in the 24-unit space: bottom-left, apex (top), bottom-right.
-      var points = new[]
+      // Up-arrow in the 24-unit space: a vertical stem from the tip down, plus an arrowhead
+      // (left barb, tip, right barb) at the top.
+      const float tipX = 19.1f, tipY = 3.0f, stemBottomY = 9.6f;
+      var head = new[]
       {
-         new PointF(16.2f, 7.6f),
-         new PointF(19.1f, 3.6f),
-         new PointF(22.0f, 7.6f),
+         new PointF(16.8f, 6.5f),
+         new PointF(tipX, tipY),
+         new PointF(21.4f, 6.5f),
       };
 
-      // Dark halo stroke (thicker, drawn first).
+      // Dark halo (thicker, drawn first), then the gold stroke on top. Each draws the stem then
+      // the arrowhead.
       using (var halo = new Pen(ColorTranslator.FromHtml("#202530"), 2.4f)
       {
          StartCap = LineCap.Round,
          EndCap = LineCap.Round,
          LineJoin = LineJoin.Round
       })
-         g.DrawLines(halo, points);
+      {
+         g.DrawLine(halo, tipX, tipY, tipX, stemBottomY);
+         g.DrawLines(halo, head);
+      }
 
-      // Gold stroke (thinner, drawn on top).
       using (var gold = new Pen(ColorTranslator.FromHtml("#FFC400"), 1.3f)
       {
          StartCap = LineCap.Round,
          EndCap = LineCap.Round,
          LineJoin = LineJoin.Round
       })
-         g.DrawLines(gold, points);
+      {
+         g.DrawLine(gold, tipX, tipY, tipX, stemBottomY);
+         g.DrawLines(gold, head);
+      }
    }
 
    /// <summary>
