@@ -29,8 +29,10 @@ all 13 interface operations.
 - No change to `IMooWorldQueryProvider` or its typed models — this is purely a new provider.
 - No server-side MCP framework: the package targets cores that already have a JHCore-style
   server MCP implementation (like the simpleedit reference in
-  `docs/reference/dns-org-mud-moo-simpleedit.moo`). Core-agnostic self-contained dispatch is
-  out of scope.
+  `docs/reference/dns-org-mud-moo-simpleedit.moo`) and **reuses that framework's outbound
+  send path** (`session:send` + `:parse_send_args`) rather than re-emitting the wire
+  format itself. Hand-rolling `notify("#$#"...)` is explicitly out of scope: it duplicates
+  key-stamping/prefix/multiline framing and desynced the auth key (regression udd-7fd).
 - No streaming/cord usage — plain request/reply messages only (cords would add round trips).
 - No editor/UI changes; existing consumers (contextual autocomplete, future object browser)
   pick the provider up through the registry automatically.
@@ -125,7 +127,7 @@ Skeleton (mirrors simpleedit `handle_set`):
 
 1. `caller == this` guard (raise `E_PERM` otherwise)
 2. `set_task_perms(session.connection)`
-3. Parse params → compute → JSON-encode → send reply chunked at ≤4000 chars/line
+3. Parse params → compute → JSON-encode → `this:send_reply(session, "<msg>-reply", tag, json)`, which delegates to the core framework's `session:send` (the helper only splits the JSON into ≤4000-char lines for the multiline `data*` field; it never emits `#$#` framing or the auth key itself)
 4. Entire body wrapped in `try/except`: any raised error is sent as the `-error` reply with
    the MOO error name as `code` and the error message as `message`
 

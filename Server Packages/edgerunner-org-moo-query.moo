@@ -430,25 +430,25 @@ endif
 @chown #XXX:send_reply #2
 @program #XXX:send_reply
 "Usage: :send_reply(session, reply-suffix, tag, json)";
-"Single adaptation point for all reply traffic: emits the raw MCP multiline block, chunking the";
-"JSON at <=4000 chars per data line. If your core exposes the session key or connection under";
-"different property names, fix them HERE (and in send_error) only.";
+"Hands the reply to the core MCP framework: session:send stamps the session";
+"authentication key + the edgerunner-org-moo-query- prefix and emits the multiline";
+"data* block. We only split the JSON into <=4000-char lines for that field; the";
+"framework owns all wire framing. Do NOT hand-roll notify(\"#$#\"...) here.";
+"session is the MCP session object (it owns :send, .authentication_key, .packages);";
+"its .connection is the raw network connection the framework notifies.";
 {session, suffix, tag, json} = args;
 if (caller != this)
   raise(E_PERM);
 endif
-conn = session.connection;
-name = tostr("edgerunner-org-moo-query-", suffix);
-dtag = tostr(random(100000), random(100000));
-notify(conn, tostr("#$#", name, " ", session.key, " tag: \"", tag, "\" data*: \"\" _data-tag: ", dtag));
+lines = {};
 start = 1;
 len = length(json);
 while (start <= len)
   finish = min(start + 3999, len);
-  notify(conn, tostr("#$#* ", dtag, " data: ", json[start..finish]));
+  lines = {@lines, json[start..finish]};
   start = finish + 1;
 endwhile
-notify(conn, tostr("#$#: ", dtag));
+session:send(suffix, this:parse_send_args(suffix, tag, lines));
 .
 
 @args #XXX:"send_error" this none this
@@ -456,13 +456,15 @@ notify(conn, tostr("#$#: ", dtag));
 @program #XXX:send_error
 "Usage: :send_error(session, tag, error-list-from-except)";
 "code = the MOO error name via toliteral (tostr would give the human message instead).";
+"Routed through the core MCP framework (session:send) like send_reply, so the";
+"session authentication key and package prefix are stamped by the framework.";
 {session, tag, v} = args;
 if (caller != this)
   raise(E_PERM);
 endif
 code = toliteral(v[1]);
 msg = strsub(tostr(v[2]), "\"", "'");
-notify(session.connection, tostr("#$#edgerunner-org-moo-query-error ", session.key, " tag: \"", tag, "\" code: ", code, " message: \"", msg, "\""));
+session:send("error", this:parse_send_args("error", tag, code, msg));
 .
 
 "***finished***
