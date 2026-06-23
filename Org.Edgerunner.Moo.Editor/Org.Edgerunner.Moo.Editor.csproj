@@ -39,6 +39,10 @@
   </ItemGroup>
 
   <ItemGroup>
+    <EmbeddedResource Include="Resources\builtin-function-docs.json" />
+  </ItemGroup>
+
+  <ItemGroup>
     <Folder Include="Display\" />
     <Folder Include="Communication\" />
     <Folder Include="SyntaxHighlighting\" />

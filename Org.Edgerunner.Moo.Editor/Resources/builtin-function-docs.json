@@ -1,0 +1,798 @@
+{
+ "abs": {
+  "description": "Returns the absolute value of x.",
+  "signature": "abs(int x) => int"
+ },
+ "acos": {
+  "description": "Returns the arc-cosine (inverse cosine) of x, in the range `[0..pi]`",
+  "signature": "acos(float x) => float"
+ },
+ "add_property": {
+  "description": "Defines a new property on the given object",
+  "signature": "add_property(obj object, str prop-name, value, list info)"
+ },
+ "add_verb": {
+  "description": "defines a new verb on the given object",
+  "signature": "add_verb(obj object, list info, list args)"
+ },
+ "all_members": {
+  "description": "Returns the indices of every instance of `value` in `alist`.",
+  "signature": "all_members(ANY `value`, LIST `alist`) => LIST"
+ },
+ "ancestors": {
+  "description": "Return a list of all ancestors of `object` in order ascending up the inheritance hiearchy. If `full` is true, `object` will be included in the list.",
+  "signature": "ancestors(OBJ object [, INT full]) => list"
+ },
+ "argon2": {
+  "description": "Hashes a password using the Argon2id password hashing algorithm.",
+  "signature": "argon2(STR password, STR salt [, iterations = 3] [, memory usage in KB = 4096] [, CPU threads = 1]) => str"
+ },
+ "argon2_verify": {
+  "description": "Compares password to the previously hashed hash.",
+  "signature": "argon2_verify(STR hash, STR password) => int"
+ },
+ "asin": {
+  "description": "Returns the arc-sine (inverse sine) of x, in the range `[-pi/2..pi/2]`",
+  "signature": "asin(float x) => float"
+ },
+ "atan": {
+  "description": "Returns the arc-tangent (inverse tangent) of y in the range `[-pi/2..pi/2]`.",
+  "signature": "atan(float y [, float x]) => float"
+ },
+ "binary_hash": {
+  "description": "Returns a string encoding the result of applying the SHA256 cryptographically secure hash function to the contents of the string text or the binary string bin-string.",
+  "signature": "binary_hash(str bin-string, [, algo [, binary]) => str"
+ },
+ "binary_hmac": {
+  "description": "Returns a string encoding the result of applying the HMAC-SHA256 cryptographically secure HMAC function to the contents of the string text or the binary string bin-string with the specified secret key. If algo is provided, it specifies the hashing algorithm to use. Currently, only \"SHA1\" and \"SHA256\" are supported. If binary is provided and true, the result is in MOO binary string format; by default the result is a hexadecimal string.",
+  "signature": "binary_hmac(str bin-string, str key [, str algo [, binary]]) => str"
+ },
+ "boot_player": {
+  "description": "marks for disconnection any currently-active connection to the given player",
+  "signature": "boot_player(obj player)"
+ },
+ "buffered_output_length": {
+  "description": "returns the number of bytes currently buffered for output to the connection conn",
+  "signature": "buffered_output_length([obj conn]) => int"
+ },
+ "call_function": {
+  "description": "calls the built-in function named func-name, passing the given arguments, and returns whatever that function returns",
+  "signature": "call_function(str func-name, arg, ...) => value"
+ },
+ "caller_perms": {
+  "description": "returns the permissions in use by the verb that called the currently-executing verb",
+  "signature": "caller_perms() => obj"
+ },
+ "callers": {
+  "description": "returns information on each of the verbs and built-in functions currently waiting to resume execution in the current task",
+  "signature": "callers([include-line-numbers]) => list"
+ },
+ "ceil": {
+  "description": "Returns the smallest integer not less than x, as a floating-point number.",
+  "signature": "ceil(float x) => float"
+ },
+ "children": {
+  "description": "return a list of the children of object.",
+  "signature": "children(obj object) => list"
+ },
+ "chparent": {
+  "description": "Changes the parent of object to be new-parent.",
+  "signature": "chparent(obj object, obj new-parent)"
+ },
+ "chparents": {
+  "description": "Changes the parent of object to be new-parents.",
+  "signature": "chparents(obj object, list new-parents)"
+ },
+ "chr": {
+  "description": "This function translates integers into ASCII characters. Each argument must be an integer between 0 and 255.",
+  "signature": "chr(INT arg, ...) => int"
+ },
+ "clear_ancestor_cache": {
+  "description": "WARNING: This is deprecated and is removed in 2.7.3",
+  "signature": "clear_ancestor_cache()"
+ },
+ "connected_players": {
+  "description": "returns a list of the object numbers of those player objects with currently-active connections",
+  "signature": "connected_players([include-all]) => list"
+ },
+ "connected_seconds": {
+  "description": "return the number of seconds that the currently-active connection to player has existed",
+  "signature": "connected_seconds(obj player) => int"
+ },
+ "connection_info": {
+  "description": "Returns a MAP of network connection information for `connection`. At the time of writing, the following information is returned:",
+  "signature": "connection_info(OBJ `connection`) => list"
+ },
+ "connection_name": {
+  "description": "returns a network-specific string identifying the connection being used by the given player",
+  "signature": "connection_name(obj player, [INT method]) => str"
+ },
+ "connection_name_lookup": {
+  "description": "connection_name_lookup - This function performs a DNS name lookup on connection's IP address.",
+  "signature": "connection_name_lookup(OBJ connection [, INT record_result]) => str"
+ },
+ "connection_options": {
+  "description": "returns a list of `{name, value}` pairs describing the current settings of all of the allowed options for the connection conn or the value if `name` is provided",
+  "signature": "connection_options(obj conn [, STR name]) => ANY"
+ },
+ "cos": {
+  "description": "Returns the cosine of x.",
+  "signature": "cos(float x) => float"
+ },
+ "cosh": {
+  "description": "Returns the hyperbolic cosine of x.",
+  "signature": "cosh(float x) => float"
+ },
+ "create": {
+  "description": "Creates and returns a new object whose parent (or parents) is parent (or parents) and whose owner is as described below.",
+  "signature": "create(obj parent [, obj owner] [, int anon-flag] [, list init-args]) => obj"
+ },
+ "crypt": {
+  "description": "Encrypts the given text using the standard UNIX encryption method.",
+  "signature": "crypt(str text [, str salt]) => str"
+ },
+ "ctime": {
+  "description": "interprets time as a time, using the same representation as given in the description of `time()`, above, and converts it into a 28-character, human-readable string",
+  "signature": "ctime([int time]) => str"
+ },
+ "curl": {
+  "description": "The curl builtin will download a webpage and return it as a string. If include_headers is true, the HTTP headers will be included in the return string.",
+  "signature": "curl(STR url [, INT include_headers, [ INT timeout]) => str"
+ },
+ "db_disk_size": {
+  "description": "returns the total size, in bytes, of the most recent full representation of the database as one or more disk files",
+  "signature": "db_disk_size() => int"
+ },
+ "decode_base64": {
+  "description": "Returns the binary string representation of the supplied Base64 encoded string argument.",
+  "signature": "decode_base64(str base64 [, int safe]) => str"
+ },
+ "decode_binary": {
+  "description": "Returns a list of strings and/or integers representing the bytes in the binary string bin_string in order.",
+  "signature": "decode_binary(str bin-string [, int fully]) => list"
+ },
+ "delete_property": {
+  "description": "Removes the property named prop-name from the given object and all of its descendants.",
+  "signature": "delete_property(obj object, str prop-name)"
+ },
+ "delete_verb": {
+  "description": "removes the verb as specified by verb-desc from the given object",
+  "signature": "delete_verb(obj object, str|int verb-desc)"
+ },
+ "descendants": {
+  "description": "Return a list of all nested children of object. If full is true, object will be included in the list.",
+  "signature": "descendants(OBJ object [, INT full]) => list"
+ },
+ "disassemble": {
+  "description": "returns a (longish) list of strings giving a listing of the server's internal \"compiled\" form of the verb as specified by verb-desc on object",
+  "signature": "disassemble(obj object, str|int verb-desc) => list"
+ },
+ "dump_database": {
+  "description": "requests that the server checkpoint the database at its next opportunity",
+  "signature": "dump_database()"
+ },
+ "encode_base64": {
+  "description": "Returns the Base64 encoded string representation of the supplied binary string argument.",
+  "signature": "encode_base64(str binary [, int safe]) => str"
+ },
+ "encode_binary": {
+  "description": "Translates each integer and string in turn into its binary string equivalent, returning the concatenation of all these substrings into a single binary string.",
+  "signature": "encode_binary(arg, ...) => str"
+ },
+ "equal": {
+  "description": "Returns true if value1 is completely indistinguishable from value2.",
+  "signature": "equal(value, value2) => int"
+ },
+ "eval": {
+  "description": "the MOO-code compiler processes string as if it were to be the program associated with some verb and, if no errors are found, that fictional verb is invoked",
+  "signature": "eval(str string) => list"
+ },
+ "exec": {
+  "description": "Asynchronously executes the specified external executable, optionally sending input.",
+  "signature": "exec(LIST command[, STR input][, LIST environment variables]) => list"
+ },
+ "exp": {
+  "description": "Returns e raised to the power of x.",
+  "signature": "exp(float x) => float"
+ },
+ "explode": {
+  "description": "Returns a list of substrings of subject that are separated by break. break defaults to a space.",
+  "signature": "explode(STR subject [, STR break [, INT include-sequential-occurrences]) => list"
+ },
+ "file_chmod": {
+  "description": "Attempts to set mode of a file using mode as an octal string of exactly three characters.",
+  "signature": "file_chmod(STR filename, STR mode)"
+ },
+ "file_list": {
+  "description": "Attempts to list the contents of the given directory.",
+  "signature": "file_list(STR pathname, [ANY detailed]) => LIST"
+ },
+ "file_mkdir": {
+  "description": "Attempts to create the given directory.",
+  "signature": "file_mkdir(STR pathname)"
+ },
+ "file_open": {
+  "description": "Open a file",
+  "signature": "file_open(STR pathname, STR mode) => FHANDLE"
+ },
+ "file_rmdir": {
+  "description": "Attempts to remove the given directory.",
+  "signature": "file_rmdir(STR pathname)"
+ },
+ "file_type": {
+  "description": "Returns the type of the given pathname, one of \"reg\", \"dir\", \"dev\", \"fifo\", or \"socket\".",
+  "signature": "file_type(STR pathname) => STR"
+ },
+ "file_version": {
+  "description": "Returns the package shortname/version number of this package e.g.",
+  "signature": "file_version() => str"
+ },
+ "finished_tasks": {
+  "description": "returns a list of the last X tasks to finish executing, including their total execution time",
+  "signature": "finished_tasks() => list"
+ },
+ "floatstr": {
+  "description": "Converts x into a string with more control than provided by either `tostr()` or `toliteral()`.",
+  "signature": "floatstr(float x, int precision [, scientific]) => str"
+ },
+ "floor": {
+  "description": "Returns the largest integer not greater than x, as a floating-point number.",
+  "signature": "floor(float x) => float"
+ },
+ "flush_input": {
+  "description": "performs the same actions as if the connection conn's defined flush command had been received on that connection",
+  "signature": "flush_input(obj conn [show-messages])"
+ },
+ "force_input": {
+  "description": "inserts the string line as an input task in the queue for the connection conn, just as if it had arrived as input over the network",
+  "signature": "force_input(obj conn, str line [, at-front])"
+ },
+ "frandom": {
+  "description": "If only one argument is given, a floating point number is chosen randomly from the range `[1.0..mod1]` and returned. If two arguments are given, a floating point number is randomly chosen from the range `[mod1..mod2]`.",
+  "signature": "frandom(FLOAT mod1 [, FLOAT mod2) => float"
+ },
+ "ftime": {
+  "description": "Returns the current time represented as the number of seconds and nanoseconds that have elapsed since midnight on 1 January 1970, Greenwich Mean Time.",
+  "signature": "ftime([INT monotonic]) => float"
+ },
+ "function_info": {
+  "description": "returns descriptions of the built-in functions available on the server",
+  "signature": "function_info([str name]) => list"
+ },
+ "generate_json": {
+  "description": "Returns the JSON representation of the MOO value.",
+  "signature": "generate_json(value [, str mode [, any disable_binary_escapes]]) => str"
+ },
+ "getenv": {
+  "description": "Returns the value of the named environment variable.",
+  "signature": "getenv(str name) => str"
+ },
+ "index": {
+  "description": "Returns the index of the first character of the first occurrence of str2 in str1.",
+  "signature": "index(str str1, str str2, [, int case-matters [, int skip]) => int"
+ },
+ "is_clear_property": {
+  "description": "Test the specified property for clear",
+  "signature": "is_clear_property(obj object, str prop-name) => int"
+ },
+ "is_member": {
+  "description": "Returns true if there is an element of list that is completely indistinguishable from value.",
+  "signature": "is_member(ANY value, LIST list [, INT case-sensitive]) => int"
+ },
+ "is_player": {
+  "description": "returns a true value if the given object is a player object and a false value otherwise.",
+  "signature": "is_player(obj object) => int"
+ },
+ "isa": {
+  "description": "Returns true if object is a descendant of parent, otherwise false.",
+  "signature": "isa(OBJ object, OBJ parent) => int"
+ },
+ "kill_task": {
+  "description": "removes the task with the given task-id from the queue of waiting tasks",
+  "signature": "kill_task(int task-id)"
+ },
+ "length": {
+  "description": "Returns the number of elements in list.",
+  "signature": "length(list list) => int"
+ },
+ "listappend": {
+  "description": "This functions return a copy of list with value added as a new element.",
+  "signature": "listappend(list list, value [, int index]) => list"
+ },
+ "listdelete": {
+  "description": "Returns a copy of list with the indexth element removed.",
+  "signature": "listdelete(list list, int index) => list"
+ },
+ "listen": {
+  "description": "create a new point at which the server will listen for network connections, just as it does normally",
+  "signature": "listen(obj object, port [, MAP options]) => value"
+ },
+ "listeners": {
+  "description": "returns a list describing all existing listening points, including the default one set up automatically by the server when it was started (unless that one has since been destroyed by a call to `unlisten()`) and the interface being listened on",
+  "signature": "listeners() => list"
+ },
+ "listinsert": {
+  "description": "This functions return a copy of list with value added as a new element.",
+  "signature": "listinsert(list list, value [, int index]) => list"
+ },
+ "listset": {
+  "description": "Returns a copy of list with the indexth element replaced by value.",
+  "signature": "listset(list list, value, int index) => list"
+ },
+ "locate_by_name": {
+  "description": "This function searches every object in the database for those containing `object name` in their .name property.",
+  "signature": "locate_by_name(STR object name) => list"
+ },
+ "locations": {
+  "description": "Recursively build a list of an object's location, its location's location, and so forth until finally hitting $nothing.",
+  "signature": "locations(OBJ object [, OBJ stop [, INT is-parent]]) => list"
+ },
+ "log": {
+  "description": "Returns the natural logarithm of x.",
+  "signature": "log(float x) => float"
+ },
+ "log10": {
+  "description": "Returns the base 10 logarithm of x.",
+  "signature": "log10(float x) => float"
+ },
+ "log_cache_stats": {
+  "description": "The server caches verbname-to-program lookups to improve performance. These functions respectively return or write to the server log file the current cache statistics. For verb_cache_stats the return value will be a list of the form",
+  "signature": "log_cache_stats()"
+ },
+ "mapdelete": {
+  "description": "Returns a copy of map with the value corresponding to key(s) removed. If key is not a valid key, then E_RANGE is raised.",
+  "signature": "mapdelete(MAP map, key|LIST keys) => map"
+ },
+ "maphaskey": {
+  "description": "Returns 1 if key exists in map. When not dealing with hundreds of keys, this function is faster (and easier to read) than something like: !(x in mapkeys(map))",
+  "signature": "maphaskey(MAP map, STR key) => int"
+ },
+ "mapkeys": {
+  "description": "returns the keys of the elements of a map.",
+  "signature": "mapkeys(map map) => list"
+ },
+ "mapvalues": {
+  "description": "returns the values of the elements of a map.",
+  "signature": "mapvalues(MAP `map` [, ... STR `key`]) => list"
+ },
+ "match": {
+  "description": "Searches for the first occurrence of the regular expression pattern in the string subject",
+  "signature": "match(str subject, str pattern [, int case-matters]) => list"
+ },
+ "max": {
+  "description": "Return the largest of it's arguments.",
+  "signature": "max(int x, ...) => int"
+ },
+ "max_object": {
+  "description": "Returns the largest object number ever assigned to a created object.",
+  "signature": "max_object() => obj"
+ },
+ "memory_usage": {
+  "description": "Return statistics concerning the server's consumption of system memory.",
+  "signature": "memory_usage() => list"
+ },
+ "min": {
+  "description": "Return the smallest of it's arguments.",
+  "signature": "min(int x, ...) => int"
+ },
+ "move": {
+  "description": "Changes what's location to be where.",
+  "signature": "move(obj what, obj where [, INT position)"
+ },
+ "new_waif": {
+  "description": "The `new_waif()` builtin creates a new WAIF whose class is the calling object and whose owner is the perms of the calling verb.",
+  "signature": "new_waif() => waif"
+ },
+ "next_recycled_object": {
+  "description": "Return the lowest invalid object. If start is specified, no object lower than start will be considered. If there are no invalid objects, this function will return 0.",
+  "signature": "next_recycled_object(OBJ start) => obj | int"
+ },
+ "notify": {
+  "description": "enqueues string for output (on a line by itself) on the connection conn",
+  "signature": "notify(obj conn, str string [, INT no-flush [, INT suppress-newline])"
+ },
+ "object_bytes": {
+  "description": "Returns the number of bytes of the server's memory required to store the given object.",
+  "signature": "object_bytes(obj object) => int"
+ },
+ "occupants": {
+  "description": "Iterates through the list of objects and returns those matching a specific set of criteria:",
+  "signature": "occupants(LIST objects [, OBJ | LIST parent, INT player flag set, INT inverse-match]) => list"
+ },
+ "open_network_connection": {
+  "description": "establishes a network connection to the place specified by the arguments and more-or-less pretends that a new, normal player connection has been established from there",
+  "signature": "open_network_connection(STR host, INT port [, MAP options]) => obj"
+ },
+ "output_delimiters": {
+  "description": "returns a list of two strings, the current _output prefix_ and _output suffix_ for player.",
+  "signature": "output_delimiters(obj player) => list"
+ },
+ "owned_objects": {
+  "description": "Returns a list of all objects in the database owned by `owner`. Ownership is defined by the value of .owner on the object.",
+  "signature": "owned_objects(OBJ owner) => list"
+ },
+ "panic": {
+  "description": "Unceremoniously shut down the server, mimicking the behavior of a fatal error.",
+  "signature": "panic([STR message])"
+ },
+ "parent": {
+  "description": "return the parent of object",
+  "signature": "parent(obj object) => obj"
+ },
+ "parents": {
+  "description": "return the parents of object",
+  "signature": "parents(obj object) => list"
+ },
+ "parse_json": {
+  "description": "Returns the MOO value representation of the JSON string.",
+  "signature": "parse_json(str json [, str mode]) => value"
+ },
+ "pass": {
+  "description": "calls the verb with the same name as the current verb but as defined on the parent of the object that defines the current verb.",
+  "signature": "pass(arg, ...) => value"
+ },
+ "pcre_match": {
+  "description": "The function `pcre_match()` searches `subject` for `pattern` using the Perl Compatible Regular Expressions library.",
+  "signature": "pcre_match(STR subject, STR pattern [, ?case matters=0] [, ?repeat until no matches=1]) => LIST"
+ },
+ "pcre_replace": {
+  "description": "The function `pcre_replace()` replaces `subject` with replacements found in `pattern` using the Perl Compatible Regular Expressions library.",
+  "signature": "pcre_replace(STR `subject`, STR `pattern`) => STR"
+ },
+ "players": {
+  "description": "returns a list of the object numbers of all player objects in the database",
+  "signature": "players() => list"
+ },
+ "properties": {
+  "description": "Returns a list of the names of the properties defined directly on the given object, not inherited from its parent.",
+  "signature": "properties(obj object) => list"
+ },
+ "property_info": {
+  "description": "Get the owner and permission bits for the property named prop-name on the given object",
+  "signature": "property_info(obj object, str prop-name) => list"
+ },
+ "queue_info": {
+  "description": "if player is omitted, returns a list of object numbers naming all players that currently have active task queues inside the server",
+  "signature": "queue_info([obj player]) => list"
+ },
+ "queued_tasks": {
+  "description": "returns information on each of the background tasks (i.e., forked, suspended or reading) owned by the programmer (or, if the programmer is a wizard, all queued tasks)",
+  "signature": "queued_tasks([INT show-runtime [, INT count-only]) => list"
+ },
+ "raise": {
+  "description": "raises code as an error in the same way as other MOO expressions, statements, and functions do",
+  "signature": "raise(code [, str message [, value]])"
+ },
+ "random": {
+  "description": "Return a random integer",
+  "signature": "random([int mod, [int range]]) => int"
+ },
+ "random_bytes": {
+  "description": "Returns a binary string composed of between one and 10000 random bytes. count specifies the number of bytes and must be a positive integer; otherwise, E_INVARG is raised.",
+  "signature": "random_bytes(int count) => int"
+ },
+ "read": {
+  "description": "reads and returns a line of input from the connection conn (or, if not provided, from the player that typed the command that initiated the current task)",
+  "signature": "read([obj conn [, non-blocking]]) => str"
+ },
+ "read_http": {
+  "description": "Reads lines from the connection conn (or, if not provided, from the player that typed the command that initiated the current task) and attempts to parse the lines as if they are an HTTP request or response. request-or-response must be either the string \"request\" or \"response\". It dictates the type of parsing that will be done.",
+  "signature": "read_http(request-or-response [, OBJ conn]) => map"
+ },
+ "recreate": {
+  "description": "Recreate invalid object old (one that has previously been recycle()ed) as parent, optionally owned by owner.",
+  "signature": "recreate(OBJ old, OBJ parent [, OBJ owner]) => obj"
+ },
+ "recycle": {
+  "description": "destroy object irrevocably.",
+  "signature": "recycle(obj object)"
+ },
+ "recycled_objects": {
+  "description": "Return a list of all invalid objects in the database. An invalid object is one that has been destroyed with the recycle() function.",
+  "signature": "recycled_objects() => list"
+ },
+ "renumber": {
+  "description": "the object number of the object currently numbered object is changed to be the least nonnegative object number not currently in use and the new object number is returned",
+  "signature": "renumber(obj object) => obj"
+ },
+ "reseed_random": {
+  "description": "Provide a new seed to the pseudo random number generator.",
+  "signature": "reseed_random()"
+ },
+ "reset_max_object": {
+  "description": "the server's idea of the highest object number ever used is changed to be the highest object number of a currently-existing object, thus allowing reuse of any higher numbers that refer to now-recycled objects",
+  "signature": "reset_max_object()"
+ },
+ "respond_to": {
+  "description": "Returns true if verb is callable on object, taking into account inheritance, wildcards (star verbs), etc. Otherwise, returns false. If the caller is permitted to read the object (because the object's `r' flag is true, or the caller is the owner or a wizard) the true value is a list containing the object number of the object that defines the verb and the full verb name(s). Otherwise, the numeric value `1' is returned.",
+  "signature": "respond_to(OBJ object, STR verb) => int | list"
+ },
+ "resume": {
+  "description": "immediately ends the suspension of the suspended task with the given task-id; that task's call to `suspend()` will return value, which defaults to zero",
+  "signature": "resume(int task-id [, value])"
+ },
+ "reverse": {
+  "description": "Return a reversed list or string",
+  "signature": "reverse(LIST alist) => str | list"
+ },
+ "rindex": {
+  "description": "Returns the index of the first character of the last occurrence of str2 in str1.",
+  "signature": "rindex(str str1, str str2, [, int case-matters [, int skip]) => int"
+ },
+ "rmatch": {
+  "description": "Searches for the last occurrence of the regular expression pattern in the string subject",
+  "signature": "rmatch(str subject, str pattern [, int case-matters]) => list"
+ },
+ "salt": {
+  "description": "Generate a crypt() compatible salt string for the specified salt format using the specified binary random input.",
+  "signature": "salt(str format, str input) => str"
+ },
+ "server_log": {
+  "description": "The text in message is sent to the server log with a distinctive prefix (so that it can be distinguished from server-generated messages)",
+  "signature": "server_log(str message [, int level])"
+ },
+ "server_version": {
+  "description": "returns a string giving the version number of the running MOO server",
+  "signature": "server_version([int with-details]) => str"
+ },
+ "set_connection_option": {
+  "description": "controls a number of optional behaviors associated the connection conn",
+  "signature": "set_connection_option(obj conn, str option, value)"
+ },
+ "set_player_flag": {
+  "description": "confers or removes the \"player object\" status of the given object, depending upon the truth value of value",
+  "signature": "set_player_flag(obj object, value)"
+ },
+ "set_property_info": {
+  "description": "Set the owner and permission bits for the property named prop-name on the given object",
+  "signature": "set_property_info(obj object, str prop-name, list info)"
+ },
+ "set_task_local": {
+  "description": "Sets a value that gets associated with the current running task.",
+  "signature": "set_task_local(ANY value)"
+ },
+ "set_task_perms": {
+  "description": "changes the permissions with which the currently-executing verb is running to be those of who",
+  "signature": "set_task_perms(obj who)"
+ },
+ "set_thread_mode": {
+  "description": "With no arguments specified, set_thread_mode will return the current thread mode for the verb. A value of 1 indicates that threading is enabled for functions that support it. A value of 0 indicates that threading is disabled and all functions will execute in the main MOO thread, as functions have done in default LambdaMOO since version 1.",
+  "signature": "set_thread_mode([INT mode]) => int"
+ },
+ "set_verb_args": {
+  "description": "verb_args -- set the direct-object, preposition, and indirect-object specifications for the verb as specified by verb-desc on the given object.",
+  "signature": "set_verb_args(obj object, str|int verb-desc, list args)"
+ },
+ "set_verb_code": {
+  "description": "set the MOO-code program associated with the verb as specified by verb-desc on object",
+  "signature": "set_verb_code(obj object, str|int verb-desc, list code) => list"
+ },
+ "set_verb_info": {
+  "description": "Set the owner, permissions bits, and names(s) for the verb as verb-desc on the given object",
+  "signature": "set_verb_info(obj object, str|int verb-desc, list info)"
+ },
+ "setadd": {
+  "description": "Returns a copy of list with the given value added.",
+  "signature": "setadd(list list, value) => list"
+ },
+ "setremove": {
+  "description": "Returns a copy of list with the given value removed.",
+  "signature": "setremove(list list, value) => list"
+ },
+ "shutdown": {
+  "description": "requests that the server shut itself down at its next opportunity",
+  "signature": "shutdown([str message])"
+ },
+ "sin": {
+  "description": "Returns the sine of x.",
+  "signature": "sin(float x) => float"
+ },
+ "sinh": {
+  "description": "Returns the hyperbolic sine of x.",
+  "signature": "sinh(float x) => float"
+ },
+ "slice": {
+  "description": "Return the index-th elements of alist. By default, index will be 1. If index is a list of integers, the returned list will have those elements from alist. This is the built-in equivalent of LambdaCore's $list_utils:slice verb.",
+  "signature": "slice(LIST alist [, INT | LIST | STR index, ANY default map value]) => list"
+ },
+ "sort": {
+  "description": "Sorts list either by keys or using the list itself.",
+  "signature": "sort(LIST list [, LIST keys, INT natural sort order?, INT reverse]) => list"
+ },
+ "spellcheck": {
+  "description": "This function checks the English spelling of word.",
+  "signature": "spellcheck(STR word) => int | list"
+ },
+ "sqlite_close": {
+  "description": "This function will close an open database.",
+  "signature": "sqlite_close(INT database handle) => int"
+ },
+ "sqlite_execute": {
+  "description": "This function will attempt to create and execute the prepared statement query given in query on the database referred to by handle with the values values.",
+  "signature": "sqlite_execute(INT database handle, STR SQL prepared statement query, LIST values) => list | str"
+ },
+ "sqlite_handles": {
+  "description": "Returns a list of open SQLite database handles.",
+  "signature": "sqlite_handles() => list"
+ },
+ "sqlite_info": {
+  "description": "This function returns a map of information about the database at handle",
+  "signature": "sqlite_info(INT database handle) => map"
+ },
+ "sqlite_interrupt": {
+  "description": "This function causes any pending database operation to abort at its earliest opportunity.",
+  "signature": "sqlite_interrupt(INT database handle)"
+ },
+ "sqlite_last_insert_row_id": {
+  "description": "This function identifies the row ID of the last insert command executed on the database.",
+  "signature": "sqlite_last_insert_row_id(INT database handle) => int"
+ },
+ "sqlite_limit": {
+  "description": "This function allows you to specify various construct limitations on a per-database basis.",
+  "signature": "sqlite_limit(INT database handle, STR category INT new value) => int"
+ },
+ "sqlite_open": {
+  "description": "The function `sqlite_open` will attempt to open the database at path for use with SQLite.",
+  "signature": "sqlite_open(STR path to database, [INT options]) => int"
+ },
+ "sqlite_query": {
+  "description": "This function will attempt to execute the query given in query on the database referred to by handle.",
+  "signature": "sqlite_query(INT database handle, STR database query[, INT show columns]) => list | str"
+ },
+ "sqrt": {
+  "description": "Returns the square root of x.",
+  "signature": "sqrt(float x) => float"
+ },
+ "strcmp": {
+  "description": "Performs a case-sensitive comparison of the two argument strings.",
+  "signature": "strcmp(str str1, str str2) => int"
+ },
+ "string_hash": {
+  "description": "Returns a string encoding the result of applying the SHA256 cryptographically secure hash function to the contents of the string text or the binary string bin-string.",
+  "signature": "string_hash(str string, [, algo [, binary]]) => str"
+ },
+ "string_hmac": {
+  "description": "Returns a string encoding the result of applying the HMAC-SHA256 cryptographically secure HMAC function to the contents of the string text or the binary string bin-string with the specified secret key. If algo is provided, it specifies the hashing algorithm to use. Currently, only \"SHA1\" and \"SHA256\" are supported. If binary is provided and true, the result is in MOO binary string format; by default the result is a hexadecimal string.",
+  "signature": "string_hmac(str text, str key [, str algo [, binary]]) => str"
+ },
+ "strsub": {
+  "description": "Replaces all occurrences of what in subject with with, performing string substitution.",
+  "signature": "strsub(str subject, str what, str with [, int case-matters]) => str"
+ },
+ "strtr": {
+  "description": "Transforms the string source by replacing the characters specified by str1 with the corresponding characters specified by str2.",
+  "signature": "strtr(str source, str str1, str str2 [, case-matters]) => int"
+ },
+ "substitute": {
+  "description": "Performs a standard set of substitutions on the string template, using the information contained in subs, returning the resulting, transformed template.",
+  "signature": "substitute(str template, list subs) => str"
+ },
+ "suspend": {
+  "description": "suspends the current task, and resumes it after at least seconds seconds",
+  "signature": "suspend([int|float seconds]) => value"
+ },
+ "switch_player": {
+  "description": "Silently switches the player associated with this connection from object1 to object2.",
+  "signature": "switch_player(OBJ object1, OBJ object2 [, INT silent])"
+ },
+ "tan": {
+  "description": "Returns the tangent of x.",
+  "signature": "tan(float x) => float"
+ },
+ "tanh": {
+  "description": "Returns the hyperbolic tangent of x.",
+  "signature": "tanh(float x) => float"
+ },
+ "task_id": {
+  "description": "returns the non-zero, non-negative integer identifier for the currently-executing task",
+  "signature": "task_id() => int"
+ },
+ "task_local": {
+  "description": "Returns the value associated with the current task. The value is set with the `set_task_local` function.",
+  "signature": "task_local() => mixed"
+ },
+ "task_stack": {
+  "description": "returns information like that returned by the `callers()` function, but for the suspended task with the given task-id; the include-line-numbers argument has the same meaning as in `callers()`",
+  "signature": "task_stack(int task-id [, INT include-line-numbers [, INT include-variables]) => list"
+ },
+ "thread_info": {
+  "description": "If a MOO task is running in another thread, its thread handler will give you information about that thread.",
+  "signature": "thread_info(INT thread handler) => list"
+ },
+ "thread_pool": {
+  "description": "This function allows you to control any thread pools that the server created at startup. It should be used with care, as it has the potential to create disasterous consequences if used incorrectly.",
+  "signature": "thread_pool(STR function, STR pool [, INT value])"
+ },
+ "threads": {
+  "description": "When one or more MOO processes are suspended and working in a separate thread, this function will return a LIST of handlers to those threads. These handlers can then be passed to `thread_info' for more information.",
+  "signature": "threads() => list"
+ },
+ "ticks_left": {
+  "description": "return the number of ticks left to the current task before it will be forcibly terminated",
+  "signature": "ticks_left() => int"
+ },
+ "time": {
+  "description": "returns the current time, represented as the number of seconds that have elapsed since midnight on 1 January 1970, Greenwich Mean Time",
+  "signature": "time() => int"
+ },
+ "tofloat": {
+  "description": "Converts the given MOO value into a floating-point number and returns that number.",
+  "signature": "tofloat(value) => float"
+ },
+ "toint": {
+  "description": "Converts the given MOO value into an integer and returns that integer.",
+  "signature": "toint(value) => int"
+ },
+ "toliteral": {
+  "description": "Returns a string containing a MOO literal expression that, when evaluated, would be equal to value.",
+  "signature": "toliteral(value) => str"
+ },
+ "toobj": {
+  "description": "Converts the given MOO value into an object number and returns that object number.",
+  "signature": "toobj(value) => obj"
+ },
+ "tostr": {
+  "description": "Converts all of the given MOO values into strings and returns the concatenation of the results.",
+  "signature": "tostr(value, ...) => str"
+ },
+ "trunc": {
+  "description": "Returns the integer obtained by truncating x at the decimal point, as a floating-point number.",
+  "signature": "trunc(float x) => float"
+ },
+ "typeof": {
+  "description": "Takes any MOO value and returns an integer representing the type of value.",
+  "signature": "typeof(value) => int"
+ },
+ "unlisten": {
+  "description": "stop listening for connections on the point described by canon, which should be the second element of some element of the list returned by `listeners()`",
+  "signature": "unlisten(canon)"
+ },
+ "usage": {
+  "description": "Return statistics concerning the server the MOO is running on.",
+  "signature": "usage() => list"
+ },
+ "valid": {
+  "description": "Return a non-zero integer if object is valid and not yet recycled.",
+  "signature": "valid(obj object) => int"
+ },
+ "value_bytes": {
+  "description": "Returns the number of bytes of the server's memory required to store the given value.",
+  "signature": "value_bytes(value) => int"
+ },
+ "value_hash": {
+  "description": "Returns the same string as `string_hash(toliteral(value))`.",
+  "signature": "value_hash(value, [, str algo] [, binary]) => str"
+ },
+ "value_hmac": {
+  "description": "Returns the same string as string_hmac(toliteral(value), key)",
+  "signature": "value_hmac(value, STR key [, STR algo [, binary]]) => str"
+ },
+ "verb_args": {
+  "description": "get the direct-object, preposition, and indirect-object specifications for the verb as specified by verb-desc on the given object.",
+  "signature": "verb_args(obj object, str|int verb-desc) => list"
+ },
+ "verb_cache_stats": {
+  "description": "The server caches verbname-to-program lookups to improve performance. These functions respectively return or write to the server log file the current cache statistics. For verb_cache_stats the return value will be a list of the form",
+  "signature": "verb_cache_stats() => list"
+ },
+ "verb_code": {
+  "description": "get the MOO-code program associated with the verb as specified by verb-desc on object",
+  "signature": "verb_code(obj object, str|int verb-desc [, fully-paren [, indent]]) => list"
+ },
+ "verb_info": {
+  "description": "Get the owner, permission bits, and name(s) for the verb as specified by verb-desc on the given object",
+  "signature": "verb_info(obj object, str|int verb-desc) => list"
+ },
+ "verbs": {
+  "description": "Returns a list of the names of the verbs defined directly on the given object, not inherited from its parent",
+  "signature": "verbs(obj object) => list"
+ },
+ "waif_stats": {
+  "description": "Returns a MAP of statistics about instantiated waifs.",
+  "signature": "waif_stats() => map"
+ },
+ "yin": {
+  "description": "Suspend the current task if it's running out of ticks or seconds.",
+  "signature": "yin([INT time, INT minimum ticks, INT minimum seconds]) => int"
+ }
+}

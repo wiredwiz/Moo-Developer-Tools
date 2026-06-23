@@ -141,16 +141,17 @@ namespace Org.Edgerunner.Moo.Editor.Controls
 
          var caption = HoverCaption(kind, member, operand);
 
+         // Show via ShowToolTipAbove (bottom-anchored, height-aware) — the SAME path verbs/properties
+         // use. Setting e.ToolTipText instead would let FCTB's OnToolTip position it top-anchored,
+         // which overlaps the cursor for anything taller than ~2 lines.
          if (kind == HoverMemberKind.Function)
          {
-            e.ToolTipTitle = caption;
-            e.ToolTipText = "(built-in function)";
+            ShowToolTipAbove(e.Place, caption, BuiltinFunctionDocs.GetTooltipText(member) ?? "(built-in function)");
             return;
          }
          if (!sourceKnown)
          {
-            e.ToolTipTitle = caption;
-            e.ToolTipText = "(no discernable source)";
+            ShowToolTipAbove(e.Place, caption, "(no discernable source)");
             return;
          }
 
