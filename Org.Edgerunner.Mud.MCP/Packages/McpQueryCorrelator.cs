@@ -35,6 +35,7 @@
 #endregion
 
 using System.Collections.Concurrent;
+using Org.Edgerunner.Mud.Common.Querying;
 using Org.Edgerunner.Mud.MCP.Exceptions;
 
 namespace Org.Edgerunner.Mud.MCP.Packages;
@@ -43,11 +44,13 @@ namespace Org.Edgerunner.Mud.MCP.Packages;
 /// Thread-safe map of in-flight <c>edgerunner-org-moo-query</c> requests keyed by tag. Tags come
 /// from an <see cref="Interlocked"/> counter and are unique by construction.
 /// </summary>
-public class McpQueryCorrelator
+public class McpQueryCorrelator : IDisposable
 {
    private readonly ConcurrentDictionary<string, TaskCompletionSource<string>> _pending = new();
 
    private int _tagCounter;
+
+   private volatile bool _disposed;
 
    /// <summary>
    /// Generates the next unique request tag.
@@ -63,17 +66,37 @@ public class McpQueryCorrelator
    public Task<string> CreatePending(string tag)
    {
       var source = new TaskCompletionSource<string>(TaskCreationOptions.RunContinuationsAsynchronously);
+
+      // After disposal nothing more may register: hand back an already-faulted task so any straggling
+      // caller fails fast with the closed-connection error rather than hanging forever.
+      if (_disposed)
+      {
+         source.TrySetException(new QueryConnectionClosedException());
+         ObserveFault(source);
+         return source.Task;
+      }
+
       _pending[tag] = source;
 
       // Observe faults eagerly: if the awaiting consumer times out and abandons this task while a
       // racing CompleteError still faults it, the exception must not surface as unobserved.
+      ObserveFault(source);
+
+      return source.Task;
+   }
+
+   /// <summary>
+   /// Attaches a continuation that observes any fault on the supplied source so an abandoned, faulted
+   /// task never surfaces as an unobserved exception.
+   /// </summary>
+   /// <param name="source">The pending task source.</param>
+   private static void ObserveFault(TaskCompletionSource<string> source)
+   {
       _ = source.Task.ContinueWith(
          static t => _ = t.Exception,
          CancellationToken.None,
          TaskContinuationOptions.OnlyOnFaulted | TaskContinuationOptions.ExecuteSynchronously,
          TaskScheduler.Default);
-
-      return source.Task;
    }
 
    /// <summary>
@@ -83,7 +106,7 @@ public class McpQueryCorrelator
    /// <param name="payload">The reassembled JSON payload.</param>
    /// <returns><c>true</c> when a pending request was completed; <c>false</c> for unknown/stale tags.</returns>
    public bool Complete(string tag, string payload) =>
-      _pending.TryRemove(tag, out var source) && source.TrySetResult(payload);
+      !_disposed && _pending.TryRemove(tag, out var source) && source.TrySetResult(payload);
 
    /// <summary>
    /// Faults the pending request for the given tag with a server error.
@@ -92,11 +115,44 @@ public class McpQueryCorrelator
    /// <param name="error">The typed server error.</param>
    /// <returns><c>true</c> when a pending request was faulted; <c>false</c> for unknown/stale tags.</returns>
    public bool CompleteError(string tag, McpQueryErrorException error) =>
-      _pending.TryRemove(tag, out var source) && source.TrySetException(error);
+      !_disposed && _pending.TryRemove(tag, out var source) && source.TrySetException(error);
 
    /// <summary>
    /// Removes the pending request for the given tag, if any.
    /// </summary>
    /// <param name="tag">The request tag.</param>
-   public void Remove(string tag) => _pending.TryRemove(tag, out _);
+   public void Remove(string tag)
+   {
+      if (_disposed)
+         return;
+
+      _pending.TryRemove(tag, out _);
+   }
+
+   /// <summary>
+   /// Faults every pending request with the supplied exception and clears the map. The correlator
+   /// remains usable afterward (no disposed flag is set), so the same instance can serve the next
+   /// connection. Used by the deterministic disconnect-teardown path.
+   /// </summary>
+   /// <param name="exception">The exception to fault every awaiting task with.</param>
+   public void FaultAll(Exception exception)
+   {
+      foreach (var tag in _pending.Keys.ToArray())
+         if (_pending.TryRemove(tag, out var source))
+            source.TrySetException(exception);
+   }
+
+   /// <summary>
+   /// Faults every pending request with a <see cref="QueryConnectionClosedException"/> and marks the
+   /// correlator disposed. After disposal, <see cref="CreatePending"/> returns an already-faulted task
+   /// and <see cref="Complete"/>/<see cref="CompleteError"/>/<see cref="Remove"/> become safe no-ops.
+   /// </summary>
+   public void Dispose()
+   {
+      if (_disposed)
+         return;
+
+      FaultAll(new QueryConnectionClosedException());
+      _disposed = true;
+   }
 }

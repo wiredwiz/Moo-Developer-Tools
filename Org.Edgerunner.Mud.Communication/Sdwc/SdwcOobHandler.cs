@@ -80,6 +80,14 @@ public sealed class SdwcOobHandler : IOutOfBandMessageHandler
    private SdwcQueryProvider? _provider;
 
    /// <summary>
+   /// The query registry the provider was registered into. Captured at registration time so the
+   /// disconnect/dispose paths can unregister it.
+   /// </summary>
+   private MooWorldQueryService? _queryProviders;
+
+   private bool _disposed;
+
+   /// <summary>
    /// Initializes a new instance of the <see cref="SdwcOobHandler"/> class.
    /// </summary>
    /// <param name="correlator">The correlator shared with the provider. Defaults to a fresh instance.</param>
@@ -129,6 +137,49 @@ public sealed class SdwcOobHandler : IOutOfBandMessageHandler
       // No multi-line state to reset; pending correlation entries are owned by their awaiting callers.
    }
 
+   /// <inheritdoc/>
+   /// <remarks>
+   /// Deterministic, reuse-safe disconnect teardown fired once off <c>MudClientSession.Closed</c>.
+   /// The provider is unregistered (so a post-disconnect query no longer routes to a dead terminal),
+   /// every in-flight request is faulted with <see cref="QueryConnectionClosedException"/> rather than
+   /// being left to wait out its bounded timeout, and the registration state is cleared so the next
+   /// capability signal re-registers a fresh provider.
+   /// </remarks>
+   public void OnDisconnected()
+   {
+      lock (_registrationLock)
+      {
+         if (_provider != null)
+            _queryProviders?.Unregister(_provider);
+
+         _correlator.FaultAll(new QueryConnectionClosedException());
+
+         _provider = null;
+         _queryProviders = null;
+      }
+   }
+
+   /// <summary>
+   /// Releases the resources used by this handler. Final teardown (no reuse): the provider is
+   /// unregistered and the correlator is disposed so that any straggling request fails fast.
+   /// </summary>
+   public void Dispose()
+   {
+      lock (_registrationLock)
+      {
+         if (_disposed)
+            return;
+
+         if (_provider != null)
+            _queryProviders?.Unregister(_provider);
+
+         _provider = null;
+         _queryProviders = null;
+         _correlator.Dispose();
+         _disposed = true;
+      }
+   }
+
    private void EnsureProviderRegistered(IClientTerminal client)
    {
       lock (_registrationLock)
@@ -137,6 +188,7 @@ public sealed class SdwcOobHandler : IOutOfBandMessageHandler
             return;
 
          _provider = new SdwcQueryProvider(client, _correlator, _requestTimeout);
+         _queryProviders = client.QueryProviders;
          client.QueryProviders.Register(_provider, ProviderPriority);
          Logger.Trace("SDWC capability detected; registered SdwcQueryProvider.");
       }

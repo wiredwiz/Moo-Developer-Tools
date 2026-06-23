@@ -125,4 +125,10 @@ public class McpCordPackage : IMcpPackage
 
    /// <inheritdoc/>
    public void Reset() => _cords.Clear();
+
+   /// <inheritdoc/>
+   public void OnDisconnected() { }
+
+   /// <inheritdoc/>
+   public void Dispose() => _cords.Clear();
 }

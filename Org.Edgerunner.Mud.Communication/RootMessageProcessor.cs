@@ -151,4 +151,22 @@ public class RootMessageProcessor : IMessageProcessor
         _State.Finished = true;
         return false;
     }
+
+    /// <summary>
+    /// Notifies the out-of-band processor that the connection has closed, cascading the deterministic,
+    /// reuse-safe teardown to all handlers. Idempotent: safe to call more than once.
+    /// </summary>
+    public void OnDisconnected()
+    {
+        OutOfBandMessageProcessor?.OnDisconnected();
+    }
+
+    /// <summary>
+    /// Disposes the out-of-band processor chain (final teardown safety net). Safe to call more than once.
+    /// </summary>
+    public void Dispose()
+    {
+        if (OutOfBandMessageProcessor is IDisposable disposable)
+            disposable.Dispose();
+    }
 }

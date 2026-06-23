@@ -99,4 +99,91 @@ public class SdwcOobHandlerTests
       rightName.IsCompletedSuccessfully.Should().BeTrue();
       wrongName.IsCompleted.Should().BeFalse();
    }
+
+   // udd-bju: disconnect teardown faults in-flight queries and unregisters the dead provider.
+   [Fact]
+   public async Task OnDisconnected_FaultsInFlightQueryWithQueryConnectionClosedException()
+   {
+      var terminal = new FakeSdwcTerminal();
+      // Generous timeout so a fault — not a timeout — is what completes the query.
+      var handler = new SdwcOobHandler(requestTimeout: TimeSpan.FromSeconds(30));
+      Feed(handler, terminal, " dome-client-user");
+
+      var inFlight = terminal.QueryProviders.Query.GetVerbsAsync(new MooObjectId(73), CancellationToken.None);
+      terminal.SentOutOfBandLines.Should().ContainSingle(); // request went out
+
+      handler.OnDisconnected();
+
+      var act = async () => await inFlight;
+      await act.Should().ThrowAsync<QueryConnectionClosedException>();
+   }
+
+   [Fact]
+   public async Task OnDisconnected_UnregistersProvider_SoRegistryNoLongerRoutesToIt()
+   {
+      var terminal = new FakeSdwcTerminal();
+      var handler = new SdwcOobHandler();
+      Feed(handler, terminal, " dome-client-user");
+
+      handler.OnDisconnected();
+      terminal.SentOutOfBandLines.Clear();
+
+      // With no provider registered, the registry returns the empty fallback without sending a request.
+      var result = await terminal.QueryProviders.Query.GetVerbsAsync(new MooObjectId(73), CancellationToken.None);
+
+      result.Should().BeEmpty();
+      terminal.SentOutOfBandLines.Should().BeEmpty();
+   }
+
+   [Fact]
+   public void OnDisconnected_ThenCapabilitySignal_ReRegistersFreshProvider()
+   {
+      var terminal = new FakeSdwcTerminal();
+      var handler = new SdwcOobHandler();
+      Feed(handler, terminal, " dome-client-user");
+
+      handler.OnDisconnected();
+      handler.Provider.Should().BeNull();
+
+      var registrations = 0;
+      terminal.QueryProviders.ProvidersChanged += (_, _) => registrations++;
+
+      // Reconnect: the next capability signal must register a fresh provider again.
+      Feed(handler, terminal, " dome-client-user");
+
+      registrations.Should().Be(1);
+      handler.Provider.Should().NotBeNull();
+   }
+
+   [Fact]
+   public void OnDisconnected_CalledTwice_DoesNotThrow()
+   {
+      var terminal = new FakeSdwcTerminal();
+      var handler = new SdwcOobHandler();
+      Feed(handler, terminal, " dome-client-user");
+
+      handler.OnDisconnected();
+      Action act = () => handler.OnDisconnected();
+      act.Should().NotThrow();
+   }
+
+   [Fact]
+   public async Task Dispose_FaultsInFlightQueryAndUnregistersProvider()
+   {
+      var terminal = new FakeSdwcTerminal();
+      var handler = new SdwcOobHandler(requestTimeout: TimeSpan.FromSeconds(30));
+      Feed(handler, terminal, " dome-client-user");
+
+      var inFlight = terminal.QueryProviders.Query.GetVerbsAsync(new MooObjectId(73), CancellationToken.None);
+
+      handler.Dispose();
+
+      var act = async () => await inFlight;
+      await act.Should().ThrowAsync<QueryConnectionClosedException>();
+
+      terminal.SentOutOfBandLines.Clear();
+      var result = await terminal.QueryProviders.Query.GetVerbsAsync(new MooObjectId(73), CancellationToken.None);
+      result.Should().BeEmpty();
+      terminal.SentOutOfBandLines.Should().BeEmpty();
+   }
 }

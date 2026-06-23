@@ -1,4 +1,5 @@
 using FluentAssertions;
+using Org.Edgerunner.Mud.Common.Querying;
 using Org.Edgerunner.Mud.MCP.Exceptions;
 using Org.Edgerunner.Mud.MCP.Packages;
 using Xunit;
@@ -69,5 +70,82 @@ public class McpQueryCorrelatorTests
 
       correlator.Complete("1", "{}").Should().BeTrue();
       correlator.Complete("1", "{}").Should().BeFalse();
+   }
+
+   [Fact]
+   public async Task FaultAll_FaultsEveryPendingTaskWithGivenException()
+   {
+      var correlator = new McpQueryCorrelator();
+      var first = correlator.CreatePending("1");
+      var second = correlator.CreatePending("2");
+
+      var boom = new InvalidOperationException("boom");
+      correlator.FaultAll(boom);
+
+      var firstAct = async () => await first;
+      var secondAct = async () => await second;
+      (await firstAct.Should().ThrowAsync<InvalidOperationException>()).Which.Should().BeSameAs(boom);
+      (await secondAct.Should().ThrowAsync<InvalidOperationException>()).Which.Should().BeSameAs(boom);
+   }
+
+   [Fact]
+   public async Task FaultAll_LeavesCorrelatorReusable()
+   {
+      var correlator = new McpQueryCorrelator();
+      correlator.CreatePending("1");
+
+      correlator.FaultAll(new QueryConnectionClosedException());
+
+      // Still usable: a fresh pending registers and completes normally.
+      var next = correlator.CreatePending("2");
+      correlator.Complete("2", "{\"d\":[]}").Should().BeTrue();
+      (await next).Should().Be("{\"d\":[]}");
+   }
+
+   [Fact]
+   public async Task Dispose_FaultsPendingTasksWithQueryConnectionClosedException()
+   {
+      var correlator = new McpQueryCorrelator();
+      var pending = correlator.CreatePending("1");
+
+      correlator.Dispose();
+
+      var act = async () => await pending;
+      await act.Should().ThrowAsync<QueryConnectionClosedException>();
+   }
+
+   [Fact]
+   public async Task CreatePending_AfterDispose_ReturnsAlreadyFaultedTask()
+   {
+      var correlator = new McpQueryCorrelator();
+      correlator.Dispose();
+
+      var pending = correlator.CreatePending("1");
+
+      pending.IsFaulted.Should().BeTrue();
+      var act = async () => await pending;
+      await act.Should().ThrowAsync<QueryConnectionClosedException>();
+   }
+
+   [Fact]
+   public void CompleteAndRemove_AfterDispose_AreSafeNoOps()
+   {
+      var correlator = new McpQueryCorrelator();
+      correlator.Dispose();
+
+      correlator.Complete("1", "{}").Should().BeFalse();
+      correlator.CompleteError("1", new McpQueryErrorException("E_PERM", "x")).Should().BeFalse();
+      var act = () => correlator.Remove("1");
+      act.Should().NotThrow();
+   }
+
+   [Fact]
+   public void Dispose_Twice_DoesNotThrow()
+   {
+      var correlator = new McpQueryCorrelator();
+      correlator.Dispose();
+
+      var act = () => correlator.Dispose();
+      act.Should().NotThrow();
    }
 }

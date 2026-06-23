@@ -41,7 +41,7 @@ namespace Org.Edgerunner.Mud.Communication.OutOfBand;
 /// Extends the <see cref="IMessageProtocolProcessor" />
 /// </summary>
 /// <seealso cref="IMessageProtocolProcessor" />
-public interface IOutOfBandMessageProcessor : IMessageProtocolProcessor
+public interface IOutOfBandMessageProcessor : IMessageProtocolProcessor, IDisposable
 {
     /// <summary>
     /// Registers the handler.

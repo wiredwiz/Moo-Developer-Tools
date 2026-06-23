@@ -90,6 +90,25 @@ public class OutOfBandMessageProcessor : IOutOfBandMessageProcessor
     }
 
     /// <summary>
+    /// Notifies every registered handler that the connection has closed, cascading the deterministic,
+    /// reuse-safe teardown to each.
+    /// </summary>
+    public void OnDisconnected()
+    {
+        foreach (var handler in Handlers)
+            handler.OnDisconnected();
+    }
+
+    /// <summary>
+    /// Disposes every registered handler (final teardown safety net). Safe to call more than once.
+    /// </summary>
+    public void Dispose()
+    {
+        foreach (var handler in Handlers)
+            handler.Dispose();
+    }
+
+    /// <summary>
     /// Gets the out of band handlers.
     /// </summary>
     /// <value>The handlers.</value>

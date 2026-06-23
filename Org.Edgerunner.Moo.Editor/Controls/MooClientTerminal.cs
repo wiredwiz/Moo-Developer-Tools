@@ -757,6 +757,13 @@ namespace Org.Edgerunner.Moo.Editor.Controls
       {
          _LoggedInConnection = false;
          Debug.WriteLine("** Session was closed **");
+
+         // Deterministic, reuse-safe teardown of world query providers: unregister providers and fault
+         // any in-flight queries with QueryConnectionClosedException so they fail fast instead of
+         // burning their full bounded timeout against the now-dead terminal. The sources remain
+         // re-registerable on the next negotiation / capability signal after a reconnect.
+         MessageProcessor?.OnDisconnected();
+
          if (IsHandleCreated)
             consoleSim.WriteLine("** Connection closed **");
       }
@@ -776,6 +783,11 @@ namespace Org.Edgerunner.Moo.Editor.Controls
          {
             Debug.WriteLine(ex);
          }
+
+         // Final teardown safety net: dispose the message-processor chain (OOB handlers → packages →
+         // correlators) so any in-flight query is faulted and every query provider is unregistered even
+         // if Session_Closed never fired (abnormal teardown or app exit).
+         MessageProcessor?.Dispose();
       }
 
       private void OnScrollTimerTick(object sender, EventArgs e)

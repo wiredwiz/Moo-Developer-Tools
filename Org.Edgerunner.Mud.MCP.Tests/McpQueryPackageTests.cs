@@ -227,4 +227,89 @@ public class McpQueryPackageTests
 
       package.ProcessMessage(terminal, emptyTagReply).Should().BeTrue();
    }
+
+   // udd-bju: disconnect teardown faults in-flight queries and unregisters the dead provider.
+   [Fact]
+   public async Task OnDisconnected_FaultsInFlightQueryWithQueryConnectionClosedException()
+   {
+      // Generous timeout so a fault — not a timeout — is what completes the query.
+      var package = new McpQueryPackage(TimeSpan.FromSeconds(30));
+      var terminal = new FakeQueryTerminal();
+      package.SetSession(CreateSession());
+      package.OnPackageSupported(terminal);
+
+      var inFlight = terminal.QueryProviders.Query.GetVerbsAsync(new MooObjectId(123), CancellationToken.None);
+      terminal.SentOutOfBandLines.Should().ContainSingle(); // request went out
+
+      package.OnDisconnected();
+
+      var act = async () => await inFlight;
+      await act.Should().ThrowAsync<QueryConnectionClosedException>();
+   }
+
+   [Fact]
+   public async Task OnDisconnected_UnregistersProvider_SoRegistryNoLongerRoutesToIt()
+   {
+      var (package, terminal) = CreateRegisteredPackage();
+
+      package.OnDisconnected();
+      terminal.SentOutOfBandLines.Clear();
+
+      // With no provider registered, the registry returns the empty fallback without sending a request.
+      var result = await terminal.QueryProviders.Query.GetVerbsAsync(new MooObjectId(123), CancellationToken.None);
+
+      result.Should().BeEmpty();
+      terminal.SentOutOfBandLines.Should().BeEmpty();
+   }
+
+   [Fact]
+   public void OnDisconnected_ThenReNegotiate_ReRegistersFreshProvider()
+   {
+      var package = new McpQueryPackage();
+      var terminal = new FakeQueryTerminal();
+      package.SetSession(CreateSession("KEY-A"));
+      package.OnPackageSupported(terminal);
+
+      package.OnDisconnected();
+
+      var registrations = 0;
+      terminal.QueryProviders.ProvidersChanged += (_, _) => registrations++;
+
+      // Reconnect / re-negotiation: a fresh provider must register again.
+      package.SetSession(CreateSession("KEY-B"));
+      package.OnPackageSupported(terminal);
+
+      registrations.Should().Be(1);
+   }
+
+   [Fact]
+   public void OnDisconnected_CalledTwice_DoesNotThrow()
+   {
+      var (package, _) = CreateRegisteredPackage();
+
+      package.OnDisconnected();
+      Action act = () => package.OnDisconnected();
+      act.Should().NotThrow();
+   }
+
+   [Fact]
+   public async Task Dispose_FaultsInFlightQueryAndUnregistersProvider()
+   {
+      var package = new McpQueryPackage(TimeSpan.FromSeconds(30));
+      var terminal = new FakeQueryTerminal();
+      package.SetSession(CreateSession());
+      package.OnPackageSupported(terminal);
+
+      var inFlight = terminal.QueryProviders.Query.GetVerbsAsync(new MooObjectId(123), CancellationToken.None);
+
+      package.Dispose();
+
+      var act = async () => await inFlight;
+      await act.Should().ThrowAsync<QueryConnectionClosedException>();
+
+      terminal.SentOutOfBandLines.Clear();
+      var result = await terminal.QueryProviders.Query.GetVerbsAsync(new MooObjectId(123), CancellationToken.None);
+      result.Should().BeEmpty();
+      terminal.SentOutOfBandLines.Should().BeEmpty();
+   }
 }

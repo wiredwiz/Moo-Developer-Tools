@@ -60,4 +60,11 @@ public interface IMessageProtocolProcessor
     /// Resets this instance.
     /// </summary>
     void Reset();
+
+    /// <summary>
+    /// Notifies this processor that the underlying connection has closed, allowing it to tear down any
+    /// connection-scoped state (such as query providers and in-flight requests) while remaining reusable
+    /// for the next connection. Processors with no such state implement this as a no-op.
+    /// </summary>
+    void OnDisconnected();
 }

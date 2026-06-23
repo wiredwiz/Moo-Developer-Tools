@@ -36,6 +36,13 @@
 
 namespace Org.Edgerunner.Mud.Communication.OutOfBand;
 
-public interface IOutOfBandMessageHandler : IMessageProtocolProcessor
+public interface IOutOfBandMessageHandler : IMessageProtocolProcessor, IDisposable
 {
+    /// <summary>
+    /// Notifies the handler that the underlying connection has closed. Handlers that own query
+    /// providers or pending requests use this to unregister their provider and fault any in-flight
+    /// requests, while remaining reusable for the next connection. Handlers with no such state
+    /// implement this as a no-op.
+    /// </summary>
+    void OnDisconnected();
 }

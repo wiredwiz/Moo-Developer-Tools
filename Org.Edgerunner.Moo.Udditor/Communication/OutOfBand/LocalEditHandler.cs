@@ -177,4 +177,16 @@ public class LocalEditHandler : IOutOfBandMessageHandler
       DocumentName = string.Empty;
       DocumentSource.Clear();
    }
+
+   /// <inheritdoc/>
+   public void OnDisconnected()
+   {
+      // No query providers or pending requests to tear down.
+   }
+
+   /// <inheritdoc/>
+   public void Dispose()
+   {
+      // Nothing to release.
+   }
 }

@@ -121,4 +121,10 @@ public class McpNegotiatePackage : IMcpPackage
 
    /// <inheritdoc/>
    public void Reset() { }
+
+   /// <inheritdoc/>
+   public void OnDisconnected() { }
+
+   /// <inheritdoc/>
+   public void Dispose() { }
 }
