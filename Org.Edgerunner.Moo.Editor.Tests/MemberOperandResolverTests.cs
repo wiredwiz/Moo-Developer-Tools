@@ -106,6 +106,46 @@ public class MemberOperandResolverTests
       name.Should().BeEmpty();
    }
 
+   // TryGetCurrentPlayerOperand tests
+
+   [Theory]
+   [InlineData(MemberContextKind.Verb, "player")]
+   [InlineData(MemberContextKind.Verb, "caller")]
+   [InlineData(MemberContextKind.Property, "player")]
+   [InlineData(MemberContextKind.Property, "caller")]
+   public void TryGetCurrentPlayerOperand_returns_true_for_player_or_caller_in_member_context(
+      MemberContextKind kind, string operand)
+   {
+      var context = new MemberCompletionContext(kind, operand);
+
+      MemberOperandResolver.TryGetCurrentPlayerOperand(context).Should().BeTrue();
+   }
+
+   [Theory]
+   [InlineData(MemberContextKind.Verb, "this")]
+   [InlineData(MemberContextKind.Verb, "me")]
+   [InlineData(MemberContextKind.Verb, "foo")]
+   [InlineData(MemberContextKind.Verb, "$player")]
+   [InlineData(MemberContextKind.Verb, "#5")]
+   [InlineData(MemberContextKind.CoreReference, "player")]
+   [InlineData(MemberContextKind.None, "player")]
+   public void TryGetCurrentPlayerOperand_returns_false_otherwise(MemberContextKind kind, string operand)
+   {
+      var context = new MemberCompletionContext(kind, operand);
+
+      MemberOperandResolver.TryGetCurrentPlayerOperand(context).Should().BeFalse();
+   }
+
+   [Fact]
+   public void Resolve_player_and_caller_still_return_null_for_async_resolution()
+   {
+      var playerContext = new MemberCompletionContext(MemberContextKind.Verb, "player");
+      var callerContext = new MemberCompletionContext(MemberContextKind.Property, "caller");
+
+      MemberOperandResolver.Resolve(playerContext, new MooObjectId(42)).Should().BeNull();
+      MemberOperandResolver.Resolve(callerContext, new MooObjectId(42)).Should().BeNull();
+   }
+
    [Fact]
    public void TryGetCoreName_returns_false_for_dollar_with_leading_digit()
    {

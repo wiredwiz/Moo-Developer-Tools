@@ -18,6 +18,8 @@ public class FakeQueryProvider : IMooWorldQueryProvider
 
     public Func<MooObjectId, Task<MooObjectId?>>? OnGetParent { get; set; }
 
+    public Func<Task<MooObjectId?>>? OnGetCurrentPlayer { get; set; }
+
     public Func<MooObjectId, string, Task<MooVerbCode?>>? OnGetVerbCode { get; set; }
 
     public Func<MooObjectId, string, Task<MooVerbDocumentation?>>? OnGetVerbDocumentation { get; set; }
@@ -40,6 +42,19 @@ public class FakeQueryProvider : IMooWorldQueryProvider
     /// Gets the number of times the owner <see cref="GetOwnedObjectsAsync(MooObjectId, CancellationToken)"/> overload has been invoked.
     /// </summary>
     public int GetOwnedObjectsForOwnerCallCount { get; private set; }
+
+    /// <summary>
+    /// Gets the number of times <see cref="GetCurrentPlayerAsync"/> has been invoked.
+    /// </summary>
+    public int GetCurrentPlayerCallCount { get; private set; }
+
+    public Task<MooObjectId?> GetCurrentPlayerAsync(CancellationToken cancellationToken)
+    {
+        GetCurrentPlayerCallCount++;
+        if (OnGetCurrentPlayer == null)
+            throw new NotImplementedException();
+        return OnGetCurrentPlayer();
+    }
 
     public Task<IReadOnlyList<MooObjectSummary>> GetCoreObjectsAsync(CancellationToken cancellationToken)
     {

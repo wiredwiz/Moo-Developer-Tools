@@ -95,6 +95,33 @@ public class McpQueryProviderTests
    }
 
    [Fact]
+   public async Task GetCurrentPlayerAsync_SendsTagOnlyRequest_AndMapsReply()
+   {
+      var (provider, correlator, terminal) = CreateProvider();
+
+      var task = provider.GetCurrentPlayerAsync(CancellationToken.None);
+
+      terminal.SentOutOfBandLines.Should().ContainSingle()
+         .Which.Should().Be("edgerunner-org-moo-query-player KEY123 tag: 1");
+
+      correlator.Complete("1", "{\"p\":62}");
+      var result = await task;
+
+      result.Should().Be(new MooObjectId(62));
+   }
+
+   [Fact]
+   public async Task GetCurrentPlayerAsync_MapsNegativeToNull()
+   {
+      var (provider, correlator, _) = CreateProvider();
+
+      var task = provider.GetCurrentPlayerAsync(CancellationToken.None);
+      correlator.Complete("1", "{\"p\":-1}");
+
+      (await task).Should().BeNull();
+   }
+
+   [Fact]
    public async Task GetParentAsync_MapsMinusOneToNull()
    {
       var (provider, correlator, terminal) = CreateProvider();

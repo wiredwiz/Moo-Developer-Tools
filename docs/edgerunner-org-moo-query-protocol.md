@@ -82,6 +82,7 @@ All names below are suffixes of `edgerunner-org-moo-query`. Every request also c
 | Request | Params | Reply | JSON payload |
 |---|---|---|---|
 | `-core-objects` | — | `-core-objects-reply` | `{"d":[[num,name,[aliases]],…]}` — one row per object referenced by a `#0` property (`$`-registered), deduped, valid objects only |
+| `-player` | — | `-player-reply` | `{"p":num}` — the object number of the player connected on this session (`toint(session.connection)`); `-1` = none |
 | `-children` | `object` | `-children-reply` | `{"d":[[num,name,[aliases]],…]}` — immediate children |
 | `-owned` | `owner` | `-owned-reply` | `{"d":[[num,name,[aliases]],…]}` — from the target's `.owned_objects` bookkeeping; a core without that property answers `-error E_INVARG` (servers MUST NOT fall back to a DB walk) |
 | `-parent` | `object` | `-parent-reply` | `{"p":num}`; `-1` = no parent |
@@ -119,6 +120,13 @@ C→S: #$#edgerunner-org-moo-query-owned K7% tag: 14 owner: ""
 S→C: #$#edgerunner-org-moo-query-owned-reply K7% tag: "14" data*: "" _data-tag: 9913
      #$#* 9913 data: {"d":[[101,"my room",["room"]],[102,"hat",[]]]}
      #$#: 9913
+```
+
+```
+C→S: #$#edgerunner-org-moo-query-player K7% tag: 15
+S→C: #$#edgerunner-org-moo-query-player-reply K7% tag: "15" data*: "" _data-tag: 9914
+     #$#* 9914 data: {"p":62}
+     #$#: 9914
 ```
 
 ## 6. Errors

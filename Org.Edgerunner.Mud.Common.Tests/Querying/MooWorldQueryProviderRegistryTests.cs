@@ -241,6 +241,60 @@ public class MooWorldQueryProviderRegistryTests
     }
 
     [Fact]
+    public async Task GetCurrentPlayer_HigherPriorityProvider_AnswersFirst()
+    {
+        var low = new FakeQueryProvider
+        {
+            OnGetCurrentPlayer = () => Task.FromResult<MooObjectId?>(new MooObjectId(1)),
+        };
+        var high = new FakeQueryProvider
+        {
+            OnGetCurrentPlayer = () => Task.FromResult<MooObjectId?>(new MooObjectId(2)),
+        };
+
+        var registry = new MooWorldQueryProviderRegistry();
+        registry.Register(low, 1);
+        registry.Register(high, 10);
+
+        var result = await registry.GetCurrentPlayerAsync(CancellationToken.None);
+
+        result.Should().Be(new MooObjectId(2));
+        low.GetCurrentPlayerCallCount.Should().Be(0);
+        high.GetCurrentPlayerCallCount.Should().Be(1);
+    }
+
+    [Fact]
+    public async Task GetCurrentPlayer_NotImplementedException_FallsThroughToNextProvider()
+    {
+        var unsupported = new FakeQueryProvider();
+        var supported = new FakeQueryProvider
+        {
+            OnGetCurrentPlayer = () => Task.FromResult<MooObjectId?>(new MooObjectId(62)),
+        };
+
+        var registry = new MooWorldQueryProviderRegistry();
+        registry.Register(unsupported, 10);
+        registry.Register(supported, 1);
+
+        var result = await registry.GetCurrentPlayerAsync(CancellationToken.None);
+
+        result.Should().Be(new MooObjectId(62));
+        unsupported.GetCurrentPlayerCallCount.Should().Be(1);
+        supported.GetCurrentPlayerCallCount.Should().Be(1);
+    }
+
+    [Fact]
+    public async Task GetCurrentPlayer_Exhaustion_ReturnsNull()
+    {
+        var registry = new MooWorldQueryProviderRegistry();
+        registry.Register(new FakeQueryProvider(), 1); // unsupported
+
+        var result = await registry.GetCurrentPlayerAsync(CancellationToken.None);
+
+        result.Should().BeNull();
+    }
+
+    [Fact]
     public async Task GetVerbDocumentation_NotImplementedException_FallsThroughToNextProvider()
     {
         var queried = new MooObjectId(5);

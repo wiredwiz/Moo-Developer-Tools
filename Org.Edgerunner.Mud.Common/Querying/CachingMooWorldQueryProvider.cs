@@ -61,6 +61,9 @@ public class CachingMooWorldQueryProvider : IMooWorldQueryProvider, IDisposable
       /// <summary>The <see cref="IMooWorldQueryProvider.GetChildrenAsync"/> operation.</summary>
       GetChildren,
 
+      /// <summary>The <see cref="IMooWorldQueryProvider.GetCurrentPlayerAsync"/> operation.</summary>
+      GetCurrentPlayer,
+
       /// <summary>The current-player overload of <see cref="IMooWorldQueryProvider.GetOwnedObjectsAsync(CancellationToken)"/>.</summary>
       OwnedObjectsForPlayer,
 
@@ -210,6 +213,16 @@ public class CachingMooWorldQueryProvider : IMooWorldQueryProvider, IDisposable
       return GetOrAddAsync(
          new CacheKey(Operation.GetCoreObjects, MooObjectId.Nothing, null),
          () => _inner.GetCoreObjectsAsync(cancellationToken));
+   }
+
+   /// <inheritdoc/>
+   public Task<MooObjectId?> GetCurrentPlayerAsync(CancellationToken cancellationToken)
+   {
+      // The connected player is stable for the life of a connection, so there is no owner/object id
+      // to key by (MooObjectId.Nothing as a placeholder). It is dropped only by Clear()/ProvidersChanged.
+      return GetOrAddAsync(
+         new CacheKey(Operation.GetCurrentPlayer, MooObjectId.Nothing, null),
+         () => _inner.GetCurrentPlayerAsync(cancellationToken));
    }
 
    /// <inheritdoc/>

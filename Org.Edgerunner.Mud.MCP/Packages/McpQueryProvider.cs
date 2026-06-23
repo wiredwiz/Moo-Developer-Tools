@@ -101,6 +101,15 @@ public sealed class McpQueryProvider : IMooWorldQueryProvider
          cancellationToken);
 
    /// <inheritdoc/>
+   public Task<MooObjectId?> GetCurrentPlayerAsync(CancellationToken cancellationToken) =>
+      QueryAsync<MooObjectId?>(
+         "player",
+         new Dictionary<string, string>(),
+         McpQueryMapping.MapCurrentPlayer,
+         null,
+         cancellationToken);
+
+   /// <inheritdoc/>
    public Task<IReadOnlyList<MooObjectSummary>> GetChildrenAsync(MooObjectId objectId, CancellationToken cancellationToken) =>
       QueryAsync<IReadOnlyList<MooObjectSummary>>(
          "children",

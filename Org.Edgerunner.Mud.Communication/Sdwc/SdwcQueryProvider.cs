@@ -161,6 +161,12 @@ public sealed class SdwcQueryProvider : IMooWorldQueryProvider
    }
 
    /// <inheritdoc/>
+   public Task<MooObjectId?> GetCurrentPlayerAsync(CancellationToken cancellationToken)
+   {
+      throw new NotImplementedException();
+   }
+
+   /// <inheritdoc/>
    public Task<IReadOnlyList<MooObjectSummary>> GetChildrenAsync(MooObjectId objectId, CancellationToken cancellationToken)
    {
       throw new NotImplementedException();

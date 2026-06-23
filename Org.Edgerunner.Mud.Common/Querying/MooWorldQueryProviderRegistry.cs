@@ -166,6 +166,12 @@ public class MooWorldQueryProviderRegistry : IMooWorldQueryProvider
    }
 
    /// <inheritdoc/>
+   public Task<MooObjectId?> GetCurrentPlayerAsync(CancellationToken cancellationToken)
+   {
+      return QueryAsync<MooObjectId?>(p => p.GetCurrentPlayerAsync(cancellationToken), null);
+   }
+
+   /// <inheritdoc/>
    public Task<IReadOnlyList<MooObjectSummary>> GetChildrenAsync(MooObjectId objectId, CancellationToken cancellationToken)
    {
       return QueryAsync(p => p.GetChildrenAsync(objectId, cancellationToken), Array.Empty<MooObjectSummary>());

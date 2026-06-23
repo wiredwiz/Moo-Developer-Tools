@@ -56,6 +56,13 @@ public interface IMooWorldQueryProvider
    Task<IReadOnlyList<MooObjectSummary>> GetCoreObjectsAsync(CancellationToken cancellationToken);
 
    /// <summary>
+   /// Gets the object id of the player currently connected on this session.
+   /// </summary>
+   /// <param name="cancellationToken">The cancellation token.</param>
+   /// <returns>The connected player's <see cref="MooObjectId"/>, or <c>null</c> if unknown or unsupported.</returns>
+   Task<MooObjectId?> GetCurrentPlayerAsync(CancellationToken cancellationToken);
+
+   /// <summary>
    /// Gets the immediate children of the specified object.
    /// </summary>
    /// <param name="objectId">The object id.</param>

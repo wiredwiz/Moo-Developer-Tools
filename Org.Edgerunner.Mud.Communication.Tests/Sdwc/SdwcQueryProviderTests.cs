@@ -130,6 +130,7 @@ public class SdwcQueryProviderTests
       var ct = CancellationToken.None;
 
       await ((Func<Task>)(() => provider.GetCoreObjectsAsync(ct))).Should().ThrowAsync<NotImplementedException>();
+      await ((Func<Task>)(() => provider.GetCurrentPlayerAsync(ct))).Should().ThrowAsync<NotImplementedException>();
       await ((Func<Task>)(() => provider.GetChildrenAsync(id, ct))).Should().ThrowAsync<NotImplementedException>();
       await ((Func<Task>)(() => provider.GetOwnedObjectsAsync(ct))).Should().ThrowAsync<NotImplementedException>();
       await ((Func<Task>)(() => provider.GetOwnedObjectsAsync(id, ct))).Should().ThrowAsync<NotImplementedException>();

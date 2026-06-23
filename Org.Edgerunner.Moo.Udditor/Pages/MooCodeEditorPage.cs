@@ -388,8 +388,9 @@ public class MooCodeEditorPage : MooEditorPage
         return $"=> {literal}";
     }
 
-    // Resolves a hover operand to its object id: "this" -> ContextObjectId; "#123" -> that object;
-    // "$name" -> #0.name's object value (async). Returns null when not statically resolvable.
+    // Resolves a hover operand to its object id: "this" -> ContextObjectId; "player"/"caller" ->
+    // the connected player object (async); "#123" -> that object; "$name" -> #0.name's object value
+    // (async). Returns null when not statically resolvable.
     private async Task<MooObjectId?> ResolveHoverOperandAsync(
         string operand, IMooWorldQueryProvider provider, CancellationToken cancellationToken)
     {
@@ -397,6 +398,8 @@ public class MooCodeEditorPage : MooEditorPage
             return null;
         if (operand == "this")
             return ContextObjectId;
+        if (operand is "player" or "caller")
+            return await provider.GetCurrentPlayerAsync(cancellationToken);
         if (operand[0] == '#' && int.TryParse(operand.AsSpan(1), out var number))
             return new MooObjectId(number);
         if (operand[0] == '$')

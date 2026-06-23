@@ -127,6 +127,18 @@ public static class McpQueryMapping
    }
 
    /// <summary>
+   /// Maps a <c>{"p":num}</c> payload to the connected player id; a negative number means no player.
+   /// </summary>
+   /// <param name="json">The reply JSON.</param>
+   /// <returns>The player <see cref="MooObjectId"/>, or <c>null</c> when no valid player is connected.</returns>
+   public static MooObjectId? MapCurrentPlayer(string json)
+   {
+      using var document = JsonDocument.Parse(json);
+      var number = document.RootElement.GetProperty("p").GetInt32();
+      return number < 0 ? null : new MooObjectId(number);
+   }
+
+   /// <summary>
    /// Maps a <c>{"d":[["g*et put",1],…]}</c> payload to verb summaries of the queried object.
    /// Each row may be a 2-element <c>["name", 1|0]</c> array (1 = local to the queried object,
    /// 0 = inherited) or, for an older server, a bare <c>"name"</c> string (origin unknown).

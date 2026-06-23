@@ -15,10 +15,20 @@ public class MemberCompletionControllerTests
       public int VerbCalls;
       public int PropertyCalls;
       public int PropValueCalls;
+      public int CurrentPlayerCalls;
       public MooObjectId? LastVerbQueryObjectId;
       public TaskCompletionSource? Gate;
       public Exception? ThrowOnVerbs;
+      public MooObjectId? CurrentPlayer;
       public Dictionary<string, MooPropertyValue?> PropertyValues { get; } = new(StringComparer.OrdinalIgnoreCase);
+
+      public async Task<MooObjectId?> GetCurrentPlayerAsync(CancellationToken cancellationToken)
+      {
+         Interlocked.Increment(ref CurrentPlayerCalls);
+         if (Gate is not null)
+            await Gate.Task.WaitAsync(cancellationToken);
+         return CurrentPlayer;
+      }
 
       public async Task<IReadOnlyList<MooVerbSummary>> GetVerbsAsync(MooObjectId objectId, CancellationToken cancellationToken)
       {
@@ -520,6 +530,76 @@ public class MemberCompletionControllerTests
 
       controller.GetMemberItems("this:").Select(i => i.Text).Should().Contain("get",
          "after draining the retry lambda the cache should be populated");
+   }
+
+   // player / caller (current-player) operand tests
+
+   [Theory]
+   [InlineData("player:")]
+   [InlineData("caller:")]
+   public void CurrentPlayer_verb_context_resolves_via_query_and_fetches_verbs(string linePrefix)
+   {
+      var provider = new FakeQueryProvider { CurrentPlayer = new MooObjectId(62) };
+      provider.Verbs.Add(new MooVerbSummary(new[] { "tell" }, new MooObjectId(62)));
+      using var controller = CreateController(provider);
+
+      controller.GetMemberItems(linePrefix).Should().BeEmpty("first call only starts the resolve");
+      WaitForCache(controller, linePrefix);
+
+      var items = controller.GetMemberItems(linePrefix);
+      items.Select(i => i.Text).Should().Contain("tell");
+      items.Should().AllSatisfy(i => i.ImageIndex.Should().Be((int)CompletionIconCategory.Verb));
+      provider.CurrentPlayerCalls.Should().Be(1);
+      provider.VerbCalls.Should().Be(1);
+      provider.LastVerbQueryObjectId.Should().Be(new MooObjectId(62));
+   }
+
+   [Fact]
+   public void CurrentPlayer_property_context_resolves_and_fetches_properties_with_property_icon()
+   {
+      var provider = new FakeQueryProvider { CurrentPlayer = new MooObjectId(62) };
+      provider.Properties.Add(new MooPropertySummary("name", new MooObjectId(62)));
+      using var controller = CreateController(provider);
+
+      controller.GetMemberItems("player.");
+      WaitForCache(controller, "player.");
+
+      var items = controller.GetMemberItems("player.");
+      items.Select(i => i.Text).Should().Contain("name");
+      items.Should().AllSatisfy(i => i.ImageIndex.Should().Be((int)CompletionIconCategory.Property));
+   }
+
+   [Fact]
+   public void CurrentPlayer_resolution_is_cached_so_player_query_not_repeated()
+   {
+      var provider = new FakeQueryProvider { CurrentPlayer = new MooObjectId(62) };
+      provider.Verbs.Add(new MooVerbSummary(new[] { "tell" }, new MooObjectId(62)));
+      provider.Properties.Add(new MooPropertySummary("name", new MooObjectId(62)));
+      using var controller = CreateController(provider);
+
+      // Resolve the verb context first (caches the player id).
+      controller.GetMemberItems("player:");
+      WaitForCache(controller, "player:");
+
+      // caller maps to the same current player; the cached id must avoid a second query.
+      controller.GetMemberItems("caller.");
+      SpinWait.SpinUntil(() => controller.GetMemberItems("caller.").Count > 0, TimeSpan.FromSeconds(5));
+
+      provider.CurrentPlayerCalls.Should().Be(1, "the current-player cache should prevent a second player query");
+   }
+
+   [Fact]
+   public void CurrentPlayer_null_result_yields_empty_and_no_member_fetch()
+   {
+      var provider = new FakeQueryProvider { CurrentPlayer = null };
+      using var controller = CreateController(provider);
+
+      controller.GetMemberItems("player:");
+      Thread.Sleep(250); // allow the resolve to finish
+
+      controller.GetMemberItems("player:").Should().BeEmpty();
+      provider.VerbCalls.Should().Be(0);
+      provider.PropertyCalls.Should().Be(0);
    }
 
    // Inherited-member origin tests

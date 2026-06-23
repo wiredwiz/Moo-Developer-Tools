@@ -100,9 +100,13 @@ public sealed class MemberCompletionController : IDisposable
    private readonly Dictionary<string, (MooObjectId Id, DateTime CreatedUtc)> _coreNameCache =
       new(StringComparer.OrdinalIgnoreCase);
 
+   private (MooObjectId Id, DateTime CreatedUtc)? _currentPlayerCache;
+
    private (MemberContextKind Kind, int ObjectNumber)? _inflightKey;
 
    private (MemberContextKind Kind, string Name)? _inflightCoreName;
+
+   private MemberContextKind? _inflightCurrentPlayer;
 
    private CancellationTokenSource? _fetchCancellation;
 
@@ -154,6 +158,42 @@ public sealed class MemberCompletionController : IDisposable
          return Array.Empty<AutocompleteItem>();
 
       var objectId = MemberOperandResolver.Resolve(context, _contextObjectAccessor());
+
+      if (objectId is null && MemberOperandResolver.TryGetCurrentPlayerOperand(context))
+      {
+         // player/caller resolve to the connected player object (queried once, then cached for the
+         // connection's life using the same TTL as the core-name cache).
+         lock (_stateLock)
+         {
+            if (_disposed)
+               return Array.Empty<AutocompleteItem>();
+
+            // Check if the current player is already resolved (and not stale).
+            if (_currentPlayerCache is { } playerEntry)
+            {
+               if (DateTime.UtcNow - playerEntry.CreatedUtc < _cacheTimeToLive)
+                  objectId = playerEntry.Id;
+               else
+                  _currentPlayerCache = null;
+            }
+
+            if (objectId is null)
+            {
+               // Need to resolve the current player first.
+               var provider = _providerAccessor();
+               if (provider is null || _inflightCurrentPlayer == context.Kind)
+                  return Array.Empty<AutocompleteItem>();
+
+               var staleFetchCancellation = _fetchCancellation;
+               _fetchCancellation = new CancellationTokenSource();
+               staleFetchCancellation?.Cancel();
+               staleFetchCancellation?.Dispose();
+               _inflightCurrentPlayer = context.Kind;
+               _ = FetchCurrentPlayerAsync(provider, context.Kind, _fetchCancellation.Token);
+               return Array.Empty<AutocompleteItem>();
+            }
+         }
+      }
 
       if (objectId is null)
       {
@@ -377,6 +417,76 @@ public sealed class MemberCompletionController : IDisposable
             {
                if (InflightCoreNameMatches(inflightKey))
                   _inflightCoreName = null;
+            }
+         });
+      }
+   }
+
+   private async Task FetchCurrentPlayerAsync(
+      IMooWorldQueryProvider provider,
+      MemberContextKind kind,
+      CancellationToken cancellationToken)
+   {
+      try
+      {
+         var player = await provider.GetCurrentPlayerAsync(cancellationToken).ConfigureAwait(false);
+
+         if (player is null)
+         {
+            // Resolution failed — clear the inflight marker, do NOT cache, do NOT refresh.
+            InvokeDiagnostic("player/caller did not resolve: the server returned no current player.", null);
+            _uiMarshal(() =>
+            {
+               lock (_stateLock)
+               {
+                  if (_inflightCurrentPlayer == kind)
+                     _inflightCurrentPlayer = null;
+               }
+            });
+            return;
+         }
+
+         var resolvedId = player.Value;
+
+         // Now fetch the member list for the resolved player object.
+         IReadOnlyList<AutocompleteItem> items;
+         if (kind == MemberContextKind.Verb)
+            items = BuildVerbItems(await provider.GetVerbsAsync(resolvedId, cancellationToken).ConfigureAwait(false));
+         else
+            items = BuildPropertyItems(await provider.GetPropertiesAsync(resolvedId, cancellationToken).ConfigureAwait(false), kind);
+
+         var memberKey = (kind, resolvedId.Number);
+
+         _uiMarshal(() =>
+         {
+            lock (_stateLock)
+            {
+               // Always release the inflight marker when this fetch owns it, even if we are
+               // about to discard the results due to disposal or cancellation.  Failing to do so
+               // would leave the marker set permanently and silently suppress all future fetches.
+               if (_inflightCurrentPlayer == kind)
+                  _inflightCurrentPlayer = null;
+
+               if (_disposed || cancellationToken.IsCancellationRequested)
+                  return;
+
+               _currentPlayerCache = (resolvedId, DateTime.UtcNow);
+               _cache[memberKey] = new CacheEntry(items, DateTime.UtcNow);
+            }
+
+            _menuRefresh();
+         });
+      }
+      catch (Exception ex)
+      {
+         // Best-effort completion: any failure leaves only the static list in place.
+         InvokeDiagnostic($"Member completion fetch failed for current player (kind={kind}).", ex);
+         _uiMarshal(() =>
+         {
+            lock (_stateLock)
+            {
+               if (_inflightCurrentPlayer == kind)
+                  _inflightCurrentPlayer = null;
             }
          });
       }

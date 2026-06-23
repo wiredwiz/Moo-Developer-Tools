@@ -107,4 +107,21 @@ public static class MemberOperandResolver
       name = string.Empty;
       return false;
    }
+
+   /// <summary>
+   /// Returns <c>true</c> when the context is a Verb or Property context whose operand is the
+   /// predefined current-player variable (<c>player</c> or <c>caller</c>). Both resolve to the
+   /// connected player's object in this phase; <see cref="Resolve"/> still returns <c>null</c> for
+   /// them so the controller can resolve the player object asynchronously, mirroring the
+   /// <see cref="TryGetCoreName"/> shape.
+   /// </summary>
+   /// <param name="context">The detected member completion context.</param>
+   /// <returns><c>true</c> when the operand is <c>player</c> or <c>caller</c> in a member context.</returns>
+   public static bool TryGetCurrentPlayerOperand(MemberCompletionContext context)
+   {
+      if (context.Kind != MemberContextKind.Verb && context.Kind != MemberContextKind.Property)
+         return false;
+
+      return context.Operand is "player" or "caller";
+   }
 }
