@@ -32,6 +32,10 @@ public class RootMessageProcessorTests
       public void Reset()
       {
       }
+
+      public void OnDisconnected()
+      {
+      }
    }
 
    private const string Prefix = "#$#";

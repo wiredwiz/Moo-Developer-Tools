@@ -54,9 +54,11 @@ public readonly record struct SdwcCorrelationKey(string Marker, MooObjectId Obje
 /// the inbound OOB handler later completes (or fails) the matching entry when the server responds.
 /// Every terminal outcome (completion, failure, cancellation) removes the entry so the store cannot leak.
 /// </summary>
-public sealed class SdwcCorrelator
+public sealed class SdwcCorrelator : IDisposable
 {
    private readonly ConcurrentDictionary<SdwcCorrelationKey, TaskCompletionSource<string>> _pending = new();
+
+   private volatile bool _disposed;
 
    /// <summary>
    /// Gets the number of currently pending requests. Intended for diagnostics and tests.
@@ -72,6 +74,15 @@ public sealed class SdwcCorrelator
    public Task<string> CreatePending(SdwcCorrelationKey key)
    {
       var source = new TaskCompletionSource<string>(TaskCreationOptions.RunContinuationsAsynchronously);
+
+      // After disposal nothing more may register: hand back an already-faulted task so any straggling
+      // caller fails fast with the closed-connection error rather than hanging forever.
+      if (_disposed)
+      {
+         source.TrySetException(new QueryConnectionClosedException());
+         return source.Task;
+      }
+
       if (!_pending.TryAdd(key, source))
          throw new InvalidOperationException($"A SDWC request for '{key}' is already pending.");
 
@@ -86,6 +97,9 @@ public sealed class SdwcCorrelator
    /// <returns><c>true</c> if a pending request was matched and completed; otherwise, <c>false</c>.</returns>
    public bool Complete(SdwcCorrelationKey key, string payload)
    {
+      if (_disposed)
+         return false;
+
       if (!_pending.TryRemove(key, out var source))
          return false;
 
@@ -101,6 +115,9 @@ public sealed class SdwcCorrelator
    /// <returns><c>true</c> if a pending request was matched and failed; otherwise, <c>false</c>.</returns>
    public bool Fail(SdwcCorrelationKey key, Exception exception)
    {
+      if (_disposed)
+         return false;
+
       if (!_pending.TryRemove(key, out var source))
          return false;
 
@@ -116,6 +133,36 @@ public sealed class SdwcCorrelator
    /// <returns><c>true</c> if a pending request was removed; otherwise, <c>false</c>.</returns>
    public bool Remove(SdwcCorrelationKey key)
    {
+      if (_disposed)
+         return false;
+
       return _pending.TryRemove(key, out _);
+   }
+
+   /// <summary>
+   /// Faults every pending request with the supplied exception and clears the store. The correlator
+   /// remains usable afterward (no disposed flag is set), so the same instance can serve the next
+   /// connection. Used by the deterministic disconnect-teardown path.
+   /// </summary>
+   /// <param name="exception">The exception to fault every awaiting task with.</param>
+   public void FaultAll(Exception exception)
+   {
+      foreach (var key in _pending.Keys.ToArray())
+         if (_pending.TryRemove(key, out var source))
+            source.TrySetException(exception);
+   }
+
+   /// <summary>
+   /// Faults every pending request with a <see cref="QueryConnectionClosedException"/> and marks the
+   /// correlator disposed. After disposal, <see cref="CreatePending"/> returns an already-faulted task
+   /// and <see cref="Complete"/>/<see cref="Fail"/>/<see cref="Remove"/> become safe no-ops.
+   /// </summary>
+   public void Dispose()
+   {
+      if (_disposed)
+         return;
+
+      FaultAll(new QueryConnectionClosedException());
+      _disposed = true;
    }
 }

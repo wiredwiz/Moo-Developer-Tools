@@ -35,6 +35,7 @@
 #endregion
 
 using NLog;
+using Org.Edgerunner.Mud.Common.Querying;
 using Org.Edgerunner.Mud.Communication.Interfaces;
 using Org.Edgerunner.Mud.MCP.Exceptions;
 using Org.Edgerunner.Mud.MCP.Interfaces;
@@ -76,10 +77,18 @@ public class McpQueryPackage : IMcpPackage, IPackageNegotiationListener
    private McpQueryProvider? _provider;
 
    /// <summary>
+   /// The query registry the provider was registered into. Captured at registration time so the
+   /// disconnect/dispose paths can unregister even when no terminal reference is supplied.
+   /// </summary>
+   private MooWorldQueryService? _queryProviders;
+
+   /// <summary>
    /// The session key that was in effect when <see cref="_provider"/> was last registered.
    /// Used to detect a mid-session re-handshake that supplies a new key.
    /// </summary>
    private string? _providerKey;
+
+   private bool _disposed;
 
    /// <summary>
    /// Initializes a new instance of the <see cref="McpQueryPackage"/> class.
@@ -178,6 +187,7 @@ public class McpQueryPackage : IMcpPackage, IPackageNegotiationListener
          }
 
          _provider = new McpQueryProvider(client, _session.Key, _correlator, _timeout);
+         _queryProviders = client.QueryProviders;
          client.QueryProviders.Register(_provider, ProviderPriority);
          _providerKey = _session.Key;
       }
@@ -185,4 +195,49 @@ public class McpQueryPackage : IMcpPackage, IPackageNegotiationListener
 
    /// <inheritdoc/>
    public void Reset() { }
+
+   /// <inheritdoc/>
+   /// <remarks>
+   /// Deterministic, reuse-safe disconnect teardown fired once off <c>MudClientSession.Closed</c>.
+   /// The provider is unregistered (so a post-disconnect query no longer routes to a dead terminal),
+   /// every in-flight request is faulted with <see cref="QueryConnectionClosedException"/> rather than
+   /// being left to wait out its bounded timeout, and the registration state is cleared so the next
+   /// negotiation re-registers a fresh provider into the (possibly new) registry.
+   /// </remarks>
+   public void OnDisconnected()
+   {
+      lock (_registrationLock)
+      {
+         if (_provider != null)
+            _queryProviders?.Unregister(_provider);
+
+         _correlator.FaultAll(new QueryConnectionClosedException());
+
+         _provider = null;
+         _providerKey = null;
+         _queryProviders = null;
+      }
+   }
+
+   /// <summary>
+   /// Releases the resources used by this package. Final teardown (no reuse): the provider is
+   /// unregistered and the correlator is disposed so that any straggling request fails fast.
+   /// </summary>
+   public void Dispose()
+   {
+      lock (_registrationLock)
+      {
+         if (_disposed)
+            return;
+
+         if (_provider != null)
+            _queryProviders?.Unregister(_provider);
+
+         _provider = null;
+         _providerKey = null;
+         _queryProviders = null;
+         _correlator.Dispose();
+         _disposed = true;
+      }
+   }
 }

@@ -80,4 +80,83 @@ public class SdwcCorrelatorTests
       Action act = () => correlator.CreatePending(key);
       act.Should().Throw<InvalidOperationException>();
    }
+
+   [Fact]
+   public async Task FaultAll_FaultsEveryPendingTaskWithGivenException()
+   {
+      var correlator = new SdwcCorrelator();
+      var first = correlator.CreatePending(Key("VERBS", 1));
+      var second = correlator.CreatePending(Key("PROPS", 2));
+
+      var boom = new InvalidOperationException("boom");
+      correlator.FaultAll(boom);
+
+      var firstAct = async () => await first;
+      var secondAct = async () => await second;
+      (await firstAct.Should().ThrowAsync<InvalidOperationException>()).Which.Should().BeSameAs(boom);
+      (await secondAct.Should().ThrowAsync<InvalidOperationException>()).Which.Should().BeSameAs(boom);
+      correlator.PendingCount.Should().Be(0);
+   }
+
+   [Fact]
+   public async Task FaultAll_LeavesCorrelatorReusable()
+   {
+      var correlator = new SdwcCorrelator();
+      correlator.CreatePending(Key("VERBS", 1));
+
+      correlator.FaultAll(new QueryConnectionClosedException());
+
+      // Still usable: a fresh pending registers and completes normally.
+      var key = Key("VERBS", 2);
+      var next = correlator.CreatePending(key);
+      correlator.Complete(key, "{}").Should().BeTrue();
+      (await next).Should().Be("{}");
+   }
+
+   [Fact]
+   public async Task Dispose_FaultsPendingTasksWithQueryConnectionClosedException()
+   {
+      var correlator = new SdwcCorrelator();
+      var pending = correlator.CreatePending(Key("VERBS", 1));
+
+      correlator.Dispose();
+
+      var act = async () => await pending;
+      await act.Should().ThrowAsync<QueryConnectionClosedException>();
+   }
+
+   [Fact]
+   public async Task CreatePending_AfterDispose_ReturnsAlreadyFaultedTask()
+   {
+      var correlator = new SdwcCorrelator();
+      correlator.Dispose();
+
+      var pending = correlator.CreatePending(Key("VERBS", 1));
+
+      pending.IsFaulted.Should().BeTrue();
+      var act = async () => await pending;
+      await act.Should().ThrowAsync<QueryConnectionClosedException>();
+   }
+
+   [Fact]
+   public void CompleteFailAndRemove_AfterDispose_AreSafeNoOps()
+   {
+      var correlator = new SdwcCorrelator();
+      correlator.Dispose();
+
+      var key = Key("VERBS", 1);
+      correlator.Complete(key, "{}").Should().BeFalse();
+      correlator.Fail(key, new InvalidOperationException("x")).Should().BeFalse();
+      correlator.Remove(key).Should().BeFalse();
+   }
+
+   [Fact]
+   public void Dispose_Twice_DoesNotThrow()
+   {
+      var correlator = new SdwcCorrelator();
+      correlator.Dispose();
+
+      Action act = () => correlator.Dispose();
+      act.Should().NotThrow();
+   }
 }

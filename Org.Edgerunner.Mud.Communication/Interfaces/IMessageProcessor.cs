@@ -39,7 +39,7 @@ namespace Org.Edgerunner.Mud.Communication.Interfaces;
 /// <summary>
 /// Class responsible for processing messages and determining what to do with them.
 /// </summary>
-public interface IMessageProcessor
+public interface IMessageProcessor : IDisposable
 {
    /// <summary>
    /// Processes the message determining what action to take.
@@ -58,4 +58,11 @@ public interface IMessageProcessor
    /// The prefix for out of band messages.
    /// </value>
    public string OutOfBandPrefix { get; set; }
+
+   /// <summary>
+   /// Notifies the processor that the underlying connection has closed, so it can cascade the
+   /// deterministic, reuse-safe teardown to its out-of-band handlers (unregistering query providers
+   /// and faulting in-flight requests) while remaining reusable for the next connection.
+   /// </summary>
+   void OnDisconnected();
 }

@@ -43,7 +43,7 @@ using Org.Edgerunner.Mud.MCP.Packages;
 namespace Org.Edgerunner.Mud.MCP;
 
 /// <summary>Routes fully-assembled MCP messages to registered package handlers.</summary>
-public class McpMessageDispatcher
+public class McpMessageDispatcher : IDisposable
 {
    private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
 
@@ -98,6 +98,25 @@ public class McpMessageDispatcher
       if (packageName == null) return;
 
       _packages[packageName].ProcessMessage(client, message);
+   }
+
+   /// <summary>
+   /// Notifies every registered package that the underlying connection has closed, so each can tear
+   /// down its provider and fault in-flight requests while remaining reusable for the next connection.
+   /// </summary>
+   public void OnDisconnected()
+   {
+      foreach (var package in _packages.Values)
+         package.OnDisconnected();
+   }
+
+   /// <summary>
+   /// Disposes every registered package (final teardown). Safe to call more than once.
+   /// </summary>
+   public void Dispose()
+   {
+      foreach (var package in _packages.Values)
+         package.Dispose();
    }
 
    private void ProcessHandshake(IClientTerminal client, Message message)

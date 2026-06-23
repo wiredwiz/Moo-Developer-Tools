@@ -97,5 +97,11 @@ public class McpOobHandler : IOutOfBandMessageHandler
    }
 
    /// <inheritdoc/>
+   public void OnDisconnected() => _dispatcher.OnDisconnected();
+
+   /// <inheritdoc/>
    public void Reset() => _parser.Reset();
+
+   /// <inheritdoc/>
+   public void Dispose() => _dispatcher.Dispose();
 }

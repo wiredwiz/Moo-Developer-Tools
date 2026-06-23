@@ -103,4 +103,10 @@ public class SimpleEditPackage : IMcpPackage
 
    /// <inheritdoc/>
    public void Reset() { }
+
+   /// <inheritdoc/>
+   public void OnDisconnected() { }
+
+   /// <inheritdoc/>
+   public void Dispose() { }
 }

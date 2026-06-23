@@ -1,11 +1,11 @@
-﻿#region BSD 3-Clause License
-// <copyright company="Edgerunner.org" file="IMcpPackage.cs">
-// Copyright (c)  2022
+#region BSD 3-Clause License
+// <copyright company="Edgerunner.org" file="QueryConnectionClosedException.cs">
+// Copyright (c) Thaddeus Ryker 2026
 // </copyright>
 //
 // BSD 3-Clause License
 //
-// Copyright (c) 2022,
+// Copyright (c) 2026,
 // All rights reserved.
 //
 // Redistribution and use in source and binary forms, with or without
@@ -34,46 +34,39 @@
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #endregion
 
+namespace Org.Edgerunner.Mud.Common.Querying;
 
-namespace Org.Edgerunner.Mud.MCP.Interfaces;
-
-public interface IMcpPackage : IMcpProtocolHandler, IDisposable
+/// <summary>
+/// The exception that is thrown when a pending world query fails because the connection to the world
+/// was closed (a disconnect or session teardown), as opposed to timing out. Callers can catch this to
+/// distinguish a closed connection from a <see cref="TimeoutException"/>.
+/// </summary>
+public sealed class QueryConnectionClosedException : Exception
 {
-    /// <summary>
-    /// Gets or sets the name of the package.
-    /// </summary>
-    /// <value>
-    /// The name.
-    /// </value>
-    string Name { get; set; }
+   /// <summary>
+   /// Initializes a new instance of the <see cref="QueryConnectionClosedException"/> class.
+   /// </summary>
+   public QueryConnectionClosedException()
+      : base("The query failed because the connection to the world was closed.")
+   {
+   }
 
-    /// <summary>
-    /// Gets or sets the minimum supported package version.
-    /// </summary>
-    /// <value>
-    /// The minimum version.
-    /// </value>
-    double MinimumVersion { get; set; }
+   /// <summary>
+   /// Initializes a new instance of the <see cref="QueryConnectionClosedException"/> class.
+   /// </summary>
+   /// <param name="message">The message that describes the error.</param>
+   public QueryConnectionClosedException(string message)
+      : base(message)
+   {
+   }
 
-    /// <summary>
-    /// Gets or sets the maximum supported package version.
-    /// </summary>
-    /// <value>
-    /// The maximum version.
-    /// </value>
-    double MaximumVersion { get; set; }
-
-    /// <summary>
-    /// Sets the active MCP session on this package.
-    /// </summary>
-    /// <param name="session">The negotiated session.</param>
-    void SetSession(McpClientSession session);
-
-    /// <summary>
-    /// Notifies the package that the underlying connection has closed. Packages that own query
-    /// providers or pending requests use this to unregister their provider and fault any in-flight
-    /// requests, while leaving themselves reusable for the next connection. Provider-less packages
-    /// implement this as a no-op.
-    /// </summary>
-    void OnDisconnected();
+   /// <summary>
+   /// Initializes a new instance of the <see cref="QueryConnectionClosedException"/> class.
+   /// </summary>
+   /// <param name="message">The message that describes the error.</param>
+   /// <param name="inner">The exception that is the cause of the current exception.</param>
+   public QueryConnectionClosedException(string message, Exception inner)
+      : base(message, inner)
+   {
+   }
 }

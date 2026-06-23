@@ -22,6 +22,8 @@ public class NegotiationListenerTests
       public bool CanHandleMessage(Message message) => false;
       public bool ProcessMessage(IClientTerminal client, Message message) => false;
       public void Reset() { }
+      public void OnDisconnected() { }
+      public void Dispose() { }
 
       public void OnPackageSupported(IClientTerminal client)
       {
@@ -39,6 +41,8 @@ public class NegotiationListenerTests
       public bool CanHandleMessage(Message message) => false;
       public bool ProcessMessage(IClientTerminal client, Message message) => false;
       public void Reset() { }
+      public void OnDisconnected() { }
+      public void Dispose() { }
    }
 
    private static McpClientSession CreateSession()
