@@ -190,19 +190,20 @@ public static class CompletionIconFactory
    /// <param name="g">The graphics surface (already scaled to the 24-unit world transform).</param>
    private static void DrawInheritedBadge(Graphics g)
    {
-      // Bold up-arrow in the lower-right of the 24-unit space: a long vertical stem from the tip
-      // down, plus an arrowhead (left barb, tip, right barb) at the top. ~2x the previous size.
-      const float tipX = 17.5f, tipY = 8.5f, stemBottomY = 21.8f;
+      // Bold up-arrow in the lower-right of the 24-unit space: a vertical stem from the tip down,
+      // plus an arrowhead (left barb, tip, right barb) at the top. Sized at 75% of the bold
+      // version, anchored at the stem's bottom so it stays in the lower-right corner.
+      const float tipX = 17.5f, tipY = 11.8f, stemBottomY = 21.8f;
       var head = new[]
       {
-         new PointF(13.3f, 14.2f),
+         new PointF(14.4f, 16.1f),
          new PointF(tipX, tipY),
-         new PointF(21.7f, 14.2f),
+         new PointF(20.6f, 16.1f),
       };
 
       // Dark halo (thicker, drawn first), then the gold stroke on top. Each draws the stem then
       // the arrowhead.
-      using (var halo = new Pen(ColorTranslator.FromHtml("#202530"), 4.4f)
+      using (var halo = new Pen(ColorTranslator.FromHtml("#202530"), 3.3f)
       {
          StartCap = LineCap.Round,
          EndCap = LineCap.Round,
@@ -213,7 +214,7 @@ public static class CompletionIconFactory
          g.DrawLines(halo, head);
       }
 
-      using (var gold = new Pen(ColorTranslator.FromHtml("#FFC400"), 2.7f)
+      using (var gold = new Pen(ColorTranslator.FromHtml("#FFC400"), 2.0f)
       {
          StartCap = LineCap.Round,
          EndCap = LineCap.Round,
