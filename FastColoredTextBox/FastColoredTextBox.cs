@@ -66,6 +66,8 @@ namespace FastColoredTextBoxNS
       private readonly Timer timer = new();
       private readonly Timer timer2 = new();
       private readonly Timer timer3 = new();
+      private string _hoverTipTitle = string.Empty;
+      private string _hoverTipText = string.Empty;
       private readonly Timer blinkTimer = new();
       private readonly List<VisualMarker> visibleMarkers = new();
       public int TextHeight;
@@ -211,6 +213,9 @@ namespace FastColoredTextBoxNS
          BookmarkColor = Color.PowderBlue;
          FoldingHighlightColor = Color.LightGray;
          ToolTip = new ToolTip();
+         ToolTip.OwnerDraw = true;
+         ToolTip.Popup += HoverToolTip_Popup;
+         ToolTip.Draw += HoverToolTip_Draw;
          timer3.Interval = 100;
          blinkTimer.Interval = 100;
          hints = new Hints(this);
@@ -1975,6 +1980,8 @@ namespace FastColoredTextBoxNS
          if (ea.ToolTipText != null)
          {
             //show tooltip
+            _hoverTipTitle = ea.ToolTipTitle ?? string.Empty;
+            _hoverTipText = ea.ToolTipText ?? string.Empty;
             ToolTip.ToolTipTitle = ea.ToolTipTitle;
             ToolTip.ToolTipIcon = ea.ToolTipIcon;
             //ToolTip.SetToolTip(this, ea.ToolTipText);
@@ -1990,16 +1997,65 @@ namespace FastColoredTextBoxNS
       {
          if (ToolTip == null || string.IsNullOrEmpty(text))
             return;
+         _hoverTipTitle = title ?? string.Empty;
+         _hoverTipText = text;
          ToolTip.ToolTipTitle = title ?? string.Empty;
          var point = PlaceToPoint(place);
-         // Estimate the tooltip height (line count x line height + padding) so its BOTTOM sits just
-         // above the hovered token, regardless of how many lines the text has.
-         var lineCount = text.Split('\n').Length;
-         var lineHeight = System.Drawing.SystemFonts.DefaultFont.Height;
-         var height = (lineCount * (lineHeight + 1)) + 10;
+         using var bodyFont = CreateHoverToolTipFont(FontStyle.Regular);
+         var lineHeight = bodyFont.Height;
+         var height = MeasureHoverToolTip(title, text).Height;
          // Nudge up half a line so the tooltip clears the token instead of resting on it.
          var top = System.Math.Max(0, point.Y - height - 4 - (lineHeight / 2));
          ToolTip.Show(text, this, new Point(point.X, top));
+      }
+
+      // The tooltip font tracks the editor's CURRENT (already-zoomed) font, so hover tooltips scale
+      // with the editor contents.
+      private Font CreateHoverToolTipFont(FontStyle style)
+      {
+         var size = Math.Max(1f, Font.SizeInPoints);
+         return new Font(Font.FontFamily, size, style, GraphicsUnit.Point);
+      }
+
+      // Max tooltip width (px) before wrapping, so a long description doesn't make a giant-wide tip.
+      private const int HoverToolTipMaxWidth = 640;
+
+      private const TextFormatFlags HoverToolTipFlags =
+         TextFormatFlags.WordBreak | TextFormatFlags.NoPadding | TextFormatFlags.Left;
+
+      private Size MeasureHoverToolTip(string title, string text)
+      {
+         using var titleFont = CreateHoverToolTipFont(FontStyle.Bold);
+         using var bodyFont = CreateHoverToolTipFont(FontStyle.Regular);
+         var proposed = new Size(HoverToolTipMaxWidth, int.MaxValue);
+         var titleSize = string.IsNullOrEmpty(title)
+            ? Size.Empty
+            : TextRenderer.MeasureText(title, titleFont, proposed, HoverToolTipFlags);
+         var bodySize = TextRenderer.MeasureText(string.IsNullOrEmpty(text) ? " " : text, bodyFont, proposed, HoverToolTipFlags);
+         return new Size(Math.Max(titleSize.Width, bodySize.Width) + 12, titleSize.Height + bodySize.Height + 10);
+      }
+
+      private void HoverToolTip_Popup(object sender, PopupEventArgs e)
+      {
+         e.ToolTipSize = MeasureHoverToolTip(_hoverTipTitle, _hoverTipText);
+      }
+
+      private void HoverToolTip_Draw(object sender, DrawToolTipEventArgs e)
+      {
+         e.DrawBackground();
+         e.DrawBorder();
+         using var titleFont = CreateHoverToolTipFont(FontStyle.Bold);
+         using var bodyFont = CreateHoverToolTipFont(FontStyle.Regular);
+         var x = e.Bounds.Left + 6;
+         var y = e.Bounds.Top + 5;
+         var width = e.Bounds.Width - x - 4;
+         if (!string.IsNullOrEmpty(_hoverTipTitle))
+         {
+            var th = TextRenderer.MeasureText(_hoverTipTitle, titleFont, new Size(width, int.MaxValue), HoverToolTipFlags).Height;
+            TextRenderer.DrawText(e.Graphics, _hoverTipTitle, titleFont, new Rectangle(x, y, width, th), SystemColors.InfoText, HoverToolTipFlags);
+            y += th;
+         }
+         TextRenderer.DrawText(e.Graphics, e.ToolTipText, bodyFont, new Rectangle(x, y, width, e.Bounds.Bottom - y - 2), SystemColors.InfoText, HoverToolTipFlags);
       }
 
       /// <summary>
