@@ -38,6 +38,8 @@ using System.ComponentModel;
 using System.Diagnostics;
 using System.Security.Authentication.ExtendedProtection;
 using System.Text.RegularExpressions;
+using System.Threading;
+using System.Threading.Tasks;
 using Antlr4.Runtime;
 using Antlr4.Runtime.Tree;
 using FastColoredTextBoxNS;
@@ -102,8 +104,146 @@ namespace Org.Edgerunner.Moo.Editor.Controls
          TextChangedDelayed += MooEditor_TextChangedDelayed;
          KeyDown += MooEditor_KeyDown;
          UndoRedoStateChanged += MooEditor_UndoRedoStateChanged;
+         // TEMP (member-hover tooltip plumbing proof): capture full Moo identifiers/refs under the
+         // mouse and show the hovered token in a tooltip above the cursor. To be replaced by the
+         // verb-documentation / property-value lookup once the hover path is verified end to end.
+         HoverWordPattern = "[A-Za-z0-9_$#]";
+         ToolTipNeeded += MooEditor_ToolTipNeeded;
          GrammarDialect = grammarDialect;
       }
+
+      // The grammatical role of a hovered identifier, inferred from the surrounding tokens.
+      private enum HoverMemberKind { None, Verb, Property, Function, Core }
+
+      /// <summary>The verb/property kind passed to the hover-content fetcher.</summary>
+      public enum MooHoverMemberKind { Verb, Property }
+
+      /// <summary>A request for hover content: the member kind, its name, and the operand text
+      /// (e.g. "$command_utils", "#0", or "this").</summary>
+      public sealed record MooHoverRequest(MooHoverMemberKind Kind, string Member, string Operand);
+
+      /// <summary>
+      /// Supplies the real hover content body for a known verb/property reference. Set by the owning
+      /// page (which has the world query provider). Returns <c>null</c> for no tooltip.
+      /// </summary>
+      public Func<MooHoverRequest, CancellationToken, Task<string>> HoverContentFetcher { get; set; }
+
+      private CancellationTokenSource _hoverContentCts;
+
+      // Hover-tooltip handler: classify (sync), then for a known verb/property fetch the real content
+      // asynchronously and show it above the token once it lands. A fresh hover supersedes any
+      // in-flight fetch. function / (no discernable source) / non-members are handled synchronously.
+      private async void MooEditor_ToolTipNeeded(object sender, ToolTipNeededEventArgs e)
+      {
+         var (kind, member, operand, sourceKnown) = ClassifyHoveredMember(e.Place);
+         if (kind == HoverMemberKind.None)
+            return;
+
+         var caption = HoverCaption(kind, member, operand);
+
+         if (kind == HoverMemberKind.Function)
+         {
+            e.ToolTipTitle = caption;
+            e.ToolTipText = "(built-in function)";
+            return;
+         }
+         if (!sourceKnown)
+         {
+            e.ToolTipTitle = caption;
+            e.ToolTipText = "(no discernable source)";
+            return;
+         }
+
+         var fetcher = HoverContentFetcher;
+         if (fetcher == null)
+            return;
+
+         _hoverContentCts?.Cancel();
+         var cts = _hoverContentCts = new CancellationTokenSource();
+         var place = e.Place;
+         // A core reference's value is the property of the same name on #0; everything else queries
+         // its own operand.
+         var requestKind = kind == HoverMemberKind.Verb ? MooHoverMemberKind.Verb : MooHoverMemberKind.Property;
+         var requestOperand = kind == HoverMemberKind.Core ? "#0" : operand;
+         var request = new MooHoverRequest(requestKind, member, requestOperand);
+         try
+         {
+            var body = await fetcher(request, cts.Token);
+            if (!cts.IsCancellationRequested && !string.IsNullOrEmpty(body))
+               ShowToolTipAbove(place, caption, body);
+         }
+         catch (OperationCanceledException) { }
+         catch { }
+      }
+
+      private (HoverMemberKind Kind, string Member, string Operand, bool SourceKnown) ClassifyHoveredMember(Place place)
+      {
+         var token = FindSurroundingTokenForPosition(place.iLine + 1, place.iChar + 1);
+         if (token?.TypeName == null)
+            return (HoverMemberKind.None, null, null, false);
+
+         // A standalone core reference ($name) is a property on #0; the operand text is the $-ref.
+         if (token.TypeNameUpperCase == "CORE_REFERENCE")
+         {
+            var coreName = token.Text.Length > 1 ? token.Text.Substring(1) : token.Text;
+            return (HoverMemberKind.Core, coreName, token.Text, true);
+         }
+
+         if (token.TypeNameUpperCase != "IDENTIFIER")
+            return (HoverMemberKind.None, null, null, false);
+
+         var previous = PreviousSignificantToken(Tokens.IndexOf(token));
+         if (previous != null && (previous.Text == ":" || previous.Text == "."))
+         {
+            var operand = PreviousSignificantToken(Tokens.IndexOf(previous));
+            var kind = previous.Text == ":" ? HoverMemberKind.Verb : HoverMemberKind.Property;
+            return (kind, token.Text, operand?.Text, IsResolvableOperand(operand));
+         }
+
+         var next = NextSignificantToken(Tokens.IndexOf(token));
+         if (next != null && next.Text == "(")
+            return (HoverMemberKind.Function, token.Text, null, false);
+
+         return (HoverMemberKind.None, token.Text, null, false);
+      }
+
+      // An operand whose object is statically discernable: $foo, #123, or 'this'.
+      private static bool IsResolvableOperand(DetailedToken operand)
+      {
+         if (operand?.TypeName == null)
+            return false;
+         var type = operand.TypeNameUpperCase;
+         return type == "CORE_REFERENCE" || type == "OBJECT" || (type == "IDENTIFIER" && operand.Text == "this");
+      }
+
+      private static string HoverCaption(HoverMemberKind kind, string member, string operand) => kind switch
+      {
+         HoverMemberKind.Verb => $"Verb {operand}:{member}()",
+         HoverMemberKind.Property => $"Property {operand}.{member}",
+         HoverMemberKind.Function => $"Function {member}()",
+         HoverMemberKind.Core => $"Core {operand}",
+         _ => member,
+      };
+
+      private DetailedToken PreviousSignificantToken(int index)
+      {
+         for (var i = index - 1; i >= 0; i--)
+            if (IsSignificantToken(Tokens[i]))
+               return Tokens[i];
+         return null;
+      }
+
+      private DetailedToken NextSignificantToken(int index)
+      {
+         for (var i = index + 1; i < Tokens.Count; i++)
+            if (IsSignificantToken(Tokens[i]))
+               return Tokens[i];
+         return null;
+      }
+
+      // Significant = default channel, not whitespace, not EOF (skips hidden whitespace tokens).
+      private static bool IsSignificantToken(DetailedToken token)
+         => token.Channel == 0 && token.Text != "<EOF>" && !string.IsNullOrWhiteSpace(token.Text);
 
       public override int TabLength
       {

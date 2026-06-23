@@ -363,6 +363,16 @@ namespace FastColoredTextBoxNS
       }
 
       /// <summary>
+      /// Regex character class used to capture the word under the mouse for the
+      /// <see cref="ToolTipNeeded"/> event. Defaults to letters only ("[a-zA-Z]"); set a wider
+      /// class (e.g. "[a-zA-Z0-9_]") to capture identifiers containing digits/underscores.
+      /// </summary>
+      [Browsable(true)]
+      [DefaultValue("[a-zA-Z]")]
+      [Description("Regex character class for the hovered word under the mouse (ToolTipNeeded).")]
+      public string HoverWordPattern { get; set; } = "[a-zA-Z]";
+
+      /// <summary>
       /// ToolTip component
       /// </summary>
       [Browsable(true)]
@@ -1957,7 +1967,7 @@ namespace FastColoredTextBoxNS
             return;
          //get word under mouse
          var r = new TextSelectionRange(this, place, place);
-         string hoveredWord = r.GetFragment("[a-zA-Z]").Text;
+         string hoveredWord = r.GetFragment(HoverWordPattern).Text;
          //event handler
          var ea = new ToolTipNeededEventArgs(place, hoveredWord);
          ToolTipNeeded(this, ea);
@@ -1968,8 +1978,28 @@ namespace FastColoredTextBoxNS
             ToolTip.ToolTipTitle = ea.ToolTipTitle;
             ToolTip.ToolTipIcon = ea.ToolTipIcon;
             //ToolTip.SetToolTip(this, ea.ToolTipText);
-            ToolTip.Show(ea.ToolTipText, this, new Point(lastMouseCoord.X, lastMouseCoord.Y + CharHeight));
+            ToolTip.Show(ea.ToolTipText, this, new Point(lastMouseCoord.X, lastMouseCoord.Y - CharHeight * 2));
          }
+      }
+
+      /// <summary>
+      /// Shows a tooltip just above the given place. Used to display content fetched asynchronously,
+      /// after the <see cref="ToolTipNeeded"/> event has already returned.
+      /// </summary>
+      public void ShowToolTipAbove(Place place, string title, string text)
+      {
+         if (ToolTip == null || string.IsNullOrEmpty(text))
+            return;
+         ToolTip.ToolTipTitle = title ?? string.Empty;
+         var point = PlaceToPoint(place);
+         // Estimate the tooltip height (line count x line height + padding) so its BOTTOM sits just
+         // above the hovered token, regardless of how many lines the text has.
+         var lineCount = text.Split('\n').Length;
+         var lineHeight = System.Drawing.SystemFonts.DefaultFont.Height;
+         var height = (lineCount * (lineHeight + 1)) + 10;
+         // Nudge up half a line so the tooltip clears the token instead of resting on it.
+         var top = System.Math.Max(0, point.Y - height - 4 - (lineHeight / 2));
+         ToolTip.Show(text, this, new Point(point.X, top));
       }
 
       /// <summary>

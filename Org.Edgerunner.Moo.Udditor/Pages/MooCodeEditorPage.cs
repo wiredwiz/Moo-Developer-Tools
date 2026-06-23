@@ -39,6 +39,8 @@ using Org.Edgerunner.ANTLR4.Tools.Common.Grammar.Errors;
 using Org.Edgerunner.Moo.Editor;
 using Org.Edgerunner.Moo.Editor.Controls;
 using System;
+using System.Threading;
+using System.Threading.Tasks;
 using FastColoredTextBoxNS;
 using FastColoredTextBoxNS.Types;
 using Krypton.Toolkit;
@@ -355,6 +357,56 @@ public class MooCodeEditorPage : MooEditorPage
         codeEditor.AutocompleteMenu.Items.SetAutocompleteItems(
             new DynamicCompletionSource(items, _memberCompletionController, () => GetCaretLinePrefix(codeEditor)));
         codeEditor.AutocompleteMenu.AppearInterval = Settings.Instance.EditorAutocompleteDelay;
+        codeEditor.HoverContentFetcher = FetchHoverContentAsync;
+    }
+
+    private async Task<string> FetchHoverContentAsync(
+        MooCodeEditor.MooHoverRequest request, CancellationToken cancellationToken)
+    {
+        var provider = QueryProvider;
+        if (provider == null)
+            return null;
+
+        var objectId = await ResolveHoverOperandAsync(request.Operand, provider, cancellationToken);
+        if (objectId == null)
+            return null;
+
+        if (request.Kind == MooCodeEditor.MooHoverMemberKind.Verb)
+        {
+            var doc = await provider.GetVerbDocumentationAsync(objectId.Value, request.Member, cancellationToken);
+            if (doc == null)
+                return null;
+            return doc.Lines.Count > 0 ? string.Join(Environment.NewLine, doc.Lines) : "(no documentation)";
+        }
+
+        var value = await provider.GetPropertyValueAsync(objectId.Value, request.Member, cancellationToken);
+        if (value == null)
+            return null;
+        var literal = value.Literal ?? string.Empty;
+        if (literal.Length > 200)
+            literal = literal.Substring(0, 200) + "…";
+        return $"=> {literal}";
+    }
+
+    // Resolves a hover operand to its object id: "this" -> ContextObjectId; "#123" -> that object;
+    // "$name" -> #0.name's object value (async). Returns null when not statically resolvable.
+    private async Task<MooObjectId?> ResolveHoverOperandAsync(
+        string operand, IMooWorldQueryProvider provider, CancellationToken cancellationToken)
+    {
+        if (string.IsNullOrEmpty(operand))
+            return null;
+        if (operand == "this")
+            return ContextObjectId;
+        if (operand[0] == '#' && int.TryParse(operand.AsSpan(1), out var number))
+            return new MooObjectId(number);
+        if (operand[0] == '$')
+        {
+            var value = await provider.GetPropertyValueAsync(new MooObjectId(0), operand.Substring(1), cancellationToken);
+            if (value != null && value.Type == 1 && !string.IsNullOrEmpty(value.Literal) && value.Literal[0] == '#'
+                && int.TryParse(value.Literal.AsSpan(1), out var coreNum) && coreNum >= 0)
+                return new MooObjectId(coreNum);
+        }
+        return null;
     }
 
     private static string GetCaretLinePrefix(MooCodeEditor codeEditor)
