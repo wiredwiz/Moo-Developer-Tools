@@ -179,11 +179,27 @@ Data flow (local-var base): `x.bar:` where `x = $foo;` earlier → extractor bas
 nearest preceding `x = $foo;` → RHS descriptor `{ Base: $foo }` → evaluator resolves `$foo` →
 object → step `bar` → final object → complete on it.
 
-## Error handling
+## Error handling & logging
 
-Every failure mode — unresolvable base, non-object step, missing property, non-chain RHS, cycle,
-depth-exceeded, provider exception — degrades to **no source** (empty completion / no hover member
-info). Never a dialog or thrown error. Best-effort completion leaves the static list in place, as today.
+Every failure mode degrades to **no source** (empty completion / no hover member info) — never a dialog
+or thrown error. Best-effort completion leaves the static list in place, as today. But swallowed must
+not mean silent: real exceptions are logged to the NLog log file. Two distinct cases:
+
+- **Expected non-resolution** — non-object step, missing property, non-chain RHS, cycle detected,
+  depth-budget exceeded, bareword/unknown base. These are normal outcomes of typing and must **not**
+  be logged as warnings (that would flood the log on every partial keystroke). They simply yield no
+  source. (Optional `Trace`-level diagnostics only, off by default.)
+- **Unexpected exceptions** — a provider throw, a parse-tree/token access failure, or any other thrown
+  error during extraction/evaluation. These are **swallowed from the user but logged**, routed through
+  the existing diagnostic channel rather than NLog directly: `ChainExpressionEvaluator` /
+  `ChainExtractor` (in the Editor library) emit via the injected `InvokeDiagnostic(message, ex)`
+  delegate — the same one the controller uses today (`MemberCompletionController.cs:325`) — which the
+  page maps to `Logger.Warn(ex, message)` (`MooCodeEditorPage.cs:354`). Messages carry context: the
+  chain text, member kind, and the step at which it failed. The hover path (`ResolveHoverOperandAsync`)
+  has a `Logger` in hand and logs via `Logger.Warn(ex, …)` for parity.
+
+The dividing line is **exception vs. expected unknown**: only thrown exceptions reach the log; ordinary
+"this chain doesn't resolve" outcomes are returned as no-source without a log entry.
 
 ## Testing
 
@@ -201,6 +217,9 @@ info). Never a dialog or thrown error. Best-effort completion leaves the static 
   windows (same var name, different values).
 - **Integration:** mirror existing `MemberCompletionController` / hover tests for the new path; hover
   parity with completion.
+- **Logging:** a provider that throws during a step routes through the diagnostic delegate (assert the
+  delegate is invoked with the exception) → maps to `Logger.Warn`; an expected non-resolution
+  (non-object step / cycle / depth trip) yields no source **without** invoking the warning diagnostic.
 
 ## Out of scope (→ follow-up bead)
 
