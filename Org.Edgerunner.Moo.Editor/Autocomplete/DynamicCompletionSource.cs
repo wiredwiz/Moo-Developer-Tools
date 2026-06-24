@@ -37,9 +37,24 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using Antlr4.Runtime;
 using FastColoredTextBoxNS.Types;
+using Org.Edgerunner.ANTLR4.Tools.Common.Grammar;
 
 namespace Org.Edgerunner.Moo.Editor.Autocomplete;
+
+/// <summary>
+/// A snapshot of the editor state needed to resolve a chained member-access expression at the caret.
+/// </summary>
+/// <param name="Tree">The current parse tree root.</param>
+/// <param name="Tokens">The current detailed token list.</param>
+/// <param name="CaretLine">The 1-based caret line.</param>
+/// <param name="CaretColumn">The 1-based caret column.</param>
+public readonly record struct MemberCompletionContextSnapshot(
+   ParserRuleContext? Tree,
+   IList<DetailedToken>? Tokens,
+   int CaretLine,
+   int CaretColumn);
 
 /// <summary>
 /// The autocomplete item source handed to the popup menu. The menu re-enumerates its source on
@@ -54,27 +69,41 @@ public sealed class DynamicCompletionSource : IEnumerable<AutocompleteItem>
 
    private readonly Func<string> _linePrefixProvider;
 
+   private readonly Func<MemberCompletionContextSnapshot>? _contextProvider;
+
    /// <summary>
    /// Initializes a new instance of the <see cref="DynamicCompletionSource"/> class.
    /// </summary>
    /// <param name="staticItems">The static completion items (keywords, builtins, snippets).</param>
    /// <param name="controller">The member completion controller.</param>
    /// <param name="linePrefixProvider">Returns the caret line text from column 0 up to the caret.</param>
-   /// <exception cref="ArgumentNullException">Thrown when any argument is <c>null</c>.</exception>
+   /// <param name="contextProvider">
+   /// Optional: returns the current parse tree, tokens, and caret position so chained member-access
+   /// expressions can be resolved. When <c>null</c>, only single-atom (length-1) chains resolve.
+   /// </param>
+   /// <exception cref="ArgumentNullException">Thrown when any required argument is <c>null</c>.</exception>
    public DynamicCompletionSource(
       IReadOnlyList<AutocompleteItem> staticItems,
       MemberCompletionController controller,
-      Func<string> linePrefixProvider)
+      Func<string> linePrefixProvider,
+      Func<MemberCompletionContextSnapshot>? contextProvider = null)
    {
       _staticItems = staticItems ?? throw new ArgumentNullException(nameof(staticItems));
       _controller = controller ?? throw new ArgumentNullException(nameof(controller));
       _linePrefixProvider = linePrefixProvider ?? throw new ArgumentNullException(nameof(linePrefixProvider));
+      _contextProvider = contextProvider;
    }
 
    /// <inheritdoc/>
    public IEnumerator<AutocompleteItem> GetEnumerator()
    {
-      foreach (var item in _controller.GetMemberItems(_linePrefixProvider()))
+      var linePrefix = _linePrefixProvider();
+      var context = _contextProvider?.Invoke();
+      var memberItems = context is { } snapshot
+         ? _controller.GetMemberItems(linePrefix, snapshot.Tree, snapshot.Tokens, snapshot.CaretLine, snapshot.CaretColumn)
+         : _controller.GetMemberItems(linePrefix);
+
+      foreach (var item in memberItems)
          yield return item;
 
       foreach (var item in _staticItems)

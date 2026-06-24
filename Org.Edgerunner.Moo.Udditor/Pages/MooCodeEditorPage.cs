@@ -353,9 +353,14 @@ public class MooCodeEditorPage : MooEditorPage
             },
             diagnostic: (message, ex) => Logger.Warn(ex, message));
 
-        //set as autocomplete source
+        //set as autocomplete source. The context provider threads the live parse tree, tokens, and
+        // caret position so chained member-access expressions ($Mcp.package:) resolve, not just atoms.
         codeEditor.AutocompleteMenu.Items.SetAutocompleteItems(
-            new DynamicCompletionSource(items, _memberCompletionController, () => GetCaretLinePrefix(codeEditor)));
+            new DynamicCompletionSource(
+                items,
+                _memberCompletionController,
+                () => GetCaretLinePrefix(codeEditor),
+                () => GetMemberCompletionContext(codeEditor)));
         codeEditor.AutocompleteMenu.AppearInterval = Settings.Instance.EditorAutocompleteDelay;
         codeEditor.HoverContentFetcher = FetchHoverContentAsync;
     }
@@ -388,28 +393,64 @@ public class MooCodeEditorPage : MooEditorPage
         return $"=> {literal}";
     }
 
-    // Resolves a hover operand to its object id: "this" -> ContextObjectId; "player"/"caller" ->
-    // the connected player object (async); "#123" -> that object; "$name" -> #0.name's object value
-    // (async). Returns null when not statically resolvable.
+    // Resolves a hover operand to its object id through the same chain evaluator the completion path
+    // uses, so "this" -> ContextObjectId; "player"/"caller" -> the connected player object; "#123" ->
+    // that object; "$name" -> #0.name's object value; all via one consolidated path. Returns null when
+    // the operand does not resolve. Unexpected failures (a provider throw) are logged via Logger.Warn;
+    // ordinary non-resolution returns null without a log entry.
     private async Task<MooObjectId?> ResolveHoverOperandAsync(
         string operand, IMooWorldQueryProvider provider, CancellationToken cancellationToken)
     {
         if (string.IsNullOrEmpty(operand))
             return null;
-        if (operand == "this")
-            return ContextObjectId;
-        if (operand is "player" or "caller")
-            return await provider.GetCurrentPlayerAsync(cancellationToken);
-        if (operand[0] == '#' && int.TryParse(operand.AsSpan(1), out var number))
+
+        var chainBase = ClassifyHoverOperand(operand);
+        if (chainBase is null)
+            return null;
+
+        var evaluator = new ChainExpressionEvaluator(
+            (obj, prop, ct) => ResolveHoverPropertyObjectAsync(provider, obj, prop, ct),
+            provider.GetCurrentPlayerAsync,
+            _ => null, // hover operands are single atoms; no local-variable chain bases here
+            (message, ex) => Logger.Warn(ex, message));
+
+        var descriptor = new ChainDescriptor(
+            chainBase.Value, Array.Empty<string>(), MemberContextKind.Property, string.Empty);
+        return await evaluator.EvaluateAsync(descriptor, ContextObjectId, cancellationToken);
+    }
+
+    // Classifies a single hover operand token into a chain base (the forms the hover token-walk emits).
+    private static ChainBase? ClassifyHoverOperand(string operand) => operand switch
+    {
+        "this" => new ChainBase(ChainBaseKind.This, string.Empty),
+        "player" => new ChainBase(ChainBaseKind.Player, string.Empty),
+        "caller" => new ChainBase(ChainBaseKind.Caller, string.Empty),
+        _ when operand[0] == '#' => new ChainBase(ChainBaseKind.ObjectLiteral, operand.Substring(1)),
+        _ when operand[0] == '$' => new ChainBase(ChainBaseKind.CoreName, operand.Substring(1)),
+        _ => null,
+    };
+
+    // Resolves (objectId, propName) to the object the property holds (the evaluator's per-step primitive).
+    private static async Task<MooObjectId?> ResolveHoverPropertyObjectAsync(
+        IMooWorldQueryProvider provider, MooObjectId objectId, string propName, CancellationToken cancellationToken)
+    {
+        var value = await provider.GetPropertyValueAsync(objectId, propName, cancellationToken);
+        if (value != null && value.Type == 1 && !string.IsNullOrEmpty(value.Literal) && value.Literal[0] == '#'
+            && int.TryParse(value.Literal.AsSpan(1), out var number) && number >= 0)
             return new MooObjectId(number);
-        if (operand[0] == '$')
-        {
-            var value = await provider.GetPropertyValueAsync(new MooObjectId(0), operand.Substring(1), cancellationToken);
-            if (value != null && value.Type == 1 && !string.IsNullOrEmpty(value.Literal) && value.Literal[0] == '#'
-                && int.TryParse(value.Literal.AsSpan(1), out var coreNum) && coreNum >= 0)
-                return new MooObjectId(coreNum);
-        }
         return null;
+    }
+
+    // Snapshots the live parse tree, tokens, and caret position for chained member completion.
+    private static MemberCompletionContextSnapshot GetMemberCompletionContext(MooCodeEditor codeEditor)
+    {
+        var place = codeEditor.Selection.Start;
+        // Convert the editor's 0-based (iLine, iChar) to the 1-based caret convention the extractor uses.
+        return new MemberCompletionContextSnapshot(
+            codeEditor.ParseSourceCode(false),
+            codeEditor.Tokens,
+            place.iLine + 1,
+            place.iChar + 1);
     }
 
     private static string GetCaretLinePrefix(MooCodeEditor codeEditor)

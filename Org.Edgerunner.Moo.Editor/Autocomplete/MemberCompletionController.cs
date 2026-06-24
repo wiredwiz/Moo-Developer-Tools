@@ -40,42 +40,46 @@ using System.Globalization;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Antlr4.Runtime;
 using FastColoredTextBoxNS.Types;
+using Org.Edgerunner.ANTLR4.Tools.Common.Grammar;
 using Org.Edgerunner.Mud.Common.Querying;
 
 namespace Org.Edgerunner.Moo.Editor.Autocomplete;
 
 /// <summary>
 /// Supplies world-queried member completion items (verbs, properties, core references) to the
-/// autocomplete popup. Lookups are synchronous against a local cache; misses start a single
-/// background fetch and return nothing, and the menu is refreshed when results arrive.
+/// autocomplete popup. The caret's chained member-access expression is extracted to a
+/// <see cref="ChainDescriptor"/>, resolved to a target object via the <see cref="ChainExpressionEvaluator"/>,
+/// then queried for members. Synchronous cache hits return immediately; misses start a single
+/// background resolve+fetch and return nothing, and the menu is refreshed when results arrive.
 /// </summary>
 /// <remarks>
 /// In production all state mutation happens on the UI thread (popup enumeration plus actions the
-/// owner marshals there), but a lock guards the cache and in-flight state anyway so that hosts
+/// owner marshals there), but a lock guards the caches and in-flight state anyway so that hosts
 /// (and tests) with an immediate marshal are also safe. Member completion is best-effort: provider
 /// failures (timeout, cancellation, disconnect, protocol errors) are swallowed and simply leave
 /// the static completion list in place. The menu-refresh callback is invoked outside the state
 /// lock and may therefore fire after disposal; owners must supply a callback that is safe to call
-/// on a closed editor (the production callback re-shows an open popup and may open a
-   /// closed one when the editor is focused and member results arrive).
+/// on a closed editor.
 /// <para>
-/// Core-name operands (<c>$foo</c>) are resolved asynchronously: the controller queries
-/// <c>#0</c>'s property value for the name to obtain the target object id, then proceeds with
-/// the normal verb/property fetch. Resolved names are cached alongside member lists (using the
-/// same <c>_cacheTimeToLive</c>), keyed case-insensitively since MOO property lookup is
-/// case-insensitive.
+/// Two cache layers are kept differently. World/server state — <c>(objectId, propName)</c> resolving
+/// to an object id (e.g. <c>#0.Mcp -> #123</c>) — is verb-independent and TTL-cached. Local-variable
+/// values are derived from the live parse tree on every request and are <em>never</em> cached, which
+/// is what keeps resolution unique per verb / per window.
 /// </para>
 /// <para>
-/// An optional <c>diagnostic</c> callback (see constructor) receives a message string and
-/// optional exception for fetch failures and core-name validation failures. It is invoked
-/// outside any lock; if the callback itself throws the exception is silently swallowed so a
-/// faulty diagnostic handler can never break completion.
+/// An optional <c>diagnostic</c> callback (see constructor) receives a message string and optional
+/// exception for unexpected failures (a provider throw, a parse-tree access failure). Ordinary
+/// non-resolution (a non-object step, a missing property, a non-chain right-hand side, a cycle, the
+/// depth budget, an unknown base) yields no source <em>without</em> a warning so the log is not
+/// flooded on every keystroke. The callback is invoked outside any lock; exceptions it throws are
+/// swallowed so a faulty diagnostic handler can never break completion.
 /// </para>
 /// </remarks>
 public sealed class MemberCompletionController : IDisposable
 {
-   /// <summary>The default lifetime of a cached member list.</summary>
+   /// <summary>The default lifetime of a cached member list / resolved world-state entry.</summary>
    public static readonly TimeSpan DefaultCacheTimeToLive = TimeSpan.FromSeconds(30);
 
    /// <summary>The MOO value type code for object references.</summary>
@@ -97,16 +101,16 @@ public sealed class MemberCompletionController : IDisposable
 
    private readonly Dictionary<(MemberContextKind Kind, int ObjectNumber), CacheEntry> _cache = new();
 
-   private readonly Dictionary<string, (MooObjectId Id, DateTime CreatedUtc)> _coreNameCache =
-      new(StringComparer.OrdinalIgnoreCase);
+   // World/server state: (objectId, propName) -> resolved object id. Generalizes the old core-name
+   // cache (which was the (#0, name) special case). Verb-independent; shared across requests.
+   private readonly Dictionary<(int ObjectNumber, string PropertyName), (MooObjectId Id, DateTime CreatedUtc)>
+      _propertyObjectCache = new(PropertyKeyComparer.Instance);
 
    private (MooObjectId Id, DateTime CreatedUtc)? _currentPlayerCache;
 
    private (MemberContextKind Kind, int ObjectNumber)? _inflightKey;
 
-   private (MemberContextKind Kind, string Name)? _inflightCoreName;
-
-   private MemberContextKind? _inflightCurrentPlayer;
+   private string? _inflightChain;
 
    private CancellationTokenSource? _fetchCancellation;
 
@@ -123,9 +127,9 @@ public sealed class MemberCompletionController : IDisposable
    /// <param name="menuRefresh">Asks the owner to refresh the autocomplete popup if it is open.</param>
    /// <param name="cacheTimeToLive">Cache entry lifetime; defaults to <see cref="DefaultCacheTimeToLive"/>.</param>
    /// <param name="diagnostic">
-   /// Optional callback invoked when a fetch fails or a core-name validation fails. Receives a
-   /// descriptive message and, for exception-based failures, the exception (otherwise <c>null</c>).
-   /// Invoked outside any lock; exceptions thrown by the callback are silently swallowed.
+   /// Optional callback invoked on an unexpected failure (a provider throw or a parse-tree access
+   /// failure). Receives a descriptive message and the exception. Ordinary non-resolution does not
+   /// invoke it. Invoked outside any lock; exceptions thrown by the callback are silently swallowed.
    /// </param>
    /// <exception cref="ArgumentNullException">Thrown when any required callback is <c>null</c>.</exception>
    public MemberCompletionController(
@@ -145,124 +149,84 @@ public sealed class MemberCompletionController : IDisposable
    }
 
    /// <summary>
-   /// Gets the member completion items for the caret position described by <paramref name="linePrefix"/>.
-   /// Returns an empty list outside member contexts, for unresolved operands, without a provider,
-   /// or while a fetch is still in flight (the menu is refreshed when it completes).
+   /// Gets the member completion items for the caret position. Supply the current parse tree and
+   /// token list to enable chained-expression resolution; with only a line prefix, single-atom
+   /// (length-1) chains are resolved. Returns an empty list outside member contexts, for unresolved
+   /// operands, without a provider, or while a resolve/fetch is still in flight (the menu is
+   /// refreshed when it completes).
    /// </summary>
    /// <param name="linePrefix">The text on the caret line, from column 0 up to the caret.</param>
+   /// <param name="tree">The current parse tree root (optional; enables chain resolution).</param>
+   /// <param name="tokens">The current detailed token list (optional; used as a chain-tail fallback).</param>
+   /// <param name="caretLine">The 1-based caret line (used with <paramref name="tree"/>).</param>
+   /// <param name="caretColumn">The 1-based caret column (used with <paramref name="tree"/>).</param>
    /// <returns>The items to offer; never <c>null</c>.</returns>
-   public IReadOnlyList<AutocompleteItem> GetMemberItems(string linePrefix)
+   public IReadOnlyList<AutocompleteItem> GetMemberItems(
+      string linePrefix,
+      ParserRuleContext? tree = null,
+      IList<DetailedToken>? tokens = null,
+      int caretLine = 0,
+      int caretColumn = 0)
    {
-      var context = MemberCompletionContextDetector.Detect(linePrefix);
-      if (context.Kind == MemberContextKind.None)
+      ChainDescriptor? descriptor;
+      int caretOffset;
+      if (tree is not null && caretLine > 0 && caretColumn > 0)
+      {
+         var buffer = ReconstructBuffer(tree, linePrefix, caretLine, caretColumn);
+         descriptor = ChainExtractor.Extract(buffer, caretLine, caretColumn, tokens, tree, InvokeDiagnostic);
+         caretOffset = AbsoluteCaretOffset(buffer, caretLine, caretColumn);
+      }
+      else
+      {
+         descriptor = ChainExtractor.ExtractFromLinePrefix(linePrefix);
+         caretOffset = 0;
+      }
+
+      if (descriptor is null)
          return Array.Empty<AutocompleteItem>();
 
-      var objectId = MemberOperandResolver.Resolve(context, _contextObjectAccessor());
+      // Variable bases are resolved from the live tree on every request and never cached.
+      ChainDescriptor? VariableResolver(string name) =>
+         tree is null ? null : LocalVariableResolver.ResolveAssignmentChain(name, tree, caretOffset);
 
-      if (objectId is null && MemberOperandResolver.TryGetCurrentPlayerOperand(context))
-      {
-         // player/caller resolve to the connected player object (queried once, then cached for the
-         // connection's life using the same TTL as the core-name cache).
-         lock (_stateLock)
-         {
-            if (_disposed)
-               return Array.Empty<AutocompleteItem>();
-
-            // Check if the current player is already resolved (and not stale).
-            if (_currentPlayerCache is { } playerEntry)
-            {
-               if (DateTime.UtcNow - playerEntry.CreatedUtc < _cacheTimeToLive)
-                  objectId = playerEntry.Id;
-               else
-                  _currentPlayerCache = null;
-            }
-
-            if (objectId is null)
-            {
-               // Need to resolve the current player first.
-               var provider = _providerAccessor();
-               if (provider is null || _inflightCurrentPlayer == context.Kind)
-                  return Array.Empty<AutocompleteItem>();
-
-               var staleFetchCancellation = _fetchCancellation;
-               _fetchCancellation = new CancellationTokenSource();
-               staleFetchCancellation?.Cancel();
-               staleFetchCancellation?.Dispose();
-               _inflightCurrentPlayer = context.Kind;
-               _ = FetchCurrentPlayerAsync(provider, context.Kind, _fetchCancellation.Token);
-               return Array.Empty<AutocompleteItem>();
-            }
-         }
-      }
-
-      if (objectId is null)
-      {
-         // Check for a core-name operand ($foo) that needs async resolution.
-         if (!MemberOperandResolver.TryGetCoreName(context, out var coreName))
-            return Array.Empty<AutocompleteItem>();
-
-         lock (_stateLock)
-         {
-            if (_disposed)
-               return Array.Empty<AutocompleteItem>();
-
-            // Check if the core name is already resolved (and not stale).
-            if (_coreNameCache.TryGetValue(coreName, out var coreEntry))
-            {
-               if (DateTime.UtcNow - coreEntry.CreatedUtc < _cacheTimeToLive)
-               {
-                  // Name is resolved — fall through to the regular member fetch below using the cached id.
-                  objectId = coreEntry.Id;
-               }
-               else
-               {
-                  _coreNameCache.Remove(coreName);
-               }
-            }
-
-            if (objectId is null)
-            {
-               // Need to resolve the name first.
-               var provider = _providerAccessor();
-               var inflightKey = (context.Kind, coreName);
-               if (provider is null || InflightCoreNameMatches(inflightKey))
-                  return Array.Empty<AutocompleteItem>();
-
-               var staleFetchCancellation = _fetchCancellation;
-               _fetchCancellation = new CancellationTokenSource();
-               staleFetchCancellation?.Cancel();
-               staleFetchCancellation?.Dispose();
-               _inflightCoreName = inflightKey;
-               _ = FetchCoreNameAsync(provider, context.Kind, coreName, _fetchCancellation.Token);
-               return Array.Empty<AutocompleteItem>();
-            }
-         }
-      }
-
-      var key = (context.Kind, objectId.Value.Number);
       lock (_stateLock)
       {
          if (_disposed)
             return Array.Empty<AutocompleteItem>();
 
-         if (_cache.TryGetValue(key, out var entry))
+         // Fast path: every base/step needed is already cached, so resolve the target synchronously.
+         if (TryResolveFromCache(descriptor, VariableResolver, out var resolved))
          {
-            if (DateTime.UtcNow - entry.CreatedUtc < _cacheTimeToLive)
-               return entry.Items;
+            if (resolved is null)
+               return Array.Empty<AutocompleteItem>();
 
-            _cache.Remove(key);
+            var memberKey = (descriptor.MemberKind, resolved.Value.Number);
+            if (_cache.TryGetValue(memberKey, out var entry))
+            {
+               if (DateTime.UtcNow - entry.CreatedUtc < _cacheTimeToLive)
+                  return entry.Items;
+               _cache.Remove(memberKey);
+            }
+
+            var memberProvider = _providerAccessor();
+            if (memberProvider is null || _inflightKey == memberKey)
+               return Array.Empty<AutocompleteItem>();
+
+            BeginFetch();
+            _inflightKey = memberKey;
+            _ = FetchMembersAsync(memberProvider, descriptor.MemberKind, resolved.Value, memberKey, _fetchCancellation!.Token);
+            return Array.Empty<AutocompleteItem>();
          }
 
+         // Slow path: resolution needs at least one uncached world query. Run it in the background.
          var provider = _providerAccessor();
-         if (provider is null || _inflightKey == key)
+         var chainId = CanonicalChain(descriptor);
+         if (provider is null || _inflightChain == chainId)
             return Array.Empty<AutocompleteItem>();
 
-         var staleFetchCancellation = _fetchCancellation;
-         _fetchCancellation = new CancellationTokenSource();
-         staleFetchCancellation?.Cancel();
-         staleFetchCancellation?.Dispose();
-         _inflightKey = key;
-         _ = FetchAsync(provider, context.Kind, objectId.Value, key, _fetchCancellation.Token);
+         BeginFetch();
+         _inflightChain = chainId;
+         _ = ResolveAndFetchAsync(provider, descriptor, chainId, VariableResolver, _fetchCancellation!.Token);
       }
 
       return Array.Empty<AutocompleteItem>();
@@ -284,7 +248,250 @@ public sealed class MemberCompletionController : IDisposable
       }
    }
 
-   private async Task FetchAsync(
+   // Swaps in a fresh cancellation source, cancelling any prior in-flight work, and eagerly releases
+   // both in-flight markers so a switch between the fast (member) and slow (resolve) paths cannot leave
+   // a stale marker that briefly suppresses a new request. Any task that owned a marker only clears it
+   // under an "== current key/chain" guard, so eager release here cannot corrupt the markers the caller
+   // is about to set. Caller holds the lock.
+   private void BeginFetch()
+   {
+      var stale = _fetchCancellation;
+      _fetchCancellation = new CancellationTokenSource();
+      _inflightKey = null;
+      _inflightChain = null;
+      stale?.Cancel();
+      stale?.Dispose();
+   }
+
+   // Attempts to resolve the chain entirely from caches (no provider calls). Returns false on any miss.
+   // Caller holds the lock.
+   private bool TryResolveFromCache(
+      ChainDescriptor descriptor, Func<string, ChainDescriptor?> variableResolver, out MooObjectId? resolved)
+   {
+      resolved = null;
+      return TryResolveBaseFromCache(descriptor, variableResolver, new HashSet<string>(StringComparer.Ordinal),
+                                     new[] { ChainExpressionEvaluator.MaxResolutionSteps }, out resolved);
+   }
+
+   private bool TryResolveBaseFromCache(
+      ChainDescriptor descriptor,
+      Func<string, ChainDescriptor?> variableResolver,
+      HashSet<string> resolvingVariables,
+      int[] budget,
+      out MooObjectId? resolved)
+   {
+      resolved = null;
+      MooObjectId? current;
+
+      switch (descriptor.Base.Kind)
+      {
+         case ChainBaseKind.ObjectLiteral:
+            if (!int.TryParse(descriptor.Base.Text, NumberStyles.AllowLeadingSign, CultureInfo.InvariantCulture, out var n))
+               return true; // unresolvable but determined: no source
+            current = new MooObjectId(n);
+            break;
+
+         case ChainBaseKind.This:
+            current = _contextObjectAccessor();
+            if (current is null)
+               return true; // determined: no source
+            break;
+
+         case ChainBaseKind.Player:
+         case ChainBaseKind.Caller:
+            if (_currentPlayerCache is { } player && DateTime.UtcNow - player.CreatedUtc < _cacheTimeToLive)
+               current = player.Id;
+            else
+               return false; // miss: needs async player query
+            break;
+
+         case ChainBaseKind.CoreName:
+            if (budget[0]-- <= 0)
+               return true; // determined: budget exhausted -> no source
+            if (!TryGetCachedPropertyObject(0, descriptor.Base.Text, out current))
+               return false; // miss
+            break;
+
+         case ChainBaseKind.Variable:
+            if (budget[0]-- <= 0)
+               return true;
+            if (!resolvingVariables.Add(descriptor.Base.Text))
+               return true; // cycle -> determined no source
+            try
+            {
+               var rhs = variableResolver(descriptor.Base.Text);
+               if (rhs is null)
+                  return true; // non-chain / unknown var -> determined no source
+               if (!TryResolveBaseFromCache(rhs, variableResolver, resolvingVariables, budget, out current))
+                  return false; // miss somewhere in the RHS
+            }
+            finally
+            {
+               resolvingVariables.Remove(descriptor.Base.Text);
+            }
+
+            break;
+
+         default:
+            return true;
+      }
+
+      if (current is null)
+         return true;
+
+      // Walk the explicit property steps from caches.
+      foreach (var step in descriptor.Steps)
+      {
+         if (budget[0]-- <= 0)
+            return true;
+         if (!TryGetCachedPropertyObject(current.Value.Number, step, out current))
+            return false; // miss
+         if (current is null)
+            return true;
+      }
+
+      resolved = current;
+      return true;
+   }
+
+   private bool TryGetCachedPropertyObject(int objectNumber, string propertyName, out MooObjectId? value)
+   {
+      value = null;
+      if (_propertyObjectCache.TryGetValue((objectNumber, propertyName), out var entry))
+      {
+         if (DateTime.UtcNow - entry.CreatedUtc < _cacheTimeToLive)
+         {
+            value = entry.Id;
+            return true;
+         }
+
+         _propertyObjectCache.Remove((objectNumber, propertyName));
+      }
+
+      return false;
+   }
+
+   // Background resolve (via the evaluator, populating the world-state cache) then member fetch.
+   private async Task ResolveAndFetchAsync(
+      IMooWorldQueryProvider provider,
+      ChainDescriptor descriptor,
+      string chainId,
+      Func<string, ChainDescriptor?> variableResolver,
+      CancellationToken cancellationToken)
+   {
+      try
+      {
+         var evaluator = new ChainExpressionEvaluator(
+            (obj, prop, ct) => ResolvePropertyObjectAsync(provider, obj, prop, ct),
+            ct => ResolveCurrentPlayerAsync(provider, ct),
+            variableResolver,
+            InvokeDiagnostic);
+
+         var resolved = await evaluator.EvaluateAsync(descriptor, _contextObjectAccessor(), cancellationToken)
+                                       .ConfigureAwait(false);
+
+         if (resolved is null)
+         {
+            // Expected non-resolution: clear the marker, do not cache, do not refresh.
+            _uiMarshal(() =>
+            {
+               lock (_stateLock)
+               {
+                  if (_inflightChain == chainId)
+                     _inflightChain = null;
+               }
+            });
+            return;
+         }
+
+         var memberKey = (descriptor.MemberKind, resolved.Value.Number);
+         var items = await FetchMemberListAsync(provider, descriptor.MemberKind, resolved.Value, cancellationToken)
+                        .ConfigureAwait(false);
+
+         _uiMarshal(() =>
+         {
+            lock (_stateLock)
+            {
+               if (_inflightChain == chainId)
+                  _inflightChain = null;
+
+               if (_disposed || cancellationToken.IsCancellationRequested)
+                  return;
+
+               _cache[memberKey] = new CacheEntry(items, DateTime.UtcNow);
+            }
+
+            _menuRefresh();
+         });
+      }
+      catch (Exception ex)
+      {
+         InvokeDiagnostic($"Member completion resolve/fetch failed for chain '{chainId}'.", ex);
+         _uiMarshal(() =>
+         {
+            lock (_stateLock)
+            {
+               if (_inflightChain == chainId)
+                  _inflightChain = null;
+            }
+         });
+      }
+   }
+
+   // Resolves (objectId, propName) to the object the property holds, caching successful results.
+   private async Task<MooObjectId?> ResolvePropertyObjectAsync(
+      IMooWorldQueryProvider provider, MooObjectId objectId, string propertyName, CancellationToken cancellationToken)
+   {
+      lock (_stateLock)
+      {
+         if (TryGetCachedPropertyObject(objectId.Number, propertyName, out var cached))
+            return cached;
+      }
+
+      var value = await provider.GetPropertyValueAsync(objectId, propertyName, cancellationToken).ConfigureAwait(false);
+
+      // Require a non-null object-typed value with a parsable #N literal where N >= 0. Use
+      // NumberStyles.None to reject whitespace and sign prefixes such as #+62 or #-1.
+      if (value is null || value.Type != ObjectTypeCode ||
+          !value.Literal.StartsWith('#') ||
+          !int.TryParse(value.Literal.AsSpan(1), NumberStyles.None, CultureInfo.InvariantCulture, out var number) ||
+          number < 0)
+         return null; // expected non-resolution: not cached, not logged
+
+      var resolved = new MooObjectId(number);
+      lock (_stateLock)
+      {
+         if (!_disposed)
+            _propertyObjectCache[(objectId.Number, propertyName)] = (resolved, DateTime.UtcNow);
+      }
+
+      return resolved;
+   }
+
+   private async Task<MooObjectId?> ResolveCurrentPlayerAsync(
+      IMooWorldQueryProvider provider, CancellationToken cancellationToken)
+   {
+      lock (_stateLock)
+      {
+         if (_currentPlayerCache is { } cached && DateTime.UtcNow - cached.CreatedUtc < _cacheTimeToLive)
+            return cached.Id;
+      }
+
+      var player = await provider.GetCurrentPlayerAsync(cancellationToken).ConfigureAwait(false);
+      if (player is null)
+         return null;
+
+      lock (_stateLock)
+      {
+         if (!_disposed)
+            _currentPlayerCache = (player.Value, DateTime.UtcNow);
+      }
+
+      return player.Value;
+   }
+
+   // Member fetch for an already-resolved object (fast path).
+   private async Task FetchMembersAsync(
       IMooWorldQueryProvider provider,
       MemberContextKind kind,
       MooObjectId objectId,
@@ -293,20 +500,14 @@ public sealed class MemberCompletionController : IDisposable
    {
       try
       {
-         IReadOnlyList<AutocompleteItem> items;
-         if (kind == MemberContextKind.Verb)
-            items = BuildVerbItems(await provider.GetVerbsAsync(objectId, cancellationToken).ConfigureAwait(false));
-         else
-            items = BuildPropertyItems(await provider.GetPropertiesAsync(objectId, cancellationToken).ConfigureAwait(false), kind);
+         var items = await FetchMemberListAsync(provider, kind, objectId, cancellationToken).ConfigureAwait(false);
 
          _uiMarshal(() =>
          {
             lock (_stateLock)
             {
-               // Always release the inflight marker when this fetch owns it, even if we are
-               // about to discard the results due to disposal or cancellation.  Failing to do so
-               // would leave the marker set permanently and silently suppress all future fetches
-               // for this key.
+               // Always release the inflight marker when this fetch owns it, even when discarding the
+               // results due to disposal or cancellation, or the marker would suppress all future fetches.
                if (_inflightKey == key)
                   _inflightKey = null;
 
@@ -321,9 +522,7 @@ public sealed class MemberCompletionController : IDisposable
       }
       catch (Exception ex)
       {
-         // Best-effort completion: any failure leaves only the static list in place.
-         InvokeDiagnostic(
-            $"Member completion fetch failed for kind={kind}, object #{objectId.Number}.", ex);
+         InvokeDiagnostic($"Member completion fetch failed for kind={kind}, object #{objectId.Number}.", ex);
          _uiMarshal(() =>
          {
             lock (_stateLock)
@@ -335,167 +534,63 @@ public sealed class MemberCompletionController : IDisposable
       }
    }
 
-   private async Task FetchCoreNameAsync(
-      IMooWorldQueryProvider provider,
-      MemberContextKind kind,
-      string name,
-      CancellationToken cancellationToken)
+   private async Task<IReadOnlyList<AutocompleteItem>> FetchMemberListAsync(
+      IMooWorldQueryProvider provider, MemberContextKind kind, MooObjectId objectId, CancellationToken cancellationToken)
    {
-      var inflightKey = (Kind: kind, Name: name);
-      try
-      {
-         var value = await provider.GetPropertyValueAsync(new MooObjectId(0), name, cancellationToken)
-                                   .ConfigureAwait(false);
+      if (kind == MemberContextKind.Verb)
+         return BuildVerbItems(await provider.GetVerbsAsync(objectId, cancellationToken).ConfigureAwait(false));
 
-         // Validate: must be a non-null object-typed value with a parsable #N literal where N >= 0.
-         // Use NumberStyles.None to reject whitespace and sign prefixes such as #+62 or #-1.
-         if (value is null || value.Type != ObjectTypeCode ||
-             !value.Literal.StartsWith('#') ||
-             !int.TryParse(value.Literal.AsSpan(1), NumberStyles.None, CultureInfo.InvariantCulture, out var number) ||
-             number < 0)
-         {
-            // Resolution failed — clear the inflight marker, do NOT cache, do NOT refresh.
-            string diagnosticMessage;
-            if (value is null)
-               diagnosticMessage = $"Core reference ${name} did not resolve to an object: property value was null.";
-            else if (value.Type != ObjectTypeCode)
-               diagnosticMessage = $"Core reference ${name} did not resolve to an object: property value was type {value.Type}.";
-            else
-               diagnosticMessage = $"Core reference ${name} did not resolve to an object: literal '{value.Literal}' is not a valid object number.";
-            InvokeDiagnostic(diagnosticMessage, null);
-            _uiMarshal(() =>
-            {
-               lock (_stateLock)
-               {
-                  if (InflightCoreNameMatches(inflightKey))
-                     _inflightCoreName = null;
-               }
-            });
-            return;
-         }
-
-         var resolvedId = new MooObjectId(number);
-
-         // Now fetch the member list for the resolved object.
-         IReadOnlyList<AutocompleteItem> items;
-         if (kind == MemberContextKind.Verb)
-            items = BuildVerbItems(await provider.GetVerbsAsync(resolvedId, cancellationToken).ConfigureAwait(false));
-         else
-            items = BuildPropertyItems(await provider.GetPropertiesAsync(resolvedId, cancellationToken).ConfigureAwait(false), kind);
-
-         var memberKey = (kind, resolvedId.Number);
-
-         _uiMarshal(() =>
-         {
-            lock (_stateLock)
-            {
-               // Always release the inflight marker when this fetch owns it, even if we are
-               // about to discard the results due to disposal or cancellation.  Failing to do so
-               // would leave the marker set permanently and silently suppress all future fetches
-               // for this core name.
-               if (InflightCoreNameMatches(inflightKey))
-                  _inflightCoreName = null;
-
-               if (_disposed || cancellationToken.IsCancellationRequested)
-                  return;
-
-               _coreNameCache[name] = (resolvedId, DateTime.UtcNow);
-               _cache[memberKey] = new CacheEntry(items, DateTime.UtcNow);
-            }
-
-            _menuRefresh();
-         });
-      }
-      catch (Exception ex)
-      {
-         // Best-effort completion: any failure leaves only the static list in place.
-         InvokeDiagnostic(
-            $"Member completion fetch failed for core name ${name} (kind={kind}).", ex);
-         _uiMarshal(() =>
-         {
-            lock (_stateLock)
-            {
-               if (InflightCoreNameMatches(inflightKey))
-                  _inflightCoreName = null;
-            }
-         });
-      }
+      return BuildPropertyItems(await provider.GetPropertiesAsync(objectId, cancellationToken).ConfigureAwait(false), kind);
    }
 
-   private async Task FetchCurrentPlayerAsync(
-      IMooWorldQueryProvider provider,
-      MemberContextKind kind,
-      CancellationToken cancellationToken)
+   // The canonical textual form of a chain, used to dedup concurrent in-flight resolutions.
+   private static string CanonicalChain(ChainDescriptor descriptor)
    {
-      try
+      var basePart = descriptor.Base.Kind switch
       {
-         var player = await provider.GetCurrentPlayerAsync(cancellationToken).ConfigureAwait(false);
+         ChainBaseKind.ObjectLiteral => $"#{descriptor.Base.Text}",
+         ChainBaseKind.CoreName => $"${descriptor.Base.Text}",
+         ChainBaseKind.This => "this",
+         ChainBaseKind.Player => "player",
+         ChainBaseKind.Caller => "caller",
+         _ => $"var:{descriptor.Base.Text}",
+      };
+      var steps = descriptor.Steps.Count > 0 ? "." + string.Join(".", descriptor.Steps) : string.Empty;
+      var separator = descriptor.MemberKind == MemberContextKind.Verb ? ":" : ".";
+      return $"{basePart}{steps}{separator}";
+   }
 
-         if (player is null)
-         {
-            // Resolution failed — clear the inflight marker, do NOT cache, do NOT refresh.
-            InvokeDiagnostic("player/caller did not resolve: the server returned no current player.", null);
-            _uiMarshal(() =>
-            {
-               lock (_stateLock)
-               {
-                  if (_inflightCurrentPlayer == kind)
-                     _inflightCurrentPlayer = null;
-               }
-            });
-            return;
-         }
+   // Reconstructs the buffer text from the parse tree so the extractor sees the same input the parser did.
+   private static string ReconstructBuffer(ParserRuleContext tree, string linePrefix, int caretLine, int caretColumn)
+   {
+      var inputStream = tree.Start?.InputStream;
+      if (inputStream is not null)
+         return inputStream.GetText(Antlr4.Runtime.Misc.Interval.Of(0, inputStream.Size - 1));
 
-         var resolvedId = player.Value;
+      // Fallback: the single caret line (only the line-prefix region matters to the extractor).
+      return linePrefix;
+   }
 
-         // Now fetch the member list for the resolved player object.
-         IReadOnlyList<AutocompleteItem> items;
-         if (kind == MemberContextKind.Verb)
-            items = BuildVerbItems(await provider.GetVerbsAsync(resolvedId, cancellationToken).ConfigureAwait(false));
-         else
-            items = BuildPropertyItems(await provider.GetPropertiesAsync(resolvedId, cancellationToken).ConfigureAwait(false), kind);
-
-         var memberKey = (kind, resolvedId.Number);
-
-         _uiMarshal(() =>
-         {
-            lock (_stateLock)
-            {
-               // Always release the inflight marker when this fetch owns it, even if we are
-               // about to discard the results due to disposal or cancellation.  Failing to do so
-               // would leave the marker set permanently and silently suppress all future fetches.
-               if (_inflightCurrentPlayer == kind)
-                  _inflightCurrentPlayer = null;
-
-               if (_disposed || cancellationToken.IsCancellationRequested)
-                  return;
-
-               _currentPlayerCache = (resolvedId, DateTime.UtcNow);
-               _cache[memberKey] = new CacheEntry(items, DateTime.UtcNow);
-            }
-
-            _menuRefresh();
-         });
-      }
-      catch (Exception ex)
+   private static int AbsoluteCaretOffset(string buffer, int caretLine, int caretColumn)
+   {
+      var line = 1;
+      var offset = 0;
+      while (line < caretLine && offset < buffer.Length)
       {
-         // Best-effort completion: any failure leaves only the static list in place.
-         InvokeDiagnostic($"Member completion fetch failed for current player (kind={kind}).", ex);
-         _uiMarshal(() =>
-         {
-            lock (_stateLock)
-            {
-               if (_inflightCurrentPlayer == kind)
-                  _inflightCurrentPlayer = null;
-            }
-         });
+         var newline = buffer.IndexOf('\n', offset);
+         if (newline < 0)
+            break;
+         offset = newline + 1;
+         line++;
       }
+
+      var target = offset + (caretColumn - 1);
+      return Math.Min(Math.Max(target, 0), buffer.Length);
    }
 
    /// <summary>
-   /// Invokes the optional <see cref="_diagnostic"/> callback with the supplied message and
-   /// exception. Exceptions thrown by the callback are silently swallowed so that a faulty
-   /// diagnostic handler can never break completion.
+   /// Invokes the optional diagnostic callback. Exceptions thrown by the callback are silently
+   /// swallowed so that a faulty diagnostic handler can never break completion.
    /// </summary>
    /// <param name="message">A human-readable description of the failure.</param>
    /// <param name="ex">The exception that caused the failure, or <c>null</c> for validation failures.</param>
@@ -505,17 +600,6 @@ public sealed class MemberCompletionController : IDisposable
       try { _diagnostic(message, ex); }
       catch { /* swallow: a faulty diagnostic must not break completion */ }
    }
-
-   /// <summary>
-   /// Returns <c>true</c> when <see cref="_inflightCoreName"/> matches the supplied fetch key.
-   /// Must be called under <see cref="_stateLock"/>.
-   /// </summary>
-   /// <param name="fetchKey">The <c>(Kind, Name)</c> tuple that identifies the fetch in progress.</param>
-   /// <returns><c>true</c> when the current inflight marker belongs to this fetch.</returns>
-   private bool InflightCoreNameMatches((MemberContextKind Kind, string Name) fetchKey) =>
-      _inflightCoreName.HasValue &&
-      _inflightCoreName.Value.Kind == fetchKey.Kind &&
-      string.Equals(_inflightCoreName.Value.Name, fetchKey.Name, StringComparison.OrdinalIgnoreCase);
 
    private static IReadOnlyList<AutocompleteItem> BuildVerbItems(IReadOnlyList<MooVerbSummary> verbs)
    {
@@ -564,9 +648,8 @@ public sealed class MemberCompletionController : IDisposable
 
    /// <summary>
    /// Records the origin for a member name, de-duplicating case-insensitively. When the same name
-   /// appears under two origins (which the server dedup should prevent), a known origin
-   /// (<see cref="MemberOrigin.Local"/>/<see cref="MemberOrigin.Inherited"/>) deterministically
-   /// wins over <see cref="MemberOrigin.Unknown"/>.
+   /// appears under two origins, a known origin deterministically wins over
+   /// <see cref="MemberOrigin.Unknown"/>.
    /// </summary>
    /// <param name="origins">The accumulated name-to-origin map.</param>
    /// <param name="name">The member name.</param>
@@ -579,8 +662,20 @@ public sealed class MemberCompletionController : IDisposable
          return;
       }
 
-      // A known origin beats Unknown; otherwise keep the first-seen value (stable, deterministic).
       if (existing == MemberOrigin.Unknown && origin != MemberOrigin.Unknown)
          origins[name] = origin;
+   }
+
+   // Case-insensitive comparison of (objectNumber, propertyName) keys (MOO property lookup is case-insensitive).
+   private sealed class PropertyKeyComparer : IEqualityComparer<(int ObjectNumber, string PropertyName)>
+   {
+      public static readonly PropertyKeyComparer Instance = new();
+
+      public bool Equals((int ObjectNumber, string PropertyName) x, (int ObjectNumber, string PropertyName) y) =>
+         x.ObjectNumber == y.ObjectNumber &&
+         string.Equals(x.PropertyName, y.PropertyName, StringComparison.OrdinalIgnoreCase);
+
+      public int GetHashCode((int ObjectNumber, string PropertyName) obj) =>
+         HashCode.Combine(obj.ObjectNumber, StringComparer.OrdinalIgnoreCase.GetHashCode(obj.PropertyName));
    }
 }

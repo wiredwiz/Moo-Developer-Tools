@@ -401,26 +401,12 @@ public class MemberCompletionControllerTests
    }
 
    [Fact]
-   public void CoreName_queued_marshal_cancellation_releases_inflight_marker_so_retry_can_succeed()
+   public void CoreName_queued_marshal_cancellation_does_not_permanently_suppress_a_retry()
    {
-      // I1 regression test for FetchCoreNameAsync success-lambda path:
-      // With a queuing marshal the success lambda is deferred.  The cancellation token is
-      // checked INSIDE the lambda (after the marker clear).  This test proves that the
-      // marker is cleared even when cancellation arrives before the lambda runs, so that a
-      // subsequent $network: call is not permanently suppressed.
-      //
-      // Sequence:
-      //   (a) GetMemberItems("$network:") — provider has no gate so GetPropertyValueAsync
-      //       and GetVerbsAsync both return completed tasks; FetchCoreNameAsync runs to
-      //       completion synchronously, queuing the success lambda before GetMemberItems
-      //       returns.
-      //   (b) GetMemberItems("#7.") — swaps/cancels _fetchCancellation, invalidating the
-      //       token captured by the queued lambda; also queues the #7. success lambda.
-      //   (c) Drain the queue — both lambdas execute; the $network: lambda sees
-      //       IsCancellationRequested, clears the marker, and does NOT populate the cache.
-      //   (d) Assert $network: cache is empty, then issue a retry call; assert PropValueCalls
-      //       reaches 2 (new resolve started), drain the newly queued lambda, and assert
-      //       items are now returned.
+      // udd-efk: under the consolidated extract->resolve->fetch pipeline, switching context cancels
+      // the in-flight chain resolve. This test proves the in-flight chain marker is released even when
+      // the cancellation interleaves with a deferred (queued) marshal, so a later identical $network:
+      // request is NOT permanently suppressed and eventually yields its members.
       var provider = new FakeQueryProvider();
       provider.PropertyValues["network"] = new MooPropertyValue(1, "#62");
       provider.Verbs.Add(new MooVerbSummary(new[] { "tell" }, new MooObjectId(62)));
@@ -430,36 +416,36 @@ public class MemberCompletionControllerTests
       using var controller = CreateControllerWithQueuedMarshal(
          provider, marshalQueue, contextObject: new MooObjectId(7));
 
-      // (a) Start core-name resolve for $network: — success lambda queued immediately.
+      // (a) Start core-name resolve for $network: — completion lambda queued by the ungated provider.
       controller.GetMemberItems("$network:");
       SpinWait.SpinUntil(() => marshalQueue.Count > 0, TimeSpan.FromSeconds(5))
-              .Should().BeTrue("success lambda should be queued synchronously by the ungated provider");
+              .Should().BeTrue("a completion lambda should be queued by the ungated provider");
 
-      // (b) Switch context — cancels the queued lambda's token, queues #7. success lambda.
+      // (b) Switch context — cancels the queued lambda's token, queues the #7. completion lambda.
       controller.GetMemberItems("#7.");
 
-      // (c) Drain all queued actions.
-      var snapshot = marshalQueue.ToList();
-      marshalQueue.Clear();
-      foreach (var action in snapshot)
+      // (c) Drain all queued actions (the cancelled $network: lambda must release its chain marker).
+      foreach (var action in marshalQueue.ToList())
          action();
-
-      // (d) Retry: single call — starts a new resolve (marker was cleared) and returns empty
-      //     while the new lambda is queued.  PropValueCalls must reach 2, proving the marker
-      //     was released so the retry was not suppressed.
-      var retryResult = controller.GetMemberItems("$network:");
-      retryResult.Should().BeEmpty("the cache must be empty and the retry must start a new resolve");
-      provider.PropValueCalls.Should().Be(2,
-         "cancellation inside the success lambda must release the inflight marker so a retry starts a new resolve");
-
-      // Drain the retry's queued lambda and verify items appear.
-      var retrySnapshot = marshalQueue.ToList();
       marshalQueue.Clear();
-      foreach (var action in retrySnapshot)
-         action();
 
-      controller.GetMemberItems("$network:").Select(i => i.Text).Should().Contain("tell",
-         "after draining the retry lambda the cache should be populated");
+      // (d) Retry $network: — must not be permanently suppressed. Drain any queued completion and
+      //     confirm the members eventually appear.
+      controller.GetMemberItems("$network:");
+      foreach (var action in marshalQueue.ToList())
+         action();
+      marshalQueue.Clear();
+
+      SpinWait.SpinUntil(
+         () =>
+         {
+            controller.GetMemberItems("$network:");
+            foreach (var action in marshalQueue.ToList())
+               action();
+            marshalQueue.Clear();
+            return controller.GetMemberItems("$network:").Any(i => i.Text == "tell");
+         },
+         TimeSpan.FromSeconds(5)).Should().BeTrue("a retry after cancellation must not be permanently suppressed");
    }
 
    [Fact]
@@ -680,30 +666,25 @@ public class MemberCompletionControllerTests
    }
 
    [Fact]
-   public void Diagnostic_invoked_with_null_exception_when_core_name_validation_fails()
+   public void CoreName_non_object_value_is_expected_non_resolution_and_not_logged()
    {
+      // udd-efk: a core reference resolving to a non-object value is an *expected* non-resolution
+      // (a normal outcome of typing), so it yields no source WITHOUT invoking the warning diagnostic
+      // — otherwise the log would flood on every partial keystroke. Only thrown exceptions are logged.
       var provider = new FakeQueryProvider();
-      // Type 2 = STR, not OBJ — validation should fail
+      // Type 2 = STR, not OBJ — resolves to no object.
       provider.PropertyValues["network"] = new MooPropertyValue(2, "\"hello\"");
-      string? capturedMessage = null;
-      Exception? capturedException = null;
       var diagnosticInvoked = false;
       using var controller = CreateController(
          provider,
-         diagnostic: (msg, ex) =>
-         {
-            capturedMessage = msg;
-            capturedException = ex;
-            diagnosticInvoked = true;
-         });
+         diagnostic: (_, _) => diagnosticInvoked = true);
 
       controller.GetMemberItems("$network:");
-      Thread.Sleep(250); // allow the faulted resolve to finish
+      Thread.Sleep(250); // allow the resolve to finish
 
-      diagnosticInvoked.Should().BeTrue("diagnostic must be invoked on core-name validation failure");
-      capturedMessage.Should().NotBeNullOrEmpty("diagnostic must receive a message describing the failure");
-      capturedMessage.Should().Contain("network", "message should name the core reference");
-      capturedException.Should().BeNull("validation failures carry no exception");
+      diagnosticInvoked.Should().BeFalse(
+         "an expected non-resolution (non-object core value) must not be logged as a warning");
+      controller.GetMemberItems("$network:").Should().BeEmpty();
    }
 
    [Fact]
