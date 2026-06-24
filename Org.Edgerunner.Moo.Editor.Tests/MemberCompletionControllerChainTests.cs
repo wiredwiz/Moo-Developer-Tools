@@ -110,6 +110,40 @@ public class MemberCompletionControllerChainTests
    }
 
    [Fact]
+   public void Cached_two_step_chain_resolves_with_full_context_but_not_from_line_prefix_alone()
+   {
+      // Regression for udd-efk: the page's re-open guard must thread the SAME full context
+      // (tree/tokens/caret) into GetMemberItems that the popup enumeration uses. The line-prefix-only
+      // overload only resolves single-atom chains, so for a multi-step chain ($Mcp.package:) it
+      // extracts nothing and reports Count == 0 even after the chain's verbs are fetched and cached —
+      // which is why the popup never re-opened. This test documents that asymmetry.
+      var provider = new FakeQueryProvider();
+      provider.PropertyValues[(0, "Mcp")] = new MooPropertyValue(1, "#123");
+      provider.PropertyValues[(123, "package")] = new MooPropertyValue(1, "#456");
+      provider.Verbs.Add(new MooVerbSummary(new[] { "send" }, new MooObjectId(456)));
+      using var controller = CreateController(provider);
+
+      // Warm the cache exactly as RequestChain does: drive the chain via the FULL-context overload
+      // and await the async resolve+fetch.
+      const string buffer = "$Mcp.package:";
+      var (tree, tokens) = ParseBuffer(buffer);
+      var lines = buffer.Split('\n');
+      var caretLine = lines.Length;
+      var caretColumn = lines[^1].Length + 1;
+      var linePrefix = lines[^1];
+      RequestChain(controller, buffer); // resolves + caches the verb list for #456
+
+      // Full context: the resolved+cached chain must yield items (Count > 0) — what the enumeration sees.
+      controller.GetMemberItems(linePrefix, tree, tokens, caretLine, caretColumn).Count.Should().BeGreaterThan(0,
+         "with the full parse context the cached multi-step chain resolves and returns its verbs");
+
+      // Line-prefix-only: the SAME cached chain line prefix yields nothing, because that overload only
+      // resolves single-atom chains. The page's re-open guard therefore must NOT use this overload.
+      controller.GetMemberItems(linePrefix).Should().BeEmpty(
+         "the line-prefix-only overload cannot resolve a multi-step chain, so the re-open guard must pass the full context");
+   }
+
+   [Fact]
    public void World_state_cache_avoids_a_second_property_value_query()
    {
       var provider = new FakeQueryProvider();

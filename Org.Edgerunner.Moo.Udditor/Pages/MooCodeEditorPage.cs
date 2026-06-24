@@ -340,15 +340,21 @@ public class MooCodeEditorPage : MooEditorPage
                     // Results arrived while the popup was already open — refresh its item list.
                     menu.Show(false);
                 }
-                else if (codeEditor.Focused &&
-                         _memberCompletionController is not null &&
-                         _memberCompletionController.GetMemberItems(GetCaretLinePrefix(codeEditor)).Count > 0)
+                else if (codeEditor.Focused && _memberCompletionController is not null)
                 {
                     // Results arrived after the popup closed (it closed because the first
                     // DoAutocomplete call found an empty list).  Re-open it now that items are
                     // available; Show(false) runs the menu's own fragment matching so it stays
-                    // closed if nothing matches the current fragment.
-                    menu?.Show(false);
+                    // closed if nothing matches the current fragment. Thread the SAME full context
+                    // (tree/tokens/caret) the enumeration uses, so multi-step chains ($Mcp.package:)
+                    // pass the guard — the line-prefix-only overload resolves single atoms only.
+                    var context = GetMemberCompletionContext(codeEditor);
+                    if (_memberCompletionController.GetMemberItems(
+                            GetCaretLinePrefix(codeEditor), context.Tree, context.Tokens,
+                            context.CaretLine, context.CaretColumn).Count > 0)
+                    {
+                        menu?.Show(false);
+                    }
                 }
             },
             diagnostic: (message, ex) => Logger.Warn(ex, message));
