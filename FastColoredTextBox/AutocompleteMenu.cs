@@ -462,10 +462,10 @@ namespace FastColoredTextBoxNS {
 				&& tb.Selection.IsEmpty /*pops up only if selected range is empty*/
 				&& (tb.Selection.Start > fragment.Start || text.Length == 0/*pops up only if caret is after first letter*/))) {
 				Menu.Fragment = fragment;
-				//build popup menu, ranking the selected item: exact match first, then shortest, then source order
-				int bestIndex = -1;
-				bool bestExact = false;
-				int bestLength = int.MaxValue;
+				//build popup menu, ranking the focused item: exact match first, then alphabetically-first (the list
+				//is already alphabetically sorted upstream), then source order
+				var selectableTexts = new List<string>();
+				var selectableVisibleIndexes = new List<int>();
 				foreach (var item in sourceItems) {
 					item.Parent = Menu;
 					CompareResult res = item.Compare(text);
@@ -473,20 +473,13 @@ namespace FastColoredTextBoxNS {
 						continue;
 					visibleItems.Add(item);
 					if (res == CompareResult.VisibleAndSelected) {
-						int index = visibleItems.Count - 1;
-						bool exact = string.Equals(item.Text, text, StringComparison.InvariantCultureIgnoreCase);
-						int length = item.Text != null ? item.Text.Length : int.MaxValue;
-						if (bestIndex < 0 ||
-							(exact && !bestExact) ||
-							(exact == bestExact && length < bestLength)) {
-							bestIndex = index;
-							bestExact = exact;
-							bestLength = length;
-						}
+						selectableVisibleIndexes.Add(visibleItems.Count - 1);
+						selectableTexts.Add(item.Text);
 					}
 				}
-				if (bestIndex >= 0)
-					FocussedItemIndex = bestIndex;
+				int pick = AutocompleteMatchRanker.SelectBestMatchIndex(selectableTexts, text);
+				if (pick >= 0)
+					FocussedItemIndex = selectableVisibleIndexes[pick];
 
 				//if nothing offers more than what is already typed, do not show the menu
 				if (visibleItems.Count > 0) {
