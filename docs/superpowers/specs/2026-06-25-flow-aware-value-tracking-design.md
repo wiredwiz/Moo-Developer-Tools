@@ -34,6 +34,21 @@ and udd-3y3 (bare-operand hover). Supersedes `LocalVariableResolver.ResolveAssig
 - **Offset-correct nested snapshots**: an assignment's right-hand side is reduced as of *that
   assignment's* position, not the caret's. `x = player; player = #5; x:` resolves `x` to the
   player value at the `x = player` line (the default player), **not** `#5`.
+- **All assignment forms** are recognized as binding their target(s) — so they all participate in
+  the three-state tracking (poisoning, override). Plain `=` carries a resolvable value; compound
+  assignments (`+=`, `-=`, `*=`, `/=`, `%=`, `^=`, `<<=`, `>>=`, and friends) bind the variable to an
+  arithmetic/bitwise result, so they reassign with value **Unknown** (`x = #5; x += 1; x:` → Unknown,
+  not `#5`). Recognizing them is a correctness requirement, not a nicety.
+- **Scatter assignment** `{a, b, c} = RHS;` binds each target. Most scatters can't be determined; we
+  resolve a target **only** when its corresponding element is an explicit object reference. For a
+  **plain** target at a fixed position (no optional `?name` / rest `@name` target shifts it): reduce
+  `RHS` **to a list-literal node** as of the scatter's offset — directly (`{...}`) or through a
+  variable that resolves to one (`a = {$mcp, 5}; {mcp, count} = a;`) — then take the element at the
+  target's position and reduce it with the normal chain machinery. An element that grounds to an
+  object (`$mcp`, `#5`, `$mcp.package`, …) resolves; a non-object element (`5`, a string, a nested
+  list, a verb call) is **Unknown**. A list literal containing a splat (`@`) makes positions at/after
+  it indeterminate → those targets are Unknown. A non-list-literal RHS, an out-of-range position, or
+  an optional/rest/position-shifted target → Unknown. The scatter still poisons every target it binds.
 - Bare-local **hover** (deferred to here by udd-3y3): hovering a bare local shows the object it
   currently resolves to.
 - Wording: the hover "no source" label becomes **"(unknown source)"**.
@@ -48,8 +63,8 @@ and udd-3y3 (bare-operand hover). Supersedes `LocalVariableResolver.ResolveAssig
 
 - Loop **fixpoint** analysis (proving every iteration converges to the same value); we only
   decline (ambiguous) rather than prove convergence.
-- Scatter / multiple-assignment targets (`{a, b} = expr;`, `a = b = expr;`) — recognized as
-  *assigned* (so they can poison), but their value is treated as unknown for now.
+- Chained assignment RHS value (`a = b = #5; a:` → `a` is `Unknown`); the form is still recognized
+  as assigning `a` (so it poisons).
 - Cross-verb / suspend effects; MOO locals are per-frame, so this does not arise.
 
 ## Resolution semantics
@@ -127,6 +142,12 @@ pack:                         // ground.steps [package] ++ pack-chain.steps [] -
                               // the object that $mcp -> #N, .package -> #M resolves to (as udd-efk)
 ```
 ```moo
+a = {$mcp, 5};                // a's value is the list literal {$mcp, 5}
+{mcp, count} = a;             // scatter: RHS `a` reduces to that list literal (offset-correct)
+mcp:                          // element[1] = $mcp -> object -> complete verbs on $mcp
+                              // (count would be element[2] = 5 -> not an object -> Unknown)
+```
+```moo
 while (cond)
    player:                    // iter 2+ would see #5 -> Ambiguous -> default player
    player = #5;               // back-edge: poisons player
@@ -156,13 +177,28 @@ public static class FlowValueResolver
 
 - `name` is `"this"`/`"player"`/`"caller"` or a local identifier; keyword-ness is decided by the
   name (matching the existing lowercase keywords).
-- Algorithm: collect assignments to `name` (top-level and nested), classify each as
-  Definite / Conditional per the table above (needs the caret's ancestor-block chain and each
+- Assignment forms: an "assignment to `name`" is any node that binds it — `AssignmentExpressionContext`
+  (`=`, value = RHS chain); the compound family (`AddAssignmentExpressionContext`,
+  `SubtractAssignmentExpressionContext`, `Multiply`/`Divide`/`Modulus`/`Power`/`LeftShift`/
+  `RightShift`/`Xor`/`Compliment` `AssignmentExpressionContext`) which bind with value **Unknown**;
+  and `ScatteringAssignmentExpressionContext` whose `ScatteringTargetContext` lists
+  `ScatteringTargetItemContext`s (each plain / optional `?` / rest `@`). All forms participate in
+  poisoning; only `=` and qualifying scatter elements carry a resolvable value. (Exact child shapes
+  are confirmed against the grammar by parsing samples during implementation, as udd-efk did.)
+- Algorithm: collect assignments to `name` (top-level and nested, across all forms above), classify
+  each as Definite / Conditional per the table above (needs the caret's ancestor-block chain and each
   assignment's enclosing-block chain; loop bodies enclosing the caret contribute their *whole*
   body as conditional-on-back-edge), fold in document order into the three-state machine, then on
   a Definite winner perform offset-correct reduction.
-- Guards: cycle set + depth budget. Unexpected exceptions route to `diagnostic`; expected
-  non-resolution is silent (consistent with udd-efk logging policy).
+- Scatter value: for a `ScatteringAssignmentExpressionContext` binding `name` as a plain target at a
+  fixed position `i`, an internal `ResolveListLiteral(rhsExpr, offset)` reduces the scatter RHS to a
+  `ListLiteralExpressionContext` — directly or through a variable whose definite value is a list
+  literal (offset-correct, same guards) — and the element at position `i` is reduced with the normal
+  chain machinery. A splat (`@`) at/before `i`, an out-of-range position, an optional/rest/shifted
+  target, or a non-list-literal RHS → `Unknown`.
+- Guards: cycle set + depth budget, shared across object-chain reduction and `ResolveListLiteral`.
+  Unexpected exceptions route to `diagnostic`; expected non-resolution is silent (consistent with
+  udd-efk logging policy).
 
 `LocalVariableResolver.ResolveAssignmentChain` is **replaced** by this resolver as the evaluator's
 value source. `LocalVariableResolver` is either removed or reduced to the assignment-finding helper
@@ -238,7 +274,11 @@ exceptions during the tree walk route through the injected `diagnostic` delegate
   **local assigned to a multi-step chain** (`pack = $mcp.package; pack:` → ground chain
   `{ base $mcp, steps [package] }`, steps merged onto the original); multi-hop reduction
   (`a = b; b = #5; a:` honoring offsets); loop back-edge poison; cycle guard (`x = y; y = x`);
-  depth budget.
+  depth budget; **compound assignment poisons with Unknown value** (`x = #5; x += 1; x:` → Unknown);
+  **scatter** — direct list literal (`{a, b} = {#1, #2}` → a=#1, b=#2); indirected RHS
+  (`a = {$mcp, 5}; {mcp, count} = a;` → `mcp` = `$mcp` object, `count` = Unknown); non-object element
+  → Unknown; splat (`{a, @rest} = …`) → Unknown; optional/rest target → Unknown; out-of-range
+  position → Unknown.
 - **`ChainExpressionEvaluator`** (fake provider): updated for the new delegate; keyword
   `UseDefault` falls back to default; `Reassigned` resolves the ground chain with merged steps;
   `Unknown` → null.
@@ -252,4 +292,6 @@ exceptions during the tree walk route through the injected `diagnostic` delegate
 
 - Loop fixpoint: when every iteration provably assigns the same value, resolve it instead of
   declining.
-- Scatter / chained assignment value tracking.
+- Optional/rest scatter targets and splat-bearing RHS lists (position inference when the list
+  length can be determined).
+- Chained-assignment RHS value (`a = b = #5; a:`).
