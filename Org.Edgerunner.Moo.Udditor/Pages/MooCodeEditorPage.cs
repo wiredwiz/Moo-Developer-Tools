@@ -369,6 +369,7 @@ public class MooCodeEditorPage : MooEditorPage
                 () => GetMemberCompletionContext(codeEditor)));
         codeEditor.AutocompleteMenu.AppearInterval = Settings.Instance.EditorAutocompleteDelay;
         codeEditor.HoverContentFetcher = FetchHoverContentAsync;
+        codeEditor.HoverDiagnostic = (message, ex) => Logger.Warn(ex, message);
     }
 
     private async Task<string> FetchHoverContentAsync(
@@ -378,7 +379,7 @@ public class MooCodeEditorPage : MooEditorPage
         if (provider == null)
             return null;
 
-        var objectId = await ResolveHoverOperandAsync(request.Operand, provider, cancellationToken);
+        var objectId = await ResolveHoverChainAsync(request.Chain, request.VariableResolver, provider, cancellationToken);
         if (objectId == null)
             return null;
 
@@ -399,42 +400,29 @@ public class MooCodeEditorPage : MooEditorPage
         return $"=> {literal}";
     }
 
-    // Resolves a hover operand to its object id through the same chain evaluator the completion path
-    // uses, so "this" -> ContextObjectId; "player"/"caller" -> the connected player object; "#123" ->
-    // that object; "$name" -> #0.name's object value; all via one consolidated path. Returns null when
-    // the operand does not resolve. Unexpected failures (a provider throw) are logged via Logger.Warn;
-    // ordinary non-resolution returns null without a log entry.
-    private async Task<MooObjectId?> ResolveHoverOperandAsync(
-        string operand, IMooWorldQueryProvider provider, CancellationToken cancellationToken)
+    // Resolves a hover operand CHAIN to its final object id through the same evaluator the completion path
+    // uses, so hovering $Mcp.package:foo resolves $Mcp -> #221 then .package -> #215 exactly as completing
+    // $Mcp.package: does. The supplied variable resolver (bound to the live parse tree and the hovered
+    // position) resolves any local-variable chain base, matching completion. Returns null when the chain
+    // does not resolve. Unexpected failures (a provider throw) are logged via Logger.Warn; ordinary
+    // non-resolution returns null without a log entry.
+    private async Task<MooObjectId?> ResolveHoverChainAsync(
+        ChainDescriptor chain,
+        Func<string, ChainDescriptor?> variableResolver,
+        IMooWorldQueryProvider provider,
+        CancellationToken cancellationToken)
     {
-        if (string.IsNullOrEmpty(operand))
-            return null;
-
-        var chainBase = ClassifyHoverOperand(operand);
-        if (chainBase is null)
+        if (chain is null)
             return null;
 
         var evaluator = new ChainExpressionEvaluator(
             (obj, prop, ct) => ResolveHoverPropertyObjectAsync(provider, obj, prop, ct),
             provider.GetCurrentPlayerAsync,
-            _ => null, // hover operands are single atoms; no local-variable chain bases here
+            variableResolver ?? (_ => null),
             (message, ex) => Logger.Warn(ex, message));
 
-        var descriptor = new ChainDescriptor(
-            chainBase.Value, Array.Empty<string>(), MemberContextKind.Property, string.Empty);
-        return await evaluator.EvaluateAsync(descriptor, ContextObjectId, cancellationToken);
+        return await evaluator.EvaluateAsync(chain, ContextObjectId, cancellationToken);
     }
-
-    // Classifies a single hover operand token into a chain base (the forms the hover token-walk emits).
-    private static ChainBase? ClassifyHoverOperand(string operand) => operand switch
-    {
-        "this" => new ChainBase(ChainBaseKind.This, string.Empty),
-        "player" => new ChainBase(ChainBaseKind.Player, string.Empty),
-        "caller" => new ChainBase(ChainBaseKind.Caller, string.Empty),
-        _ when operand[0] == '#' => new ChainBase(ChainBaseKind.ObjectLiteral, operand.Substring(1)),
-        _ when operand[0] == '$' => new ChainBase(ChainBaseKind.CoreName, operand.Substring(1)),
-        _ => null,
-    };
 
     // Resolves (objectId, propName) to the object the property holds (the evaluator's per-step primitive).
     private static async Task<MooObjectId?> ResolveHoverPropertyObjectAsync(

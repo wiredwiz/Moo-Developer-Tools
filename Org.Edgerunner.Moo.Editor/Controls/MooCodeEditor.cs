@@ -118,15 +118,25 @@ namespace Org.Edgerunner.Moo.Editor.Controls
       /// <summary>The verb/property kind passed to the hover-content fetcher.</summary>
       public enum MooHoverMemberKind { Verb, Property }
 
-      /// <summary>A request for hover content: the member kind, its name, and the operand text
-      /// (e.g. "$command_utils", "#0", or "this").</summary>
-      public sealed record MooHoverRequest(MooHoverMemberKind Kind, string Member, string Operand);
+      /// <summary>A request for hover content: the member kind, the member name, the operand chain to
+      /// resolve to an object, and a resolver for any local-variable base appearing in that chain.</summary>
+      public sealed record MooHoverRequest(
+         MooHoverMemberKind Kind,
+         string Member,
+         ChainDescriptor Chain,
+         Func<string, ChainDescriptor?> VariableResolver);
 
       /// <summary>
       /// Supplies the real hover content body for a known verb/property reference. Set by the owning
       /// page (which has the world query provider). Returns <c>null</c> for no tooltip.
       /// </summary>
       public Func<MooHoverRequest, CancellationToken, Task<string>> HoverContentFetcher { get; set; }
+
+      /// <summary>
+      /// Optional sink for unexpected (logged) hover chain-extraction failures. Set by the owning page,
+      /// which routes it to its logger. Expected non-resolution passes silently.
+      /// </summary>
+      public Action<string, Exception?> HoverDiagnostic { get; set; }
 
       private CancellationTokenSource _hoverContentCts;
 
@@ -135,11 +145,11 @@ namespace Org.Edgerunner.Moo.Editor.Controls
       // in-flight fetch. function / (no discernable source) / non-members are handled synchronously.
       private async void MooEditor_ToolTipNeeded(object sender, ToolTipNeededEventArgs e)
       {
-         var (kind, member, operand, sourceKnown) = ClassifyHoveredMember(e.Place);
+         var (kind, member, chain, variableResolver) = ClassifyHoveredMember(e.Place);
          if (kind == HoverMemberKind.None)
             return;
 
-         var caption = HoverCaption(kind, member, operand);
+         var caption = HoverCaption(kind, member, chain);
 
          // Show via ShowToolTipAbove (bottom-anchored, height-aware) — the SAME path verbs/properties
          // use. Setting e.ToolTipText instead would let FCTB's OnToolTip position it top-anchored,
@@ -149,7 +159,7 @@ namespace Org.Edgerunner.Moo.Editor.Controls
             ShowToolTipAbove(e.Place, caption, BuiltinFunctionDocs.GetTooltipText(member) ?? "(built-in function)");
             return;
          }
-         if (!sourceKnown)
+         if (chain is null)
          {
             ShowToolTipAbove(e.Place, caption, "(no discernable source)");
             return;
@@ -162,11 +172,8 @@ namespace Org.Edgerunner.Moo.Editor.Controls
          _hoverContentCts?.Cancel();
          var cts = _hoverContentCts = new CancellationTokenSource();
          var place = e.Place;
-         // A core reference's value is the property of the same name on #0; everything else queries
-         // its own operand.
          var requestKind = kind == HoverMemberKind.Verb ? MooHoverMemberKind.Verb : MooHoverMemberKind.Property;
-         var requestOperand = kind == HoverMemberKind.Core ? "#0" : operand;
-         var request = new MooHoverRequest(requestKind, member, requestOperand);
+         var request = new MooHoverRequest(requestKind, member, chain, variableResolver ?? (_ => null));
          try
          {
             var body = await fetcher(request, cts.Token);
@@ -177,54 +184,77 @@ namespace Org.Edgerunner.Moo.Editor.Controls
          catch { }
       }
 
-      private (HoverMemberKind Kind, string Member, string Operand, bool SourceKnown) ClassifyHoveredMember(Place place)
+      private (HoverMemberKind Kind, string Member, ChainDescriptor Chain, Func<string, ChainDescriptor?> VariableResolver)
+         ClassifyHoveredMember(Place place)
       {
          var token = FindSurroundingTokenForPosition(place.iLine + 1, place.iChar + 1);
          if (token?.TypeName == null)
-            return (HoverMemberKind.None, null, null, false);
+            return (HoverMemberKind.None, null, null, null);
 
-         // A standalone core reference ($name) is a property on #0; the operand text is the $-ref.
+         // A standalone core reference ($name) is the property `name` on #0.
          if (token.TypeNameUpperCase == "CORE_REFERENCE")
          {
             var coreName = token.Text.Length > 1 ? token.Text.Substring(1) : token.Text;
-            return (HoverMemberKind.Core, coreName, token.Text, true);
+            var coreChain = new ChainDescriptor(
+               new ChainBase(ChainBaseKind.ObjectLiteral, "0"),
+               System.Array.Empty<string>(), MemberContextKind.Property, coreName);
+            return (HoverMemberKind.Core, coreName, coreChain, _ => null);
          }
 
          if (token.TypeNameUpperCase != "IDENTIFIER")
-            return (HoverMemberKind.None, null, null, false);
+            return (HoverMemberKind.None, null, null, null);
 
          var previous = PreviousSignificantToken(Tokens.IndexOf(token));
          if (previous != null && (previous.Text == ":" || previous.Text == "."))
          {
-            var operand = PreviousSignificantToken(Tokens.IndexOf(previous));
-            var kind = previous.Text == ":" ? HoverMemberKind.Verb : HoverMemberKind.Property;
-            return (kind, token.Text, operand?.Text, IsResolvableOperand(operand));
+            var contextKind = previous.Text == ":" ? MemberContextKind.Verb : MemberContextKind.Property;
+            var hoverKind = previous.Text == ":" ? HoverMemberKind.Verb : HoverMemberKind.Property;
+            // Capture the full chain to the separator's left (same resolution completion uses), so a member
+            // on a multi-step operand ($Mcp.package:foo) resolves, not just single atoms. The variable
+            // resolver is bound to the live tree and the hovered member's offset for local-variable bases.
+            var tree = ParseSourceCode(false);
+            var chain = ChainExtractor.ExtractAtSeparator(
+               previous.StartIndex, contextKind, token.Text, Tokens, tree, HoverDiagnostic);
+            if (chain is null)
+               return (hoverKind, token.Text, null, null);
+            return (hoverKind, token.Text, chain,
+                    name => LocalVariableResolver.ResolveAssignmentChain(name, tree, token.StartIndex));
          }
 
          var next = NextSignificantToken(Tokens.IndexOf(token));
          if (next != null && next.Text == "(")
-            return (HoverMemberKind.Function, token.Text, null, false);
+            return (HoverMemberKind.Function, token.Text, null, null);
 
-         return (HoverMemberKind.None, token.Text, null, false);
+         return (HoverMemberKind.None, token.Text, null, null);
       }
 
-      // An operand whose object is statically discernable: $foo, #123, or 'this'.
-      private static bool IsResolvableOperand(DetailedToken operand)
+      private static string HoverCaption(HoverMemberKind kind, string member, ChainDescriptor chain)
       {
-         if (operand?.TypeName == null)
-            return false;
-         var type = operand.TypeNameUpperCase;
-         return type == "CORE_REFERENCE" || type == "OBJECT" || (type == "IDENTIFIER" && operand.Text == "this");
+         var operand = chain is null ? string.Empty : ChainOperandDisplay(chain);
+         return kind switch
+         {
+            HoverMemberKind.Verb => operand.Length == 0 ? $"Verb {member}()" : $"Verb {operand}:{member}()",
+            HoverMemberKind.Property => operand.Length == 0 ? $"Property {member}" : $"Property {operand}.{member}",
+            HoverMemberKind.Function => $"Function {member}()",
+            HoverMemberKind.Core => $"Core ${member}",
+            _ => member,
+         };
       }
 
-      private static string HoverCaption(HoverMemberKind kind, string member, string operand) => kind switch
+      // Renders a chain's base + property steps as display text for the hover caption (e.g. "$Mcp.package").
+      private static string ChainOperandDisplay(ChainDescriptor chain)
       {
-         HoverMemberKind.Verb => $"Verb {operand}:{member}()",
-         HoverMemberKind.Property => $"Property {operand}.{member}",
-         HoverMemberKind.Function => $"Function {member}()",
-         HoverMemberKind.Core => $"Core {operand}",
-         _ => member,
-      };
+         var basePart = chain.Base.Kind switch
+         {
+            ChainBaseKind.ObjectLiteral => $"#{chain.Base.Text}",
+            ChainBaseKind.CoreName => $"${chain.Base.Text}",
+            ChainBaseKind.This => "this",
+            ChainBaseKind.Player => "player",
+            ChainBaseKind.Caller => "caller",
+            _ => chain.Base.Text,
+         };
+         return chain.Steps.Count > 0 ? $"{basePart}.{string.Join(".", chain.Steps)}" : basePart;
+      }
 
       private DetailedToken PreviousSignificantToken(int index)
       {

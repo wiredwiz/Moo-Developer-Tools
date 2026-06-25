@@ -211,4 +211,88 @@ public class ChainExtractorTests
    {
       ChainExtractor.ExtractFromLinePrefix("x = 5").Should().BeNull();
    }
+
+   // Hover entry point: extracts the chain to the left of an already-located member separator.
+   private static ChainDescriptor? ExtractAtSep(string buffer, int separatorOffset, MemberContextKind kind, string member)
+   {
+      var (tree, tokens) = Parse(buffer);
+      return ChainExtractor.ExtractAtSeparator(separatorOffset, kind, member, tokens, tree);
+   }
+
+   [Fact]
+   public void ExtractAtSeparator_resolves_core_property_chain_for_hovered_verb()
+   {
+      var buffer = "$Mcp.package:foo";
+      var descriptor = ExtractAtSep(buffer, buffer.IndexOf(':'), MemberContextKind.Verb, "foo");
+
+      descriptor.Should().NotBeNull();
+      descriptor!.Base.Kind.Should().Be(ChainBaseKind.CoreName);
+      descriptor.Base.Text.Should().Be("Mcp");
+      descriptor.Steps.Should().Equal("package");
+      descriptor.MemberKind.Should().Be(MemberContextKind.Verb);
+      descriptor.PartialFragment.Should().Be("foo");
+   }
+
+   [Fact]
+   public void ExtractAtSeparator_resolves_deep_object_literal_chain_for_hovered_property()
+   {
+      var buffer = "#10.owner.name";
+      var descriptor = ExtractAtSep(buffer, buffer.LastIndexOf('.'), MemberContextKind.Property, "name");
+
+      descriptor.Should().NotBeNull();
+      descriptor!.Base.Kind.Should().Be(ChainBaseKind.ObjectLiteral);
+      descriptor.Base.Text.Should().Be("10");
+      descriptor.Steps.Should().Equal("owner");
+      descriptor.MemberKind.Should().Be(MemberContextKind.Property);
+      descriptor.PartialFragment.Should().Be("name");
+   }
+
+   [Fact]
+   public void ExtractAtSeparator_resolves_single_atom_this_base()
+   {
+      var buffer = "this:tell";
+      var descriptor = ExtractAtSep(buffer, buffer.IndexOf(':'), MemberContextKind.Verb, "tell");
+
+      descriptor.Should().NotBeNull();
+      descriptor!.Base.Kind.Should().Be(ChainBaseKind.This);
+      descriptor.Steps.Should().BeEmpty();
+      descriptor.MemberKind.Should().Be(MemberContextKind.Verb);
+      descriptor.PartialFragment.Should().Be("tell");
+   }
+
+   [Fact]
+   public void ExtractAtSeparator_resolves_variable_chain()
+   {
+      var buffer = "x.bar:foo";
+      var descriptor = ExtractAtSep(buffer, buffer.IndexOf(':'), MemberContextKind.Verb, "foo");
+
+      descriptor.Should().NotBeNull();
+      descriptor!.Base.Kind.Should().Be(ChainBaseKind.Variable);
+      descriptor.Base.Text.Should().Be("x");
+      descriptor.Steps.Should().Equal("bar");
+      descriptor.MemberKind.Should().Be(MemberContextKind.Verb);
+      descriptor.PartialFragment.Should().Be("foo");
+   }
+
+   [Fact]
+   public void ExtractAtSeparator_stops_at_operator_boundary()
+   {
+      var buffer = "foo() + $bar.baz:qux";
+      var descriptor = ExtractAtSep(buffer, buffer.IndexOf(':'), MemberContextKind.Verb, "qux");
+
+      descriptor.Should().NotBeNull();
+      descriptor!.Base.Kind.Should().Be(ChainBaseKind.CoreName);
+      descriptor.Base.Text.Should().Be("bar");
+      descriptor.Steps.Should().Equal("baz");
+      descriptor.PartialFragment.Should().Be("qux");
+   }
+
+   [Fact]
+   public void ExtractAtSeparator_returns_null_when_left_is_a_call_result()
+   {
+      var buffer = "foo():bar";
+      var descriptor = ExtractAtSep(buffer, buffer.IndexOf(':'), MemberContextKind.Verb, "bar");
+
+      descriptor.Should().BeNull();
+   }
 }

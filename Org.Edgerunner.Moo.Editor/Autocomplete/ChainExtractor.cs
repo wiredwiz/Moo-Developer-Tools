@@ -167,6 +167,45 @@ public static class ChainExtractor
       return null;
    }
 
+   /// <summary>
+   /// Extracts the chain to the left of an already-located member separator — the hover entry point.
+   /// </summary>
+   /// <remarks>
+   /// The caret-based <see cref="Extract"/> locates the trailing <c>:</c>/<c>.</c> from a line prefix;
+   /// hover instead already knows the separator token under the mouse (the token immediately before the
+   /// hovered member), so it passes that separator's absolute offset directly. The chain to the
+   /// separator's left is read with the SAME tree-primary, token-fallback resolution <see cref="Extract"/>
+   /// uses, so hovering <c>$Mcp.package:foo</c> yields the same <c>{ Base: $Mcp, Steps: [package] }</c>
+   /// chain that completing <c>$Mcp.package:</c> does. Returns <c>null</c> when the expression to the
+   /// separator's left is not a resolvable chain (a call result, literal, arithmetic, etc.).
+   /// </remarks>
+   /// <param name="separatorOffset">The absolute offset of the member separator (<c>:</c> or <c>.</c>).</param>
+   /// <param name="memberKind">The member kind the separator denotes.</param>
+   /// <param name="member">The full hovered member name (carried as the descriptor's partial fragment).</param>
+   /// <param name="tokens">The detailed token list (token-stream fallback).</param>
+   /// <param name="tree">The current parse tree root (primary source).</param>
+   /// <param name="diagnostic">Optional sink for unexpected (logged) failures; expected unknowns pass silently.</param>
+   /// <returns>The chain descriptor, or <c>null</c> when the separator's left is not a resolvable chain.</returns>
+   public static ChainDescriptor? ExtractAtSeparator(
+      int separatorOffset,
+      MemberContextKind memberKind,
+      string member,
+      IList<DetailedToken>? tokens,
+      ParserRuleContext? tree,
+      Action<string, Exception?>? diagnostic = null)
+   {
+      try
+      {
+         return TryExtractFromTree(tree, separatorOffset, memberKind, member)
+                ?? TryExtractFromTokens(tokens, separatorOffset, memberKind, member);
+      }
+      catch (Exception ex)
+      {
+         diagnostic?.Invoke("Chain extraction (hover) failed.", ex);
+         return null;
+      }
+   }
+
    // Classifies a single operand token (the legacy detector's operand) into a chain base.
    private static ChainBase? ClassifyOperand(string operand)
    {
