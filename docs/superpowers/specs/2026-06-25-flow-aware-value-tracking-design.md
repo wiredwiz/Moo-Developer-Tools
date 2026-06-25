@@ -122,6 +122,11 @@ player = #5;                  // O2
 x:                            // -> default player  (NOT #5; player=#5 is at O2 > O1)
 ```
 ```moo
+pack = $mcp.package;          // Definite pack = ground chain { base $mcp, steps [package] }
+pack:                         // ground.steps [package] ++ pack-chain.steps [] -> complete verbs on
+                              // the object that $mcp -> #N, .package -> #M resolves to (as udd-efk)
+```
+```moo
 while (cond)
    player:                    // iter 2+ would see #5 -> Ambiguous -> default player
    player = #5;               // back-edge: poisons player
@@ -230,13 +235,16 @@ exceptions during the tree walk route through the injected `diagnostic` delegate
   Definite path assignment; conditional poison; later-Definite override; caret-inside-branch
   Definite; keyword ambiguous → `UseDefault`; local ambiguous/unassigned → `Unknown`; non-chain RHS
   → `Unknown`; **offset-correct nested snapshot** (`x = player; player = #5; x:` → default player);
-  multi-hop reduction (`a = b; b = #5; a:` honoring offsets); loop back-edge poison; cycle guard
-  (`x = y; y = x`); depth budget.
+  **local assigned to a multi-step chain** (`pack = $mcp.package; pack:` → ground chain
+  `{ base $mcp, steps [package] }`, steps merged onto the original); multi-hop reduction
+  (`a = b; b = #5; a:` honoring offsets); loop back-edge poison; cycle guard (`x = y; y = x`);
+  depth budget.
 - **`ChainExpressionEvaluator`** (fake provider): updated for the new delegate; keyword
   `UseDefault` falls back to default; `Reassigned` resolves the ground chain with merged steps;
   `Unknown` → null.
 - **`MemberCompletionController`**: the sync cache fast-path and async path agree with the resolver;
-  a reassigned `player` completes on the new object; cache hit avoids a re-query.
+  a reassigned `player` completes on the new object; `pack = $mcp.package; pack:` completes verbs on
+  the same object `$mcp.package:` would (local-indirection end-to-end); cache hit avoids a re-query.
 - **Hover/classification**: bare-local classification ordering (function vs variable), bare-local
   resolves to an object, `Unknown` local shows no tooltip; the `"(unknown source)"` literal.
 
