@@ -206,6 +206,35 @@ public static class ChainExtractor
       }
    }
 
+   /// <summary>
+   /// Classifies a bare operand token that the hover path can resolve to an object on its own (used
+   /// directly, not as a member): an object literal <c>#N</c> or one of <c>this</c>/<c>player</c>/<c>caller</c>.
+   /// Returns <c>null</c> for everything else — bare local variables (deferred to flow-aware tracking) and
+   /// core references (<c>$name</c>, handled by the dedicated core path).
+   /// </summary>
+   /// <param name="tokenTypeUpper">The hovered token's upper-case type name (e.g. "OBJECT", "IDENTIFIER").</param>
+   /// <param name="tokenText">The hovered token's text (e.g. "#123", "player").</param>
+   /// <returns>The resolvable chain base, or <c>null</c> when the bare token is not directly resolvable.</returns>
+   public static ChainBase? ClassifyBareResolvableOperand(string tokenTypeUpper, string tokenText)
+   {
+      if (string.IsNullOrEmpty(tokenText))
+         return null;
+
+      if (tokenTypeUpper == "OBJECT")
+         return new ChainBase(ChainBaseKind.ObjectLiteral, tokenText.Length > 1 ? tokenText[1..] : string.Empty);
+
+      if (tokenTypeUpper == "IDENTIFIER")
+         return tokenText switch
+         {
+            "this" => new ChainBase(ChainBaseKind.This, string.Empty),
+            "player" => new ChainBase(ChainBaseKind.Player, string.Empty),
+            "caller" => new ChainBase(ChainBaseKind.Caller, string.Empty),
+            _ => null,
+         };
+
+      return null;
+   }
+
    // Classifies a single operand token (the legacy detector's operand) into a chain base.
    private static ChainBase? ClassifyOperand(string operand)
    {

@@ -383,6 +383,15 @@ public class MooCodeEditorPage : MooEditorPage
         if (objectId == null)
             return null;
 
+        if (request.Kind == MooCodeEditor.MooHoverMemberKind.Object)
+        {
+            // A bare operand (this/player/caller/#N): show the object it resolves to, with its name when available.
+            var name = await TryGetObjectNameAsync(provider, objectId.Value, cancellationToken);
+            return string.IsNullOrEmpty(name)
+                ? $"=> #{objectId.Value.Number}"
+                : $"=> #{objectId.Value.Number} ({name})";
+        }
+
         if (request.Kind == MooCodeEditor.MooHoverMemberKind.Verb)
         {
             var doc = await provider.GetVerbDocumentationAsync(objectId.Value, request.Member, cancellationToken);
@@ -422,6 +431,21 @@ public class MooCodeEditorPage : MooEditorPage
             (message, ex) => Logger.Warn(ex, message));
 
         return await evaluator.EvaluateAsync(chain, ContextObjectId, cancellationToken);
+    }
+
+    // Best-effort object name for hover display; the name is decorative, so any failure degrades to no name.
+    private static async Task<string> TryGetObjectNameAsync(
+        IMooWorldQueryProvider provider, MooObjectId objectId, CancellationToken cancellationToken)
+    {
+        try
+        {
+            var value = await provider.GetPropertyValueAsync(objectId, "name", cancellationToken);
+            return string.IsNullOrEmpty(value?.Literal) ? null : value.Literal;
+        }
+        catch
+        {
+            return null;
+        }
     }
 
     // Resolves (objectId, propName) to the object the property holds (the evaluator's per-step primitive).

@@ -295,4 +295,31 @@ public class ChainExtractorTests
 
       descriptor.Should().BeNull();
    }
+
+   // Bare resolvable operand classification (the hover entry point for a directly-used operand).
+   [Theory]
+   [InlineData("OBJECT", "#123", ChainBaseKind.ObjectLiteral, "123")]
+   [InlineData("OBJECT", "#-1", ChainBaseKind.ObjectLiteral, "-1")]
+   [InlineData("IDENTIFIER", "this", ChainBaseKind.This, "")]
+   [InlineData("IDENTIFIER", "player", ChainBaseKind.Player, "")]
+   [InlineData("IDENTIFIER", "caller", ChainBaseKind.Caller, "")]
+   public void ClassifyBareResolvableOperand_recognizes_directly_resolvable_operands(
+      string tokenTypeUpper, string tokenText, ChainBaseKind expectedKind, string expectedText)
+   {
+      var result = ChainExtractor.ClassifyBareResolvableOperand(tokenTypeUpper, tokenText);
+
+      result.Should().NotBeNull();
+      result!.Value.Kind.Should().Be(expectedKind);
+      result.Value.Text.Should().Be(expectedText);
+   }
+
+   [Theory]
+   [InlineData("IDENTIFIER", "foo")]          // a bare local is deferred to udd-2s4
+   [InlineData("CORE_REFERENCE", "$bar")]     // core references are handled by the dedicated core path
+   [InlineData("STRING", "\"hi\"")]           // a literal is not a resolvable operand
+   public void ClassifyBareResolvableOperand_returns_null_for_non_directly_resolvable_operands(
+      string tokenTypeUpper, string tokenText)
+   {
+      ChainExtractor.ClassifyBareResolvableOperand(tokenTypeUpper, tokenText).Should().BeNull();
+   }
 }

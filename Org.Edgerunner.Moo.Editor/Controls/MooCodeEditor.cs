@@ -113,10 +113,11 @@ namespace Org.Edgerunner.Moo.Editor.Controls
       }
 
       // The grammatical role of a hovered identifier, inferred from the surrounding tokens.
-      private enum HoverMemberKind { None, Verb, Property, Function, Core }
+      private enum HoverMemberKind { None, Verb, Property, Function, Core, Object }
 
-      /// <summary>The verb/property kind passed to the hover-content fetcher.</summary>
-      public enum MooHoverMemberKind { Verb, Property }
+      /// <summary>The hover-content kind passed to the fetcher: a verb, a property, or a bare operand
+      /// (this/player/caller/#N) resolved directly to the object it denotes.</summary>
+      public enum MooHoverMemberKind { Verb, Property, Object }
 
       /// <summary>A request for hover content: the member kind, the member name, the operand chain to
       /// resolve to an object, and a resolver for any local-variable base appearing in that chain.</summary>
@@ -172,7 +173,12 @@ namespace Org.Edgerunner.Moo.Editor.Controls
          _hoverContentCts?.Cancel();
          var cts = _hoverContentCts = new CancellationTokenSource();
          var place = e.Place;
-         var requestKind = kind == HoverMemberKind.Verb ? MooHoverMemberKind.Verb : MooHoverMemberKind.Property;
+         var requestKind = kind switch
+         {
+            HoverMemberKind.Verb => MooHoverMemberKind.Verb,
+            HoverMemberKind.Object => MooHoverMemberKind.Object,
+            _ => MooHoverMemberKind.Property, // Property and Core both fetch a property value
+         };
          var request = new MooHoverRequest(requestKind, member, chain, variableResolver ?? (_ => null));
          try
          {
@@ -201,11 +207,11 @@ namespace Org.Edgerunner.Moo.Editor.Controls
             return (HoverMemberKind.Core, coreName, coreChain, _ => null);
          }
 
-         if (token.TypeNameUpperCase != "IDENTIFIER")
-            return (HoverMemberKind.None, null, null, null);
-
          var previous = PreviousSignificantToken(Tokens.IndexOf(token));
-         if (previous != null && (previous.Text == ":" || previous.Text == "."))
+         var precededBySeparator = previous != null && (previous.Text == ":" || previous.Text == ".");
+
+         // A member on a chain: an IDENTIFIER after ':'/'.'.
+         if (token.TypeNameUpperCase == "IDENTIFIER" && precededBySeparator)
          {
             var contextKind = previous.Text == ":" ? MemberContextKind.Verb : MemberContextKind.Property;
             var hoverKind = previous.Text == ":" ? HoverMemberKind.Verb : HoverMemberKind.Property;
@@ -221,9 +227,26 @@ namespace Org.Edgerunner.Moo.Editor.Controls
                     name => LocalVariableResolver.ResolveAssignmentChain(name, tree, token.StartIndex));
          }
 
-         var next = NextSignificantToken(Tokens.IndexOf(token));
-         if (next != null && next.Text == "(")
-            return (HoverMemberKind.Function, token.Text, null, null);
+         // A bare resolvable operand used directly (this/player/caller/#N), not as a member: show the object
+         // it resolves to. Reassignment-aware values and bare locals are out of scope (see udd-2s4).
+         if (!precededBySeparator)
+         {
+            var bareBase = ChainExtractor.ClassifyBareResolvableOperand(token.TypeNameUpperCase, token.Text);
+            if (bareBase is not null)
+            {
+               var objectChain = new ChainDescriptor(
+                  bareBase.Value, System.Array.Empty<string>(), MemberContextKind.Property, token.Text);
+               return (HoverMemberKind.Object, token.Text, objectChain, _ => null);
+            }
+         }
+
+         // A builtin function: an IDENTIFIER immediately followed by '('.
+         if (token.TypeNameUpperCase == "IDENTIFIER")
+         {
+            var next = NextSignificantToken(Tokens.IndexOf(token));
+            if (next != null && next.Text == "(")
+               return (HoverMemberKind.Function, token.Text, null, null);
+         }
 
          return (HoverMemberKind.None, token.Text, null, null);
       }
@@ -237,6 +260,7 @@ namespace Org.Edgerunner.Moo.Editor.Controls
             HoverMemberKind.Property => operand.Length == 0 ? $"Property {member}" : $"Property {operand}.{member}",
             HoverMemberKind.Function => $"Function {member}()",
             HoverMemberKind.Core => $"Core ${member}",
+            HoverMemberKind.Object => $"Object {member}",
             _ => member,
          };
       }
