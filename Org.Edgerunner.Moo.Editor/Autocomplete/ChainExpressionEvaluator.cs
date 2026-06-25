@@ -49,12 +49,14 @@ namespace Org.Edgerunner.Moo.Editor.Autocomplete;
 /// </summary>
 /// <remarks>
 /// World-state property-to-object resolution (<c>(objectId, propName) -> #N</c>) is supplied by the
-/// caller so that it can be TTL-cached per connection; the evaluator simply invokes it. Local-variable
-/// bases are resolved by the supplied variable resolver against the live parse tree and are never
-/// cached. A cycle guard (the set of variable names currently being resolved) aborts re-entrant
-/// variable references, and a depth budget bounds the total number of resolution steps. Every guard
-/// trip and every unresolved step degrades to <c>null</c> (no source). Expected non-resolution is not
-/// logged; only unexpected exceptions are routed to the optional diagnostic delegate.
+/// caller so that it can be TTL-cached per connection; the evaluator simply invokes it. A top-level
+/// keyword (<c>this</c>/<c>player</c>/<c>caller</c>) or variable base is resolved <em>once</em> by the
+/// supplied flow-value delegate (bound by the caller to the live parse tree and caret); the delegate
+/// returns a fully reduced GROUND chain (no variable base, offsets already applied), which the evaluator
+/// resolves with keyword bases meaning <em>default</em>. All variable/offset logic therefore lives in the
+/// pure resolver, not here. A depth budget bounds the total number of property steps; every unresolved
+/// step degrades to <c>null</c> (no source). Expected non-resolution is not logged; only unexpected
+/// exceptions are routed to the optional diagnostic delegate.
 /// </remarks>
 public sealed class ChainExpressionEvaluator
 {
@@ -65,7 +67,7 @@ public sealed class ChainExpressionEvaluator
 
    private readonly Func<CancellationToken, Task<MooObjectId?>> _getCurrentPlayer;
 
-   private readonly Func<string, ChainDescriptor?> _resolveVariableChain;
+   private readonly Func<string, FlowValue> _resolveFlowValue;
 
    private readonly Action<string, Exception?>? _diagnostic;
 
@@ -77,21 +79,22 @@ public sealed class ChainExpressionEvaluator
    /// property is missing or not an object. The caller wraps this with its world-state TTL cache.
    /// </param>
    /// <param name="getCurrentPlayer">Resolves the connected player object (for <c>player</c>/<c>caller</c>).</param>
-   /// <param name="resolveVariableChain">
-   /// Resolves a local-variable name to its right-hand-side chain (bound to the live parse tree and caret),
-   /// or <c>null</c> when the variable has no resolvable preceding assignment.
+   /// <param name="resolveFlowValue">
+   /// Resolves a top-level <c>this</c>/<c>player</c>/<c>caller</c>/variable base to its flow value (bound to
+   /// the live parse tree and caret): a fully reduced GROUND chain when reassigned, <c>UseDefault</c> to fall
+   /// back to the keyword default, or <c>Unknown</c> for no source.
    /// </param>
    /// <param name="diagnostic">Optional sink for unexpected (logged) failures; expected unknowns pass silently.</param>
    /// <exception cref="ArgumentNullException">Thrown when any required delegate is <c>null</c>.</exception>
    public ChainExpressionEvaluator(
       Func<MooObjectId, string, CancellationToken, Task<MooObjectId?>> resolvePropertyObject,
       Func<CancellationToken, Task<MooObjectId?>> getCurrentPlayer,
-      Func<string, ChainDescriptor?> resolveVariableChain,
+      Func<string, FlowValue> resolveFlowValue,
       Action<string, Exception?>? diagnostic = null)
    {
       _resolvePropertyObject = resolvePropertyObject ?? throw new ArgumentNullException(nameof(resolvePropertyObject));
       _getCurrentPlayer = getCurrentPlayer ?? throw new ArgumentNullException(nameof(getCurrentPlayer));
-      _resolveVariableChain = resolveVariableChain ?? throw new ArgumentNullException(nameof(resolveVariableChain));
+      _resolveFlowValue = resolveFlowValue ?? throw new ArgumentNullException(nameof(resolveFlowValue));
       _diagnostic = diagnostic;
    }
 
@@ -108,8 +111,41 @@ public sealed class ChainExpressionEvaluator
       try
       {
          var budget = new ResolutionBudget(MaxResolutionSteps);
-         return await ResolveAsync(chain, contextObjectId, new HashSet<string>(StringComparer.Ordinal), budget, cancellationToken)
-                   .ConfigureAwait(false);
+
+         switch (chain.Base.Kind)
+         {
+            case ChainBaseKind.This:
+            case ChainBaseKind.Player:
+            case ChainBaseKind.Caller:
+            case ChainBaseKind.Variable:
+            {
+               // Consult the flow resolver ONCE for the top-level keyword/variable base.
+               var flow = _resolveFlowValue(chain.Base.Text.Length > 0 ? chain.Base.Text : KeywordName(chain.Base.Kind));
+               switch (flow.Kind)
+               {
+                  case FlowValueKind.Reassigned when flow.Chain is not null:
+                     // Resolve the reduced ground base + (ground.Steps ++ chain.Steps).
+                     var mergedSteps = new List<string>(flow.Chain.Steps);
+                     mergedSteps.AddRange(chain.Steps);
+                     return await ResolveGroundAsync(flow.Chain.Base, mergedSteps, contextObjectId, budget, cancellationToken)
+                               .ConfigureAwait(false);
+
+                  case FlowValueKind.UseDefault:
+                     // Fall back to the keyword default (this/player/caller); a Variable base never returns this.
+                     return await ResolveGroundAsync(chain.Base, chain.Steps, contextObjectId, budget, cancellationToken)
+                               .ConfigureAwait(false);
+
+                  default:
+                     // Unknown -> no source.
+                     return null;
+               }
+            }
+
+            default:
+               // ObjectLiteral / CoreName: already ground, resolve directly.
+               return await ResolveGroundAsync(chain.Base, chain.Steps, contextObjectId, budget, cancellationToken)
+                         .ConfigureAwait(false);
+         }
       }
       catch (OperationCanceledException)
       {
@@ -122,19 +158,52 @@ public sealed class ChainExpressionEvaluator
       }
    }
 
-   private async Task<MooObjectId?> ResolveAsync(
-      ChainDescriptor chain,
+   // Resolves a GROUND chain (base in { ObjectLiteral, CoreName, This, Player, Caller }, never Variable),
+   // with keyword bases meaning DEFAULT (no flow re-entry), then walks the property steps.
+   private async Task<MooObjectId?> ResolveGroundAsync(
+      ChainBase chainBase,
+      IReadOnlyList<string> steps,
       MooObjectId? contextObjectId,
-      HashSet<string> resolvingVariables,
       ResolutionBudget budget,
       CancellationToken cancellationToken)
    {
-      var current = await ResolveBaseAsync(chain.Base, contextObjectId, resolvingVariables, budget, cancellationToken)
-                       .ConfigureAwait(false);
+      MooObjectId? current;
+      switch (chainBase.Kind)
+      {
+         case ChainBaseKind.ObjectLiteral:
+            // A literal #N base resolves directly (negatives included, mirroring the legacy resolver);
+            // the world step-walk is what requires N >= 0 for resolved property values.
+            current = int.TryParse(chainBase.Text, NumberStyles.AllowLeadingSign, CultureInfo.InvariantCulture, out var number)
+               ? new MooObjectId(number)
+               : null;
+            break;
+
+         case ChainBaseKind.This:
+            current = contextObjectId;
+            break;
+
+         case ChainBaseKind.Player:
+         case ChainBaseKind.Caller:
+            current = await _getCurrentPlayer(cancellationToken).ConfigureAwait(false);
+            break;
+
+         case ChainBaseKind.CoreName:
+            if (!budget.TryConsume())
+               return null;
+            // $name is the property `name` on #0, required to be an object.
+            current = await _resolvePropertyObject(new MooObjectId(0), chainBase.Text, cancellationToken)
+                         .ConfigureAwait(false);
+            break;
+
+         default:
+            // A Variable base must never reach here (the resolver guarantees full reduction).
+            return null;
+      }
+
       if (current is null)
          return null;
 
-      foreach (var step in chain.Steps)
+      foreach (var step in steps)
       {
          if (!budget.TryConsume())
             return null;
@@ -148,59 +217,13 @@ public sealed class ChainExpressionEvaluator
       return current;
    }
 
-   private async Task<MooObjectId?> ResolveBaseAsync(
-      ChainBase chainBase,
-      MooObjectId? contextObjectId,
-      HashSet<string> resolvingVariables,
-      ResolutionBudget budget,
-      CancellationToken cancellationToken)
+   private static string KeywordName(ChainBaseKind kind) => kind switch
    {
-      switch (chainBase.Kind)
-      {
-         case ChainBaseKind.ObjectLiteral:
-            // A literal #N base resolves directly (negatives included, mirroring the legacy resolver);
-            // the world step-walk is what requires N >= 0 for resolved property values.
-            return int.TryParse(chainBase.Text, NumberStyles.AllowLeadingSign, CultureInfo.InvariantCulture, out var number)
-               ? new MooObjectId(number)
-               : null;
-
-         case ChainBaseKind.This:
-            return contextObjectId;
-
-         case ChainBaseKind.Player:
-         case ChainBaseKind.Caller:
-            return await _getCurrentPlayer(cancellationToken).ConfigureAwait(false);
-
-         case ChainBaseKind.CoreName:
-            if (!budget.TryConsume())
-               return null;
-            // $name is the property `name` on #0, required to be an object.
-            return await _resolvePropertyObject(new MooObjectId(0), chainBase.Text, cancellationToken)
-                      .ConfigureAwait(false);
-
-         case ChainBaseKind.Variable:
-            if (!budget.TryConsume())
-               return null;
-            // Cycle guard: re-entering a variable currently being resolved aborts this branch.
-            if (!resolvingVariables.Add(chainBase.Text))
-               return null;
-            try
-            {
-               var rhs = _resolveVariableChain(chainBase.Text);
-               if (rhs is null)
-                  return null;
-               return await ResolveAsync(rhs, contextObjectId, resolvingVariables, budget, cancellationToken)
-                         .ConfigureAwait(false);
-            }
-            finally
-            {
-               resolvingVariables.Remove(chainBase.Text);
-            }
-
-         default:
-            return null;
-      }
-   }
+      ChainBaseKind.This => "this",
+      ChainBaseKind.Player => "player",
+      ChainBaseKind.Caller => "caller",
+      _ => string.Empty,
+   };
 
    private static string Describe(ChainDescriptor chain)
    {

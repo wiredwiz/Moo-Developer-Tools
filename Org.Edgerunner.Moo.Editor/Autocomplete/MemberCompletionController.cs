@@ -185,9 +185,13 @@ public sealed class MemberCompletionController : IDisposable
       if (descriptor is null)
          return Array.Empty<AutocompleteItem>();
 
-      // Variable bases are resolved from the live tree on every request and never cached.
-      ChainDescriptor? VariableResolver(string name) =>
-         tree is null ? null : LocalVariableResolver.ResolveAssignmentChain(name, tree, caretOffset);
+      // Top-level keyword/variable bases are flow-resolved from the live tree on every request and never
+      // cached: this is what keeps reassignment-aware resolution unique per verb / per window.
+      FlowValue FlowResolver(string name) =>
+         tree is null
+            ? new FlowValue(
+               name is "this" or "player" or "caller" ? FlowValueKind.UseDefault : FlowValueKind.Unknown, null)
+            : FlowValueResolver.ResolveCurrentValue(name, tree, caretOffset, InvokeDiagnostic);
 
       lock (_stateLock)
       {
@@ -195,7 +199,7 @@ public sealed class MemberCompletionController : IDisposable
             return Array.Empty<AutocompleteItem>();
 
          // Fast path: every base/step needed is already cached, so resolve the target synchronously.
-         if (TryResolveFromCache(descriptor, VariableResolver, out var resolved))
+         if (TryResolveFromCache(descriptor, FlowResolver, out var resolved))
          {
             if (resolved is null)
                return Array.Empty<AutocompleteItem>();
@@ -226,7 +230,7 @@ public sealed class MemberCompletionController : IDisposable
 
          BeginFetch();
          _inflightChain = chainId;
-         _ = ResolveAndFetchAsync(provider, descriptor, chainId, VariableResolver, _fetchCancellation!.Token);
+         _ = ResolveAndFetchAsync(provider, descriptor, chainId, FlowResolver, _fetchCancellation!.Token);
       }
 
       return Array.Empty<AutocompleteItem>();
@@ -266,27 +270,70 @@ public sealed class MemberCompletionController : IDisposable
    // Attempts to resolve the chain entirely from caches (no provider calls). Returns false on any miss.
    // Caller holds the lock.
    private bool TryResolveFromCache(
-      ChainDescriptor descriptor, Func<string, ChainDescriptor?> variableResolver, out MooObjectId? resolved)
+      ChainDescriptor descriptor, Func<string, FlowValue> flowResolver, out MooObjectId? resolved)
    {
       resolved = null;
-      return TryResolveBaseFromCache(descriptor, variableResolver, new HashSet<string>(StringComparer.Ordinal),
+      return TryResolveBaseFromCache(descriptor, flowResolver,
                                      new[] { ChainExpressionEvaluator.MaxResolutionSteps }, out resolved);
    }
 
+   // Reduces a top-level keyword/variable base through the flow resolver to a GROUND chain (already
+   // offset-correct and variable-free), then walks ground.Steps ++ descriptor.Steps against the caches.
+   // Mirrors ChainExpressionEvaluator's flow handling so the sync fast path and async path agree.
    private bool TryResolveBaseFromCache(
       ChainDescriptor descriptor,
-      Func<string, ChainDescriptor?> variableResolver,
-      HashSet<string> resolvingVariables,
+      Func<string, FlowValue> flowResolver,
       int[] budget,
       out MooObjectId? resolved)
    {
       resolved = null;
-      MooObjectId? current;
+
+      ChainBase groundBase;
+      IReadOnlyList<string> steps;
 
       switch (descriptor.Base.Kind)
       {
+         case ChainBaseKind.This:
+         case ChainBaseKind.Player:
+         case ChainBaseKind.Caller:
+         case ChainBaseKind.Variable:
+         {
+            var name = descriptor.Base.Text.Length > 0 ? descriptor.Base.Text : KeywordName(descriptor.Base.Kind);
+            var flow = flowResolver(name);
+            switch (flow.Kind)
+            {
+               case FlowValueKind.Reassigned when flow.Chain is not null:
+                  groundBase = flow.Chain.Base;
+                  var merged = new List<string>(flow.Chain.Steps);
+                  merged.AddRange(descriptor.Steps);
+                  steps = merged;
+                  break;
+
+               case FlowValueKind.UseDefault:
+                  // Keyword default: resolve the original keyword base + steps (player/context cache logic).
+                  groundBase = descriptor.Base;
+                  steps = descriptor.Steps;
+                  break;
+
+               default:
+                  return true; // Unknown -> determined no source.
+            }
+
+            break;
+         }
+
+         default:
+            // ObjectLiteral / CoreName: already ground.
+            groundBase = descriptor.Base;
+            steps = descriptor.Steps;
+            break;
+      }
+
+      MooObjectId? current;
+      switch (groundBase.Kind)
+      {
          case ChainBaseKind.ObjectLiteral:
-            if (!int.TryParse(descriptor.Base.Text, NumberStyles.AllowLeadingSign, CultureInfo.InvariantCulture, out var n))
+            if (!int.TryParse(groundBase.Text, NumberStyles.AllowLeadingSign, CultureInfo.InvariantCulture, out var n))
                return true; // unresolvable but determined: no source
             current = new MooObjectId(n);
             break;
@@ -308,39 +355,20 @@ public sealed class MemberCompletionController : IDisposable
          case ChainBaseKind.CoreName:
             if (budget[0]-- <= 0)
                return true; // determined: budget exhausted -> no source
-            if (!TryGetCachedPropertyObject(0, descriptor.Base.Text, out current))
+            if (!TryGetCachedPropertyObject(0, groundBase.Text, out current))
                return false; // miss
             break;
 
-         case ChainBaseKind.Variable:
-            if (budget[0]-- <= 0)
-               return true;
-            if (!resolvingVariables.Add(descriptor.Base.Text))
-               return true; // cycle -> determined no source
-            try
-            {
-               var rhs = variableResolver(descriptor.Base.Text);
-               if (rhs is null)
-                  return true; // non-chain / unknown var -> determined no source
-               if (!TryResolveBaseFromCache(rhs, variableResolver, resolvingVariables, budget, out current))
-                  return false; // miss somewhere in the RHS
-            }
-            finally
-            {
-               resolvingVariables.Remove(descriptor.Base.Text);
-            }
-
-            break;
-
          default:
+            // A Variable base must never reach here (the resolver guarantees full reduction).
             return true;
       }
 
       if (current is null)
          return true;
 
-      // Walk the explicit property steps from caches.
-      foreach (var step in descriptor.Steps)
+      // Walk the merged property steps from caches.
+      foreach (var step in steps)
       {
          if (budget[0]-- <= 0)
             return true;
@@ -353,6 +381,14 @@ public sealed class MemberCompletionController : IDisposable
       resolved = current;
       return true;
    }
+
+   private static string KeywordName(ChainBaseKind kind) => kind switch
+   {
+      ChainBaseKind.This => "this",
+      ChainBaseKind.Player => "player",
+      ChainBaseKind.Caller => "caller",
+      _ => string.Empty,
+   };
 
    private bool TryGetCachedPropertyObject(int objectNumber, string propertyName, out MooObjectId? value)
    {
@@ -376,7 +412,7 @@ public sealed class MemberCompletionController : IDisposable
       IMooWorldQueryProvider provider,
       ChainDescriptor descriptor,
       string chainId,
-      Func<string, ChainDescriptor?> variableResolver,
+      Func<string, FlowValue> flowResolver,
       CancellationToken cancellationToken)
    {
       try
@@ -384,7 +420,7 @@ public sealed class MemberCompletionController : IDisposable
          var evaluator = new ChainExpressionEvaluator(
             (obj, prop, ct) => ResolvePropertyObjectAsync(provider, obj, prop, ct),
             ct => ResolveCurrentPlayerAsync(provider, ct),
-            variableResolver,
+            flowResolver,
             InvokeDiagnostic);
 
          var resolved = await evaluator.EvaluateAsync(descriptor, _contextObjectAccessor(), cancellationToken)

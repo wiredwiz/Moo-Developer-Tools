@@ -417,7 +417,7 @@ public class MooCodeEditorPage : MooEditorPage
     // non-resolution returns null without a log entry.
     private async Task<MooObjectId?> ResolveHoverChainAsync(
         ChainDescriptor chain,
-        Func<string, ChainDescriptor?> variableResolver,
+        Func<string, FlowValue> flowResolver,
         IMooWorldQueryProvider provider,
         CancellationToken cancellationToken)
     {
@@ -427,7 +427,8 @@ public class MooCodeEditorPage : MooEditorPage
         var evaluator = new ChainExpressionEvaluator(
             (obj, prop, ct) => ResolveHoverPropertyObjectAsync(provider, obj, prop, ct),
             provider.GetCurrentPlayerAsync,
-            variableResolver ?? (_ => null),
+            flowResolver ?? (name => new FlowValue(
+                name is "this" or "player" or "caller" ? FlowValueKind.UseDefault : FlowValueKind.Unknown, null)),
             (message, ex) => Logger.Warn(ex, message));
 
         return await evaluator.EvaluateAsync(chain, ContextObjectId, cancellationToken);

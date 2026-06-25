@@ -32,16 +32,22 @@ public class ChainExpressionEvaluatorTests
    private static ChainDescriptor Chain(ChainBase chainBase, params string[] steps) =>
       new(chainBase, steps, MemberContextKind.Property, string.Empty);
 
+   // Convenience: a flow value that reassigns a base to a ground chain.
+   private static FlowValue Reassigned(ChainBase chainBase, params string[] steps) =>
+      new(FlowValueKind.Reassigned, new ChainDescriptor(chainBase, steps, MemberContextKind.Property, string.Empty));
+
    private static ChainExpressionEvaluator CreateEvaluator(
       FakeWorld world,
       MooObjectId? currentPlayer = null,
-      Func<string, ChainDescriptor?>? variableResolver = null,
+      Func<string, FlowValue>? flowResolver = null,
       Action<string, Exception?>? diagnostic = null)
    {
       return new ChainExpressionEvaluator(
          world.ResolveAsync,
          _ => Task.FromResult(currentPlayer),
-         variableResolver ?? (_ => null),
+         flowResolver ?? (name => new FlowValue(
+            // Keywords default; bare locals are unknown.
+            name is "this" or "player" or "caller" ? FlowValueKind.UseDefault : FlowValueKind.Unknown, null)),
          diagnostic);
    }
 
@@ -168,12 +174,12 @@ public class ChainExpressionEvaluatorTests
    {
       var world = new FakeWorld();
       world.Map[(0, "foo")] = new MooObjectId(62);  // $foo -> #62
-      // x = $foo  =>  variable resolver returns the $foo chain
+      // x = $foo  =>  the flow resolver hands back the already-grounded $foo chain
       var evaluator = CreateEvaluator(
          world,
-         variableResolver: name => name == "x"
-            ? Chain(new ChainBase(ChainBaseKind.CoreName, "foo"))
-            : null);
+         flowResolver: name => name == "x"
+            ? Reassigned(new ChainBase(ChainBaseKind.CoreName, "foo"))
+            : new FlowValue(FlowValueKind.Unknown, null));
 
       var result = await evaluator.EvaluateAsync(
          Chain(new ChainBase(ChainBaseKind.Variable, "x")), null, CancellationToken.None);
@@ -187,12 +193,12 @@ public class ChainExpressionEvaluatorTests
       var world = new FakeWorld();
       world.Map[(0, "foo")] = new MooObjectId(62);   // $foo -> #62
       world.Map[(62, "bar")] = new MooObjectId(70);  // #62.bar -> #70
-      // x = $foo; then x.bar should resolve to #70.
+      // x = $foo; then x.bar should resolve to #70 (ground.Steps ++ chain.Steps).
       var evaluator = CreateEvaluator(
          world,
-         variableResolver: name => name == "x"
-            ? Chain(new ChainBase(ChainBaseKind.CoreName, "foo"))
-            : null);
+         flowResolver: name => name == "x"
+            ? Reassigned(new ChainBase(ChainBaseKind.CoreName, "foo"))
+            : new FlowValue(FlowValueKind.Unknown, null));
 
       var result = await evaluator.EvaluateAsync(
          Chain(new ChainBase(ChainBaseKind.Variable, "x"), "bar"), null, CancellationToken.None);
@@ -201,10 +207,30 @@ public class ChainExpressionEvaluatorTests
    }
 
    [Fact]
+   public async Task Reassigned_base_merges_ground_steps_before_chain_steps()
+   {
+      var world = new FakeWorld();
+      world.Map[(0, "foo")] = new MooObjectId(62);   // $foo -> #62
+      world.Map[(62, "package")] = new MooObjectId(70);  // #62.package -> #70
+      world.Map[(70, "bar")] = new MooObjectId(80);  // #70.bar -> #80
+      // pack = $foo.package; then pack.bar -> ground steps [package] ++ chain steps [bar].
+      var evaluator = CreateEvaluator(
+         world,
+         flowResolver: name => name == "pack"
+            ? Reassigned(new ChainBase(ChainBaseKind.CoreName, "foo"), "package")
+            : new FlowValue(FlowValueKind.Unknown, null));
+
+      var result = await evaluator.EvaluateAsync(
+         Chain(new ChainBase(ChainBaseKind.Variable, "pack"), "bar"), null, CancellationToken.None);
+
+      result.Should().Be(new MooObjectId(80));
+   }
+
+   [Fact]
    public async Task Unknown_variable_yields_null()
    {
       var world = new FakeWorld();
-      var evaluator = CreateEvaluator(world, variableResolver: _ => null);
+      var evaluator = CreateEvaluator(world, flowResolver: _ => new FlowValue(FlowValueKind.Unknown, null));
 
       var result = await evaluator.EvaluateAsync(
          Chain(new ChainBase(ChainBaseKind.Variable, "x")), null, CancellationToken.None);
@@ -213,23 +239,36 @@ public class ChainExpressionEvaluatorTests
    }
 
    [Fact]
-   public async Task Cycle_between_variables_yields_null()
+   public async Task Reassigned_player_resolves_the_new_object_not_the_default()
    {
       var world = new FakeWorld();
-      // x = y; y = x;  -> cycle
+      // The default player is #62, but player was reassigned to #10.
       var evaluator = CreateEvaluator(
          world,
-         variableResolver: name => name switch
-         {
-            "x" => Chain(new ChainBase(ChainBaseKind.Variable, "y")),
-            "y" => Chain(new ChainBase(ChainBaseKind.Variable, "x")),
-            _ => null,
-         });
+         currentPlayer: new MooObjectId(62),
+         flowResolver: name => name == "player"
+            ? Reassigned(new ChainBase(ChainBaseKind.ObjectLiteral, "10"))
+            : new FlowValue(FlowValueKind.Unknown, null));
 
       var result = await evaluator.EvaluateAsync(
-         Chain(new ChainBase(ChainBaseKind.Variable, "x")), null, CancellationToken.None);
+         Chain(new ChainBase(ChainBaseKind.Player, string.Empty)), null, CancellationToken.None);
 
-      result.Should().BeNull();
+      result.Should().Be(new MooObjectId(10));
+   }
+
+   [Fact]
+   public async Task Use_default_keyword_falls_back_to_default_player()
+   {
+      var world = new FakeWorld();
+      var evaluator = CreateEvaluator(
+         world,
+         currentPlayer: new MooObjectId(62),
+         flowResolver: _ => new FlowValue(FlowValueKind.UseDefault, null));
+
+      var result = await evaluator.EvaluateAsync(
+         Chain(new ChainBase(ChainBaseKind.Player, string.Empty)), null, CancellationToken.None);
+
+      result.Should().Be(new MooObjectId(62));
    }
 
    [Fact]

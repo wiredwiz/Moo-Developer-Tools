@@ -354,7 +354,7 @@ public static class ChainExtractor
    /// <summary>
    /// Describes a standalone expression subtree as a resolvable chain (base + ordered property steps),
    /// or returns <c>null</c> when the expression is not a resolvable chain (verb call, function call,
-   /// arithmetic, list/string literal, index access, etc.). Used by <see cref="LocalVariableResolver"/>
+   /// arithmetic, list/string literal, index access, etc.). Used by <see cref="FlowValueResolver"/>
    /// to convert an assignment's right-hand side into a chain for recursive resolution.
    /// </summary>
    /// <param name="expression">The expression subtree.</param>

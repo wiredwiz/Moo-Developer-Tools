@@ -40,7 +40,8 @@ public class MemberCompletionControllerChainTests
       public Task<IReadOnlyList<MooPropertySummary>> GetPropertiesAsync(MooObjectId objectId, CancellationToken cancellationToken) =>
          Task.FromResult<IReadOnlyList<MooPropertySummary>>(Properties);
 
-      public Task<MooObjectId?> GetCurrentPlayerAsync(CancellationToken cancellationToken) => Task.FromResult<MooObjectId?>(null);
+      public MooObjectId? CurrentPlayer;
+      public Task<MooObjectId?> GetCurrentPlayerAsync(CancellationToken cancellationToken) => Task.FromResult(CurrentPlayer);
       public Task<IReadOnlyList<MooObjectSummary>> GetCoreObjectsAsync(CancellationToken cancellationToken) => throw new NotImplementedException();
       public Task<IReadOnlyList<MooObjectSummary>> GetChildrenAsync(MooObjectId objectId, CancellationToken cancellationToken) => throw new NotImplementedException();
       public Task<IReadOnlyList<MooObjectSummary>> GetOwnedObjectsAsync(CancellationToken cancellationToken) => throw new NotImplementedException();
@@ -198,6 +199,53 @@ public class MemberCompletionControllerChainTests
 
       aTarget.Should().Be(new MooObjectId(10));
       bTarget.Should().Be(new MooObjectId(20), "each page resolves the same var name from its own tree");
+   }
+
+   [Fact]
+   public void Local_assigned_to_multi_step_chain_resolves_end_to_end()
+   {
+      // pack = $mcp.package; pack:  must complete the verbs of the object $mcp.package: resolves to.
+      var provider = new FakeQueryProvider();
+      provider.PropertyValues[(0, "mcp")] = new MooPropertyValue(1, "#123");      // $mcp -> #123
+      provider.PropertyValues[(123, "package")] = new MooPropertyValue(1, "#456"); // #123.package -> #456
+      provider.Verbs.Add(new MooVerbSummary(new[] { "send" }, new MooObjectId(456)));
+      using var controller = CreateController(provider);
+
+      var items = RequestChain(controller, "pack = $mcp.package;\npack:");
+
+      items.Select(i => i.Text).Should().Contain("send");
+      provider.LastVerbQueryObjectId.Should().Be(new MooObjectId(456),
+         "the local indirection reduces to the same object $mcp.package: resolves to");
+   }
+
+   [Fact]
+   public void Reassigned_player_completes_on_the_new_object_not_the_connected_player()
+   {
+      // The connected player is #99, but player = #10 reassigns it before the caret.
+      var provider = new FakeQueryProvider { CurrentPlayer = new MooObjectId(99) };
+      provider.Verbs.Add(new MooVerbSummary(new[] { "go" }, new MooObjectId(10)));
+      provider.Verbs.Add(new MooVerbSummary(new[] { "connect" }, new MooObjectId(99)));
+      using var controller = CreateController(provider);
+
+      var items = RequestChain(controller, "player = #10;\nplayer:");
+
+      provider.LastVerbQueryObjectId.Should().Be(new MooObjectId(10),
+         "a reassigned player resolves to its new object, not the connected player");
+      items.Select(i => i.Text).Should().Contain("go");
+   }
+
+   [Fact]
+   public void Unmodified_player_completes_on_the_connected_player()
+   {
+      var provider = new FakeQueryProvider { CurrentPlayer = new MooObjectId(99) };
+      provider.Verbs.Add(new MooVerbSummary(new[] { "connect" }, new MooObjectId(99)));
+      using var controller = CreateController(provider);
+
+      var items = RequestChain(controller, "x = #1;\nplayer:");
+
+      provider.LastVerbQueryObjectId.Should().Be(new MooObjectId(99),
+         "an unmodified player falls back to the connected player default");
+      items.Select(i => i.Text).Should().Contain("connect");
    }
 
    [Fact]

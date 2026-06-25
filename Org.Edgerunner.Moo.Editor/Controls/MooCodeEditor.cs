@@ -120,12 +120,12 @@ namespace Org.Edgerunner.Moo.Editor.Controls
       public enum MooHoverMemberKind { Verb, Property, Object }
 
       /// <summary>A request for hover content: the member kind, the member name, the operand chain to
-      /// resolve to an object, and a resolver for any local-variable base appearing in that chain.</summary>
+      /// resolve to an object, and a flow resolver for any this/player/caller/local base in that chain.</summary>
       public sealed record MooHoverRequest(
          MooHoverMemberKind Kind,
          string Member,
          ChainDescriptor Chain,
-         Func<string, ChainDescriptor?> VariableResolver);
+         Func<string, FlowValue> VariableResolver);
 
       /// <summary>
       /// Supplies the real hover content body for a known verb/property reference. Set by the owning
@@ -162,7 +162,7 @@ namespace Org.Edgerunner.Moo.Editor.Controls
          }
          if (chain is null)
          {
-            ShowToolTipAbove(e.Place, caption, "(no discernable source)");
+            ShowToolTipAbove(e.Place, caption, "(unknown source)");
             return;
          }
 
@@ -179,7 +179,7 @@ namespace Org.Edgerunner.Moo.Editor.Controls
             HoverMemberKind.Object => MooHoverMemberKind.Object,
             _ => MooHoverMemberKind.Property, // Property and Core both fetch a property value
          };
-         var request = new MooHoverRequest(requestKind, member, chain, variableResolver ?? (_ => null));
+         var request = new MooHoverRequest(requestKind, member, chain, variableResolver ?? DefaultFlowResolver);
          try
          {
             var body = await fetcher(request, cts.Token);
@@ -190,7 +190,12 @@ namespace Org.Edgerunner.Moo.Editor.Controls
          catch { }
       }
 
-      private (HoverMemberKind Kind, string Member, ChainDescriptor Chain, Func<string, ChainDescriptor?> VariableResolver)
+      // The default flow resolver used when a hover request carries no tree-bound resolver: keywords use
+      // their default, locals are unknown.
+      private static FlowValue DefaultFlowResolver(string name) =>
+         new(name is "this" or "player" or "caller" ? FlowValueKind.UseDefault : FlowValueKind.Unknown, null);
+
+      private (HoverMemberKind Kind, string Member, ChainDescriptor Chain, Func<string, FlowValue> VariableResolver)
          ClassifyHoveredMember(Place place)
       {
          var token = FindSurroundingTokenForPosition(place.iLine + 1, place.iChar + 1);
@@ -204,7 +209,7 @@ namespace Org.Edgerunner.Moo.Editor.Controls
             var coreChain = new ChainDescriptor(
                new ChainBase(ChainBaseKind.ObjectLiteral, "0"),
                System.Array.Empty<string>(), MemberContextKind.Property, coreName);
-            return (HoverMemberKind.Core, coreName, coreChain, _ => null);
+            return (HoverMemberKind.Core, coreName, coreChain, DefaultFlowResolver);
          }
 
          var previous = PreviousSignificantToken(Tokens.IndexOf(token));
@@ -216,36 +221,51 @@ namespace Org.Edgerunner.Moo.Editor.Controls
             var contextKind = previous.Text == ":" ? MemberContextKind.Verb : MemberContextKind.Property;
             var hoverKind = previous.Text == ":" ? HoverMemberKind.Verb : HoverMemberKind.Property;
             // Capture the full chain to the separator's left (same resolution completion uses), so a member
-            // on a multi-step operand ($Mcp.package:foo) resolves, not just single atoms. The variable
-            // resolver is bound to the live tree and the hovered member's offset for local-variable bases.
+            // on a multi-step operand ($Mcp.package:foo) resolves, not just single atoms. The flow resolver
+            // is bound to the live tree and the hovered member's offset for keyword/local bases.
             var tree = ParseSourceCode(false);
             var chain = ChainExtractor.ExtractAtSeparator(
                previous.StartIndex, contextKind, token.Text, Tokens, tree, HoverDiagnostic);
             if (chain is null)
                return (hoverKind, token.Text, null, null);
             return (hoverKind, token.Text, chain,
-                    name => LocalVariableResolver.ResolveAssignmentChain(name, tree, token.StartIndex));
+                    name => FlowValueResolver.ResolveCurrentValue(name, tree, token.StartIndex, HoverDiagnostic));
          }
 
          // A bare resolvable operand used directly (this/player/caller/#N), not as a member: show the object
-         // it resolves to. Reassignment-aware values and bare locals are out of scope (see udd-2s4).
+         // it resolves to. Reassignment-aware so a reassigned this/player/caller shows its new object.
          if (!precededBySeparator)
          {
             var bareBase = ChainExtractor.ClassifyBareResolvableOperand(token.TypeNameUpperCase, token.Text);
             if (bareBase is not null)
             {
+               var tree = ParseSourceCode(false);
                var objectChain = new ChainDescriptor(
                   bareBase.Value, System.Array.Empty<string>(), MemberContextKind.Property, token.Text);
-               return (HoverMemberKind.Object, token.Text, objectChain, _ => null);
+               return (HoverMemberKind.Object, token.Text, objectChain,
+                       name => FlowValueResolver.ResolveCurrentValue(name, tree, token.StartIndex, HoverDiagnostic));
             }
          }
 
-         // A builtin function: an IDENTIFIER immediately followed by '('.
+         // A builtin function: an IDENTIFIER immediately followed by '(' (keeps priority over a bare local).
          if (token.TypeNameUpperCase == "IDENTIFIER")
          {
             var next = NextSignificantToken(Tokens.IndexOf(token));
             if (next != null && next.Text == "(")
                return (HoverMemberKind.Function, token.Text, null, null);
+         }
+
+         // A bare local variable used directly (not a member, not this/player/caller, not a builtin call):
+         // show the object it currently resolves to via the flow resolver. A local that does not resolve to
+         // an object yields no tooltip (handled downstream: the flow value is Unknown -> chain resolves null).
+         if (token.TypeNameUpperCase == "IDENTIFIER" && !precededBySeparator)
+         {
+            var tree = ParseSourceCode(false);
+            var localChain = new ChainDescriptor(
+               new ChainBase(ChainBaseKind.Variable, token.Text),
+               System.Array.Empty<string>(), MemberContextKind.Property, token.Text);
+            return (HoverMemberKind.Object, token.Text, localChain,
+                    name => FlowValueResolver.ResolveCurrentValue(name, tree, token.StartIndex, HoverDiagnostic));
          }
 
          return (HoverMemberKind.None, token.Text, null, null);
