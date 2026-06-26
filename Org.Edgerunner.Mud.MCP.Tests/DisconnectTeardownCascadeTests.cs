@@ -35,14 +35,15 @@ public class DisconnectTeardownCascadeTests
    }
 
    /// <summary>
-   /// Registers the SDWC provider by signalling the handler directly. The MCP OOB handler (registered
-   /// first) otherwise consumes the bare <c>dome-client-user</c> line, so the cascade tests drive SDWC
-   /// registration on the handler instance while still triggering teardown via the processor.
+   /// Registers the SDWC provider by delivering the server's <c>SDWC%%SUPPORT%%</c> capability
+   /// broadcast to the handler; a queryable ability (<c>verbs</c>) triggers provider registration.
+   /// Delivered to the handler instance directly so the cascade test still triggers teardown via the
+   /// processor.
    /// </summary>
    private static void RegisterSdwc(SdwcOobHandler sdwc, FakeQueryTerminal terminal)
    {
       var state = new MessageProcessingState();
-      sdwc.ProcessMessage(terminal, " dome-client-user", ref state);
+      sdwc.ProcessMessage(terminal, " SDWC%%SUPPORT%%verbs|props", ref state);
    }
 
    /// <summary>Drives the MCP handshake + negotiation on the wire so the query provider registers.</summary>
