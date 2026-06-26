@@ -43,6 +43,7 @@ using System.Windows.Automation.Provider;
 using System.Windows.Forms;
 using System.Windows.Forms.Design;
 using Timer = System.Windows.Forms.Timer;
+using MethodInvoker = System.Windows.Forms.MethodInvoker;
 
 namespace FastColoredTextBoxNS
 {
