@@ -15,20 +15,123 @@ public class SdwcOobHandlerTests
    }
 
    [Fact]
-   public void DomeClientUser_RegistersProviderExactlyOnce()
+   public void DomeClientUser_NowReturnsFalse_AndDoesNotRegister()
    {
       var terminal = new FakeSdwcTerminal();
       var registrations = 0;
       terminal.QueryProviders.ProvidersChanged += (_, _) => registrations++;
       var handler = new SdwcOobHandler();
 
-      // Leading space (wire form after #$# strip) plus repeated broadcasts.
-      Feed(handler, terminal, " dome-client-user").Should().BeTrue();
-      Feed(handler, terminal, " dome-client-user").Should().BeTrue();
-      Feed(handler, terminal, "dome-client-user").Should().BeTrue();
+      // The dome-client-user hack is gone: such lines are unhandled now.
+      Feed(handler, terminal, " dome-client-user").Should().BeFalse();
+      Feed(handler, terminal, "dome-client-user").Should().BeFalse();
 
-      registrations.Should().Be(1);
+      registrations.Should().Be(0);
+      handler.Provider.Should().BeNull();
+   }
+
+   [Fact]
+   public void SupportBroadcast_WithQueryableAbility_StoresCapsAndRegistersProviderOnce()
+   {
+      var terminal = new FakeSdwcTerminal();
+      var registrations = 0;
+      terminal.QueryProviders.ProvidersChanged += (_, _) => registrations++;
+      var handler = new SdwcOobHandler();
+
+      Feed(handler, terminal, " SDWC%%SUPPORT%%verbs|props|PROP-OVERLAY|VERB-OVERLAY|SUPPORT").Should().BeTrue();
+
+      handler.ServerCapabilities.Should().NotBeNull();
+      handler.ServerCapabilities!.SupportsVerbs.Should().BeTrue();
+      handler.ServerCapabilities.SupportsProps.Should().BeTrue();
+      handler.ServerCapabilities.SupportsVerbOverlay.Should().BeTrue();
+      handler.ServerCapabilities.SupportsPropOverlay.Should().BeTrue();
+      handler.ServerCapabilities.RawTokens.Should().Contain("SUPPORT");
       handler.Provider.Should().NotBeNull();
+      registrations.Should().Be(1);
+   }
+
+   [Fact]
+   public void SupportBroadcast_TrimsWhitespaceAroundTokens()
+   {
+      var terminal = new FakeSdwcTerminal();
+      var handler = new SdwcOobHandler();
+
+      Feed(handler, terminal, " SDWC%%SUPPORT%% verbs | props ").Should().BeTrue();
+
+      handler.ServerCapabilities!.SupportsVerbs.Should().BeTrue();
+      handler.ServerCapabilities.SupportsProps.Should().BeTrue();
+   }
+
+   [Fact]
+   public void SupportBroadcast_WithNoQueryableAbility_StoresCapsButDoesNotRegister()
+   {
+      var terminal = new FakeSdwcTerminal();
+      var registrations = 0;
+      terminal.QueryProviders.ProvidersChanged += (_, _) => registrations++;
+      var handler = new SdwcOobHandler();
+
+      Feed(handler, terminal, " SDWC%%SUPPORT%%SUPPORT").Should().BeTrue();
+
+      handler.ServerCapabilities.Should().NotBeNull();
+      handler.ServerCapabilities!.HasAnyQueryableAbility.Should().BeFalse();
+      handler.Provider.Should().BeNull();
+      registrations.Should().Be(0);
+   }
+
+   [Fact]
+   public void SupportBroadcast_EmptyPayload_StoresEmptyCapsAndStillSendsDeclaration()
+   {
+      var terminal = new FakeSdwcTerminal();
+      var handler = new SdwcOobHandler();
+
+      Feed(handler, terminal, " SDWC%%SUPPORT%%").Should().BeTrue();
+
+      handler.ServerCapabilities.Should().NotBeNull();
+      handler.ServerCapabilities!.RawTokens.Should().BeEmpty();
+      handler.Provider.Should().BeNull();
+      terminal.SentOutOfBandLines.Should().ContainSingle()
+         .Which.Should().Be(" SDWC%%SUPPORT%%");
+   }
+
+   [Fact]
+   public void SupportBroadcast_SendsDeclarationExactlyOnce_AcrossMultipleBroadcasts()
+   {
+      var terminal = new FakeSdwcTerminal();
+      var handler = new SdwcOobHandler();
+
+      Feed(handler, terminal, " SDWC%%SUPPORT%%verbs");
+      Feed(handler, terminal, " SDWC%%SUPPORT%%verbs|props");
+
+      terminal.SentOutOfBandLines.Should().ContainSingle()
+         .Which.Should().Be(" SDWC%%SUPPORT%%");
+   }
+
+   [Fact]
+   public void SupportBroadcast_DeclarationProducesExactWireLine()
+   {
+      var terminal = new FakeSdwcTerminal();
+      var handler = new SdwcOobHandler();
+
+      Feed(handler, terminal, " SDWC%%SUPPORT%%verbs");
+
+      // SendOutOfBandLine prepends the OOB prefix "#$#" with no trailing space, so the value
+      // passed carries the leading space to produce the exact wire line "#$# SDWC%%SUPPORT%%".
+      terminal.SentOutOfBandLines.Single().Should().Be(" SDWC%%SUPPORT%%");
+   }
+
+   [Fact]
+   public void SupportBroadcast_SecondBroadcast_RefreshesCapsWithoutResending()
+   {
+      var terminal = new FakeSdwcTerminal();
+      var handler = new SdwcOobHandler();
+
+      Feed(handler, terminal, " SDWC%%SUPPORT%%verbs");
+      handler.ServerCapabilities!.SupportsProps.Should().BeFalse();
+
+      Feed(handler, terminal, " SDWC%%SUPPORT%%verbs|props");
+      handler.ServerCapabilities!.SupportsProps.Should().BeTrue();
+
+      terminal.SentOutOfBandLines.Should().ContainSingle();
    }
 
    [Fact]
@@ -107,7 +210,8 @@ public class SdwcOobHandlerTests
       var terminal = new FakeSdwcTerminal();
       // Generous timeout so a fault — not a timeout — is what completes the query.
       var handler = new SdwcOobHandler(requestTimeout: TimeSpan.FromSeconds(30));
-      Feed(handler, terminal, " dome-client-user");
+      Feed(handler, terminal, " SDWC%%SUPPORT%%verbs");
+      terminal.SentOutOfBandLines.Clear(); // drop the outbound SUPPORT declaration
 
       var inFlight = terminal.QueryProviders.Query.GetVerbsAsync(new MooObjectId(73), CancellationToken.None);
       terminal.SentOutOfBandLines.Should().ContainSingle(); // request went out
@@ -123,7 +227,7 @@ public class SdwcOobHandlerTests
    {
       var terminal = new FakeSdwcTerminal();
       var handler = new SdwcOobHandler();
-      Feed(handler, terminal, " dome-client-user");
+      Feed(handler, terminal, " SDWC%%SUPPORT%%verbs");
 
       handler.OnDisconnected();
       terminal.SentOutOfBandLines.Clear();
@@ -136,23 +240,28 @@ public class SdwcOobHandlerTests
    }
 
    [Fact]
-   public void OnDisconnected_ThenCapabilitySignal_ReRegistersFreshProvider()
+   public void OnDisconnected_ResetsCapabilitiesAndDeclarationFlag_ThenReHandshakes()
    {
       var terminal = new FakeSdwcTerminal();
       var handler = new SdwcOobHandler();
-      Feed(handler, terminal, " dome-client-user");
+      Feed(handler, terminal, " SDWC%%SUPPORT%%verbs");
+      handler.ServerCapabilities.Should().NotBeNull();
+      terminal.SentOutOfBandLines.Should().ContainSingle();
 
       handler.OnDisconnected();
       handler.Provider.Should().BeNull();
+      handler.ServerCapabilities.Should().BeNull();
 
       var registrations = 0;
       terminal.QueryProviders.ProvidersChanged += (_, _) => registrations++;
 
-      // Reconnect: the next capability signal must register a fresh provider again.
-      Feed(handler, terminal, " dome-client-user");
+      // Reconnect: the next SUPPORT broadcast must register a fresh provider and re-send the declaration.
+      Feed(handler, terminal, " SDWC%%SUPPORT%%verbs");
 
       registrations.Should().Be(1);
       handler.Provider.Should().NotBeNull();
+      handler.ServerCapabilities.Should().NotBeNull();
+      terminal.SentOutOfBandLines.Should().HaveCount(2); // declaration re-sent after reconnect
    }
 
    [Fact]
@@ -160,7 +269,7 @@ public class SdwcOobHandlerTests
    {
       var terminal = new FakeSdwcTerminal();
       var handler = new SdwcOobHandler();
-      Feed(handler, terminal, " dome-client-user");
+      Feed(handler, terminal, " SDWC%%SUPPORT%%verbs");
 
       handler.OnDisconnected();
       Action act = () => handler.OnDisconnected();
@@ -172,7 +281,7 @@ public class SdwcOobHandlerTests
    {
       var terminal = new FakeSdwcTerminal();
       var handler = new SdwcOobHandler(requestTimeout: TimeSpan.FromSeconds(30));
-      Feed(handler, terminal, " dome-client-user");
+      Feed(handler, terminal, " SDWC%%SUPPORT%%verbs");
 
       var inFlight = terminal.QueryProviders.Query.GetVerbsAsync(new MooObjectId(73), CancellationToken.None);
 
