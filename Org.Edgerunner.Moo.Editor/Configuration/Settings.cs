@@ -543,6 +543,16 @@ namespace Org.Edgerunner.Moo.Editor.Configuration
       public int EditorAutocompleteDelay { get; set; }
 
       /// <summary>
+      /// Gets or sets the lifetime, in seconds, of cached editor world-query/member-completion data.
+      /// </summary>
+      /// <value>The number of seconds a cached value lives before it is re-fetched. Defaults to 60.</value>
+      /// <remarks>
+      /// This single setting drives both the member-completion controller cache and the per-connection
+      /// <see cref="T:Org.Edgerunner.Mud.Common.Querying.CachingMooWorldQueryProvider"/> time-to-live.
+      /// </remarks>
+      public int EditorCacheTtlSeconds { get; set; }
+
+      /// <summary>
       /// Gets or sets the color of error indicators.
       /// </summary>
       /// <value>The color of error indicators.</value>
@@ -998,6 +1008,7 @@ namespace Org.Edgerunner.Moo.Editor.Configuration
          clone.EditorAutoBrackets = EditorAutoBrackets;
          clone.EditorTabLength = EditorTabLength;
          clone.EditorAutocompleteDelay = EditorAutocompleteDelay;
+         clone.EditorCacheTtlSeconds = EditorCacheTtlSeconds;
 
          // Parser message font
          clone.ParserMessageFontFamily = ParserMessageFontFamily;
@@ -1103,6 +1114,7 @@ namespace Org.Edgerunner.Moo.Editor.Configuration
          EditorAutoBrackets = clone.EditorAutoBrackets;
          EditorTabLength = clone.EditorTabLength;
          EditorAutocompleteDelay = clone.EditorAutocompleteDelay;
+         EditorCacheTtlSeconds = clone.EditorCacheTtlSeconds;
 
          // Parser message font
          ParserMessageFontFamily = clone.ParserMessageFontFamily;
@@ -1253,6 +1265,7 @@ namespace Org.Edgerunner.Moo.Editor.Configuration
             ["EditorAutoBrackets"] = EditorAutoBrackets.ToString(),
             ["EditorTabLength"] = EditorTabLength.ToString(),
             ["EditorAutocompleteDelay"] = EditorAutocompleteDelay.ToString(),
+            ["EditorCacheTtlSeconds"] = EditorCacheTtlSeconds.ToString(),
             ["EditorDarkTheme"] = EditorDarkTheme.ToString(),
 
             // Parser message font
@@ -1573,6 +1586,7 @@ namespace Org.Edgerunner.Moo.Editor.Configuration
          var defWordWrapIndent = 2;
          var defTabLength = 2;
          var defAutocompleteDelay = 50;
+         var defCacheTtlSeconds = 60;
          var defGrammarDialect = GrammarDialect.Edgerunner;
          var defCodeFolding = true;
          var defShowFoldingBlockHighlights = true;
@@ -1589,6 +1603,7 @@ namespace Org.Edgerunner.Moo.Editor.Configuration
             EditorWordWrapAutoIndent = defWordWrapAutoIndent;
             EditorTabLength = defTabLength;
             EditorAutocompleteDelay = defAutocompleteDelay;
+            EditorCacheTtlSeconds = defCacheTtlSeconds;
             DefaultGrammarDialect = defGrammarDialect;
             EditorShowTextIndentGuides = defIndentationGuides;
             EditorShowCodeFolding = defCodeFolding;
@@ -1642,7 +1657,11 @@ namespace Org.Edgerunner.Moo.Editor.Configuration
          result = appSettings["EditorAutocompleteDelay"]?.Value ?? string.Empty;
          EditorAutocompleteDelay = !int.TryParse(result, out settingValueInt) ? defAutocompleteDelay : settingValueInt;
 
-         // Fetch EditorAutocompleteDelay setting
+         // Fetch EditorCacheTtlSeconds setting
+         result = appSettings["EditorCacheTtlSeconds"]?.Value ?? string.Empty;
+         EditorCacheTtlSeconds = !int.TryParse(result, out settingValueInt) ? defCacheTtlSeconds : settingValueInt;
+
+         // Fetch EditorZoomFactor setting
          result = appSettings["EditorZoomFactor"]?.Value ?? string.Empty;
          EditorZoomFactor = !int.TryParse(result, out settingValueInt) ? defEditorZoomFactor : settingValueInt;
 

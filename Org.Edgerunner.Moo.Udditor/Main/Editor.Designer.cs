@@ -373,7 +373,7 @@ namespace Org.Edgerunner.Moo.Udditor.Main
          // 
          // mnuItemView
          // 
-         mnuItemView.DropDownItems.AddRange(new ToolStripItem[] { mnuItemZoomIn, mnuItemZoomOut, toolStripSeparator6, mnuItemWordWrap, mnuItemShowLineNumbers, mnuItemIndentationGuides, mnuItemShowPreviewPane, toolStripSeparatorTheme, mnuItemTheme, toolStripSeparatorOptions, mnuItemOptions });
+         mnuItemView.DropDownItems.AddRange(new ToolStripItem[] { mnuItemZoomIn, mnuItemZoomOut, toolStripSeparator6, mnuItemWordWrap, mnuItemShowLineNumbers, mnuItemIndentationGuides, mnuItemShowPreviewPane, toolStripSeparatorTheme, mnuItemTheme });
          mnuItemView.Name = "mnuItemView";
          mnuItemView.Size = new Size(44, 20);
          mnuItemView.Text = "&View";
@@ -694,7 +694,7 @@ namespace Org.Edgerunner.Moo.Udditor.Main
          // 
          // toolsToolStripMenuItem
          // 
-         toolsToolStripMenuItem.DropDownItems.AddRange(new ToolStripItem[] { flushEditorCacheToolStripMenuItem });
+         toolsToolStripMenuItem.DropDownItems.AddRange(new ToolStripItem[] { flushEditorCacheToolStripMenuItem, toolStripSeparatorOptions, mnuItemOptions });
          toolsToolStripMenuItem.Name = "toolsToolStripMenuItem";
          toolsToolStripMenuItem.Size = new Size(46, 20);
          toolsToolStripMenuItem.Text = "Tools";

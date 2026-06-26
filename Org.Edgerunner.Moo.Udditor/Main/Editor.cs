@@ -264,6 +264,6 @@ public partial class Editor : KryptonForm
 
    private void flushEditorCacheToolStripMenuItem_Click(object sender, EventArgs e)
    {
-
+      WindowManager.FlushAllEditorCaches();
    }
 }

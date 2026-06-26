@@ -114,6 +114,7 @@ public class SettingsThemeTests
          loaded.EditorTabLength.Should().Be(source.EditorTabLength);
          loaded.EditorWordWrap.Should().Be(source.EditorWordWrap);
          loaded.EditorAutocompleteDelay.Should().Be(source.EditorAutocompleteDelay);
+         loaded.EditorCacheTtlSeconds.Should().Be(source.EditorCacheTtlSeconds);
          loaded.DefaultGrammarDialect.Should().Be(source.DefaultGrammarDialect);
       }
       finally
@@ -121,6 +122,38 @@ public class SettingsThemeTests
          if (File.Exists(tempFile))
             File.Delete(tempFile);
       }
+   }
+
+   [Fact]
+   public void SaveTo_ThenLoadFrom_RoundTripsEditorCacheTtlSeconds_NonDefault()
+   {
+      var source = new Settings();
+      source.LoadDefaults();
+      source.EditorCacheTtlSeconds = 137; // non-default
+
+      var tempFile = Path.Combine(Path.GetTempPath(), $"moo-theme-test-{Guid.NewGuid():N}.config");
+      try
+      {
+         source.SaveTo(tempFile);
+
+         var loaded = new Settings();
+         loaded.LoadFrom(tempFile);
+
+         loaded.EditorCacheTtlSeconds.Should().Be(137);
+      }
+      finally
+      {
+         if (File.Exists(tempFile))
+            File.Delete(tempFile);
+      }
+   }
+
+   [Fact]
+   public void LoadDefaults_SetsEditorCacheTtlSecondsToSixty()
+   {
+      var settings = new Settings();
+      settings.LoadDefaults();
+      settings.EditorCacheTtlSeconds.Should().Be(60);
    }
 
    [Fact]

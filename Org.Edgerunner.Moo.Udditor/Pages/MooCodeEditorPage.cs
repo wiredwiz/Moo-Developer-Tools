@@ -357,6 +357,7 @@ public class MooCodeEditorPage : MooEditorPage
                     }
                 }
             },
+            cacheTimeToLive: TimeSpan.FromSeconds(Settings.Instance.EditorCacheTtlSeconds),
             diagnostic: (message, ex) => Logger.Warn(ex, message));
 
         //set as autocomplete source. The context provider threads the live parse tree, tokens, and
@@ -498,6 +499,25 @@ public class MooCodeEditorPage : MooEditorPage
     public void ParseSourceCode()
     {
         Editor.ParseSourceCode();
+    }
+
+    /// <summary>
+    /// Flushes this page's member-completion cache so newly-added verbs/properties and stale values
+    /// are re-fetched on the next autocomplete request.
+    /// </summary>
+    public void FlushCache()
+    {
+        _memberCompletionController?.ClearCache();
+    }
+
+    /// <summary>
+    /// Applies a new member-completion cache time-to-live to this page's controller, live.
+    /// </summary>
+    /// <param name="ttl">The new cache entry lifetime.</param>
+    public void SetCacheTtl(TimeSpan ttl)
+    {
+        if (_memberCompletionController is not null)
+            _memberCompletionController.CacheTimeToLive = ttl;
     }
 
     private void Editor_SelectionChangedDelayed(object sender, EventArgs e)

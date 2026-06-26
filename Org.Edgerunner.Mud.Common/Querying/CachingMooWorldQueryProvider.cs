@@ -120,7 +120,12 @@ public class CachingMooWorldQueryProvider : IMooWorldQueryProvider, IDisposable
 
    private readonly IMooWorldQueryProvider _inner;
 
-   private readonly TimeSpan _timeToLive;
+   /// <summary>
+   /// Gets or sets the cache entry time-to-live. Settable at runtime so a changed editor-cache TTL
+   /// setting takes effect on already-open connections without a reconnect.
+   /// </summary>
+   /// <value>The cache entry lifetime; defaults to <see cref="DefaultTimeToLive"/>.</value>
+   public TimeSpan TimeToLive { get; set; } = DefaultTimeToLive;
 
    private readonly ConcurrentDictionary<CacheKey, CacheEntry> _cache = new();
 
@@ -137,10 +142,10 @@ public class CachingMooWorldQueryProvider : IMooWorldQueryProvider, IDisposable
    public CachingMooWorldQueryProvider(IMooWorldQueryProvider inner, TimeSpan? timeToLive = null)
    {
       _inner = inner ?? throw new ArgumentNullException(nameof(inner));
-      _timeToLive = timeToLive ?? DefaultTimeToLive;
+      TimeToLive = timeToLive ?? DefaultTimeToLive;
 
       // Sweep at the TTL cadence (bounded to a sane minimum) to keep memory bounded.
-      var sweepInterval = _timeToLive > TimeSpan.Zero ? _timeToLive : DefaultTimeToLive;
+      var sweepInterval = TimeToLive > TimeSpan.Zero ? TimeToLive : DefaultTimeToLive;
       if (sweepInterval < TimeSpan.FromSeconds(1))
          sweepInterval = TimeSpan.FromSeconds(1);
 
@@ -186,7 +191,7 @@ public class CachingMooWorldQueryProvider : IMooWorldQueryProvider, IDisposable
       {
          var now = DateTime.UtcNow;
          foreach (var pair in _cache)
-            if (now - pair.Value.Timestamp >= _timeToLive)
+            if (now - pair.Value.Timestamp >= TimeToLive)
                _cache.TryRemove(pair.Key, out _);
       }
       catch (Exception ex)
@@ -198,7 +203,7 @@ public class CachingMooWorldQueryProvider : IMooWorldQueryProvider, IDisposable
 
    private async Task<T> GetOrAddAsync<T>(CacheKey key, Func<Task<T>> factory)
    {
-      if (_cache.TryGetValue(key, out var entry) && DateTime.UtcNow - entry.Timestamp < _timeToLive)
+      if (_cache.TryGetValue(key, out var entry) && DateTime.UtcNow - entry.Timestamp < TimeToLive)
          return (T)entry.Value!;
 
       // Miss or expired: call the inner provider. Exceptions propagate and are not cached.

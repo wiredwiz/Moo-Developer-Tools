@@ -95,7 +95,12 @@ public sealed class MemberCompletionController : IDisposable
 
    private readonly Action<string, Exception?>? _diagnostic;
 
-   private readonly TimeSpan _cacheTimeToLive;
+   /// <summary>
+   /// Gets or sets the lifetime of a cached member list / resolved world-state entry. Settable at
+   /// runtime so a changed editor-cache TTL setting takes effect on already-open editors without a reopen.
+   /// </summary>
+   /// <value>The cache entry lifetime; defaults to <see cref="DefaultCacheTimeToLive"/>.</value>
+   public TimeSpan CacheTimeToLive { get; set; } = DefaultCacheTimeToLive;
 
    private readonly object _stateLock = new();
 
@@ -144,7 +149,7 @@ public sealed class MemberCompletionController : IDisposable
       _contextObjectAccessor = contextObjectAccessor ?? throw new ArgumentNullException(nameof(contextObjectAccessor));
       _uiMarshal = uiMarshal ?? throw new ArgumentNullException(nameof(uiMarshal));
       _menuRefresh = menuRefresh ?? throw new ArgumentNullException(nameof(menuRefresh));
-      _cacheTimeToLive = cacheTimeToLive ?? DefaultCacheTimeToLive;
+      CacheTimeToLive = cacheTimeToLive ?? DefaultCacheTimeToLive;
       _diagnostic = diagnostic;
    }
 
@@ -207,7 +212,7 @@ public sealed class MemberCompletionController : IDisposable
             var memberKey = (descriptor.MemberKind, resolved.Value.Number);
             if (_cache.TryGetValue(memberKey, out var entry))
             {
-               if (DateTime.UtcNow - entry.CreatedUtc < _cacheTimeToLive)
+               if (DateTime.UtcNow - entry.CreatedUtc < CacheTimeToLive)
                   return entry.Items;
                _cache.Remove(memberKey);
             }
@@ -234,6 +239,26 @@ public sealed class MemberCompletionController : IDisposable
       }
 
       return Array.Empty<AutocompleteItem>();
+   }
+
+   /// <summary>
+   /// Clears every cache and in-flight marker so the next request re-queries the world from scratch.
+   /// Used by the Tools &gt; Flush Editor Cache action to force newly-added verbs/properties and stale
+   /// values to be re-fetched immediately. A no-op after disposal.
+   /// </summary>
+   public void ClearCache()
+   {
+      lock (_stateLock)
+      {
+         if (_disposed)
+            return;
+
+         _cache.Clear();
+         _propertyObjectCache.Clear();
+         _currentPlayerCache = null;
+         _inflightKey = null;
+         _inflightChain = null;
+      }
    }
 
    /// <inheritdoc/>
@@ -346,7 +371,7 @@ public sealed class MemberCompletionController : IDisposable
 
          case ChainBaseKind.Player:
          case ChainBaseKind.Caller:
-            if (_currentPlayerCache is { } player && DateTime.UtcNow - player.CreatedUtc < _cacheTimeToLive)
+            if (_currentPlayerCache is { } player && DateTime.UtcNow - player.CreatedUtc < CacheTimeToLive)
                current = player.Id;
             else
                return false; // miss: needs async player query
@@ -395,7 +420,7 @@ public sealed class MemberCompletionController : IDisposable
       value = null;
       if (_propertyObjectCache.TryGetValue((objectNumber, propertyName), out var entry))
       {
-         if (DateTime.UtcNow - entry.CreatedUtc < _cacheTimeToLive)
+         if (DateTime.UtcNow - entry.CreatedUtc < CacheTimeToLive)
          {
             value = entry.Id;
             return true;
@@ -509,7 +534,7 @@ public sealed class MemberCompletionController : IDisposable
    {
       lock (_stateLock)
       {
-         if (_currentPlayerCache is { } cached && DateTime.UtcNow - cached.CreatedUtc < _cacheTimeToLive)
+         if (_currentPlayerCache is { } cached && DateTime.UtcNow - cached.CreatedUtc < CacheTimeToLive)
             return cached.Id;
       }
 

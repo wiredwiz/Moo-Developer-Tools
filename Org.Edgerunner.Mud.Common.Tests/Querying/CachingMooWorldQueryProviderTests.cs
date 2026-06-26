@@ -123,6 +123,27 @@ public class CachingMooWorldQueryProviderTests
     }
 
     [Fact]
+    public async Task TimeToLive_ChangedAtRuntime_IsHonored()
+    {
+        var inner = new FakeQueryProvider
+        {
+            OnGetCoreObjects = () => Task.FromResult<IReadOnlyList<MooObjectSummary>>(new[] { Summary(1, "a") }),
+        };
+        using var cache = new CachingMooWorldQueryProvider(inner, TimeSpan.FromMinutes(5));
+
+        // First call caches under the long TTL.
+        await cache.GetCoreObjectsAsync(CancellationToken.None);
+        inner.GetCoreObjectsCallCount.Should().Be(1);
+
+        // Shrink the TTL at runtime; the existing entry must now be treated as expired.
+        cache.TimeToLive = TimeSpan.FromMilliseconds(20);
+        await Task.Delay(80);
+
+        await cache.GetCoreObjectsAsync(CancellationToken.None);
+        inner.GetCoreObjectsCallCount.Should().Be(2, "a runtime TimeToLive change must expire the cached entry");
+    }
+
+    [Fact]
     public async Task Clear_DropsAllEntries()
     {
         var inner = new FakeQueryProvider

@@ -36,6 +36,7 @@
 
 using System.Diagnostics;
 using Org.Edgerunner.Moo.Editor;
+using Org.Edgerunner.Moo.Editor.Configuration;
 using Org.Edgerunner.Moo.Udditor.Pages;
 using Org.Edgerunner.Mud.Common;
 
@@ -64,6 +65,7 @@ public partial class Editor
          page.Terminal.FocusOnInput();
          UpdateTerminalMenu();
          await page.Terminal.ConnectAsync(world, host, port, useTls).ConfigureAwait(true);
+         ApplyCacheTtlToTerminal(page);
       }
       catch (Exception ex)
       {
@@ -114,6 +116,7 @@ public partial class Editor
             page.Terminal.SendLoginTextLine(loginText);
          }
          page.Terminal.FocusOnInput();
+         ApplyCacheTtlToTerminal(page);
       }
       catch (Exception ex)
       {
@@ -123,6 +126,15 @@ public partial class Editor
          else
             MessageBox.Show(ex.Message, "Unable to connect");
       }
+   }
+
+   // Applies the configured editor-cache TTL to a freshly-connected terminal's query service. The
+   // per-connection MooWorldQueryService is created on connect, so this runs after ConnectAsync.
+   private static void ApplyCacheTtlToTerminal(TerminalPage page)
+   {
+      var providers = page?.Terminal?.QueryProviders;
+      if (providers is not null)
+         providers.TimeToLive = TimeSpan.FromSeconds(Settings.Instance.EditorCacheTtlSeconds);
    }
 
    private bool PromptForCredentials(ref string userName, ref string password)

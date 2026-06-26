@@ -881,6 +881,46 @@ public class MemberCompletionControllerTests
       act.Should().NotThrow("a faulty diagnostic callback must not propagate out of the controller");
    }
 
+   // Cache-flush and live-TTL tests (udd-nh3)
+
+   [Fact]
+   public void ClearCache_empties_the_cache_so_a_later_lookup_re_queries_the_provider()
+   {
+      var provider = new FakeQueryProvider();
+      provider.Verbs.Add(new MooVerbSummary(new[] { "tell" }, new MooObjectId(5)));
+      using var controller = CreateController(provider, contextObject: new MooObjectId(5));
+
+      controller.GetMemberItems("this:");
+      WaitForCache(controller, "this:");
+      provider.VerbCalls.Should().Be(1);
+
+      controller.ClearCache();
+
+      // The cleared cache forces a fresh fetch; the first post-clear call only starts it.
+      controller.GetMemberItems("this:").Should().BeEmpty("the cache was cleared, so the lookup misses");
+      WaitForCache(controller, "this:");
+      provider.VerbCalls.Should().Be(2, "ClearCache must drop the cached members so the next lookup re-queries");
+   }
+
+   [Fact]
+   public void CacheTimeToLive_change_at_runtime_is_honored_and_expires_the_cache()
+   {
+      var provider = new FakeQueryProvider();
+      provider.Verbs.Add(new MooVerbSummary(new[] { "tell" }, new MooObjectId(5)));
+      using var controller = CreateController(provider, contextObject: new MooObjectId(5));
+
+      controller.GetMemberItems("this:");
+      WaitForCache(controller, "this:");
+      provider.VerbCalls.Should().Be(1);
+
+      // Shrink the TTL at runtime; the existing entry must now be treated as expired.
+      controller.CacheTimeToLive = TimeSpan.FromMilliseconds(1);
+      Thread.Sleep(30);
+
+      WaitForCache(controller, "this:");
+      provider.VerbCalls.Should().Be(2, "a runtime TTL change must expire the cached entry and force a re-fetch");
+   }
+
    [Fact]
    public void Constructor_without_diagnostic_parameter_still_works()
    {

@@ -71,6 +71,17 @@ public class MooWorldQueryService : IDisposable
    public IMooWorldQueryProvider Query => _cache;
 
    /// <summary>
+   /// Gets or sets the cache entry time-to-live for this connection. Settable at runtime so a changed
+   /// editor-cache TTL setting takes effect on an already-open connection without a reconnect.
+   /// </summary>
+   /// <value>The cache entry lifetime; defaults to <see cref="CachingMooWorldQueryProvider.DefaultTimeToLive"/>.</value>
+   public TimeSpan TimeToLive
+   {
+      get => _cache.TimeToLive;
+      set => _cache.TimeToLive = value;
+   }
+
+   /// <summary>
    /// Occurs when the set of registered providers changes.
    /// </summary>
    public event EventHandler? ProvidersChanged;

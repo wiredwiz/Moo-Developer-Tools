@@ -473,6 +473,53 @@ public class WindowManager
          DoApply();
    }
 
+   /// <summary>
+   /// Flushes all cached provider/query data across every open page: the member-completion cache on
+   /// each code editor and the <see cref="CachingMooWorldQueryProvider"/> behind each terminal.
+   /// </summary>
+   public void FlushAllEditorCaches()
+   {
+      void DoFlush()
+      {
+         foreach (var page in Pages.Values.OfType<MooCodeEditorPage>().ToList())
+            page.FlushCache();
+
+         foreach (var page in Pages.Values.OfType<TerminalPage>().ToList())
+            page.Terminal.QueryProviders?.Clear();
+      }
+
+      if (_Owner.InvokeRequired)
+         _Owner.Invoke(DoFlush);
+      else
+         DoFlush();
+   }
+
+   /// <summary>
+   /// Pushes a new editor-cache time-to-live to every open page, live: the member-completion cache on
+   /// each code editor and the <see cref="CachingMooWorldQueryProvider"/> behind each terminal.
+   /// </summary>
+   /// <param name="ttl">The new cache entry lifetime.</param>
+   public void ApplyCacheTtlToOpenPages(TimeSpan ttl)
+   {
+      void DoApply()
+      {
+         foreach (var page in Pages.Values.OfType<MooCodeEditorPage>().ToList())
+            page.SetCacheTtl(ttl);
+
+         foreach (var page in Pages.Values.OfType<TerminalPage>().ToList())
+         {
+            var providers = page.Terminal.QueryProviders;
+            if (providers is not null)
+               providers.TimeToLive = ttl;
+         }
+      }
+
+      if (_Owner.InvokeRequired)
+         _Owner.Invoke(DoApply);
+      else
+         DoApply();
+   }
+
    protected virtual void OnEditorCursorUpdated(MooEditorPage e)
    {
       EditorCursorUpdated?.Invoke(this, e);

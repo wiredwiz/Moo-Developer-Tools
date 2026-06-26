@@ -196,7 +196,7 @@ namespace Org.Edgerunner.Moo.Udditor.Dialogs
             AutoSizeMode = AutoSizeMode.GrowAndShrink,
             ColumnCount = 2,
             Padding = new Padding(8),
-            RowCount = 5
+            RowCount = 6
          };
          panel.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 250f));
          panel.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100f));
@@ -233,6 +233,13 @@ namespace Org.Edgerunner.Moo.Udditor.Dialogs
          var nudParserSize = new KryptonNumericUpDown { Name = nameof(Settings.ParserMessageFontSize), Dock = DockStyle.Fill, Minimum = 1, Maximum = 72, DecimalPlaces = 1 };
          panel.Controls.Add(lblParserSize);
          panel.Controls.Add(nudParserSize);
+
+         // Editor Cache TTL (seconds)
+         var lblCacheTtl = new KryptonLabel { AutoSize = true };
+         lblCacheTtl.Values.Text = "Editor Cache TTL (seconds):";
+         var nudCacheTtl = new KryptonNumericUpDown { Name = nameof(Settings.EditorCacheTtlSeconds), Dock = DockStyle.Fill, Minimum = 1, Maximum = 3600 };
+         panel.Controls.Add(lblCacheTtl);
+         panel.Controls.Add(nudCacheTtl);
 
          tabPageCodeFeatures.Controls.Add(panel);
       }
@@ -394,6 +401,7 @@ namespace Org.Edgerunner.Moo.Udditor.Dialogs
             _working.SaveTo(_configPath);
             Settings.Instance.CopyFrom(_working);
             _manager.ApplyThemeToOpenEditors();
+            _manager.ApplyCacheTtlToOpenPages(TimeSpan.FromSeconds(Settings.Instance.EditorCacheTtlSeconds));
          }
          catch (Exception ex)
          {
