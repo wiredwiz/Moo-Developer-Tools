@@ -3,7 +3,7 @@
 **Bead:** udd-lyt
 **Date:** 2026-06-25
 **Status:** Design approved
-**Scope:** bracket pairs `()` `[]` `{}` only (quotes intentionally excluded).
+**Scope:** auto-close for `()` `[]` `{}`; auto-delete for `()` `[]` `{}` **and** `"`.
 
 ---
 
@@ -11,10 +11,13 @@
 
 Improve the editor's existing auto-bracket behavior so that:
 
-1. Typing an opener inserts the matching closer **only if the matching bracket doesn't
-   already exist** on the line ahead of the caret.
-2. Backspacing an opener also deletes the matching closer when it is the first non-whitespace
-   character ahead on the same line — **ignoring (and removing) intervening whitespace**.
+1. Typing a bracket opener inserts the matching closer **only if the matching bracket doesn't
+   already exist** on the line ahead of the caret (`()` `[]` `{}`).
+2. Backspacing a bracket opener also deletes the matching closer when it is the first
+   non-whitespace character ahead on the same line — **ignoring (and removing) intervening
+   whitespace** (`()` `[]` `{}`).
+3. Backspacing an unescaped `"` deletes its matching `"` under the same whitespace-tolerant
+   rule, with escape-awareness so string content (`\"`) is never disturbed.
 
 This is an **enhancement of existing functionality**, not a from-scratch feature.
 
@@ -72,12 +75,8 @@ Extend the backspace branch of `MooEditor_KeyDown` for `()` `[]` `{}`:
 3. if the first non-whitespace character is the **matching closer**, expand the selection to
    remove **opener + intervening whitespace + closer** in one edit.
 
-- Applies to `()` `[]` `{}` only. **Quotes keep immediate-adjacency deletion.** Quotes are
-  out of scope this iteration (first bracket set only), and a symmetric `"` needs different
-  logic anyway: it can't be depth-counted, and a whitespace-only string literal like `"   "`
-  (three valid spaces) would lose its content under a whitespace-tolerant delete. Ordinary
-  string content is never at risk regardless — `(" hello ")` is safe because the first
-  non-whitespace char ahead is `h`, not `"`, which stops the scan.
+- Applies to `()` `[]` `{}`. Quote deletion is handled separately by **Refinement 3** below
+  (it needs escape-awareness, so it can't share the plain bracket scan).
 
 Examples:
 
@@ -90,14 +89,52 @@ Examples:
 
 ---
 
+## Refinement 3 — escape-aware quote auto-delete
+
+Replaces the current immediate-adjacency `"` handling in `MooEditor_KeyDown`. On backspace
+with no selection and a `"` immediately before the caret:
+
+1. **Escape check on the deleted quote.** Count the run of consecutive `\` immediately
+   preceding the `"`. If the count is **odd**, the `"` is escaped string content (`\"`,
+   `\\\"`, …) → do nothing special, normal backspace. If the count is **even** (including
+   zero, e.g. `"`, `\\"`), the `"` is a real unescaped delimiter → proceed.
+2. **Scan rightward** from the caret on the same line, skipping spaces and tabs:
+   - First non-whitespace char is a `"` → it is the matching quote (it is necessarily
+     unescaped — any escaping `\` would have been hit first and stopped the scan). Expand the
+     selection to remove **deleted `"` + intervening whitespace + matching `"`** in one edit
+     (whitespace collapsed, same as brackets).
+   - First non-whitespace char is anything else → stop, normal backspace.
+
+Escape-ness is defined by **backslash parity**, not merely "preceded by a `\`", so `\\"`
+(escaped backslash + real quote) is correctly treated as a delimiter.
+
+Examples (caret = `\|`):
+
+| Before | Backspace | After | Why |
+|---|---|---|---|
+| `"\|"` | ⌫ | `\|` | adjacent matching quote removed |
+| `"\|   "` | ⌫ | `\|` | quote + whitespace + quote all removed (collapses a spaces-only string) |
+| `"\| hello "` | ⌫ | `\| hello "` | first non-ws is `h` → only the deleted quote removed |
+| `\\"\|"` | ⌫ | `\\\|` | deleted `"` is unescaped (even `\` run) → matching quote removed, `\\` kept |
+| `\"\|` | ⌫ | `\\|` | deleted `"` is escaped content (odd `\` run) → normal backspace, `\` kept |
+
+Note: per "same for all," a spaces-only string `"   "` collapses fully on opening-quote
+backspace — accepted, consistent with bracket whitespace removal.
+
+---
+
 ## Tests & verification
 
 - Auto-close: opener with no unmatched closer ahead → pair inserted; opener with an unmatched
   closer ahead on the line → only the opener inserted; type-over and selection-wrap still work.
-- Delete: adjacent closer → both removed; whitespace-then-closer → opener + whitespace +
-  closer removed; non-whitespace before the closer → only opener removed; non-bracket before
-  caret → normal backspace.
-- Quotes: unaffected by line-balance suppression and by whitespace-tolerant deletion.
+- Bracket delete: adjacent closer → both removed; whitespace-then-closer → opener +
+  whitespace + closer removed; non-whitespace before the closer → only opener removed;
+  non-bracket before caret → normal backspace.
+- Quote delete: adjacent matching `"` removed; whitespace-then-`"` → both + whitespace
+  removed; non-ws content before the `"` → only the deleted quote removed; escaped `\"`
+  (odd backslash run) → normal backspace; `\\"` (even run) → treated as delimiter.
+- Quotes: unaffected by line-balance auto-close suppression (Refinement 1 stays
+  `()` `[]` `{}`-only).
 - Refinement 1 is off for the terminal and document editors.
 - Editor test suite green; app builds clean.
 
@@ -105,10 +142,12 @@ Examples:
 
 ## Decisions
 
-- Scope limited to `()` `[]` `{}`; quotes excluded from both refinements (kept at current
-  behavior) — first bracket set only, and a symmetric `"` needs separate handling (no
-  depth-count; whitespace-only string literals like `"   "`).
+- **Auto-close** suppression applies to `()` `[]` `{}` only; quote auto-close is unchanged
+  (a symmetric `"` can't be depth-counted for line balance).
+- **Auto-delete** applies to `()` `[]` `{}` (Refinement 2) **and** `"` (Refinement 3).
 - Auto-close suppression uses **caret-to-EOL line balance** (an unmatched closer ahead),
   implemented as an opt-in FCTB property enabled only on `MooCodeEditor`.
-- Whitespace-tolerant delete removes the **intervening whitespace too**, not just the two
-  brackets.
+- Whitespace-tolerant delete removes the **intervening whitespace too**, not just the pair —
+  for brackets and quotes alike (a spaces-only string `"   "` collapses fully; accepted).
+- Quote escape detection uses **backslash parity** (escaped iff an odd run of `\` precedes
+  the `"`), so `\\"` is correctly a delimiter.
