@@ -66,7 +66,10 @@ For `MemberContextKind.CoreReference`, fetch **both** properties and verbs on #0
 - In `FetchMemberListAsync`, when `kind == CoreReference`: call **both**
   `GetPropertiesAsync` and `GetVerbsAsync` on #0; build property items via
   `BuildPropertyItems` (core/property icon) and verb items via `BuildVerbItems` (verb icon);
-  return the merged list.
+  then return them as **one list sorted alphabetically by name together** (case-insensitive,
+  stable) — verbs and properties **interleaved**, never two separate runs. (Per the global
+  rule that every completion list is alphabetically sorted as a whole. Fixed in udd-7wl after
+  an initial implementation concatenated props-then-verbs.)
 - **Same-name property + verb both shown.** #0 can have a property `foo` *and* a verb `foo`
   (`$foo` reads the property, `$foo()` calls the verb). Both entries appear — FCTB's
   `DoAutocomplete` does not dedup by text, so each renders with its own icon and inserts its
