@@ -1,4 +1,4 @@
-#region BSD 3-Clause License
+﻿#region BSD 3-Clause License
 // <copyright company="Edgerunner.org" file="EditorOptionsDialog.cs">
 // Copyright (c) Thaddeus Ryker 2026
 // </copyright>
@@ -56,6 +56,13 @@ namespace Org.Edgerunner.Moo.Udditor.Dialogs
       /// Maps control names to their corresponding setting values.
       /// </summary>
       private readonly Dictionary<string, object> _controlValues = new();
+
+      /// <summary>
+      /// Provides hover descriptions for option controls that need explanation. A standard
+      /// <see cref="ToolTip"/> is used so the description shows regardless of Krypton global
+      /// tooltip settings. <see cref="ToolTip.AutoPopDelay"/> is generous so multi-line text can be read.
+      /// </summary>
+      private readonly ToolTip _optionsToolTip = new() { AutoPopDelay = 30000, InitialDelay = 500, ReshowDelay = 100 };
 
       /// <summary>
       /// Initializes a new instance of the <see cref="EditorOptionsDialog"/> class.
@@ -240,6 +247,18 @@ namespace Org.Edgerunner.Moo.Udditor.Dialogs
          var nudCacheTtl = new KryptonNumericUpDown { Name = nameof(Settings.EditorCacheTtlSeconds), Dock = DockStyle.Fill, Minimum = 1, Maximum = 3600 };
          panel.Controls.Add(lblCacheTtl);
          panel.Controls.Add(nudCacheTtl);
+
+         const string cacheTtlTip =
+            "How long the editor keeps data it fetches from the MOO — verb and property lists, " +
+            "resolved object references (e.g. $mcp -> #123), and query results — before discarding it " +
+            "and asking the server again.\r\n" +
+            "Lower values make newly added or changed verbs and properties show up in autocomplete sooner, " +
+            "at the cost of more frequent queries. Higher values are faster and lighter on the server, " +
+            "but the editor may keep showing stale data for longer.\r\n" +
+            "Changes apply immediately to editors and connections that are already open. To clear all cached " +
+            "data right now without waiting, use Tools > Flush Editor Cache.";
+         _optionsToolTip.SetToolTip(lblCacheTtl, cacheTtlTip);
+         _optionsToolTip.SetToolTip(nudCacheTtl, cacheTtlTip);
 
          tabPageCodeFeatures.Controls.Add(panel);
       }
