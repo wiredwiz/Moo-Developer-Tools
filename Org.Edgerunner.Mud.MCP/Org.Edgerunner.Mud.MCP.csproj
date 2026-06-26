@@ -5,8 +5,9 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
     <Platforms>AnyCPU;x64;x86</Platforms>
-    <AssemblyVersion>1.0.26158.7</AssemblyVersion>
-    <FileVersion>1.0.26158.7</FileVersion>
+    <AssemblyVersion>1.1.26177.0</AssemblyVersion>
+    <FileVersion>1.1.26177.0</FileVersion>
+    <Version>$(VersionPrefix)1.1.26158.7$(VersionSuffix)</Version>
   </PropertyGroup>
 
   <ItemGroup>
