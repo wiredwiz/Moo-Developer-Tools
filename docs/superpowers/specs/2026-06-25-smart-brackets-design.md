@@ -72,11 +72,12 @@ Extend the backspace branch of `MooEditor_KeyDown` for `()` `[]` `{}`:
 3. if the first non-whitespace character is the **matching closer**, expand the selection to
    remove **opener + intervening whitespace + closer** in one edit.
 
-- Applies to `()` `[]` `{}` only. **Quotes keep immediate-adjacency deletion** — whitespace
-  tolerance on a symmetric `"` could corrupt adjacent strings (`"a"   "b"`: the caret after
-  the close quote of `"a"` could treat the open quote of `"b"` as its match). Note that
-  string *content* is never at risk — `(" hello ")` is safe because the first non-whitespace
-  char ahead is `h`, not `"`, which stops the scan.
+- Applies to `()` `[]` `{}` only. **Quotes keep immediate-adjacency deletion.** Quotes are
+  out of scope this iteration (first bracket set only), and a symmetric `"` needs different
+  logic anyway: it can't be depth-counted, and a whitespace-only string literal like `"   "`
+  (three valid spaces) would lose its content under a whitespace-tolerant delete. Ordinary
+  string content is never at risk regardless — `(" hello ")` is safe because the first
+  non-whitespace char ahead is `h`, not `"`, which stops the scan.
 
 Examples:
 
@@ -105,7 +106,8 @@ Examples:
 ## Decisions
 
 - Scope limited to `()` `[]` `{}`; quotes excluded from both refinements (kept at current
-  behavior).
+  behavior) — first bracket set only, and a symmetric `"` needs separate handling (no
+  depth-count; whitespace-only string literals like `"   "`).
 - Auto-close suppression uses **caret-to-EOL line balance** (an unmatched closer ahead),
   implemented as an opt-in FCTB property enabled only on `MooCodeEditor`.
 - Whitespace-tolerant delete removes the **intervening whitespace too**, not just the two
