@@ -644,6 +644,54 @@ public class MemberCompletionControllerTests
    private static int IconFor(IReadOnlyList<AutocompleteItem> items, string text) =>
       items.Single(i => i.Text == text).ImageIndex;
 
+   // Verb paren-insertion tests (udd-16x)
+
+   [Fact]
+   public void Verb_items_insert_call_parens_with_caret_between()
+   {
+      var provider = new FakeQueryProvider();
+      provider.Verbs.Add(new MooVerbSummary(new[] { "tell" }, new MooObjectId(5)));
+      using var controller = CreateController(provider, contextObject: new MooObjectId(5));
+
+      controller.GetMemberItems("this:");
+      WaitForCache(controller, "this:");
+
+      var item = controller.GetMemberItems("this:").Single(i => i.Text == "tell");
+      item.Compare("this:te");                       // records the fragment prefix
+      item.GetTextForReplace().Should().Be("this:tell(^)",
+         "selecting a verb must insert name() with the caret marker between the parens");
+   }
+
+   [Fact]
+   public void Property_items_still_insert_the_bare_name()
+   {
+      var provider = new FakeQueryProvider();
+      provider.Properties.Add(new MooPropertySummary("name", new MooObjectId(5)));
+      using var controller = CreateController(provider, contextObject: new MooObjectId(5));
+
+      controller.GetMemberItems("this.");
+      WaitForCache(controller, "this.");
+
+      var item = controller.GetMemberItems("this.").Single(i => i.Text == "name");
+      item.Compare("this.na");
+      item.GetTextForReplace().Should().Be("this.name", "properties are not callable and must insert a bare name");
+   }
+
+   [Fact]
+   public void CoreReference_property_items_still_insert_the_bare_name()
+   {
+      var provider = new FakeQueryProvider();
+      provider.Properties.Add(new MooPropertySummary("room", new MooObjectId(0)));
+      using var controller = CreateController(provider);
+
+      controller.GetMemberItems("$ro");
+      WaitForCache(controller, "$ro");
+
+      var item = controller.GetMemberItems("$ro").Single(i => i.Text == "room");
+      item.Compare("$ro");
+      item.GetTextForReplace().Should().Be("$room", "core-reference properties must insert a bare name");
+   }
+
    // Diagnostic callback tests
 
    [Fact]

@@ -652,7 +652,7 @@ public sealed class MemberCompletionController : IDisposable
 
       return origins.Keys
                     .OrderBy(name => name, StringComparer.OrdinalIgnoreCase)
-                    .Select(name => (AutocompleteItem)new MemberCompletionItem(
+                    .Select(name => (AutocompleteItem)new VerbCompletionItem(
                        name,
                        origins[name] == MemberOrigin.Inherited
                           ? CompletionIconCategory.VerbInherited
