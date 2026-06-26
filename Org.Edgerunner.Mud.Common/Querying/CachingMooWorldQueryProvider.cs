@@ -329,6 +329,22 @@ public class CachingMooWorldQueryProvider : IMooWorldQueryProvider, IDisposable
          () => _inner.GetPropertyValueAsync(objectId, propName, cancellationToken));
    }
 
+   /// <inheritdoc/>
+   /// <remarks>Delegated straight to the inner provider and never cached: constant queries are cheap
+   /// (unsupported providers answer <c>null</c> immediately) and caching <c>null</c> would defeat a later
+   /// live answer once a constant-capable provider registers.</remarks>
+   public Task<string?> GetConstantValueAsync(string name, CancellationToken cancellationToken)
+   {
+      return _inner.GetConstantValueAsync(name, cancellationToken);
+   }
+
+   /// <inheritdoc/>
+   /// <remarks>Delegated straight to the inner provider and never cached; see <see cref="GetConstantValueAsync"/>.</remarks>
+   public Task<string?> GetConstantToStrAsync(string name, CancellationToken cancellationToken)
+   {
+      return _inner.GetConstantToStrAsync(name, cancellationToken);
+   }
+
    /// <summary>
    /// Performs application-defined tasks associated with freeing, releasing, or resetting resources.
    /// </summary>

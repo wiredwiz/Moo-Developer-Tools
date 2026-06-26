@@ -123,6 +123,8 @@ public class DynamicCompletionSourceTests
       public Task<MooVerbCode?> GetVerbCodeAsync(MooObjectId objectId, string verbName, CancellationToken cancellationToken) => throw new NotImplementedException();
       public Task<MooVerbDocumentation?> GetVerbDocumentationAsync(MooObjectId objectId, string verbName, CancellationToken cancellationToken) => throw new NotImplementedException();
       public Task<IReadOnlyList<string>> GetPropertyDocumentationAsync(MooObjectId objectId, string propName, CancellationToken cancellationToken) => throw new NotImplementedException();
+      public Task<string?> GetConstantValueAsync(string name, CancellationToken cancellationToken) => Task.FromResult<string?>(null);
+      public Task<string?> GetConstantToStrAsync(string name, CancellationToken cancellationToken) => Task.FromResult<string?>(null);
    }
 
    /// <summary>A provider whose property query completes synchronously.</summary>
@@ -148,5 +150,7 @@ public class DynamicCompletionSourceTests
       public Task<MooPropertyValue?> GetPropertyValueAsync(MooObjectId objectId, string propName, CancellationToken cancellationToken) => throw new NotImplementedException();
       public Task<MooVerbDocumentation?> GetVerbDocumentationAsync(MooObjectId objectId, string verbName, CancellationToken cancellationToken) => throw new NotImplementedException();
       public Task<IReadOnlyList<string>> GetPropertyDocumentationAsync(MooObjectId objectId, string propName, CancellationToken cancellationToken) => throw new NotImplementedException();
+      public Task<string?> GetConstantValueAsync(string name, CancellationToken cancellationToken) => Task.FromResult<string?>(null);
+      public Task<string?> GetConstantToStrAsync(string name, CancellationToken cancellationToken) => Task.FromResult<string?>(null);
    }
 }

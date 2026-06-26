@@ -8,8 +8,8 @@
     <UseWindowsForms>true</UseWindowsForms>
     <ImplicitUsings>enable</ImplicitUsings>
     <Platforms>AnyCPU;x64;x86</Platforms>
-    <AssemblyVersion>1.1.26177.0</AssemblyVersion>
-    <FileVersion>1.1.26177.0</FileVersion>
+    <AssemblyVersion>1.1.26177.1</AssemblyVersion>
+    <FileVersion>1.1.26177.1</FileVersion>
     <Version>$(VersionPrefix)1.1.26158.7$(VersionSuffix)</Version>
   </PropertyGroup>
 
@@ -41,6 +41,7 @@
 
   <ItemGroup>
     <EmbeddedResource Include="Resources\builtin-function-docs.json" />
+    <EmbeddedResource Include="Resources\builtin-constant-docs.json" />
   </ItemGroup>
 
   <ItemGroup>

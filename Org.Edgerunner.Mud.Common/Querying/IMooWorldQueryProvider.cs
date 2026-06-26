@@ -176,4 +176,28 @@ public interface IMooWorldQueryProvider
    /// <param name="cancellationToken">The cancellation token.</param>
    /// <returns>A <see cref="MooPropertyValue"/>, or <c>null</c> if the property was not found.</returns>
    Task<MooPropertyValue?> GetPropertyValueAsync(MooObjectId objectId, string propName, CancellationToken cancellationToken);
+
+   /// <summary>
+   /// Gets the raw value of the named built-in literal constant (for example a type constant's numeric
+   /// <c>typeof</c> code).
+   /// </summary>
+   /// <param name="name">The constant name (for example <c>INT</c> or <c>ERR</c>).</param>
+   /// <param name="cancellationToken">The cancellation token.</param>
+   /// <returns>
+   /// The constant's raw value as text, or <c>null</c> if the constant is unknown or the operation is
+   /// unsupported (callers fall back to the baked-in constant table).
+   /// </returns>
+   Task<string?> GetConstantValueAsync(string name, CancellationToken cancellationToken);
+
+   /// <summary>
+   /// Gets the <c>tostr()</c> rendering of the named built-in literal constant (for example an error
+   /// constant's human-readable message).
+   /// </summary>
+   /// <param name="name">The constant name (for example <c>E_PERM</c>).</param>
+   /// <param name="cancellationToken">The cancellation token.</param>
+   /// <returns>
+   /// The constant's <c>tostr()</c> message, or <c>null</c> if the constant is unknown or the operation is
+   /// unsupported (callers fall back to the baked-in constant table).
+   /// </returns>
+   Task<string?> GetConstantToStrAsync(string name, CancellationToken cancellationToken);
 }

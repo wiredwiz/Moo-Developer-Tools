@@ -213,4 +213,20 @@ public sealed class SdwcQueryProvider : IMooWorldQueryProvider
    {
       throw new NotImplementedException();
    }
+
+   /// <inheritdoc/>
+   /// <remarks>Unsupported: SDWC has no constant-query command, so this returns <c>null</c> (callers fall
+   /// back to the baked-in constant table). Returning <c>null</c> rather than throwing avoids a registry
+   /// fall-through round-trip for an operation no provider supports today.</remarks>
+   public Task<string?> GetConstantValueAsync(string name, CancellationToken cancellationToken)
+   {
+      return Task.FromResult<string?>(null);
+   }
+
+   /// <inheritdoc/>
+   /// <remarks>Unsupported; see <see cref="GetConstantValueAsync"/>.</remarks>
+   public Task<string?> GetConstantToStrAsync(string name, CancellationToken cancellationToken)
+   {
+      return Task.FromResult<string?>(null);
+   }
 }

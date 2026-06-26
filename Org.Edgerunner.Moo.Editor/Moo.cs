@@ -76,6 +76,15 @@ public static class Moo
       return CompletionIconCategory.Keyword;
    }
 
+   /// <summary>
+   /// Determines whether the specified word is a built-in literal constant (an error code, a type name,
+   /// or the boolean literals <c>true</c>/<c>false</c>). Provides public access to the private
+   /// <see cref="ConstantSet"/>.
+   /// </summary>
+   /// <param name="name">The word to test.</param>
+   /// <returns><c>true</c> when <paramref name="name"/> is a built-in constant; otherwise <c>false</c>.</returns>
+   public static bool IsConstant(string name) => name != null && ConstantSet.Contains(name);
+
    private static readonly List<string> BuiltinsWithArgs = new()
    {
       "typeof", "tostr", "toint", "tofloat", "toobj", "toliteral", "typeof", "equal", "string_hash", "binary_hash", "value_bytes", "value_hash", "value_hmac",

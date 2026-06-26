@@ -242,4 +242,16 @@ public class MooWorldQueryProviderRegistry : IMooWorldQueryProvider
    {
       return QueryAsync<MooPropertyValue?>(p => p.GetPropertyValueAsync(objectId, propName, cancellationToken), null);
    }
+
+   /// <inheritdoc/>
+   public Task<string?> GetConstantValueAsync(string name, CancellationToken cancellationToken)
+   {
+      return QueryAsync<string?>(p => p.GetConstantValueAsync(name, cancellationToken), null);
+   }
+
+   /// <inheritdoc/>
+   public Task<string?> GetConstantToStrAsync(string name, CancellationToken cancellationToken)
+   {
+      return QueryAsync<string?>(p => p.GetConstantToStrAsync(name, cancellationToken), null);
+   }
 }

@@ -114,7 +114,7 @@ namespace Org.Edgerunner.Moo.Editor.Controls
       }
 
       // The grammatical role of a hovered identifier, inferred from the surrounding tokens.
-      private enum HoverMemberKind { None, Verb, Property, Function, Core, Object }
+      private enum HoverMemberKind { None, Verb, Property, Function, Core, Object, Constant }
 
       /// <summary>The hover-content kind passed to the fetcher: a verb, a property, or a bare operand
       /// (this/player/caller/#N) resolved directly to the object it denotes.</summary>
@@ -133,6 +133,14 @@ namespace Org.Edgerunner.Moo.Editor.Controls
       /// page (which has the world query provider). Returns <c>null</c> for no tooltip.
       /// </summary>
       public Func<MooHoverRequest, CancellationToken, Task<string>> HoverContentFetcher { get; set; }
+
+      /// <summary>
+      /// Supplies the live world value for a hovered literal constant. Set by the owning page (which has the
+      /// world query provider). Given the constant name and whether it is a type constant (<c>true</c> →
+      /// raw <c>typeof</c> value; <c>false</c> → <c>tostr()</c> message), returns the live value or
+      /// <c>null</c> when unavailable/unsupported (the hover then falls back to <see cref="BuiltinConstantDocs"/>).
+      /// </summary>
+      public Func<string, bool, CancellationToken, Task<string>> HoverConstantValueFetcher { get; set; }
 
       /// <summary>
       /// Optional sink for unexpected (logged) hover chain-extraction failures. Set by the owning page,
@@ -159,6 +167,11 @@ namespace Org.Edgerunner.Moo.Editor.Controls
          if (kind == HoverMemberKind.Function)
          {
             ShowToolTipAbove(e.Place, caption, BuiltinFunctionDocs.GetTooltipText(member) ?? "(built-in function)");
+            return;
+         }
+         if (kind == HoverMemberKind.Constant)
+         {
+            await ShowConstantToolTipAsync(e.Place, member, caption);
             return;
          }
          if (chain is null)
@@ -189,6 +202,39 @@ namespace Org.Edgerunner.Moo.Editor.Controls
          }
          catch (OperationCanceledException) { }
          catch { }
+      }
+
+      // Resolves and shows a literal-constant hover: attempt a live world value (type → raw value, error →
+      // tostr()) then fall back to the baked-in constant table. Booleans use the table directly. A fresh
+      // hover supersedes any in-flight fetch.
+      private async Task ShowConstantToolTipAsync(Place place, string name, string caption)
+      {
+         var doc = BuiltinConstantDocs.Get(name);
+         if (doc is null)
+            return;
+
+         string live = null;
+         var fetcher = HoverConstantValueFetcher;
+         if (fetcher != null && doc.Kind != "bool")
+         {
+            _hoverContentCts?.Cancel();
+            var cts = _hoverContentCts = new CancellationTokenSource();
+            try
+            {
+               live = await fetcher(name, doc.Kind == "type", cts.Token);
+            }
+            catch (OperationCanceledException) { }
+            catch { live = null; }
+
+            if (cts.IsCancellationRequested)
+               return;
+         }
+
+         var display = ConstantHoverResolver.ResolveConstantDisplay(doc.Kind, live, doc.Display);
+         if (string.IsNullOrEmpty(display))
+            return;
+
+         ShowToolTipAbove(place, caption, $"{name} => {display}");
       }
 
       // The default flow resolver used when a hover request carries no tree-bound resolver: keywords use
@@ -256,6 +302,17 @@ namespace Org.Edgerunner.Moo.Editor.Controls
                return (HoverMemberKind.Function, token.Text, null, null);
          }
 
+         // A literal constant (type name, error code, or true/false). Type names lex as IDENTIFIER, error
+         // codes as ERROR, and the booleans as BOOLEAN, so all three token kinds are accepted. Placed after
+         // the builtin-function check and before the bare-local fallback so a constant name takes priority
+         // over being treated as a local. The content is resolved from the constant table (with an optional
+         // live world value), so no chain/resolver is needed.
+         if ((token.TypeNameUpperCase == "IDENTIFIER"
+              || token.TypeNameUpperCase == "ERROR"
+              || token.TypeNameUpperCase == "BOOLEAN")
+             && Moo.IsConstant(token.Text))
+            return (HoverMemberKind.Constant, token.Text, null, null);
+
          // A bare local variable used directly (not a member, not this/player/caller, not a builtin call):
          // show the object it currently resolves to via the flow resolver. A local that does not resolve to
          // an object yields no tooltip (handled downstream: the flow value is Unknown -> chain resolves null).
@@ -282,6 +339,7 @@ namespace Org.Edgerunner.Moo.Editor.Controls
             HoverMemberKind.Function => $"Function {member}()",
             HoverMemberKind.Core => $"Core ${member}",
             HoverMemberKind.Object => $"Object {member}",
+            HoverMemberKind.Constant => $"Constant {member}",
             _ => member,
          };
       }

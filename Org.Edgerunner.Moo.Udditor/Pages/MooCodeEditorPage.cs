@@ -370,7 +370,35 @@ public class MooCodeEditorPage : MooEditorPage
                 () => GetMemberCompletionContext(codeEditor)));
         codeEditor.AutocompleteMenu.AppearInterval = Settings.Instance.EditorAutocompleteDelay;
         codeEditor.HoverContentFetcher = FetchHoverContentAsync;
+        codeEditor.HoverConstantValueFetcher = FetchConstantHoverValueAsync;
         codeEditor.HoverDiagnostic = (message, ex) => Logger.Warn(ex, message);
+    }
+
+    // Supplies the live world value for a hovered literal constant: a type constant's raw typeof value or
+    // an error constant's tostr() message. Returns null when offline or the provider does not support
+    // constant queries (today every provider does), so the editor falls back to its baked-in table.
+    private async Task<string> FetchConstantHoverValueAsync(
+        string name, bool isTypeConstant, CancellationToken cancellationToken)
+    {
+        var provider = QueryProvider;
+        if (provider == null)
+            return null;
+
+        try
+        {
+            return isTypeConstant
+                ? await provider.GetConstantValueAsync(name, cancellationToken)
+                : await provider.GetConstantToStrAsync(name, cancellationToken);
+        }
+        catch (OperationCanceledException)
+        {
+            return null;
+        }
+        catch (Exception ex)
+        {
+            Logger.Warn(ex, "Live constant hover query for '{0}' failed; falling back to the baked-in table.", name);
+            return null;
+        }
     }
 
     private async Task<string> FetchHoverContentAsync(

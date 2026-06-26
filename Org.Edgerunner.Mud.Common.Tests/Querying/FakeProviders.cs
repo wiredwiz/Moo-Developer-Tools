@@ -139,4 +139,40 @@ public class FakeQueryProvider : IMooWorldQueryProvider
     {
         throw new NotImplementedException();
     }
+
+    /// <summary>
+    /// Configured constant raw values keyed by constant name; a name absent from the dictionary yields
+    /// <c>null</c>.
+    /// </summary>
+    public Dictionary<string, string?> ConstantValues { get; } = new(StringComparer.Ordinal);
+
+    /// <summary>
+    /// Configured constant <c>tostr()</c> messages keyed by constant name; a name absent from the
+    /// dictionary yields <c>null</c>.
+    /// </summary>
+    public Dictionary<string, string?> ConstantToStrValues { get; } = new(StringComparer.Ordinal);
+
+    /// <summary>
+    /// Gets the number of times <see cref="GetConstantValueAsync"/> has been invoked.
+    /// </summary>
+    public int GetConstantValueCallCount { get; private set; }
+
+    /// <summary>
+    /// Gets the number of times <see cref="GetConstantToStrAsync"/> has been invoked.
+    /// </summary>
+    public int GetConstantToStrCallCount { get; private set; }
+
+    public Task<string?> GetConstantValueAsync(string name, CancellationToken cancellationToken)
+    {
+        GetConstantValueCallCount++;
+        ConstantValues.TryGetValue(name, out var value);
+        return Task.FromResult(value);
+    }
+
+    public Task<string?> GetConstantToStrAsync(string name, CancellationToken cancellationToken)
+    {
+        GetConstantToStrCallCount++;
+        ConstantToStrValues.TryGetValue(name, out var value);
+        return Task.FromResult(value);
+    }
 }

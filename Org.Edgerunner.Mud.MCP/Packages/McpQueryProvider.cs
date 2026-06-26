@@ -217,6 +217,17 @@ public sealed class McpQueryProvider : IMooWorldQueryProvider
          null,
          cancellationToken);
 
+   /// <inheritdoc/>
+   /// <remarks>Unsupported: the MCP query package defines no constant-query operation, so this returns
+   /// <c>null</c> (callers fall back to the baked-in constant table).</remarks>
+   public Task<string?> GetConstantValueAsync(string name, CancellationToken cancellationToken) =>
+      Task.FromResult<string?>(null);
+
+   /// <inheritdoc/>
+   /// <remarks>Unsupported; see <see cref="GetConstantValueAsync"/>.</remarks>
+   public Task<string?> GetConstantToStrAsync(string name, CancellationToken cancellationToken) =>
+      Task.FromResult<string?>(null);
+
    /// <summary>
    /// Sends one request and awaits its mapped reply: register pending (fresh tag) → format and send →
    /// await under linked caller/timeout tokens → map. Server errors and unparseable payloads degrade
