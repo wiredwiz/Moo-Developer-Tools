@@ -692,6 +692,94 @@ public class MemberCompletionControllerTests
       item.GetTextForReplace().Should().Be("$room", "core-reference properties must insert a bare name");
    }
 
+   // Core-reference ($) lists #0 verbs too (udd-wwk)
+
+   [Fact]
+   public void CoreReference_context_lists_both_properties_and_verbs()
+   {
+      var provider = new FakeQueryProvider();
+      provider.Properties.Add(new MooPropertySummary("room", new MooObjectId(0)));
+      provider.Verbs.Add(new MooVerbSummary(new[] { "do_login_command" }, new MooObjectId(0)));
+      using var controller = CreateController(provider);
+
+      controller.GetMemberItems("$").Should().BeEmpty("first call only starts the fetch");
+      WaitForCache(controller, "$");
+
+      var items = controller.GetMemberItems("$");
+
+      // The #0 property carries the core-reference icon and inserts a bare name.
+      var property = items.Single(i => i.Text == "room");
+      property.ImageIndex.Should().Be((int)CompletionIconCategory.CoreReference);
+      property.Compare("$ro");
+      property.GetTextForReplace().Should().Be("$room", "core-reference properties insert a bare name");
+
+      // The #0 verb carries the verb icon and inserts call parens with the caret between (udd-16x).
+      var verb = items.Single(i => i.Text == "do_login_command");
+      verb.ImageIndex.Should().Be((int)CompletionIconCategory.Verb);
+      verb.Should().BeOfType<VerbCompletionItem>();
+      verb.Compare("$do");
+      verb.GetTextForReplace().Should().Be("$do_login_command(^)",
+         "core-reference verbs are callable and insert name() with the caret between the parens");
+
+      provider.PropertyCalls.Should().Be(1, "core reference fetches #0 properties");
+      provider.VerbCalls.Should().Be(1, "core reference also fetches #0 verbs");
+   }
+
+   [Fact]
+   public void CoreReference_same_name_property_and_verb_yields_two_entries()
+   {
+      // #0 may carry both a property foo ($foo reads it) and a verb foo ($foo() calls it).
+      // Both must appear — FCTB does not dedup by text — each with its own icon and insertion form.
+      var provider = new FakeQueryProvider();
+      provider.Properties.Add(new MooPropertySummary("foo", new MooObjectId(0)));
+      provider.Verbs.Add(new MooVerbSummary(new[] { "foo" }, new MooObjectId(0)));
+      using var controller = CreateController(provider);
+
+      controller.GetMemberItems("$foo");
+      WaitForCache(controller, "$foo");
+
+      var foos = controller.GetMemberItems("$foo").Where(i => i.Text == "foo").ToList();
+      foos.Should().HaveCount(2, "a same-name property and verb must both be listed");
+      foos.Select(i => i.ImageIndex).Should().BeEquivalentTo(new[]
+      {
+         (int)CompletionIconCategory.CoreReference,
+         (int)CompletionIconCategory.Verb,
+      });
+      foos.Should().ContainSingle(i => i is VerbCompletionItem, "exactly one entry is the callable verb");
+   }
+
+   [Fact]
+   public void Property_context_does_not_fetch_verbs()
+   {
+      // The regular '.' property path is unchanged: it queries only properties.
+      var provider = new FakeQueryProvider();
+      provider.Properties.Add(new MooPropertySummary("name", new MooObjectId(5)));
+      using var controller = CreateController(provider, contextObject: new MooObjectId(5));
+
+      controller.GetMemberItems("this.");
+      WaitForCache(controller, "this.");
+      controller.GetMemberItems("this.");
+
+      provider.PropertyCalls.Should().Be(1);
+      provider.VerbCalls.Should().Be(0, "the '.' property path must not query verbs");
+   }
+
+   [Fact]
+   public void Verb_context_does_not_fetch_properties()
+   {
+      // The ':' verb path is unchanged: it queries only verbs.
+      var provider = new FakeQueryProvider();
+      provider.Verbs.Add(new MooVerbSummary(new[] { "tell" }, new MooObjectId(5)));
+      using var controller = CreateController(provider, contextObject: new MooObjectId(5));
+
+      controller.GetMemberItems("this:");
+      WaitForCache(controller, "this:");
+      controller.GetMemberItems("this:");
+
+      provider.VerbCalls.Should().Be(1);
+      provider.PropertyCalls.Should().Be(0, "the ':' verb path must not query properties");
+   }
+
    // Diagnostic callback tests
 
    [Fact]

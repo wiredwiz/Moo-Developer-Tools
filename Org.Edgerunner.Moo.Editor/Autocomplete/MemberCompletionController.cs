@@ -576,6 +576,19 @@ public sealed class MemberCompletionController : IDisposable
       if (kind == MemberContextKind.Verb)
          return BuildVerbItems(await provider.GetVerbsAsync(objectId, cancellationToken).ConfigureAwait(false));
 
+      if (kind == MemberContextKind.CoreReference)
+      {
+         // A core reference ($foo) can be either a #0 property ($foo) or a #0 verb call ($foo()).
+         // List both: properties keep the core-reference icon, verbs use the verb icon and insert
+         // paren-call text (via VerbCompletionItem). A name present as both yields two entries — #0
+         // can carry a property foo AND a verb foo, and FCTB does not dedup by text.
+         var properties = await provider.GetPropertiesAsync(objectId, cancellationToken).ConfigureAwait(false);
+         var verbs = await provider.GetVerbsAsync(objectId, cancellationToken).ConfigureAwait(false);
+         var merged = new List<AutocompleteItem>(BuildPropertyItems(properties, kind));
+         merged.AddRange(BuildVerbItems(verbs));
+         return merged;
+      }
+
       return BuildPropertyItems(await provider.GetPropertiesAsync(objectId, cancellationToken).ConfigureAwait(false), kind);
    }
 
