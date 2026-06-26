@@ -42,10 +42,12 @@ using Org.Edgerunner.Mud.Communication.OutOfBand;
 namespace Org.Edgerunner.Mud.Communication.Sdwc;
 
 /// <summary>
-/// An <see cref="IOutOfBandMessageHandler"/> that implements the inbound half of the SDWC protocol.
-/// It detects the server's <c>dome-client-user</c> capability broadcast (registering an
-/// <see cref="SdwcQueryProvider"/> with the connection's query providers exactly once), correlates
-/// <c>SDWC%%&lt;MARKER&gt;%%&lt;json&gt;</c> responses back to pending requests, and consumes the
+/// An <see cref="IOutOfBandMessageHandler"/> that implements the SDWC SUPPORT handshake. On the
+/// server's inbound <c>SDWC%%SUPPORT%%</c> broadcast it parses the advertised ability set into
+/// <see cref="ServerCapabilities"/>, registers an <see cref="SdwcQueryProvider"/> with the connection's
+/// query providers exactly once (gated on a queryable ability), and replies with the client's own
+/// <c>#$# SDWC%%SUPPORT%%</c> declaration exactly once per session. It also correlates
+/// <c>SDWC%%&lt;MARKER&gt;%%&lt;json&gt;</c> responses back to pending requests and consumes the
 /// <c>SDWC-START-NOWRAP</c>/<c>SDWC-END-NOWRAP</c> rendering hints.
 /// </summary>
 /// <remarks>
@@ -54,11 +56,18 @@ namespace Org.Edgerunner.Mud.Communication.Sdwc;
 /// </remarks>
 public sealed class SdwcOobHandler : IOutOfBandMessageHandler
 {
-   /// <summary>The capability broadcast line that signals SDWC support.</summary>
-   public const string CapabilitySignal = "dome-client-user";
-
    /// <summary>The SDWC message prefix (after the leading space is trimmed).</summary>
    public const string SdwcPrefix = "SDWC%%";
+
+   /// <summary>The inbound SUPPORT broadcast prefix; the remainder is a <c>|</c>-separated ability list.</summary>
+   public const string SupportPrefix = "SDWC%%SUPPORT%%";
+
+   /// <summary>
+   /// The outbound SUPPORT declaration value passed to <see cref="IClientTerminal.SendOutOfBandLine"/>.
+   /// Its leading space, combined with the <c>#$#</c> OOB prefix the send path prepends, produces the
+   /// exact wire line <c>#$# SDWC%%SUPPORT%%</c>.
+   /// </summary>
+   public const string OutboundSupportDeclaration = " SDWC%%SUPPORT%%";
 
    /// <summary>The start-no-wrap rendering hint.</summary>
    public const string StartNoWrap = "SDWC-START-NOWRAP";
@@ -87,6 +96,9 @@ public sealed class SdwcOobHandler : IOutOfBandMessageHandler
 
    private bool _disposed;
 
+   /// <summary>Whether the outbound SUPPORT declaration has already been sent this session.</summary>
+   private bool _declarationSent;
+
    /// <summary>
    /// Initializes a new instance of the <see cref="SdwcOobHandler"/> class.
    /// </summary>
@@ -104,23 +116,32 @@ public sealed class SdwcOobHandler : IOutOfBandMessageHandler
    public SdwcCorrelator Correlator => _correlator;
 
    /// <summary>
-   /// Gets the registered provider, or <c>null</c> if the capability broadcast has not yet been seen.
+   /// Gets the registered provider, or <c>null</c> if no queryable SUPPORT broadcast has been seen yet.
    /// </summary>
    public SdwcQueryProvider? Provider => _provider;
+
+   /// <summary>
+   /// Gets the abilities advertised by the most recent server <c>SDWC%%SUPPORT%%</c> broadcast, or
+   /// <c>null</c> until the first SUPPORT line is received. Last broadcast wins. This is the surface
+   /// future SDWC feature-gating reads (analogous to MCP's supported-package set).
+   /// </summary>
+   public SdwcServerCapabilities? ServerCapabilities { get; private set; }
 
    /// <inheritdoc/>
    public bool ProcessMessage(IClientTerminal client, string message, ref MessageProcessingState state)
    {
       var line = message.Trim();
 
-      if (line == CapabilitySignal)
-      {
-         EnsureProviderRegistered(client);
-         return true;
-      }
-
       if (line == StartNoWrap || line == EndNoWrap)
          return true;
+
+      // SUPPORT broadcasts share the SDWC%% prefix but carry a |-list payload, not JSON, so they must
+      // be handled before the JSON-correlation path below.
+      if (line.StartsWith(SupportPrefix, StringComparison.Ordinal))
+      {
+         HandleSupport(client, line);
+         return true;
+      }
 
       if (line.StartsWith(SdwcPrefix, StringComparison.Ordinal))
       {
@@ -156,6 +177,8 @@ public sealed class SdwcOobHandler : IOutOfBandMessageHandler
 
          _provider = null;
          _queryProviders = null;
+         ServerCapabilities = null;
+         _declarationSent = false;
       }
    }
 
@@ -191,6 +214,37 @@ public sealed class SdwcOobHandler : IOutOfBandMessageHandler
          _queryProviders = client.QueryProviders;
          client.QueryProviders.Register(_provider, ProviderPriority);
          Logger.Trace("SDWC capability detected; registered SdwcQueryProvider.");
+      }
+   }
+
+   /// <summary>
+   /// Handles an inbound <c>SDWC%%SUPPORT%%…</c> broadcast: parses the <c>|</c>-separated ability list
+   /// into <see cref="ServerCapabilities"/> (last broadcast wins), registers the query provider when a
+   /// queryable ability is advertised, and sends the client's outbound SUPPORT declaration exactly once.
+   /// </summary>
+   /// <param name="client">The client terminal used to send the outbound declaration.</param>
+   /// <param name="line">The trimmed inbound line, beginning with <see cref="SupportPrefix"/>.</param>
+   private void HandleSupport(IClientTerminal client, string line)
+   {
+      var payload = line.Substring(SupportPrefix.Length);
+      var tokens = payload.Split('|')
+                          .Select(token => token.Trim())
+                          .Where(token => token.Length > 0);
+      var capabilities = new SdwcServerCapabilities(tokens);
+
+      lock (_registrationLock)
+      {
+         ServerCapabilities = capabilities;
+
+         if (capabilities.HasAnyQueryableAbility)
+            EnsureProviderRegistered(client);
+
+         if (!_declarationSent)
+         {
+            client.SendOutOfBandLine(OutboundSupportDeclaration);
+            _declarationSent = true;
+            Logger.Trace("Sent SDWC SUPPORT declaration to server.");
+         }
       }
    }
 
