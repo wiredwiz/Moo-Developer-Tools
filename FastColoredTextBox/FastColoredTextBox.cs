@@ -281,6 +281,17 @@ namespace FastColoredTextBoxNS
       public bool AutoCompleteBrackets { get; set; }
 
       /// <summary>
+      /// When enabled, typing a bracket opener inserts the matching closer only if the line ahead of the
+      /// caret does not already contain an unmatched closer it would pair with (see
+      /// <see cref="SmartBracketDecisions.HasUnmatchedCloserAhead"/>). Applies to bracket pairs only
+      /// (a symmetric quote has no opener/closer depth). Default off, so the terminal and document editors
+      /// keep the always-insert behavior.
+      /// </summary>
+      [DefaultValue(false)]
+      [Description("Suppress the auto-inserted closer when an unmatched closer already exists ahead on the line.")]
+      public bool SmartBracketSuppressWhenUnbalanced { get; set; }
+
+      /// <summary>
       /// Force inserted string or char to be uppercase
       /// </summary>
       [DefaultValue(false)]
@@ -4904,7 +4915,19 @@ namespace FastColoredTextBoxNS
             for (int i = 0; i < autoCompleteBracketsList.Length; i += 2)
                if (c == autoCompleteBracketsList[i])
                {
-                  InsertBrackets(autoCompleteBracketsList[i], autoCompleteBracketsList[i + 1]);
+                  char left = autoCompleteBracketsList[i];
+                  char right = autoCompleteBracketsList[i + 1];
+                  // Line-balance-aware auto-close (bracket pairs only; a symmetric quote has no depth):
+                  // when there is an unmatched closer ahead on the line, insert only the opener.
+                  if (SmartBracketSuppressWhenUnbalanced && left != right && Selection.IsEmpty &&
+                      SmartBracketDecisions.HasUnmatchedCloserAhead(
+                         GetLineText(Selection.Start.iLine), Selection.Start.iChar, left, right))
+                  {
+                     InsertText(left.ToString());
+                     return true;
+                  }
+
+                  InsertBrackets(left, right);
                   return true;
                }
          }

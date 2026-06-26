@@ -95,6 +95,7 @@ namespace Org.Edgerunner.Moo.Editor.Controls
          RightBracket3 = ']';
          AutoCompleteBrackets = true;
          AutoCompleteBracketsList = new[] { '(', ')', '{', '}', '[', ']', '"', '"' };
+         SmartBracketSuppressWhenUnbalanced = true;
          AutoIndentChars = false;
          WordWrapAutoIndent = true;
          FoldingHighlightEnabled = true;
@@ -457,13 +458,26 @@ namespace Org.Edgerunner.Moo.Editor.Controls
          }
          else if (e.KeyCode == Keys.Back && NoTextSelection() && Selection.Start.iChar != 0)
          {
-            if ((Selection.CharBeforeStart == '(' && Selection.CharAfterStart == ')') ||
-                (Selection.CharBeforeStart == '{' && Selection.CharAfterStart == '}') ||
-                (Selection.CharBeforeStart == '"' && Selection.CharAfterStart == '"') ||
-                (Selection.CharBeforeStart == '[' && Selection.CharAfterStart == ']'))
+            // Whitespace-tolerant, escape-aware auto-delete: backspacing an opener (or unescaped opening
+            // quote) also removes the matching closer when it is the first non-whitespace char ahead on the
+            // line, collapsing the intervening whitespace too.
+            var lineText = GetLineText(Selection.Start.iLine);
+            var caret = Selection.Start.iChar;
+            var before = Selection.CharBeforeStart;
+            int closerIndex = before switch
+            {
+               '(' => SmartBracketDeletion.FindMatchingCloserAhead(lineText, caret, '(', ')'),
+               '{' => SmartBracketDeletion.FindMatchingCloserAhead(lineText, caret, '{', '}'),
+               '[' => SmartBracketDeletion.FindMatchingCloserAhead(lineText, caret, '[', ']'),
+               '"' when SmartBracketDeletion.IsUnescapedQuoteDelimiter(lineText, caret - 1) =>
+                  SmartBracketDeletion.FindMatchingCloserAhead(lineText, caret, '"', '"'),
+               _ => -1
+            };
+
+            if (closerIndex >= 0)
                Selection = new TextSelectionRange(this,
-                  new Place(Selection.Start.iChar - 1, Selection.Start.iLine),
-                  new Place(Selection.End.iChar + 1, Selection.End.iLine));
+                  new Place(caret - 1, Selection.Start.iLine),
+                  new Place(closerIndex + 1, Selection.Start.iLine));
          }
       }
 
