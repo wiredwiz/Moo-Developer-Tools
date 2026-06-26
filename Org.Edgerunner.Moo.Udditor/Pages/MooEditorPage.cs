@@ -118,6 +118,15 @@ public abstract class MooEditorPage : ManagedPage
     }
 
     /// <summary>
+    /// Clears the modified-line gutter markers and repaints the editor so the change is shown immediately.
+    /// </summary>
+    public void MarkAsUnmodified()
+    {
+        SourceEditor.IsChanged = false;   // clears every line.IsChanged
+        SourceEditor.Invalidate();        // repaint so the gutter updates now
+    }
+
+    /// <summary>
     /// Attempts to upload the source code to the linked client terminal.
     /// </summary>
     /// <returns></returns>
@@ -127,7 +136,7 @@ public abstract class MooEditorPage : ManagedPage
             return false;
 
         if (Uploader.Upload(SourceEditor.Text))
-            SourceEditor.IsChanged = false;
+            MarkAsUnmodified();
         return true;
     }
 

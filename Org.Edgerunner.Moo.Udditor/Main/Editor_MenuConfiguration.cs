@@ -104,6 +104,7 @@ public partial class Editor
       var isDocumentEditor = documentEditorPage != null;
       var isTerminal = terminalPage != null;
       grammarToolStripMenuItem.Enabled = isMooCodeEditor;
+      mnuItemLoadFile.Enabled = isMooCodeEditor;
       mnuItemSaveAsFile.Enabled = isEditor;
       mnuItemFileSave.Enabled = isEditor;
       mnuItemFormat.Enabled = isMooCodeEditor;

@@ -36,6 +36,7 @@ namespace Org.Edgerunner.Moo.Udditor.Main
          fileToolStripMenuItem = new ToolStripMenuItem();
          tlMnuNew = new ToolStripMenuItem();
          mnuItemOpenFile = new ToolStripMenuItem();
+         mnuItemLoadFile = new ToolStripMenuItem();
          mnuItemUpload = new ToolStripMenuItem();
          mnuItemUpload2 = new ToolStripMenuItem();
          mnuItemFileSave = new ToolStripMenuItem();
@@ -130,7 +131,7 @@ namespace Org.Edgerunner.Moo.Udditor.Main
          // 
          // fileToolStripMenuItem
          // 
-         fileToolStripMenuItem.DropDownItems.AddRange(new ToolStripItem[] { tlMnuNew, mnuItemOpenFile, mnuItemUpload, mnuItemUpload2, mnuItemFileSave, mnuItemSaveAsFile, tlMnuItemClose, toolStripSeparator1, mnuItemExit });
+         fileToolStripMenuItem.DropDownItems.AddRange(new ToolStripItem[] { tlMnuNew, mnuItemOpenFile, mnuItemLoadFile, mnuItemUpload, mnuItemUpload2, mnuItemFileSave, mnuItemSaveAsFile, tlMnuItemClose, toolStripSeparator1, mnuItemExit });
          fileToolStripMenuItem.Name = "fileToolStripMenuItem";
          fileToolStripMenuItem.Size = new Size(37, 20);
          fileToolStripMenuItem.Text = "&File";
@@ -150,7 +151,14 @@ namespace Org.Edgerunner.Moo.Udditor.Main
          mnuItemOpenFile.Size = new Size(184, 22);
          mnuItemOpenFile.Text = "&Open";
          mnuItemOpenFile.Click += mnuItemOpenFile_Click;
-         // 
+         //
+         // mnuItemLoadFile
+         //
+         mnuItemLoadFile.Name = "mnuItemLoadFile";
+         mnuItemLoadFile.Size = new Size(184, 22);
+         mnuItemLoadFile.Text = "&Load…";
+         mnuItemLoadFile.Click += mnuItemLoadFile_Click;
+         //
          // mnuItemUpload
          // 
          mnuItemUpload.Name = "mnuItemUpload";
@@ -733,6 +741,7 @@ namespace Org.Edgerunner.Moo.Udditor.Main
       private MenuStrip menuStrip1;
       private ToolStripMenuItem fileToolStripMenuItem;
       private ToolStripMenuItem mnuItemOpenFile;
+      private ToolStripMenuItem mnuItemLoadFile;
       private ToolStripMenuItem mnuItemSaveAsFile;
       private ToolStripSeparator toolStripSeparator1;
       private ToolStripMenuItem mnuItemExit;
