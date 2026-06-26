@@ -104,6 +104,30 @@ namespace FastColoredTextBoxNS.Input {
 			return sb.ToString();
 		}
 
+		// .NET Framework's KeysConverter accepted abbreviated key names (Ins, Del, PgUp, PgDn);
+		// .NET 8's KeysConverter only accepts the full Keys enum names. Hotkey strings serialized
+		// under the old framework (the DefaultValue, the designer .resx copies, saved configs) still
+		// use the abbreviations, so map them to the full names before conversion.
+		private static readonly Dictionary<string, string> LegacyKeyNames =
+			new(StringComparer.OrdinalIgnoreCase) {
+				{ "Ins", "Insert" },
+				{ "Del", "Delete" },
+				{ "PgUp", "PageUp" },
+				{ "PgDn", "PageDown" },
+			};
+
+		// Normalizes legacy abbreviations within a (possibly modifier-joined) key string,
+		// e.g. "Ctrl+Ins" -> "Ctrl+Insert", so .NET 8's KeysConverter can parse it.
+		internal static string NormalizeLegacyKeyNames(string keys) {
+			var parts = keys.Split('+');
+			for (var i = 0; i < parts.Length; i++) {
+				var token = parts[i].Trim();
+				if (LegacyKeyNames.TryGetValue(token, out var full))
+					parts[i] = full;
+			}
+			return string.Join("+", parts);
+		}
+
 		public static HotkeysMapping Parse(string s) {
 			var result = new HotkeysMapping();
 			result.Clear();
@@ -114,7 +138,7 @@ namespace FastColoredTextBoxNS.Input {
 
 			foreach (var p in s.Split(',')) {
 				var pp = p.Split('=');
-				var k = (KEYS)kc.ConvertFromString(pp[0].Trim());
+				var k = (KEYS)kc.ConvertFromString(NormalizeLegacyKeyNames(pp[0].Trim()));
 				var a = (FCTBAction)Enum.Parse(typeof(FCTBAction), pp[1].Trim());
 				result[k] = a;
 			}
