@@ -65,12 +65,54 @@ public partial class Editor
          WindowManager.ShowPage(page);
       }
    }
+
+   private void mnuItemLoadFile_Click(object sender, EventArgs e)
+   {
+      if (CurrentPage is not MooCodeEditorPage page)
+         return;
+
+      openFileDialog.Multiselect = false;
+      openFileDialog.DefaultExt = "moo";
+      openFileDialog.Filter = @"Moo files (*.moo)|*.moo|Text files (*.txt)|*.txt|Markdown files (*.md)|*.md|All files (*.*)|*.*";
+      openFileDialog.Title = "Select a file to load into the current editor";
+      if (openFileDialog.ShowDialog() != DialogResult.OK)
+         return;
+
+      if (page.SourceEditor.IsChanged)
+      {
+         var answer = MessageBox.Show(
+            "Discard unsaved changes and load the selected file?",
+            "Unsaved Changes",
+            MessageBoxButtons.YesNo,
+            MessageBoxIcon.Warning);
+         if (answer != DialogResult.Yes)
+            return;
+      }
+
+      var path = openFileDialog.FileName;
+      try
+      {
+         page.SourceEditor.Text = File.ReadAllText(path);
+      }
+      catch (Exception ex)
+      {
+         Logger.Error(ex, "Failed to load '{0}'", path);
+         MessageBox.Show($"Could not load the file:\n{ex.Message}", "Load Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+         return;
+      }
+
+      page.MarkAsUnmodified();
+   }
+
    private void mnuItemSave_Click(object sender, EventArgs e)
    {
       if (CurrentPage is MooEditorPage page)
       {
          if (!string.IsNullOrEmpty(page.Document.Path))
-            TrySaveToFile(page, page.Document.Path);
+         {
+            if (TrySaveToFile(page, page.Document.Path))
+               page.MarkAsUnmodified();
+         }
          else
             SaveAs(page);
          page.SourceEditor.Invalidate();
@@ -107,6 +149,7 @@ public partial class Editor
          {
             page.Document.Path = path;
             page.Document.Name = Path.GetFileName(path);
+            page.MarkAsUnmodified();
             if (page is MooCodeEditorPage mooCodeEditorPage)
                mooCodeEditorPage.ParseSourceCode();
          }
