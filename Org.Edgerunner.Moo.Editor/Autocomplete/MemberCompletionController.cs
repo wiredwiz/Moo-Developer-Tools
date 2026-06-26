@@ -586,7 +586,11 @@ public sealed class MemberCompletionController : IDisposable
          var verbs = await provider.GetVerbsAsync(objectId, cancellationToken).ConfigureAwait(false);
          var merged = new List<AutocompleteItem>(BuildPropertyItems(properties, kind));
          merged.AddRange(BuildVerbItems(verbs));
-         return merged;
+         // Return one alphabetical list with verbs and properties INTERLEAVED, never two
+         // separate runs (the global rule: every completion list is sorted as a whole).
+         // OrderBy is stable, so on a same-name tie the property — added first — precedes the
+         // verb; both entries are preserved (no dedup by text).
+         return merged.OrderBy(item => item.Text, StringComparer.OrdinalIgnoreCase).ToList();
       }
 
       return BuildPropertyItems(await provider.GetPropertiesAsync(objectId, cancellationToken).ConfigureAwait(false), kind);

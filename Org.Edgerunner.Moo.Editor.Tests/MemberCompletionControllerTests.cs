@@ -749,6 +749,44 @@ public class MemberCompletionControllerTests
    }
 
    [Fact]
+   public void CoreReference_merges_verbs_and_properties_into_one_alphabetical_run()
+   {
+      // $ lists #0 properties AND verbs as ONE alphabetical list with verbs and properties
+      // INTERLEAVED — never all properties then all verbs (udd-7wl).
+      var provider = new FakeQueryProvider();
+      provider.Properties.Add(new MooPropertySummary("apple", new MooObjectId(0)));
+      provider.Properties.Add(new MooPropertySummary("cherry", new MooObjectId(0)));
+      provider.Verbs.Add(new MooVerbSummary(new[] { "banana" }, new MooObjectId(0)));
+      using var controller = CreateController(provider);
+
+      controller.GetMemberItems("$");
+      WaitForCache(controller, "$");
+
+      var names = controller.GetMemberItems("$").Select(i => i.Text).ToList();
+      names.Should().Equal(new[] { "apple", "banana", "cherry" },
+         "verbs and properties must be interleaved in one alphabetical run, not segmented props-then-verbs");
+   }
+
+   [Fact]
+   public void CoreReference_same_name_property_sorts_before_its_verb()
+   {
+      // On a same-name tie the property (added first) precedes the verb — stable sort (udd-7wl).
+      var provider = new FakeQueryProvider();
+      provider.Properties.Add(new MooPropertySummary("foo", new MooObjectId(0)));
+      provider.Verbs.Add(new MooVerbSummary(new[] { "foo" }, new MooObjectId(0)));
+      using var controller = CreateController(provider);
+
+      controller.GetMemberItems("$foo");
+      WaitForCache(controller, "$foo");
+
+      var foos = controller.GetMemberItems("$foo").Where(i => i.Text == "foo").ToList();
+      foos.Should().HaveCount(2);
+      foos[0].ImageIndex.Should().Be((int)CompletionIconCategory.CoreReference,
+         "the property comes first on a same-name tie");
+      foos[1].Should().BeOfType<VerbCompletionItem>("the verb follows the same-name property");
+   }
+
+   [Fact]
    public void Property_context_does_not_fetch_verbs()
    {
       // The regular '.' property path is unchanged: it queries only properties.
