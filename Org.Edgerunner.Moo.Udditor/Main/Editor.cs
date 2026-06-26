@@ -261,4 +261,9 @@ public partial class Editor : KryptonForm
       var worldsFile = ApplicationPaths.ResolveDataFile("Worlds.xml");
       return !File.Exists(worldsFile) ? new AddressBook() : AddressBook.LoadFromFile(worldsFile);
    }
+
+   private void flushEditorCacheToolStripMenuItem_Click(object sender, EventArgs e)
+   {
+
+   }
 }
