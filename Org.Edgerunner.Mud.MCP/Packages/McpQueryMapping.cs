@@ -313,6 +313,18 @@ public static class McpQueryMapping
    }
 
    /// <summary>
+   /// Maps a constant-query reply (<c>{"v":"…"}</c>) to its string value, or <c>null</c> when absent.
+   /// Used by both <c>constant-value</c> (raw <c>toliteral</c>) and <c>constant-tostr</c> (<c>tostr</c>) replies.
+   /// </summary>
+   /// <param name="json">The reply JSON.</param>
+   /// <returns>The constant's string value, or <c>null</c>.</returns>
+   public static string? MapConstantString(string json)
+   {
+      using var document = JsonDocument.Parse(json);
+      return document.RootElement.TryGetProperty("v", out var v) ? v.GetString() : null;
+   }
+
+   /// <summary>
    /// Parses a MOO verb permission flag string (e.g. <c>"rxd"</c>) into a <see cref="VerbPermission"/>.
    /// </summary>
    /// <param name="flags">The flag string.</param>

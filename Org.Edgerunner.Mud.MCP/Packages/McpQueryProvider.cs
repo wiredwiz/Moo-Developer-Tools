@@ -218,15 +218,22 @@ public sealed class McpQueryProvider : IMooWorldQueryProvider
          cancellationToken);
 
    /// <inheritdoc/>
-   /// <remarks>Unsupported: the MCP query package defines no constant-query operation, so this returns
-   /// <c>null</c> (callers fall back to the baked-in constant table).</remarks>
    public Task<string?> GetConstantValueAsync(string name, CancellationToken cancellationToken) =>
-      Task.FromResult<string?>(null);
+      QueryAsync<string?>(
+         "constant-value",
+         new Dictionary<string, string> { ["constant:"] = name },
+         McpQueryMapping.MapConstantString,
+         null,
+         cancellationToken);
 
    /// <inheritdoc/>
-   /// <remarks>Unsupported; see <see cref="GetConstantValueAsync"/>.</remarks>
    public Task<string?> GetConstantToStrAsync(string name, CancellationToken cancellationToken) =>
-      Task.FromResult<string?>(null);
+      QueryAsync<string?>(
+         "constant-tostr",
+         new Dictionary<string, string> { ["constant:"] = name },
+         McpQueryMapping.MapConstantString,
+         null,
+         cancellationToken);
 
    /// <summary>
    /// Sends one request and awaits its mapped reply: register pending (fresh tag) → format and send →

@@ -7,10 +7,10 @@
 
 ;;#XXX.("use_generate_json") = -1
 ;;#XXX.("version_range") = {"1.0", "1.0"}
-;;#XXX.("messages_in") = {{"core-objects", {"tag"}}, {"player", {"tag"}}, {"children", {"tag", "object"}}, {"owned", {"tag", "owner"}}, {"parent", {"tag", "object"}}, {"verbs", {"tag", "object"}}, {"verb-info", {"tag", "object", "verb"}}, {"verb-doc", {"tag", "object", "verb"}}, {"verb-code", {"tag", "object", "verb"}}, {"props", {"tag", "object"}}, {"prop-info", {"tag", "object", "prop"}}, {"prop-doc", {"tag", "object", "prop"}}, {"prop-value", {"tag", "object", "prop"}}}
-;;#XXX.("messages_out") = {{"core-objects-reply", {"tag", "data"}}, {"player-reply", {"tag", "data"}}, {"children-reply", {"tag", "data"}}, {"owned-reply", {"tag", "data"}}, {"parent-reply", {"tag", "data"}}, {"verbs-reply", {"tag", "data"}}, {"verb-info-reply", {"tag", "data"}}, {"verb-doc-reply", {"tag", "data"}}, {"verb-code-reply", {"tag", "data"}}, {"props-reply", {"tag", "data"}}, {"prop-info-reply", {"tag", "data"}}, {"prop-doc-reply", {"tag", "data"}}, {"prop-value-reply", {"tag", "data"}}, {"error", {"tag", "code", "message"}}}
+;;#XXX.("messages_in") = {{"core-objects", {"tag"}}, {"player", {"tag"}}, {"children", {"tag", "object"}}, {"owned", {"tag", "owner"}}, {"parent", {"tag", "object"}}, {"verbs", {"tag", "object"}}, {"verb-info", {"tag", "object", "verb"}}, {"verb-doc", {"tag", "object", "verb"}}, {"verb-code", {"tag", "object", "verb"}}, {"props", {"tag", "object"}}, {"prop-info", {"tag", "object", "prop"}}, {"prop-doc", {"tag", "object", "prop"}}, {"prop-value", {"tag", "object", "prop"}}, {"constant-value", {"tag", "constant"}}, {"constant-tostr", {"tag", "constant"}}}
+;;#XXX.("messages_out") = {{"core-objects-reply", {"tag", "data"}}, {"player-reply", {"tag", "data"}}, {"children-reply", {"tag", "data"}}, {"owned-reply", {"tag", "data"}}, {"parent-reply", {"tag", "data"}}, {"verbs-reply", {"tag", "data"}}, {"verb-info-reply", {"tag", "data"}}, {"verb-doc-reply", {"tag", "data"}}, {"verb-code-reply", {"tag", "data"}}, {"props-reply", {"tag", "data"}}, {"prop-info-reply", {"tag", "data"}}, {"prop-doc-reply", {"tag", "data"}}, {"prop-value-reply", {"tag", "data"}}, {"constant-value-reply", {"tag", "data"}}, {"constant-tostr-reply", {"tag", "data"}}, {"error", {"tag", "code", "message"}}}
 ;;#XXX.("aliases") = {"edgerunner-org-moo-query"}
-;;#XXX.("description") = {"Developer-information query package for MCP 2.1 clients (v1.0).", "", "Each C->S request carries a client-generated tag; each S->C reply echoes the", "tag and carries one data* multiline field holding minified JSON.", "Object numbers are bare JSON ints; verb names are raw MOO names strings.", "", "Requests (params besides tag):", " -core-objects ()            -> {\"d\":[[num,name,[aliases]],...]}", " -player ()                  -> {\"p\":num}  connected player object", " -children (object)          -> {\"d\":[[num,name,[aliases]],...]}", " -owned (owner)              -> {\"d\":[[num,name,[aliases]],...]}  owner \"\" = player", " -parent (object)            -> {\"p\":num}  -1 = no parent", " -verbs (object)             -> {\"d\":[[\"g*et put\",isLocal],...]}  isLocal 1=local 0=inherited, deduped", " -verb-info (object, verb)   -> {\"q\",\"r\",\"a\",\"o\",\"p\",\"g\"}", " -verb-doc (object, verb)    -> {\"q\",\"r\",\"l\":[lines]}", " -verb-code (object, verb)   -> {\"q\",\"r\",\"l\":[lines]}", " -props (object)             -> {\"d\":[[\"name\",isLocal],...]}  isLocal 1=local 0=inherited, deduped", " -prop-info (object, prop)   -> {\"n\",\"o\",\"p\",\"t\",\"v\"}  v = 80-char preview", " -prop-doc (object, prop)    -> {\"l\":[lines]}  toliteral split <=78 chars, max 50", " -prop-value (object, prop)  -> {\"t\",\"v\"}  full toliteral", "", "Shared error reply: -error (tag, code, message) where code is the MOO error", "name (E_PERM, E_INVARG, E_VERBNF, E_PROPNF, ...).", "", "Every handler runs under set_task_perms() of the connected player; normal MOO", "read rules decide visibility.", "", "Normative protocol: docs/edgerunner-org-moo-query-protocol.md in the", "Moo Developer Tools repository (https://github.com/.../Moo-Developer-Tools)."}
+;;#XXX.("description") = {"Developer-information query package for MCP 2.1 clients (v1.0).", "", "Each C->S request carries a client-generated tag; each S->C reply echoes the", "tag and carries one data* multiline field holding minified JSON.", "Object numbers are bare JSON ints; verb names are raw MOO names strings.", "", "Requests (params besides tag):", " -core-objects ()            -> {\"d\":[[num,name,[aliases]],...]}", " -player ()                  -> {\"p\":num}  connected player object", " -children (object)          -> {\"d\":[[num,name,[aliases]],...]}", " -owned (owner)              -> {\"d\":[[num,name,[aliases]],...]}  owner \"\" = player", " -parent (object)            -> {\"p\":num}  -1 = no parent", " -verbs (object)             -> {\"d\":[[\"g*et put\",isLocal],...]}  isLocal 1=local 0=inherited, deduped", " -verb-info (object, verb)   -> {\"q\",\"r\",\"a\",\"o\",\"p\",\"g\"}", " -verb-doc (object, verb)    -> {\"q\",\"r\",\"l\":[lines]}", " -verb-code (object, verb)   -> {\"q\",\"r\",\"l\":[lines]}", " -props (object)             -> {\"d\":[[\"name\",isLocal],...]}  isLocal 1=local 0=inherited, deduped", " -prop-info (object, prop)   -> {\"n\",\"o\",\"p\",\"t\",\"v\"}  v = 80-char preview", " -prop-doc (object, prop)    -> {\"l\":[lines]}  toliteral split <=78 chars, max 50", " -prop-value (object, prop)  -> {\"t\",\"v\"}  full toliteral", " -constant-value (constant)  -> {\"v\":\"<toliteral>\"}  eval'd value of a bare-identifier constant", " -constant-tostr (constant)  -> {\"v\":\"<tostr>\"}  tostr() of a bare-identifier constant", "", "Shared error reply: -error (tag, code, message) where code is the MOO error", "name (E_PERM, E_INVARG, E_VERBNF, E_PROPNF, ...).", "", "Every handler runs under set_task_perms() of the connected player; normal MOO", "read rules decide visibility.", "", "Normative protocol: docs/edgerunner-org-moo-query-protocol.md in the", "Moo Developer Tools repository (https://github.com/.../Moo-Developer-Tools)."}
 
 @verb #XXX:"handle_core-objects" this none this rxd
 @verb #XXX:"handle_player" this none this rxd
@@ -25,6 +25,9 @@
 @verb #XXX:"handle_prop-info" this none this rxd
 @verb #XXX:"handle_prop-doc" this none this rxd
 @verb #XXX:"handle_prop-value" this none this rxd
+@verb #XXX:"handle_constant-value" this none this rxd
+@verb #XXX:"handle_constant-tostr" this none this rxd
+@verb #XXX:"valid_constant_name" this none this rxd
 @verb #XXX:"find_verb_definer" this none this rxd
 @verb #XXX:"summary_json" this none this rxd
 @verb #XXX:"json_encode" this none this rxd
@@ -375,6 +378,81 @@ try
 except v (ANY)
   this:send_error(session, tag, v);
 endtry
+.
+
+@args #XXX:"handle_constant-value" this none this
+@chown #XXX:handle_constant-value #2
+@program #XXX:handle_constant-value
+"Usage: :handle_constant-value(session, tag, name)";
+"Returns the raw value of a named MOO language constant (type code, error, bool) as toliteral(),";
+"e.g. NUM -> {\"v\":\"0\"}. The name is validated to a bare identifier first so eval() can only";
+"resolve a single constant token and never run arbitrary code.";
+{session, tag, name} = args;
+if (caller != this)
+  raise(E_PERM);
+endif
+set_task_perms(session.connection);
+try
+  if (!this:valid_constant_name(name))
+    raise(E_INVARG);
+  endif
+  result = eval(tostr("return ", name, ";"));
+  if (!result[1])
+    raise(E_INVARG);
+  endif
+  json = tostr("{\"v\":", this:json_encode(toliteral(result[2])), "}");
+  this:send_reply(session, "constant-value-reply", tag, json);
+except v (ANY)
+  this:send_error(session, tag, v);
+endtry
+.
+
+@args #XXX:"handle_constant-tostr" this none this
+@chown #XXX:handle_constant-tostr #2
+@program #XXX:handle_constant-tostr
+"Usage: :handle_constant-tostr(session, tag, name)";
+"Returns tostr() of a named MOO language constant, e.g. E_PERM -> {\"v\":\"Permission denied\"}.";
+"The name is validated to a bare identifier first; eval() can only resolve a single constant token.";
+{session, tag, name} = args;
+if (caller != this)
+  raise(E_PERM);
+endif
+set_task_perms(session.connection);
+try
+  if (!this:valid_constant_name(name))
+    raise(E_INVARG);
+  endif
+  result = eval(tostr("return tostr(", name, ");"));
+  if (!result[1])
+    raise(E_INVARG);
+  endif
+  json = tostr("{\"v\":", this:json_encode(result[2]), "}");
+  this:send_reply(session, "constant-tostr-reply", tag, json);
+except v (ANY)
+  this:send_error(session, tag, v);
+endtry
+.
+
+@args #XXX:"valid_constant_name" this none this
+@chown #XXX:valid_constant_name #2
+@program #XXX:valid_constant_name
+"Usage: :valid_constant_name(STR) => 1 when name is a bare identifier (letter/underscore start,";
+"then letters/digits/underscore, length 1..40), else 0. Restricts eval() to a single constant token.";
+{name} = args;
+if (typeof(name) != STR || name == "" || length(name) > 40)
+  return 0;
+endif
+first = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz_";
+rest = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789_";
+if (!index(first, name[1]))
+  return 0;
+endif
+for i in [1..length(name)]
+  if (!index(rest, name[i]))
+    return 0;
+  endif
+endfor
+return 1;
 .
 
 @args #XXX:"find_verb_definer" this none this

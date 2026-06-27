@@ -94,6 +94,13 @@ All names below are suffixes of `edgerunner-org-moo-query`. Every request also c
 | `-prop-info` | `object`, `prop` | `-prop-info-reply` | `{"n":"name","o":num,"p":"rc","t":typecode,"v":"preview"}` — `t` = `typeof()` code, `v` = first 80 characters of `toliteral(value)` |
 | `-prop-doc` | `object`, `prop` | `-prop-doc-reply` | `{"l":[lines]}` — `toliteral(value)` split into ≤78-char lines, capped at 50 lines |
 | `-prop-value` | `object`, `prop` | `-prop-value-reply` | `{"t":typecode,"v":"literal"}` — full `toliteral(value)` |
+| `-constant-value` | `constant` | `-constant-value-reply` | `{"v":"<toliteral(value)>"}` — the server evaluates the named language constant (`eval("return <constant>;")`) and returns `toliteral(value)`; e.g. `NUM` → `{"v":"0"}`. `constant` MUST be a bare identifier (letters/digits/underscore); any other name answers `-error E_INVARG` |
+| `-constant-tostr` | `constant` | `-constant-tostr-reply` | `{"v":"<tostr(value)>"}` — `eval("return tostr(<constant>);")`; e.g. `E_PERM` → `{"v":"Permission denied"}`. Bare-identifier names only |
+
+The constant queries let the client show authoritative, server-accurate type codes and error
+messages on hover; clients that cannot reach the server fall back to a built-in table. The
+bare-identifier restriction means the server's `eval` can only resolve a single constant token,
+never run arbitrary code.
 
 Verb info/doc/code resolve the **defining ancestor**: the server walks up from the queried
 object to the first ancestor whose `verb_info()` answers for the name; that ancestor is `r`.
@@ -127,6 +134,13 @@ C→S: #$#edgerunner-org-moo-query-player K7% tag: 15
 S→C: #$#edgerunner-org-moo-query-player-reply K7% tag: "15" data*: "" _data-tag: 9914
      #$#* 9914 data: {"p":62}
      #$#: 9914
+```
+
+```
+C→S: #$#edgerunner-org-moo-query-constant-tostr K7% tag: 16 constant: E_PERM
+S→C: #$#edgerunner-org-moo-query-constant-tostr-reply K7% tag: "16" data*: "" _data-tag: 9915
+     #$#* 9915 data: {"v":"Permission denied"}
+     #$#: 9915
 ```
 
 ## 6. Errors

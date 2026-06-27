@@ -37,6 +37,34 @@ public class McpQueryProviderTests
    }
 
    [Fact]
+   public async Task GetConstantValueAsync_SendsConstantRequestAndMapsValue()
+   {
+      var (provider, correlator, terminal) = CreateProvider();
+
+      var task = provider.GetConstantValueAsync("NUM", CancellationToken.None);
+
+      terminal.SentOutOfBandLines.Should().ContainSingle()
+         .Which.Should().Contain("edgerunner-org-moo-query-constant-value").And.Contain("constant:").And.Contain("NUM");
+
+      correlator.Complete("1", "{\"v\":\"0\"}");
+      (await task).Should().Be("0");
+   }
+
+   [Fact]
+   public async Task GetConstantToStrAsync_SendsConstantRequestAndMapsMessage()
+   {
+      var (provider, correlator, terminal) = CreateProvider();
+
+      var task = provider.GetConstantToStrAsync("E_PERM", CancellationToken.None);
+
+      terminal.SentOutOfBandLines.Should().ContainSingle()
+         .Which.Should().Contain("edgerunner-org-moo-query-constant-tostr").And.Contain("E_PERM");
+
+      correlator.Complete("1", "{\"v\":\"Permission denied\"}");
+      (await task).Should().Be("Permission denied");
+   }
+
+   [Fact]
    public async Task GetCoreObjectsAsync_SendsTagOnlyRequest()
    {
       var (provider, correlator, terminal) = CreateProvider();

@@ -71,7 +71,13 @@ Task<string?> GetConstantToStrAsync(string name, CancellationToken cancellationT
 Implementations:
 - **`SdwcQueryProvider`** → return `null` (**unsupported**; no new SDWC command or capability
   token — SDWC does not support constant queries).
-- **MCP query provider** → return `null`.
+- **MCP query provider (`McpQueryProvider`)** → **implements** the queries via two new
+  `edgerunner-org-moo-query` messages, `-constant-value` (raw `toliteral`) and
+  `-constant-tostr` (`tostr()`), each taking a `constant` param. The protocol doc
+  (`docs/edgerunner-org-moo-query-protocol.md`) and the server dump
+  (`Server Packages/edgerunner-org-moo-query.moo`) are updated with the messages and
+  server-side handlers; the handlers validate `constant` to a bare identifier and `eval` it, so
+  the value/`tostr` are server-authoritative. (Originally stubbed to `null` — corrected.)
 - **`CachingMooWorldQueryProvider`** → delegate to inner; pass through `null`, do not cache
   `null`.
 - **`MooWorldQueryService`** → delegate to the registered provider; `null` when none.
@@ -80,9 +86,9 @@ Implementations:
 **Hover resolution** (in the constant branch): obtain the editor's query provider (same
 accessor the verb/property hover uses); for a **type** call `GetConstantValueAsync`, for an
 **error** call `GetConstantToStrAsync`. On a non-null result, render that; on `null` /
-exception / no provider (offline), fall back to `BuiltinConstantDocs`. Fallback is immediate
-(no timeout): SDWC returns `null` synchronously-ish and offline has no provider, so there is
-no hover lag.
+exception / no provider (offline), fall back to `BuiltinConstantDocs`. When connected over the
+MCP query package the value is server-authoritative; over SDWC-only or offline it falls back
+to the baked-in table.
 
 ---
 
@@ -91,8 +97,9 @@ no hover lag.
 ### In scope
 - `BuiltinConstantDocs` table + JSON resource, `Moo.IsConstant`.
 - Constant hover branch.
-- Two `IMooWorldQueryProvider` methods + implementations (SDWC/MCP return `null`;
-  caching/service delegate; fakes).
+- Two `IMooWorldQueryProvider` methods. MCP implements them (new `-constant-value` /
+  `-constant-tostr` messages + protocol doc + server `.moo` dump handlers); SDWC returns
+  `null` (unsupported); caching/service delegate; fakes configurable.
 - Attempt-then-fallback hover resolution.
 
 ### Out of scope
@@ -119,7 +126,9 @@ no hover lag.
 
 - One comprehensive baked-in table (dialect-agnostic).
 - Types display the numeric `typeof` code; errors display the `tostr()` message.
-- Live query methods added to the provider, but SDWC/MCP return `null` (no wire changes), so
-  the hover falls back to the table today — fast, no timeout.
+- Live query methods added to the provider. The MCP query package implements them
+  (`-constant-value` / `-constant-tostr` messages, documented in the protocol doc and the
+  server `.moo` dump); SDWC returns `null` (unsupported). The hover uses the live value when
+  connected over MCP and falls back to the baked-in table over SDWC-only or offline.
 - ToastStunt-specific type codes and error messages are verified against an authoritative
   source during implementation, not taken from memory.
