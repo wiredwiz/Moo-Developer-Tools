@@ -12,7 +12,8 @@ on:
 jobs:
   build:
 
-    runs-on: ubuntu-latest
+    # WinForms / net8.0-windows projects must build and test on Windows.
+    runs-on: windows-latest
 
     steps:
     - uses: actions/checkout@v3
