@@ -2,7 +2,7 @@
 ; SEE THE DOCUMENTATION FOR DETAILS ON CREATING INNO SETUP SCRIPT FILES!
 
 #define MyAppName "Moo Udditor"
-#define MyAppVersion "1.1.26178"
+#define MyAppVersion "1.3.26178"
 #define MyAppPublisher "Thad Ryker (Dakkon/WiredWiz)"
 #define MyAppURL "https://github.com/wiredwiz/Moo-Developer-Tools"
 #define MyAppExeName "Moo Udditor.exe"
@@ -28,13 +28,13 @@ OutputBaseFilename=setup
 Compression=lzma
 SolidCompression=yes
 UninstallDisplayIcon={app}\Moo Udditor.exe
-VersionInfoVersion=1.1.26178
+VersionInfoVersion=1.3.26178
 VersionInfoCompany=Edgerunner
 VersionInfoDescription=A Moo programming development environment
 VersionInfoTextVersion=one point zero point two six one five eight
 VersionInfoCopyright=Thaddeus Ryker 2024
 VersionInfoProductName=Moo Udditor
-VersionInfoProductVersion=1.1.26178
+VersionInfoProductVersion=1.3.26178
 VersionInfoProductTextVersion=one point zero point two six one five eight
 
 [Languages]
