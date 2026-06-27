@@ -19,200 +19,201 @@ partial class AboutBox
         base.Dispose(disposing);
     }
 
-    #region Windows Form Designer generated code
+   #region Windows Form Designer generated code
 
-    /// <summary>
-    /// Required method for Designer support - do not modify
-    /// the contents of this method with the code editor.
-    /// </summary>
-    private void InitializeComponent()
-    {
-         System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(AboutBox));
-         this.tableLayoutPanel = new Krypton.Toolkit.KryptonTableLayoutPanel();
-         this.logoPictureBox = new System.Windows.Forms.PictureBox();
-         this.labelVersion = new Krypton.Toolkit.KryptonLabel();
-         this.labelCopyright = new Krypton.Toolkit.KryptonLabel();
-         this.labelCompanyName = new Krypton.Toolkit.KryptonLabel();
-         this.okButton = new Krypton.Toolkit.KryptonButton();
-         this.labelProductName = new Krypton.Toolkit.KryptonLabel();
-         this.lblProject = new Krypton.Toolkit.KryptonLabel();
-         this.lblDescription = new Krypton.Toolkit.KryptonWrapLabel();
-         this.kryptonPanel1 = new Krypton.Toolkit.KryptonPanel();
-         this.tableLayoutPanel.SuspendLayout();
-         ((System.ComponentModel.ISupportInitialize)(this.logoPictureBox)).BeginInit();
-         ((System.ComponentModel.ISupportInitialize)(this.kryptonPanel1)).BeginInit();
-         this.kryptonPanel1.SuspendLayout();
-         this.SuspendLayout();
-         // 
-         // tableLayoutPanel
-         // 
-         this.tableLayoutPanel.BackgroundImage = ((System.Drawing.Image)(resources.GetObject("tableLayoutPanel.BackgroundImage")));
-         this.tableLayoutPanel.BackgroundImageLayout = System.Windows.Forms.ImageLayout.None;
-         this.tableLayoutPanel.ColumnCount = 2;
-         this.tableLayoutPanel.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 33F));
-         this.tableLayoutPanel.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 67F));
-         this.tableLayoutPanel.Controls.Add(this.logoPictureBox, 0, 1);
-         this.tableLayoutPanel.Controls.Add(this.labelVersion, 1, 2);
-         this.tableLayoutPanel.Controls.Add(this.labelCopyright, 1, 3);
-         this.tableLayoutPanel.Controls.Add(this.labelCompanyName, 1, 4);
-         this.tableLayoutPanel.Controls.Add(this.okButton, 1, 6);
-         this.tableLayoutPanel.Controls.Add(this.labelProductName, 1, 0);
-         this.tableLayoutPanel.Controls.Add(this.lblProject, 1, 1);
-         this.tableLayoutPanel.Controls.Add(this.lblDescription, 1, 5);
-         this.tableLayoutPanel.Dock = System.Windows.Forms.DockStyle.Fill;
-         this.tableLayoutPanel.Location = new System.Drawing.Point(12, 14);
-         this.tableLayoutPanel.Margin = new System.Windows.Forms.Padding(4, 5, 4, 5);
-         this.tableLayoutPanel.Name = "tableLayoutPanel";
-         this.tableLayoutPanel.RowCount = 7;
-         this.tableLayoutPanel.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 10F));
-         this.tableLayoutPanel.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 10F));
-         this.tableLayoutPanel.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 10F));
-         this.tableLayoutPanel.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 10F));
-         this.tableLayoutPanel.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 10F));
-         this.tableLayoutPanel.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 40F));
-         this.tableLayoutPanel.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 10F));
-         this.tableLayoutPanel.Size = new System.Drawing.Size(556, 407);
-         this.tableLayoutPanel.TabIndex = 0;
-         // 
-         // logoPictureBox
-         // 
-         this.logoPictureBox.BackColor = System.Drawing.Color.Transparent;
-         this.logoPictureBox.Dock = System.Windows.Forms.DockStyle.Fill;
-         this.logoPictureBox.Image = global::Org.Edgerunner.Moo.Udditor.Properties.Resources.cartoon_cow_clipart_xl;
-         this.logoPictureBox.Location = new System.Drawing.Point(4, 45);
-         this.logoPictureBox.Margin = new System.Windows.Forms.Padding(4, 5, 4, 5);
-         this.logoPictureBox.Name = "logoPictureBox";
-         this.tableLayoutPanel.SetRowSpan(this.logoPictureBox, 6);
-         this.logoPictureBox.Size = new System.Drawing.Size(175, 357);
-         this.logoPictureBox.SizeMode = System.Windows.Forms.PictureBoxSizeMode.Zoom;
-         this.logoPictureBox.TabIndex = 12;
-         this.logoPictureBox.TabStop = false;
-         // 
-         // labelVersion
-         // 
-         this.labelVersion.Dock = System.Windows.Forms.DockStyle.Fill;
-         this.labelVersion.Location = new System.Drawing.Point(191, 80);
-         this.labelVersion.Margin = new System.Windows.Forms.Padding(8, 0, 4, 0);
-         this.labelVersion.MaximumSize = new System.Drawing.Size(0, 26);
-         this.labelVersion.Name = "labelVersion";
-         this.labelVersion.Size = new System.Drawing.Size(361, 26);
-         this.labelVersion.StateCommon.ShortText.Font = new System.Drawing.Font("Microsoft Sans Serif", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
-         this.labelVersion.TabIndex = 0;
-         this.labelVersion.Values.Text = "Version";
-         // 
-         // labelCopyright
-         // 
-         this.labelCopyright.Dock = System.Windows.Forms.DockStyle.Fill;
-         this.labelCopyright.Location = new System.Drawing.Point(191, 120);
-         this.labelCopyright.Margin = new System.Windows.Forms.Padding(8, 0, 4, 0);
-         this.labelCopyright.MaximumSize = new System.Drawing.Size(0, 26);
-         this.labelCopyright.Name = "labelCopyright";
-         this.labelCopyright.Size = new System.Drawing.Size(361, 26);
-         this.labelCopyright.StateCommon.ShortText.Font = new System.Drawing.Font("Microsoft Sans Serif", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
-         this.labelCopyright.TabIndex = 21;
-         this.labelCopyright.Values.Text = "Copyright";
-         // 
-         // labelCompanyName
-         // 
-         this.labelCompanyName.Dock = System.Windows.Forms.DockStyle.Fill;
-         this.labelCompanyName.Location = new System.Drawing.Point(191, 160);
-         this.labelCompanyName.Margin = new System.Windows.Forms.Padding(8, 0, 4, 0);
-         this.labelCompanyName.MaximumSize = new System.Drawing.Size(0, 26);
-         this.labelCompanyName.Name = "labelCompanyName";
-         this.labelCompanyName.Size = new System.Drawing.Size(361, 26);
-         this.labelCompanyName.StateCommon.ShortText.Font = new System.Drawing.Font("Microsoft Sans Serif", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
-         this.labelCompanyName.TabIndex = 22;
-         this.labelCompanyName.Values.Text = "Company Name";
-         // 
-         // okButton
-         // 
-         this.okButton.AccessibleDescription = "";
-         this.okButton.AccessibleRole = System.Windows.Forms.AccessibleRole.PushButton;
-         this.okButton.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
-         this.okButton.DialogResult = System.Windows.Forms.DialogResult.Cancel;
-         this.okButton.Location = new System.Drawing.Point(452, 368);
-         this.okButton.Margin = new System.Windows.Forms.Padding(4, 5, 4, 5);
-         this.okButton.Name = "okButton";
-         this.okButton.Size = new System.Drawing.Size(100, 34);
-         this.okButton.TabIndex = 24;
-         this.okButton.Values.Text = "&OK";
-         // 
-         // labelProductName
-         // 
-         this.labelProductName.Dock = System.Windows.Forms.DockStyle.Fill;
-         this.labelProductName.Location = new System.Drawing.Point(191, 0);
-         this.labelProductName.Margin = new System.Windows.Forms.Padding(8, 0, 4, 0);
-         this.labelProductName.MaximumSize = new System.Drawing.Size(0, 26);
-         this.labelProductName.Name = "labelProductName";
-         this.labelProductName.Size = new System.Drawing.Size(361, 26);
-         this.labelProductName.StateCommon.ShortText.Font = new System.Drawing.Font("Microsoft Sans Serif", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
-         this.labelProductName.TabIndex = 19;
-         this.labelProductName.Values.Text = "Product Name";
-         // 
-         // lblProject
-         // 
-         this.lblProject.Cursor = System.Windows.Forms.Cursors.Hand;
-         this.lblProject.Location = new System.Drawing.Point(191, 44);
-         this.lblProject.Margin = new System.Windows.Forms.Padding(8, 4, 4, 0);
-         this.lblProject.Name = "lblProject";
-         this.lblProject.Size = new System.Drawing.Size(73, 19);
-         this.lblProject.StateCommon.ShortText.Color1 = System.Drawing.Color.Blue;
-         this.lblProject.StateCommon.ShortText.Font = new System.Drawing.Font("Microsoft Sans Serif", 7.8F, System.Drawing.FontStyle.Underline, System.Drawing.GraphicsUnit.Point);
-         this.lblProject.TabIndex = 25;
-         this.lblProject.Values.Text = "Project Url";
-         this.lblProject.Click += new System.EventHandler(this.lnkProject_LinkClicked);
-         // 
-         // lblDescription
-         // 
-         this.lblDescription.Font = new System.Drawing.Font("Segoe UI", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
-         this.lblDescription.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(30)))), ((int)(((byte)(57)))), ((int)(((byte)(91)))));
-         this.lblDescription.LabelStyle = Krypton.Toolkit.LabelStyle.NormalControl;
-         this.lblDescription.Location = new System.Drawing.Point(186, 200);
-         this.lblDescription.Name = "lblDescription";
-         this.lblDescription.Size = new System.Drawing.Size(85, 20);
-         this.lblDescription.Text = "Description";
-         // 
-         // kryptonPanel1
-         // 
-         this.kryptonPanel1.Controls.Add(this.tableLayoutPanel);
-         this.kryptonPanel1.Dock = System.Windows.Forms.DockStyle.Fill;
-         this.kryptonPanel1.Location = new System.Drawing.Point(0, 0);
-         this.kryptonPanel1.Name = "kryptonPanel1";
-         this.kryptonPanel1.Padding = new System.Windows.Forms.Padding(12, 14, 12, 14);
-         this.kryptonPanel1.Size = new System.Drawing.Size(580, 435);
-         this.kryptonPanel1.TabIndex = 1;
-         // 
-         // AboutBox
-         // 
-         this.AcceptButton = this.okButton;
-         this.AccessibleDescription = "";
-         this.AccessibleName = resources.GetString("$this.AccessibleName");
-         this.AutoScaleDimensions = new System.Drawing.SizeF(8F, 20F);
-         this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-         this.CancelButton = this.okButton;
-         this.ClientSize = new System.Drawing.Size(580, 435);
-         this.Controls.Add(this.kryptonPanel1);
-         this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedDialog;
-         this.Margin = new System.Windows.Forms.Padding(4, 5, 4, 5);
-         this.MaximizeBox = false;
-         this.MinimizeBox = false;
-         this.Name = "AboutBox";
-         this.ShowIcon = false;
-         this.ShowInTaskbar = false;
-         this.StartPosition = System.Windows.Forms.FormStartPosition.CenterParent;
-         this.Text = "AboutBox";
-         this.tableLayoutPanel.ResumeLayout(false);
-         this.tableLayoutPanel.PerformLayout();
-         ((System.ComponentModel.ISupportInitialize)(this.logoPictureBox)).EndInit();
-         ((System.ComponentModel.ISupportInitialize)(this.kryptonPanel1)).EndInit();
-         this.kryptonPanel1.ResumeLayout(false);
-         this.ResumeLayout(false);
+   /// <summary>
+   /// Required method for Designer support - do not modify
+   /// the contents of this method with the code editor.
+   /// </summary>
+   private void InitializeComponent()
+   {
+      var resources = new System.ComponentModel.ComponentResourceManager(typeof(AboutBox));
+      tableLayoutPanel = new Krypton.Toolkit.KryptonTableLayoutPanel();
+      logoPictureBox = new PictureBox();
+      labelVersion = new Krypton.Toolkit.KryptonLabel();
+      labelCopyright = new Krypton.Toolkit.KryptonLabel();
+      labelCompanyName = new Krypton.Toolkit.KryptonLabel();
+      okButton = new Krypton.Toolkit.KryptonButton();
+      labelProductName = new Krypton.Toolkit.KryptonLabel();
+      lblProject = new Krypton.Toolkit.KryptonLabel();
+      lblDescription = new Krypton.Toolkit.KryptonWrapLabel();
+      kryptonPanel1 = new Krypton.Toolkit.KryptonPanel();
+      tableLayoutPanel.SuspendLayout();
+      ((System.ComponentModel.ISupportInitialize)logoPictureBox).BeginInit();
+      ((System.ComponentModel.ISupportInitialize)kryptonPanel1).BeginInit();
+      kryptonPanel1.SuspendLayout();
+      SuspendLayout();
+      // 
+      // tableLayoutPanel
+      // 
+      tableLayoutPanel.BackgroundImage = (Image)resources.GetObject("tableLayoutPanel.BackgroundImage");
+      tableLayoutPanel.BackgroundImageLayout = ImageLayout.None;
+      tableLayoutPanel.ColumnCount = 2;
+      tableLayoutPanel.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 33F));
+      tableLayoutPanel.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 67F));
+      tableLayoutPanel.Controls.Add(logoPictureBox, 0, 1);
+      tableLayoutPanel.Controls.Add(labelVersion, 1, 2);
+      tableLayoutPanel.Controls.Add(labelCopyright, 1, 3);
+      tableLayoutPanel.Controls.Add(labelCompanyName, 1, 4);
+      tableLayoutPanel.Controls.Add(okButton, 1, 6);
+      tableLayoutPanel.Controls.Add(labelProductName, 1, 0);
+      tableLayoutPanel.Controls.Add(lblProject, 1, 1);
+      tableLayoutPanel.Controls.Add(lblDescription, 1, 5);
+      tableLayoutPanel.Dock = DockStyle.Fill;
+      tableLayoutPanel.Location = new Point(10, 10);
+      tableLayoutPanel.Margin = new Padding(4);
+      tableLayoutPanel.Name = "tableLayoutPanel";
+      tableLayoutPanel.RowCount = 7;
+      tableLayoutPanel.RowStyles.Add(new RowStyle(SizeType.Percent, 10F));
+      tableLayoutPanel.RowStyles.Add(new RowStyle(SizeType.Percent, 10F));
+      tableLayoutPanel.RowStyles.Add(new RowStyle(SizeType.Percent, 10F));
+      tableLayoutPanel.RowStyles.Add(new RowStyle(SizeType.Percent, 10F));
+      tableLayoutPanel.RowStyles.Add(new RowStyle(SizeType.Percent, 10F));
+      tableLayoutPanel.RowStyles.Add(new RowStyle(SizeType.Percent, 40F));
+      tableLayoutPanel.RowStyles.Add(new RowStyle(SizeType.Percent, 10F));
+      tableLayoutPanel.Size = new Size(488, 306);
+      tableLayoutPanel.TabIndex = 0;
+      // 
+      // logoPictureBox
+      // 
+      logoPictureBox.BackColor = Color.Transparent;
+      logoPictureBox.Dock = DockStyle.Fill;
+      logoPictureBox.Image = Properties.Resources.cartoon_cow_clipart_xl;
+      logoPictureBox.Location = new Point(4, 34);
+      logoPictureBox.Margin = new Padding(4);
+      logoPictureBox.Name = "logoPictureBox";
+      tableLayoutPanel.SetRowSpan(logoPictureBox, 6);
+      logoPictureBox.Size = new Size(153, 268);
+      logoPictureBox.SizeMode = PictureBoxSizeMode.Zoom;
+      logoPictureBox.TabIndex = 12;
+      logoPictureBox.TabStop = false;
+      // 
+      // labelVersion
+      // 
+      labelVersion.Dock = DockStyle.Fill;
+      labelVersion.Location = new Point(168, 60);
+      labelVersion.Margin = new Padding(7, 0, 4, 0);
+      labelVersion.MaximumSize = new Size(0, 20);
+      labelVersion.Name = "labelVersion";
+      labelVersion.Size = new Size(316, 20);
+      labelVersion.StateCommon.ShortText.Font = new Font("Microsoft Sans Serif", 12F);
+      labelVersion.TabIndex = 0;
+      labelVersion.Values.Text = "Version";
+      // 
+      // labelCopyright
+      // 
+      labelCopyright.Dock = DockStyle.Fill;
+      labelCopyright.Location = new Point(168, 90);
+      labelCopyright.Margin = new Padding(7, 0, 4, 0);
+      labelCopyright.MaximumSize = new Size(0, 20);
+      labelCopyright.Name = "labelCopyright";
+      labelCopyright.Size = new Size(316, 20);
+      labelCopyright.StateCommon.ShortText.Font = new Font("Microsoft Sans Serif", 12F);
+      labelCopyright.TabIndex = 21;
+      labelCopyright.Values.Text = "Copyright";
+      // 
+      // labelCompanyName
+      // 
+      labelCompanyName.Dock = DockStyle.Fill;
+      labelCompanyName.Location = new Point(168, 120);
+      labelCompanyName.Margin = new Padding(7, 0, 4, 0);
+      labelCompanyName.MaximumSize = new Size(0, 20);
+      labelCompanyName.Name = "labelCompanyName";
+      labelCompanyName.Size = new Size(316, 20);
+      labelCompanyName.StateCommon.ShortText.Font = new Font("Microsoft Sans Serif", 12F);
+      labelCompanyName.TabIndex = 22;
+      labelCompanyName.Values.Text = "Company Name";
+      // 
+      // okButton
+      // 
+      okButton.AccessibleDescription = "";
+      okButton.AccessibleRole = AccessibleRole.PushButton;
+      okButton.Anchor = AnchorStyles.Bottom | AnchorStyles.Right;
+      okButton.DialogResult = DialogResult.Cancel;
+      okButton.Location = new Point(396, 276);
+      okButton.Margin = new Padding(4);
+      okButton.Name = "okButton";
+      okButton.Size = new Size(88, 26);
+      okButton.TabIndex = 24;
+      okButton.Values.Text = "&OK";
+      // 
+      // labelProductName
+      // 
+      labelProductName.Dock = DockStyle.Fill;
+      labelProductName.Location = new Point(168, 0);
+      labelProductName.Margin = new Padding(7, 0, 4, 0);
+      labelProductName.MaximumSize = new Size(0, 20);
+      labelProductName.Name = "labelProductName";
+      labelProductName.Size = new Size(316, 20);
+      labelProductName.StateCommon.ShortText.Font = new Font("Microsoft Sans Serif", 12F);
+      labelProductName.TabIndex = 19;
+      labelProductName.Values.Text = "Product Name";
+      // 
+      // lblProject
+      // 
+      lblProject.Cursor = Cursors.Hand;
+      lblProject.Location = new Point(168, 33);
+      lblProject.Margin = new Padding(7, 3, 4, 0);
+      lblProject.Name = "lblProject";
+      lblProject.Size = new Size(60, 16);
+      lblProject.StateCommon.ShortText.Color1 = Color.Blue;
+      lblProject.StateCommon.ShortText.Font = new Font("Microsoft Sans Serif", 7.8F, FontStyle.Underline);
+      lblProject.TabIndex = 25;
+      lblProject.Values.Text = "Project Url";
+      lblProject.Click += lnkProject_LinkClicked;
+      // 
+      // lblDescription
+      // 
+      lblDescription.Font = new Font("Segoe UI", 9F);
+      lblDescription.ForeColor = Color.FromArgb(30, 57, 91);
+      lblDescription.LabelStyle = Krypton.Toolkit.LabelStyle.NormalControl;
+      lblDescription.Location = new Point(164, 150);
+      lblDescription.Name = "lblDescription";
+      lblDescription.Size = new Size(67, 15);
+      lblDescription.Text = "Description";
+      // 
+      // kryptonPanel1
+      // 
+      kryptonPanel1.Controls.Add(tableLayoutPanel);
+      kryptonPanel1.Dock = DockStyle.Fill;
+      kryptonPanel1.Location = new Point(0, 0);
+      kryptonPanel1.Margin = new Padding(3, 2, 3, 2);
+      kryptonPanel1.Name = "kryptonPanel1";
+      kryptonPanel1.Padding = new Padding(10);
+      kryptonPanel1.Size = new Size(508, 326);
+      kryptonPanel1.TabIndex = 1;
+      // 
+      // AboutBox
+      // 
+      AcceptButton = okButton;
+      AccessibleDescription = "";
+      AccessibleName = resources.GetString("$this.AccessibleName");
+      AutoScaleDimensions = new SizeF(7F, 15F);
+      AutoScaleMode = AutoScaleMode.Font;
+      CancelButton = okButton;
+      ClientSize = new Size(508, 326);
+      Controls.Add(kryptonPanel1);
+      FormBorderStyle = FormBorderStyle.FixedDialog;
+      Margin = new Padding(4);
+      MaximizeBox = false;
+      MinimizeBox = false;
+      Name = "AboutBox";
+      ShowIcon = false;
+      ShowInTaskbar = false;
+      StartPosition = FormStartPosition.CenterParent;
+      Text = "AboutBox";
+      tableLayoutPanel.ResumeLayout(false);
+      tableLayoutPanel.PerformLayout();
+      ((System.ComponentModel.ISupportInitialize)logoPictureBox).EndInit();
+      ((System.ComponentModel.ISupportInitialize)kryptonPanel1).EndInit();
+      kryptonPanel1.ResumeLayout(false);
+      ResumeLayout(false);
 
-    }
+   }
 
-    #endregion
+   #endregion
 
-    private Krypton.Toolkit.KryptonTableLayoutPanel tableLayoutPanel;
+   private Krypton.Toolkit.KryptonTableLayoutPanel tableLayoutPanel;
     private System.Windows.Forms.PictureBox logoPictureBox;
     private Krypton.Toolkit.KryptonLabel labelProductName;
     private Krypton.Toolkit.KryptonLabel labelVersion;

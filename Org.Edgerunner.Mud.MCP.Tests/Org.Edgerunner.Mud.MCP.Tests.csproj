@@ -6,8 +6,8 @@
     <IsPackable>false</IsPackable>
     <Platforms>AnyCPU;x64;x86</Platforms>
     <Version>$(VersionPrefix)1.1.26158.7$(VersionSuffix)</Version>
-    <AssemblyVersion>1.1.26177.0</AssemblyVersion>
-    <FileVersion>1.1.26177.0</FileVersion>
+    <AssemblyVersion>1.1.26178.0</AssemblyVersion>
+    <FileVersion>1.1.26178.0</FileVersion>
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.9.0" />
