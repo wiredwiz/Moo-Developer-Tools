@@ -5,8 +5,8 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
     <Platforms>AnyCPU;x64;x86</Platforms>
-    <AssemblyVersion>1.0.26178.0</AssemblyVersion>
-    <FileVersion>1.0.26178.0</FileVersion>
+    <AssemblyVersion>1.0.26178.1</AssemblyVersion>
+    <FileVersion>1.0.26178.1</FileVersion>
   </PropertyGroup>
 
 </Project>

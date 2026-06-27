@@ -8,9 +8,9 @@
     <UseWindowsForms>true</UseWindowsForms>
     <ImplicitUsings>enable</ImplicitUsings>
     <Platforms>AnyCPU;x64;x86</Platforms>
-    <AssemblyVersion>1.1.26178.1</AssemblyVersion>
-    <FileVersion>1.1.26178.1</FileVersion>
-    <Version>$(VersionPrefix)1.1.26158.7$(VersionSuffix)</Version>
+    <AssemblyVersion>1.3.26178.2</AssemblyVersion>
+    <FileVersion>1.3.26178.2</FileVersion>
+    <Version>$(VersionPrefix)1.3.26158.7$(VersionSuffix)</Version>
   </PropertyGroup>
 
   <ItemGroup>
