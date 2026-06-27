@@ -18,6 +18,16 @@ Lambdamoo syntax.  Second is the ToastStuntMoo syntax, which added various new o
 language.  Lastly is the EdgerunnerMoo syntax, which is my personal fork of the base ToastStunt.  It adds
 compound assignment operators as well as prefix/postfix increment and decrement operators.
 
+The editor also provides intelligent **code completion** and **hover tooltips** — for an object's
+verbs and properties, built-in functions, and Moo literal constants (type codes such as `NUM => 0`
+and error values such as `E_PERM => Permission denied`). The object-aware parts of these features
+(listing a target object's verbs/properties, resolving member chains, and fetching live constant
+values from the running Moo) work by querying the connected server over the **`edgerunner-org-moo-query`
+MCP package**; when that package isn't installed the editor falls back to its built-in knowledge. To
+enable the live, server-aware behavior you must install that package on your Moo — see the
+[installation instructions](Server%20Packages/edgerunner-org-moo-query-INSTALL.md), and use the
+[package dump file](Server%20Packages/edgerunner-org-moo-query.moo) to create the package on your server.
+
 More documentation to come later..
 
 Attribution:
