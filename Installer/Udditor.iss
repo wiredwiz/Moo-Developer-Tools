@@ -2,7 +2,7 @@
 ; SEE THE DOCUMENTATION FOR DETAILS ON CREATING INNO SETUP SCRIPT FILES!
 
 #define MyAppName "Moo Udditor"
-#define MyAppVersion "1.0.26158"
+#define MyAppVersion "1.1.26178"
 #define MyAppPublisher "Thad Ryker (Dakkon/WiredWiz)"
 #define MyAppURL "https://github.com/wiredwiz/Moo-Developer-Tools"
 #define MyAppExeName "Moo Udditor.exe"
@@ -28,13 +28,13 @@ OutputBaseFilename=setup
 Compression=lzma
 SolidCompression=yes
 UninstallDisplayIcon={app}\Moo Udditor.exe
-VersionInfoVersion=1.0.26158
+VersionInfoVersion=1.1.26178
 VersionInfoCompany=Edgerunner
 VersionInfoDescription=A Moo programming development environment
 VersionInfoTextVersion=one point zero point two six one five eight
 VersionInfoCopyright=Thaddeus Ryker 2024
 VersionInfoProductName=Moo Udditor
-VersionInfoProductVersion=1.0.26158
+VersionInfoProductVersion=1.1.26178
 VersionInfoProductTextVersion=one point zero point two six one five eight
 
 [Languages]
@@ -45,43 +45,43 @@ Name: "desktopicon"; Description: "{cm:CreateDesktopIcon}"; GroupDescription: "{
 Name: "quicklaunchicon"; Description: "{cm:CreateQuickLaunchIcon}"; GroupDescription: "{cm:AdditionalIcons}"; Flags: unchecked; OnlyBelowVersion: 0,6.1
 
 [Files]
-Source: "D:\Projects\Moo Developer Tools\Org.Edgerunner.Moo.Udditor\bin\Release\net6.0-windows\Moo Udditor.exe"; DestDir: "{app}"; Flags: ignoreversion
-Source: "D:\Projects\Moo Developer Tools\Org.Edgerunner.Moo.Udditor\bin\Release\net6.0-windows\Antlr4.Runtime.dll"; DestDir: "{app}"; Flags: ignoreversion
-Source: "D:\Projects\Moo Developer Tools\Org.Edgerunner.Moo.Udditor\bin\Release\net6.0-windows\FastColoredTextBox.dll"; DestDir: "{app}"; Flags: ignoreversion
-Source: "D:\Projects\Moo Developer Tools\Org.Edgerunner.Moo.Udditor\bin\Release\net6.0-windows\FastColoredTextBox.pdb"; DestDir: "{app}"; Flags: ignoreversion
-Source: "D:\Projects\Moo Developer Tools\Org.Edgerunner.Moo.Udditor\bin\Release\net6.0-windows\HtmlRenderer.dll"; DestDir: "{app}"; Flags: ignoreversion
-Source: "D:\Projects\Moo Developer Tools\Org.Edgerunner.Moo.Udditor\bin\Release\net6.0-windows\HtmlRenderer.WinForms.dll"; DestDir: "{app}"; Flags: ignoreversion
-Source: "D:\Projects\Moo Developer Tools\Org.Edgerunner.Moo.Udditor\bin\Release\net6.0-windows\JetBrains.Annotations.dll"; DestDir: "{app}"; Flags: ignoreversion
-Source: "D:\Projects\Moo Developer Tools\Org.Edgerunner.Moo.Udditor\bin\Release\net6.0-windows\Krypton.Docking.dll"; DestDir: "{app}"; Flags: ignoreversion
-Source: "D:\Projects\Moo Developer Tools\Org.Edgerunner.Moo.Udditor\bin\Release\net6.0-windows\Krypton.Navigator.dll"; DestDir: "{app}"; Flags: ignoreversion
-Source: "D:\Projects\Moo Developer Tools\Org.Edgerunner.Moo.Udditor\bin\Release\net6.0-windows\Krypton.Toolkit.dll"; DestDir: "{app}"; Flags: ignoreversion
-Source: "D:\Projects\Moo Developer Tools\Org.Edgerunner.Moo.Udditor\bin\Release\net6.0-windows\Krypton.Workspace.dll"; DestDir: "{app}"; Flags: ignoreversion
-Source: "D:\Projects\Moo Developer Tools\Org.Edgerunner.Moo.Udditor\bin\Release\net6.0-windows\Markdig.Signed.dll"; DestDir: "{app}"; Flags: ignoreversion
-Source: "D:\Projects\Moo Developer Tools\Org.Edgerunner.Moo.Udditor\bin\Release\net6.0-windows\Moo Udditor.deps.json"; DestDir: "{app}"; Flags: ignoreversion
-Source: "D:\Projects\Moo Developer Tools\Org.Edgerunner.Moo.Udditor\bin\Release\net6.0-windows\Moo Udditor.dll"; DestDir: "{app}"; Flags: ignoreversion
-Source: "D:\Projects\Moo Developer Tools\Org.Edgerunner.Moo.Udditor\bin\Release\net6.0-windows\Moo Udditor.exe"; DestDir: "{app}"; Flags: ignoreversion
-Source: "D:\Projects\Moo Developer Tools\Org.Edgerunner.Moo.Udditor\bin\Release\net6.0-windows\Moo Udditor.pdb"; DestDir: "{app}"; Flags: ignoreversion
-Source: "D:\Projects\Moo Developer Tools\Org.Edgerunner.Moo.Udditor\bin\Release\net6.0-windows\Moo Udditor.runtimeconfig.json"; DestDir: "{app}"; Flags: ignoreversion
-Source: "D:\Projects\Moo Developer Tools\Org.Edgerunner.Moo.Udditor\bin\Release\net6.0-windows\nlog.config"; DestDir: "{app}"; Flags: ignoreversion
-Source: "D:\Projects\Moo Developer Tools\Org.Edgerunner.Moo.Udditor\bin\Release\net6.0-windows\NLog.dll"; DestDir: "{app}"; Flags: ignoreversion
-Source: "D:\Projects\Moo Developer Tools\Org.Edgerunner.Moo.Udditor\bin\Release\net6.0-windows\Org.Edgerunner.ANTLR4.Tools.Common.dll"; DestDir: "{app}"; Flags: ignoreversion
-Source: "D:\Projects\Moo Developer Tools\Org.Edgerunner.Moo.Udditor\bin\Release\net6.0-windows\Org.Edgerunner.ANTLR4.Tools.Common.pdb"; DestDir: "{app}"; Flags: ignoreversion
-Source: "D:\Projects\Moo Developer Tools\Org.Edgerunner.Moo.Udditor\bin\Release\net6.0-windows\Org.Edgerunner.Common.dll"; DestDir: "{app}"; Flags: ignoreversion
-Source: "D:\Projects\Moo Developer Tools\Org.Edgerunner.Moo.Udditor\bin\Release\net6.0-windows\Org.Edgerunner.Common.pdb"; DestDir: "{app}"; Flags: ignoreversion
-Source: "D:\Projects\Moo Developer Tools\Org.Edgerunner.Moo.Udditor\bin\Release\net6.0-windows\Org.Edgerunner.Messaging.dll"; DestDir: "{app}"; Flags: ignoreversion
-Source: "D:\Projects\Moo Developer Tools\Org.Edgerunner.Moo.Udditor\bin\Release\net6.0-windows\Org.Edgerunner.Messaging.pdb"; DestDir: "{app}"; Flags: ignoreversion
-Source: "D:\Projects\Moo Developer Tools\Org.Edgerunner.Moo.Udditor\bin\Release\net6.0-windows\Org.Edgerunner.Moo.Editor.dll"; DestDir: "{app}"; Flags: ignoreversion
-Source: "D:\Projects\Moo Developer Tools\Org.Edgerunner.Moo.Udditor\bin\Release\net6.0-windows\Org.Edgerunner.Moo.Editor.pdb"; DestDir: "{app}"; Flags: ignoreversion
-Source: "D:\Projects\Moo Developer Tools\Org.Edgerunner.Moo.Udditor\bin\Release\net6.0-windows\Org.Edgerunner.Moo.MooText.dll"; DestDir: "{app}"; Flags: ignoreversion
-Source: "D:\Projects\Moo Developer Tools\Org.Edgerunner.Moo.Udditor\bin\Release\net6.0-windows\Org.Edgerunner.Moo.MooText.pdb"; DestDir: "{app}"; Flags: ignoreversion
-Source: "D:\Projects\Moo Developer Tools\Org.Edgerunner.Moo.Udditor\bin\Release\net6.0-windows\Org.Edgerunner.MooSharp.Language.Grammar.dll"; DestDir: "{app}"; Flags: ignoreversion
-Source: "D:\Projects\Moo Developer Tools\Org.Edgerunner.Moo.Udditor\bin\Release\net6.0-windows\Org.Edgerunner.MooSharp.Language.Grammar.pdb"; DestDir: "{app}"; Flags: ignoreversion
-Source: "D:\Projects\Moo Developer Tools\Org.Edgerunner.Moo.Udditor\bin\Release\net6.0-windows\Org.Edgerunner.Mud.Common.dll"; DestDir: "{app}"; Flags: ignoreversion
-Source: "D:\Projects\Moo Developer Tools\Org.Edgerunner.Moo.Udditor\bin\Release\net6.0-windows\Org.Edgerunner.Mud.Common.pdb"; DestDir: "{app}"; Flags: ignoreversion
-Source: "D:\Projects\Moo Developer Tools\Org.Edgerunner.Moo.Udditor\bin\Release\net6.0-windows\Org.Edgerunner.Mud.Communication.dll"; DestDir: "{app}"; Flags: ignoreversion
-Source: "D:\Projects\Moo Developer Tools\Org.Edgerunner.Moo.Udditor\bin\Release\net6.0-windows\Org.Edgerunner.Mud.Communication.pdb"; DestDir: "{app}"; Flags: ignoreversion
-Source: "D:\Projects\Moo Developer Tools\Org.Edgerunner.Moo.Udditor\bin\Release\net6.0-windows\Org.Edgerunner.Mud.MCP.dll"; DestDir: "{app}"; Flags: ignoreversion
-Source: "D:\Projects\Moo Developer Tools\Org.Edgerunner.Moo.Udditor\bin\Release\net6.0-windows\Org.Edgerunner.Mud.MCP.pdb"; DestDir: "{app}"; Flags: ignoreversion
+Source: "D:\Projects\Moo Developer Tools\Org.Edgerunner.Moo.Udditor\bin\Release\net8.0-windows\Moo Udditor.exe"; DestDir: "{app}"; Flags: ignoreversion
+Source: "D:\Projects\Moo Developer Tools\Org.Edgerunner.Moo.Udditor\bin\Release\net8.0-windows\Antlr4.Runtime.dll"; DestDir: "{app}"; Flags: ignoreversion
+Source: "D:\Projects\Moo Developer Tools\Org.Edgerunner.Moo.Udditor\bin\Release\net8.0-windows\FastColoredTextBox.dll"; DestDir: "{app}"; Flags: ignoreversion
+Source: "D:\Projects\Moo Developer Tools\Org.Edgerunner.Moo.Udditor\bin\Release\net8.0-windows\FastColoredTextBox.pdb"; DestDir: "{app}"; Flags: ignoreversion
+Source: "D:\Projects\Moo Developer Tools\Org.Edgerunner.Moo.Udditor\bin\Release\net8.0-windows\HtmlRenderer.dll"; DestDir: "{app}"; Flags: ignoreversion
+Source: "D:\Projects\Moo Developer Tools\Org.Edgerunner.Moo.Udditor\bin\Release\net8.0-windows\HtmlRenderer.WinForms.dll"; DestDir: "{app}"; Flags: ignoreversion
+Source: "D:\Projects\Moo Developer Tools\Org.Edgerunner.Moo.Udditor\bin\Release\net8.0-windows\JetBrains.Annotations.dll"; DestDir: "{app}"; Flags: ignoreversion
+Source: "D:\Projects\Moo Developer Tools\Org.Edgerunner.Moo.Udditor\bin\Release\net8.0-windows\Krypton.Docking.dll"; DestDir: "{app}"; Flags: ignoreversion
+Source: "D:\Projects\Moo Developer Tools\Org.Edgerunner.Moo.Udditor\bin\Release\net8.0-windows\Krypton.Navigator.dll"; DestDir: "{app}"; Flags: ignoreversion
+Source: "D:\Projects\Moo Developer Tools\Org.Edgerunner.Moo.Udditor\bin\Release\net8.0-windows\Krypton.Toolkit.dll"; DestDir: "{app}"; Flags: ignoreversion
+Source: "D:\Projects\Moo Developer Tools\Org.Edgerunner.Moo.Udditor\bin\Release\net8.0-windows\Krypton.Workspace.dll"; DestDir: "{app}"; Flags: ignoreversion
+Source: "D:\Projects\Moo Developer Tools\Org.Edgerunner.Moo.Udditor\bin\Release\net8.0-windows\Markdig.Signed.dll"; DestDir: "{app}"; Flags: ignoreversion
+Source: "D:\Projects\Moo Developer Tools\Org.Edgerunner.Moo.Udditor\bin\Release\net8.0-windows\Moo Udditor.deps.json"; DestDir: "{app}"; Flags: ignoreversion
+Source: "D:\Projects\Moo Developer Tools\Org.Edgerunner.Moo.Udditor\bin\Release\net8.0-windows\Moo Udditor.dll"; DestDir: "{app}"; Flags: ignoreversion
+Source: "D:\Projects\Moo Developer Tools\Org.Edgerunner.Moo.Udditor\bin\Release\net8.0-windows\Moo Udditor.exe"; DestDir: "{app}"; Flags: ignoreversion
+Source: "D:\Projects\Moo Developer Tools\Org.Edgerunner.Moo.Udditor\bin\Release\net8.0-windows\Moo Udditor.pdb"; DestDir: "{app}"; Flags: ignoreversion
+Source: "D:\Projects\Moo Developer Tools\Org.Edgerunner.Moo.Udditor\bin\Release\net8.0-windows\Moo Udditor.runtimeconfig.json"; DestDir: "{app}"; Flags: ignoreversion
+Source: "D:\Projects\Moo Developer Tools\Org.Edgerunner.Moo.Udditor\bin\Release\net8.0-windows\nlog.config"; DestDir: "{app}"; Flags: ignoreversion
+Source: "D:\Projects\Moo Developer Tools\Org.Edgerunner.Moo.Udditor\bin\Release\net8.0-windows\NLog.dll"; DestDir: "{app}"; Flags: ignoreversion
+Source: "D:\Projects\Moo Developer Tools\Org.Edgerunner.Moo.Udditor\bin\Release\net8.0-windows\Org.Edgerunner.ANTLR4.Tools.Common.dll"; DestDir: "{app}"; Flags: ignoreversion
+Source: "D:\Projects\Moo Developer Tools\Org.Edgerunner.Moo.Udditor\bin\Release\net8.0-windows\Org.Edgerunner.ANTLR4.Tools.Common.pdb"; DestDir: "{app}"; Flags: ignoreversion
+Source: "D:\Projects\Moo Developer Tools\Org.Edgerunner.Moo.Udditor\bin\Release\net8.0-windows\Org.Edgerunner.Common.dll"; DestDir: "{app}"; Flags: ignoreversion
+Source: "D:\Projects\Moo Developer Tools\Org.Edgerunner.Moo.Udditor\bin\Release\net8.0-windows\Org.Edgerunner.Common.pdb"; DestDir: "{app}"; Flags: ignoreversion
+Source: "D:\Projects\Moo Developer Tools\Org.Edgerunner.Moo.Udditor\bin\Release\net8.0-windows\Org.Edgerunner.Messaging.dll"; DestDir: "{app}"; Flags: ignoreversion
+Source: "D:\Projects\Moo Developer Tools\Org.Edgerunner.Moo.Udditor\bin\Release\net8.0-windows\Org.Edgerunner.Messaging.pdb"; DestDir: "{app}"; Flags: ignoreversion
+Source: "D:\Projects\Moo Developer Tools\Org.Edgerunner.Moo.Udditor\bin\Release\net8.0-windows\Org.Edgerunner.Moo.Editor.dll"; DestDir: "{app}"; Flags: ignoreversion
+Source: "D:\Projects\Moo Developer Tools\Org.Edgerunner.Moo.Udditor\bin\Release\net8.0-windows\Org.Edgerunner.Moo.Editor.pdb"; DestDir: "{app}"; Flags: ignoreversion
+Source: "D:\Projects\Moo Developer Tools\Org.Edgerunner.Moo.Udditor\bin\Release\net8.0-windows\Org.Edgerunner.Moo.MooText.dll"; DestDir: "{app}"; Flags: ignoreversion
+Source: "D:\Projects\Moo Developer Tools\Org.Edgerunner.Moo.Udditor\bin\Release\net8.0-windows\Org.Edgerunner.Moo.MooText.pdb"; DestDir: "{app}"; Flags: ignoreversion
+Source: "D:\Projects\Moo Developer Tools\Org.Edgerunner.Moo.Udditor\bin\Release\net8.0-windows\Org.Edgerunner.MooSharp.Language.Grammar.dll"; DestDir: "{app}"; Flags: ignoreversion
+Source: "D:\Projects\Moo Developer Tools\Org.Edgerunner.Moo.Udditor\bin\Release\net8.0-windows\Org.Edgerunner.MooSharp.Language.Grammar.pdb"; DestDir: "{app}"; Flags: ignoreversion
+Source: "D:\Projects\Moo Developer Tools\Org.Edgerunner.Moo.Udditor\bin\Release\net8.0-windows\Org.Edgerunner.Mud.Common.dll"; DestDir: "{app}"; Flags: ignoreversion
+Source: "D:\Projects\Moo Developer Tools\Org.Edgerunner.Moo.Udditor\bin\Release\net8.0-windows\Org.Edgerunner.Mud.Common.pdb"; DestDir: "{app}"; Flags: ignoreversion
+Source: "D:\Projects\Moo Developer Tools\Org.Edgerunner.Moo.Udditor\bin\Release\net8.0-windows\Org.Edgerunner.Mud.Communication.dll"; DestDir: "{app}"; Flags: ignoreversion
+Source: "D:\Projects\Moo Developer Tools\Org.Edgerunner.Moo.Udditor\bin\Release\net8.0-windows\Org.Edgerunner.Mud.Communication.pdb"; DestDir: "{app}"; Flags: ignoreversion
+Source: "D:\Projects\Moo Developer Tools\Org.Edgerunner.Moo.Udditor\bin\Release\net8.0-windows\Org.Edgerunner.Mud.MCP.dll"; DestDir: "{app}"; Flags: ignoreversion
+Source: "D:\Projects\Moo Developer Tools\Org.Edgerunner.Moo.Udditor\bin\Release\net8.0-windows\Org.Edgerunner.Mud.MCP.pdb"; DestDir: "{app}"; Flags: ignoreversion
 ; NOTE: Don't use "Flags: ignoreversion" on any shared system files
 
 [Icons]
