@@ -137,7 +137,11 @@ namespace Org.Edgerunner.Moo.Udditor.Dialogs
          // Auto-indent selects the whole sample while the text loads. Collapse the selection once
          // the form is shown, deferred to the end of the message queue so it runs after any pending
          // auto-indent so the preview never opens with everything highlighted.
-         Shown += (_, _) => BeginInvoke((Action)(() => _preview.CollapseSelectionToStart()));
+         Shown += (_, _) => BeginInvoke((Action)(() =>
+         {
+            _preview.CollapseSelectionToStart();
+            PinLeftLayout();
+         }));
       }
 
       private void BuildPreview()
@@ -221,11 +225,54 @@ namespace Org.Edgerunner.Moo.Udditor.Dialogs
          layout.Controls.Add(BuildChromeGroup(chromeRows));
 
          leftScrollPanel.Controls.Add(layout);
+         _leftLayout = layout;
+         _leftLayoutPinned = false;
 
-         // WS_EX_COMPOSITED on the form does not fully tame the nested KryptonTableLayoutPanels inside
-         // the AutoScroll left pane during resize (the swatch region flickers), so double-buffer the
-         // whole container subtree as well.
+         // WS_EX_COMPOSITED composites every repaint of the whole window together. With the left pane
+         // built as an AutoScroll panel over a Dock=Top AutoSize table, that subtree keeps re-measuring
+         // after a resize, so any later repaint (a mouse-move anywhere on the window) drags it through
+         // another measure/flow pass — the "flickers for a couple of seconds then settles" behaviour.
+         // Double-buffer the subtree (helps simple paint flicker), then pin the content to a fixed size
+         // so the AutoScroll/AutoSize chain has nothing left to re-measure on later repaints.
          EnableDoubleBuffering(leftScrollPanel);
+         if (IsHandleCreated)
+            BeginInvoke((Action)PinLeftLayout); // rebuild path: form is already shown, sizes are valid
+      }
+
+      private KryptonTableLayoutPanel _leftLayout;
+      private bool _leftLayoutPinned;
+
+      /// <summary>
+      /// Pins the left-pane content to a fixed size so the AutoScroll/AutoSize subtree stops re-measuring
+      /// on subsequent repaints and resizes. The content is built with AutoSize so it self-fits to all
+      /// rows; this measures that result once and then freezes it (AutoSize off, <see cref="DockStyle.None"/>,
+      /// explicit size), leaving normal vertical scrolling via the panel's AutoScroll. This removes the
+      /// post-resize "flicker on any mouse-move, then settle" caused by the dirty AutoSize layout draining
+      /// pending passes. Safe to call repeatedly; only the first call after a (re)build takes effect.
+      /// </summary>
+      private void PinLeftLayout()
+      {
+         var layout = _leftLayout;
+         if (layout == null || _leftLayoutPinned)
+            return;
+
+         // Force one measurement pass so PreferredSize reflects the fully-built subtree.
+         layout.PerformLayout();
+         int contentHeight = layout.PreferredSize.Height;
+         if (contentHeight <= 0)
+            return; // not laid out yet; a later call (Shown) will pin it
+
+         int width = leftScrollPanel.ClientSize.Width;
+         if (contentHeight > leftScrollPanel.ClientSize.Height)
+            width -= SystemInformation.VerticalScrollBarWidth; // leave room for the vertical scrollbar
+         if (width <= 0)
+            width = layout.Width;
+
+         _leftLayoutPinned = true;
+         layout.AutoSize = false;
+         layout.Dock = DockStyle.None;
+         layout.Location = new Point(0, 0);
+         layout.Size = new Size(width, contentHeight);
       }
 
       private static readonly System.Reflection.PropertyInfo DoubleBufferedProperty =
