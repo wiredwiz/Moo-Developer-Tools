@@ -266,6 +266,53 @@ namespace Org.Edgerunner.Moo.Editor.Controls
          WriteWithStyles(text, new [] { style });
       }
 
+      /// <summary>
+      /// Appends a sequence of pre-colored segments as a single line in one batched operation: the
+      /// concatenated text is inserted once and each segment's style is applied to its sub-range.
+      /// </summary>
+      /// <param name="segments">The ordered (text, style) segments that make up one line (no line breaks).</param>
+      /// <remarks>
+      /// This exists for performance: calling <see cref="WriteWithStyle"/> once per segment incurs a
+      /// full AppendText (InsertTextCommand + Invalidate) plus <c>ClearUndo</c> and <c>ScrollToEnd</c>
+      /// for every segment, which is dramatically slower when a line has many (e.g. syntax-highlighted
+      /// code with one segment per token). Here the line is inserted once and those costs are paid once.
+      /// </remarks>
+      public void WriteStyledSegments(IReadOnlyList<(string Text, Style Style)> segments)
+      {
+         if (segments == null || segments.Count == 0)
+            return;
+
+         BeginUpdate();
+         try
+         {
+            var lineIndex = TextSource.Count - 1;
+            var column = TextSource[^1].Count;
+            var builder = new System.Text.StringBuilder();
+            var ranges = new List<(int Start, int Length, Style Style)>(segments.Count);
+            foreach (var segment in segments)
+            {
+               var clean = (segment.Text ?? string.Empty).Replace("", "");
+               if (clean.Length > 0)
+                  ranges.Add((column, clean.Length, segment.Style));
+               builder.Append(clean);
+               column += clean.Length;
+            }
+
+            AppendText(builder.ToString());
+
+            foreach (var (start, length, style) in ranges)
+               if (style != null)
+                  GetRange(new Place(start, lineIndex), new Place(start + length, lineIndex)).SetStyle(style);
+         }
+         finally
+         {
+            EndUpdate();
+         }
+
+         ClearUndo();
+         ScrollToEnd();
+      }
+
       public void ScrollToEnd()
       {
          Selection.Start = new Place(TextSource[^1].Count, TextSource.Count - 1);

@@ -770,8 +770,10 @@ namespace Org.Edgerunner.Moo.Editor.Controls
       private void WriteStyledCodeLine(IReadOnlyList<(string Text, Color Color)> segments)
       {
          var background = consoleSim.ConsoleBackgroundColor;
+         var styled = new List<(string Text, Style Style)>(segments.Count);
          foreach (var segment in segments)
-            consoleSim.WriteWithStyle(segment.Text, AnsiManager.GetStyle(segment.Color, background, FontStyle.Regular));
+            styled.Add((segment.Text, AnsiManager.GetStyle(segment.Color, background, FontStyle.Regular)));
+         consoleSim.WriteStyledSegments(styled);
          consoleSim.Write("\n");
       }
 
