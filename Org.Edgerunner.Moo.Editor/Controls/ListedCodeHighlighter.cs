@@ -280,6 +280,17 @@ namespace Org.Edgerunner.Moo.Editor.Controls
       /// </summary>
       public void FlushPending()
       {
+         // A numbered listing is bounded deterministically by its line numbers, so an idle flush must
+         // NOT end capture — a long listing can stream with gaps longer than IdleFlushMilliseconds.
+         // Render what is buffered so far and KEEP capturing; only the first non-numbered line ends a
+         // numbered listing. Unnumbered listings have no deterministic terminator, so the idle flush
+         // ends them.
+         if (_state == CaptureState.Numbered)
+         {
+            Flush();
+            return;
+         }
+
          Flush();
          _state = CaptureState.Idle;
       }

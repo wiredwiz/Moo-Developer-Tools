@@ -68,6 +68,32 @@ public class ListedCodeHighlighterTests
    }
 
    [Fact]
+   public void Numbered_IdleFlush_RendersBatch_ButKeepsCapturing()
+   {
+      var c = new Capture();
+      var h = NewHighlighter();
+
+      Handle(h, c, Header).Should().BeTrue();
+      Handle(h, c, "1:  if (x)").Should().BeTrue();
+      Handle(h, c, "2:    return 1;").Should().BeTrue();
+
+      // The idle timer fires mid-listing (a >IdleFlushMilliseconds streaming gap on a long verb).
+      h.FlushPending();
+      c.Blocks.Should().HaveCount(1, "the buffered-so-far lines are rendered as a batch");
+      c.Blocks[0].Should().HaveCount(2);
+
+      // Numbered listings are NOT terminated by the idle flush: subsequent numbered lines must still
+      // be captured (consumed), not fall through as normal unhighlighted text.
+      Handle(h, c, "3:  endif").Should().BeTrue();
+      Handle(h, c, "4:  return 0;").Should().BeTrue();
+
+      // Only the first non-numbered line ends the listing, flushing the remaining buffer.
+      Handle(h, c, "You see nothing special.").Should().BeFalse();
+      c.Blocks.Should().HaveCount(2);
+      c.Blocks[1].Should().HaveCount(2, "lines 3 and 4 were captured after the mid-stream idle flush");
+   }
+
+   [Fact]
    public void Header_Is_Stripped_Of_Ansi_Before_Matching()
    {
       var c = new Capture();
