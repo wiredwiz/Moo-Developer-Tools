@@ -12,6 +12,7 @@ using System.Threading.Tasks;
 using System.Windows.Forms;
 using FastColoredTextBoxNS.Types;
 using Org.Edgerunner.Common.Extensions;
+using Org.Edgerunner.Moo.Editor.Configuration;
 using Org.Edgerunner.Mud.Communication;
 using Org.Edgerunner.Mud.Communication.Buffers;
 using Org.Edgerunner.Mud.Communication.Interfaces;
@@ -40,6 +41,12 @@ namespace Org.Edgerunner.Moo.Editor.Controls
 
       private System.Windows.Forms.Timer _scrollTimer;
       private bool _pendingScroll;
+
+      /// <summary>
+      /// Intercepts verb-code listings printed to the terminal and re-renders them using the editor's
+      /// syntax-highlighting colors when <see cref="Settings.EditorHighlightListedVerbCode"/> is enabled.
+      /// </summary>
+      private readonly ListedCodeHighlighter _ListedCodeHighlighter = new();
 
       public string Host => _Session.Host;
 
@@ -712,7 +719,9 @@ namespace Org.Edgerunner.Moo.Editor.Controls
                      void SafeWrite()
                      {
                         var atBottom = consoleSim.VerticalScrollbarPositionedAtBottom;
-                        consoleSim.WriteAnsi(text);
+                        if (!Settings.Instance.EditorHighlightListedVerbCode
+                            || !_ListedCodeHighlighter.TryHandle(text, DateTime.UtcNow, consoleSim.WriteAnsi, WriteStyledCodeLine))
+                           consoleSim.WriteAnsi(text);
                         if (atBottom)
                            _pendingScroll = true;
                      }
@@ -753,9 +762,23 @@ namespace Org.Edgerunner.Moo.Editor.Controls
          }
       }
 
+      /// <summary>
+      /// Writes a captured, syntax-highlighted code line to the console emulator, applying each
+      /// segment's color, then a newline. Used by <see cref="_ListedCodeHighlighter"/>.
+      /// </summary>
+      /// <param name="segments">The ordered (text, color) segments covering the line.</param>
+      private void WriteStyledCodeLine(IReadOnlyList<(string Text, Color Color)> segments)
+      {
+         var background = consoleSim.ConsoleBackgroundColor;
+         foreach (var segment in segments)
+            consoleSim.WriteWithStyle(segment.Text, AnsiManager.GetStyle(segment.Color, background, FontStyle.Regular));
+         consoleSim.Write("\n");
+      }
+
       private void Session_Closed(object sender, EventArgs e)
       {
          _LoggedInConnection = false;
+         _ListedCodeHighlighter.Reset();
          Debug.WriteLine("** Session was closed **");
 
          // Deterministic, reuse-safe teardown of world query providers: unregister providers and fault
