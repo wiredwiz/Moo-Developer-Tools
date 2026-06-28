@@ -221,6 +221,32 @@ namespace Org.Edgerunner.Moo.Udditor.Dialogs
          layout.Controls.Add(BuildChromeGroup(chromeRows));
 
          leftScrollPanel.Controls.Add(layout);
+
+         // WS_EX_COMPOSITED on the form does not fully tame the nested KryptonTableLayoutPanels inside
+         // the AutoScroll left pane during resize (the swatch region flickers), so double-buffer the
+         // whole container subtree as well.
+         EnableDoubleBuffering(leftScrollPanel);
+      }
+
+      private static readonly System.Reflection.PropertyInfo DoubleBufferedProperty =
+         typeof(Control).GetProperty(
+            "DoubleBuffered",
+            System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic);
+
+      /// <summary>
+      /// Recursively turns on the protected <see cref="Control.DoubleBuffered"/> flag for a control and
+      /// every descendant, to suppress the resize flicker in the nested layout panels and swatch rows
+      /// that compositing the window alone does not fully cover.
+      /// </summary>
+      /// <param name="root">The root control whose subtree should be double-buffered.</param>
+      private static void EnableDoubleBuffering(Control root)
+      {
+         if (root == null)
+            return;
+
+         DoubleBufferedProperty?.SetValue(root, true);
+         foreach (Control child in root.Controls)
+            EnableDoubleBuffering(child);
       }
 
       private static KryptonLabel HeaderLabel(string text)
