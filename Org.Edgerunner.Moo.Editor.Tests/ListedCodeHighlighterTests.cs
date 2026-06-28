@@ -22,20 +22,27 @@ public class ListedCodeHighlighterTests
    private sealed class Capture
    {
       public List<string> PassThrough { get; } = new();
-      public List<IReadOnlyList<(string Text, Color Color)>> Styled { get; } = new();
 
-      public string StyledText(int index) => string.Concat(Styled[index].Select(s => s.Text));
+      /// <summary>Every flushed block, in flush order; each block is a list of lines of (text,color) segments.</summary>
+      public List<IReadOnlyList<IReadOnlyList<(string Text, Color Color)>>> Blocks { get; } = new();
+
+      /// <summary>The concatenated text of a single line within a flushed block.</summary>
+      public string LineText(int blockIndex, int lineIndex) =>
+         string.Concat(Blocks[blockIndex][lineIndex].Select(s => s.Text));
    }
 
-   private static ListedCodeHighlighter NewHighlighter(Settings settings = null)
+   private static ListedCodeHighlighter NewHighlighter(
+      Settings settings = null,
+      Action armFlush = null,
+      Action cancelFlush = null)
    {
       settings ??= CreateSettings();
-      return new ListedCodeHighlighter(() => GrammarDialect.Edgerunner, settings);
+      return new ListedCodeHighlighter(() => GrammarDialect.Edgerunner, settings, armFlush, cancelFlush);
    }
 
-   private static bool Handle(ListedCodeHighlighter h, Capture c, string line, DateTime when)
+   private static bool Handle(ListedCodeHighlighter h, Capture c, string line)
    {
-      return h.TryHandle(line, when, s => c.PassThrough.Add(s), seg => c.Styled.Add(seg));
+      return h.TryHandle(line, s => c.PassThrough.Add(s), b => c.Blocks.Add(b));
    }
 
    // ----- Header regex -----
@@ -67,7 +74,7 @@ public class ListedCodeHighlighterTests
       var h = NewHighlighter();
       var ansiHeader = "[36m#106:\"tell\"  this none this[0m\n";
 
-      var consumed = Handle(h, c, ansiHeader, DateTime.UtcNow);
+      var consumed = Handle(h, c, ansiHeader);
 
       consumed.Should().BeTrue();
       c.PassThrough.Should().ContainSingle().Which.Should().Be(ansiHeader);
@@ -76,21 +83,23 @@ public class ListedCodeHighlighterTests
    // ----- Numbered listings -----
 
    [Fact]
-   public void Numbered_Listing_Captures_Until_First_Non_Numbered_Line()
+   public void Numbered_Listing_Buffers_Until_First_Non_Numbered_Line_Then_Flushes_One_Block()
    {
       var c = new Capture();
       var h = NewHighlighter();
-      var t = DateTime.UtcNow;
 
-      Handle(h, c, Header + "\n", t).Should().BeTrue();
-      Handle(h, c, "1:  player:tell(\"hi\");\n", t).Should().BeTrue();
-      Handle(h, c, "2:  return 1;\n", t).Should().BeTrue();
-      // First non-numbered line terminates and is passed through normally (not consumed).
-      Handle(h, c, "Verb programmed.\n", t).Should().BeFalse();
+      Handle(h, c, Header + "\n").Should().BeTrue();
+      Handle(h, c, "1:  player:tell(\"hi\");\n").Should().BeTrue();
+      Handle(h, c, "2:  return 1;\n").Should().BeTrue();
+      // Nothing flushed yet: lines are buffered.
+      c.Blocks.Should().BeEmpty();
+      // First non-numbered line terminates: it flushes the block and is passed through normally.
+      Handle(h, c, "Verb programmed.\n").Should().BeFalse();
 
-      c.Styled.Should().HaveCount(2);
-      c.StyledText(0).Should().Be("1:  player:tell(\"hi\");");
-      c.StyledText(1).Should().Be("2:  return 1;");
+      c.Blocks.Should().ContainSingle();
+      c.Blocks[0].Should().HaveCount(2);
+      c.LineText(0, 0).Should().Be("1:  player:tell(\"hi\");");
+      c.LineText(0, 1).Should().Be("2:  return 1;");
    }
 
    [Fact]
@@ -100,12 +109,12 @@ public class ListedCodeHighlighterTests
       settings.DefaultWordColor = Color.FromArgb(255, 9, 9, 9);
       var c = new Capture();
       var h = NewHighlighter(settings);
-      var t = DateTime.UtcNow;
 
-      Handle(h, c, Header + "\n", t);
-      Handle(h, c, "1:  return 1;\n", t).Should().BeTrue();
+      Handle(h, c, Header + "\n");
+      Handle(h, c, "1:  return 1;\n").Should().BeTrue();
+      h.FlushPending();
 
-      var first = c.Styled[0][0];
+      var first = c.Blocks[0][0][0];
       first.Text.Should().Be("1:");
       first.Color.Should().Be(settings.DefaultWordColor);
    }
@@ -115,59 +124,33 @@ public class ListedCodeHighlighterTests
    {
       var c = new Capture();
       var h = NewHighlighter();
-      var t = DateTime.UtcNow;
 
-      Handle(h, c, Header + "\n", t);
-      Handle(h, c, "17:  return 1;\n", t).Should().BeTrue();
+      Handle(h, c, Header + "\n");
+      Handle(h, c, "17:  return 1;\n").Should().BeTrue();
+      h.FlushPending();
 
-      c.StyledText(0).Should().Be("17:  return 1;");
+      c.LineText(0, 0).Should().Be("17:  return 1;");
    }
 
    // ----- Unnumbered listings -----
 
    [Fact]
-   public void Unnumbered_Listing_Captures_Contiguous_Lines()
+   public void Unnumbered_Listing_Buffers_Contiguous_Lines_Into_One_Block()
    {
       var c = new Capture();
       var h = NewHighlighter();
-      var t = DateTime.UtcNow;
 
-      Handle(h, c, Header + "\n", t).Should().BeTrue();
-      Handle(h, c, "player:tell(\"hi\");\n", t).Should().BeTrue();
-      Handle(h, c, "return 1;\n", t.AddMilliseconds(50)).Should().BeTrue();
+      Handle(h, c, Header + "\n").Should().BeTrue();
+      Handle(h, c, "player:tell(\"hi\");\n").Should().BeTrue();
+      Handle(h, c, "return 1;\n").Should().BeTrue();
+      c.Blocks.Should().BeEmpty();
 
-      c.Styled.Should().HaveCount(2);
-      c.StyledText(0).Should().Be("player:tell(\"hi\");");
-      c.StyledText(1).Should().Be("return 1;");
-   }
+      h.FlushPending();
 
-   [Fact]
-   public void Unnumbered_Listing_Terminates_On_Timing_Gap()
-   {
-      var c = new Capture();
-      var h = NewHighlighter();
-      var t = DateTime.UtcNow;
-
-      Handle(h, c, Header + "\n", t);
-      Handle(h, c, "player:tell(\"hi\");\n", t).Should().BeTrue();
-      // A line arriving >= 500 ms after the previous captured line ends the listing.
-      Handle(h, c, "Something unrelated\n", t.AddMilliseconds(500)).Should().BeFalse();
-
-      c.Styled.Should().HaveCount(1);
-   }
-
-   [Fact]
-   public void Unnumbered_Listing_Keeps_Capturing_Just_Under_The_Gap()
-   {
-      var c = new Capture();
-      var h = NewHighlighter();
-      var t = DateTime.UtcNow;
-
-      Handle(h, c, Header + "\n", t);
-      Handle(h, c, "player:tell(\"hi\");\n", t).Should().BeTrue();
-      Handle(h, c, "return 1;\n", t.AddMilliseconds(499)).Should().BeTrue();
-
-      c.Styled.Should().HaveCount(2);
+      c.Blocks.Should().ContainSingle();
+      c.Blocks[0].Should().HaveCount(2);
+      c.LineText(0, 0).Should().Be("player:tell(\"hi\");");
+      c.LineText(0, 1).Should().Be("return 1;");
    }
 
    [Fact]
@@ -175,47 +158,75 @@ public class ListedCodeHighlighterTests
    {
       var c = new Capture();
       var h = NewHighlighter();
-      var t = DateTime.UtcNow;
 
-      Handle(h, c, Header + "\n", t);
-      Handle(h, c, "player:tell(\"hi\");\n", t).Should().BeTrue();
-      Handle(h, c, "\n", t.AddMilliseconds(10)).Should().BeFalse();
+      Handle(h, c, Header + "\n");
+      Handle(h, c, "player:tell(\"hi\");\n").Should().BeTrue();
+      // A blank line ends the listing: flush, then render the blank normally.
+      Handle(h, c, "\n").Should().BeFalse();
 
-      c.Styled.Should().HaveCount(1);
+      c.Blocks.Should().ContainSingle();
+      c.Blocks[0].Should().HaveCount(1);
+   }
+
+   // ----- Idle flush (timer stand-in) -----
+
+   [Fact]
+   public void FlushPending_Emits_Buffered_Block_Once_When_Listing_Is_Last_Output()
+   {
+      var c = new Capture();
+      var h = NewHighlighter();
+
+      Handle(h, c, Header + "\n");
+      Handle(h, c, "player:tell(\"hi\");\n").Should().BeTrue();
+      Handle(h, c, "return 1;\n").Should().BeTrue();
+
+      h.FlushPending();
+      c.Blocks.Should().ContainSingle();
+      c.Blocks[0].Should().HaveCount(2);
+
+      // A second flush is a no-op (buffer already drained).
+      h.FlushPending();
+      c.Blocks.Should().ContainSingle();
    }
 
    // ----- Multi-verb / reset -----
 
    [Fact]
-   public void New_Header_Mid_Capture_Ends_Block_And_Starts_New_One()
+   public void New_Header_Mid_Capture_Flushes_Block_And_Starts_New_One()
    {
       var c = new Capture();
       var h = NewHighlighter();
-      var t = DateTime.UtcNow;
 
-      Handle(h, c, Header + "\n", t);
-      Handle(h, c, "1:  return 1;\n", t).Should().BeTrue();
-      // A new header restarts a new listing block.
-      Handle(h, c, "#107:\"look\"  this none this\n", t).Should().BeTrue();
-      Handle(h, c, "1:  return 2;\n", t).Should().BeTrue();
+      Handle(h, c, Header + "\n");
+      Handle(h, c, "1:  return 1;\n").Should().BeTrue();
+      // A new header flushes the first block and restarts a new listing.
+      Handle(h, c, "#107:\"look\"  this none this\n").Should().BeTrue();
+      Handle(h, c, "1:  return 2;\n").Should().BeTrue();
+      h.FlushPending();
 
       c.PassThrough.Should().HaveCount(2); // both headers
-      c.Styled.Should().HaveCount(2);
-      c.StyledText(1).Should().Be("1:  return 2;");
+      c.Blocks.Should().HaveCount(2);
+      c.LineText(0, 0).Should().Be("1:  return 1;");
+      c.LineText(1, 0).Should().Be("1:  return 2;");
    }
 
    [Fact]
-   public void Reset_Abandons_In_Progress_Capture()
+   public void Reset_Abandons_Buffered_Code_Without_Emitting()
    {
       var c = new Capture();
       var h = NewHighlighter();
-      var t = DateTime.UtcNow;
 
-      Handle(h, c, Header + "\n", t);
+      Handle(h, c, Header + "\n");
+      Handle(h, c, "1:  return 1;\n").Should().BeTrue();
       h.Reset();
+
+      // The buffered block is abandoned (never flushed).
+      h.FlushPending();
+      c.Blocks.Should().BeEmpty();
+
       // After reset, a numbered line is no longer treated as code.
-      Handle(h, c, "1:  return 1;\n", t).Should().BeFalse();
-      c.Styled.Should().BeEmpty();
+      Handle(h, c, "1:  return 1;\n").Should().BeFalse();
+      c.Blocks.Should().BeEmpty();
    }
 
    [Fact]
@@ -224,8 +235,43 @@ public class ListedCodeHighlighterTests
       var c = new Capture();
       var h = NewHighlighter();
 
-      Handle(h, c, "You see nothing special.\n", DateTime.UtcNow).Should().BeFalse();
-      c.Styled.Should().BeEmpty();
+      Handle(h, c, "You see nothing special.\n").Should().BeFalse();
+      c.Blocks.Should().BeEmpty();
       c.PassThrough.Should().BeEmpty();
+   }
+
+   // ----- Injected flush scheduler -----
+
+   [Fact]
+   public void Flush_Scheduler_Is_Armed_Per_Buffered_Line_And_Cancelled_On_Flush()
+   {
+      var arms = 0;
+      var cancels = 0;
+      var c = new Capture();
+      var h = NewHighlighter(armFlush: () => arms++, cancelFlush: () => cancels++);
+
+      Handle(h, c, Header + "\n");
+      Handle(h, c, "1:  a;\n").Should().BeTrue();
+      Handle(h, c, "2:  b;\n").Should().BeTrue();
+      arms.Should().Be(2); // armed once per buffered code line
+
+      // Terminator flushes the block and cancels the pending flush.
+      Handle(h, c, "Verb programmed.\n").Should().BeFalse();
+      cancels.Should().BeGreaterThanOrEqualTo(1);
+      c.Blocks.Should().ContainSingle();
+   }
+
+   [Fact]
+   public void Reset_Cancels_Pending_Flush()
+   {
+      var cancels = 0;
+      var c = new Capture();
+      var h = NewHighlighter(cancelFlush: () => cancels++);
+
+      Handle(h, c, Header + "\n");
+      Handle(h, c, "1:  a;\n").Should().BeTrue();
+      h.Reset();
+
+      cancels.Should().BeGreaterThanOrEqualTo(1);
    }
 }

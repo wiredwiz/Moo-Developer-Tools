@@ -43,10 +43,18 @@ namespace Org.Edgerunner.Moo.Editor.Controls
       private bool _pendingScroll;
 
       /// <summary>
+      /// Idle timer (UI thread) that flushes the buffered listed-code block when no further code line
+      /// arrives within <see cref="ListedCodeHighlighter.IdleFlushMilliseconds"/>, so a listing that is
+      /// the last output still renders. Armed/reset per captured line via the highlighter's flush scheduler.
+      /// </summary>
+      private System.Windows.Forms.Timer _listedCodeFlushTimer;
+
+      /// <summary>
       /// Intercepts verb-code listings printed to the terminal and re-renders them using the editor's
       /// syntax-highlighting colors when <see cref="Settings.EditorHighlightListedVerbCode"/> is enabled.
+      /// The captured code body is buffered and rendered as a single batched block.
       /// </summary>
-      private readonly ListedCodeHighlighter _ListedCodeHighlighter = new();
+      private readonly ListedCodeHighlighter _ListedCodeHighlighter;
 
       public string Host => _Session.Host;
 
@@ -186,6 +194,11 @@ namespace Org.Edgerunner.Moo.Editor.Controls
          _scrollTimer = new System.Windows.Forms.Timer { Interval = 16 };
          _scrollTimer.Tick += OnScrollTimerTick;
          _scrollTimer.Start();
+         _listedCodeFlushTimer = new System.Windows.Forms.Timer { Interval = ListedCodeHighlighter.IdleFlushMilliseconds };
+         _listedCodeFlushTimer.Tick += OnListedCodeFlushTimerTick;
+         _ListedCodeHighlighter = new ListedCodeHighlighter(
+            armFlush: ArmListedCodeFlush,
+            cancelFlush: CancelListedCodeFlush);
          Tls = useTls;
       }
 
@@ -720,7 +733,7 @@ namespace Org.Edgerunner.Moo.Editor.Controls
                      {
                         var atBottom = consoleSim.VerticalScrollbarPositionedAtBottom;
                         if (!Settings.Instance.EditorHighlightListedVerbCode
-                            || !_ListedCodeHighlighter.TryHandle(text, DateTime.UtcNow, consoleSim.WriteAnsi, WriteStyledCodeLine))
+                            || !_ListedCodeHighlighter.TryHandle(text, consoleSim.WriteAnsi, WriteStyledCodeBlock))
                            consoleSim.WriteAnsi(text);
                         if (atBottom)
                            _pendingScroll = true;
@@ -763,18 +776,49 @@ namespace Org.Edgerunner.Moo.Editor.Controls
       }
 
       /// <summary>
-      /// Writes a captured, syntax-highlighted code line to the console emulator, applying each
-      /// segment's color, then a newline. Used by <see cref="_ListedCodeHighlighter"/>.
+      /// Renders a captured, syntax-highlighted code block to the console emulator in a single batched
+      /// insert, converting each segment's color to a console <c>Style</c>. Used by
+      /// <see cref="_ListedCodeHighlighter"/> when a buffered listing is flushed.
       /// </summary>
-      /// <param name="segments">The ordered (text, color) segments covering the line.</param>
-      private void WriteStyledCodeLine(IReadOnlyList<(string Text, Color Color)> segments)
+      /// <param name="lines">The ordered lines, each an ordered list of (text, color) segments.</param>
+      private void WriteStyledCodeBlock(IReadOnlyList<IReadOnlyList<(string Text, Color Color)>> lines)
       {
          var background = consoleSim.ConsoleBackgroundColor;
-         var styled = new List<(string Text, Style Style)>(segments.Count);
-         foreach (var segment in segments)
-            styled.Add((segment.Text, AnsiManager.GetStyle(segment.Color, background, FontStyle.Regular)));
-         consoleSim.WriteStyledSegments(styled);
-         consoleSim.Write("\n");
+         var styledBlock = new List<IReadOnlyList<(string Text, Style Style)>>(lines.Count);
+         foreach (var line in lines)
+         {
+            var styled = new List<(string Text, Style Style)>(line.Count);
+            foreach (var segment in line)
+               styled.Add((segment.Text, AnsiManager.GetStyle(segment.Color, background, FontStyle.Regular)));
+            styledBlock.Add(styled);
+         }
+
+         consoleSim.WriteStyledBlock(styledBlock);
+      }
+
+      /// <summary>Arms (or resets) the idle flush timer when a listed-code line is buffered.</summary>
+      private void ArmListedCodeFlush()
+      {
+         if (_listedCodeFlushTimer == null)
+            return;
+         _listedCodeFlushTimer.Stop();
+         _listedCodeFlushTimer.Start();
+      }
+
+      /// <summary>Cancels the idle flush timer (block flushed, or capture reset).</summary>
+      private void CancelListedCodeFlush()
+      {
+         _listedCodeFlushTimer?.Stop();
+      }
+
+      /// <summary>Idle timer tick: flush the buffered listed-code block and schedule a scroll.</summary>
+      private void OnListedCodeFlushTimerTick(object sender, EventArgs e)
+      {
+         _listedCodeFlushTimer?.Stop();
+         var atBottom = consoleSim.VerticalScrollbarPositionedAtBottom;
+         _ListedCodeHighlighter.FlushPending();
+         if (atBottom)
+            _pendingScroll = true;
       }
 
       private void Session_Closed(object sender, EventArgs e)
@@ -799,6 +843,9 @@ namespace Org.Edgerunner.Moo.Editor.Controls
          _scrollTimer?.Stop();
          _scrollTimer?.Dispose();
          _scrollTimer = null;
+         _listedCodeFlushTimer?.Stop();
+         _listedCodeFlushTimer?.Dispose();
+         _listedCodeFlushTimer = null;
          try
          {
             TokenSource.Cancel();
