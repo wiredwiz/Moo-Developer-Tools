@@ -203,7 +203,7 @@ namespace Org.Edgerunner.Moo.Udditor.Dialogs
             AutoSizeMode = AutoSizeMode.GrowAndShrink,
             ColumnCount = 2,
             Padding = new Padding(8),
-            RowCount = 6
+            RowCount = 7
          };
          panel.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 250f));
          panel.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100f));
@@ -224,6 +224,12 @@ namespace Org.Edgerunner.Moo.Udditor.Dialogs
          var chkAutoBrackets = new KryptonCheckBox { Name = nameof(Settings.EditorAutoBrackets), AutoSize = true };
          chkAutoBrackets.Values.Text = "Enable Auto Brackets";
          panel.Controls.Add(chkAutoBrackets);
+         panel.Controls.Add(new KryptonLabel { Values = { Text = string.Empty } });
+
+         // Highlight Listed Verb Code
+         var chkHighlightListed = new KryptonCheckBox { Name = nameof(Settings.EditorHighlightListedVerbCode), AutoSize = true };
+         chkHighlightListed.Values.Text = "Syntax-highlight verb code listed in the terminal";
+         panel.Controls.Add(chkHighlightListed);
          panel.Controls.Add(new KryptonLabel { Values = { Text = string.Empty } });
 
          // Parser Message Font Family

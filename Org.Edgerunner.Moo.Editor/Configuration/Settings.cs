@@ -531,6 +531,12 @@ namespace Org.Edgerunner.Moo.Editor.Configuration
       public bool EditorAutoBrackets { get; set; }
 
       /// <summary>
+      /// Gets or sets a value indicating whether verb code listed in the terminal is syntax-highlighted.
+      /// </summary>
+      /// <value><c>true</c> if listed verb code highlighting is enabled; otherwise, <c>false</c>.</value>
+      public bool EditorHighlightListedVerbCode { get; set; }
+
+      /// <summary>
       /// Gets or sets the number of spaces to convert tabs to.
       /// </summary>
       /// <value>The number of spaces representing a tab.</value>
@@ -1006,6 +1012,7 @@ namespace Org.Edgerunner.Moo.Editor.Configuration
          clone.EditorShowCodeFolding = EditorShowCodeFolding;
          clone.EditorShowTextIndentGuides = EditorShowTextIndentGuides;
          clone.EditorAutoBrackets = EditorAutoBrackets;
+         clone.EditorHighlightListedVerbCode = EditorHighlightListedVerbCode;
          clone.EditorTabLength = EditorTabLength;
          clone.EditorAutocompleteDelay = EditorAutocompleteDelay;
          clone.EditorCacheTtlSeconds = EditorCacheTtlSeconds;
@@ -1112,6 +1119,7 @@ namespace Org.Edgerunner.Moo.Editor.Configuration
          EditorShowCodeFolding = clone.EditorShowCodeFolding;
          EditorShowTextIndentGuides = clone.EditorShowTextIndentGuides;
          EditorAutoBrackets = clone.EditorAutoBrackets;
+         EditorHighlightListedVerbCode = clone.EditorHighlightListedVerbCode;
          EditorTabLength = clone.EditorTabLength;
          EditorAutocompleteDelay = clone.EditorAutocompleteDelay;
          EditorCacheTtlSeconds = clone.EditorCacheTtlSeconds;
@@ -1263,6 +1271,7 @@ namespace Org.Edgerunner.Moo.Editor.Configuration
             ["EditorZoomFactor"] = EditorZoomFactor.ToString(),
             ["EditorAutoIndent"] = EditorAutoIndent.ToString(),
             ["EditorAutoBrackets"] = EditorAutoBrackets.ToString(),
+            ["EditorHighlightListedVerbCode"] = EditorHighlightListedVerbCode.ToString(),
             ["EditorTabLength"] = EditorTabLength.ToString(),
             ["EditorAutocompleteDelay"] = EditorAutocompleteDelay.ToString(),
             ["EditorCacheTtlSeconds"] = EditorCacheTtlSeconds.ToString(),
@@ -1581,6 +1590,7 @@ namespace Org.Edgerunner.Moo.Editor.Configuration
       {
          var defAutoIndent = true;
          var defAutoComplete = true;
+         var defHighlightListedVerbCode = false;
          var defWordWrap = true;
          var defWordWrapAutoIndent = true;
          var defWordWrapIndent = 2;
@@ -1599,6 +1609,7 @@ namespace Org.Edgerunner.Moo.Editor.Configuration
             EditorAutoIndent = defAutoIndent;
             EditorWordWrap = defWordWrap;
             EditorAutoBrackets = defAutoComplete;
+            EditorHighlightListedVerbCode = defHighlightListedVerbCode;
             EditorWordWrapIndent = defWordWrapIndent;
             EditorWordWrapAutoIndent = defWordWrapAutoIndent;
             EditorTabLength = defTabLength;
@@ -1644,6 +1655,10 @@ namespace Org.Edgerunner.Moo.Editor.Configuration
          // Fetch EditorAutoBrackets settings
          result = appSettings["EditorAutoBrackets"]?.Value ?? string.Empty;
          EditorAutoBrackets = !bool.TryParse(result, out settingValueBoolean) ? defAutoComplete : settingValueBoolean;
+
+         // Fetch EditorHighlightListedVerbCode settings
+         result = appSettings["EditorHighlightListedVerbCode"]?.Value ?? string.Empty;
+         EditorHighlightListedVerbCode = !bool.TryParse(result, out settingValueBoolean) ? defHighlightListedVerbCode : settingValueBoolean;
 
          // Fetch EditorDarkTheme settings
          result = appSettings["EditorDarkTheme"]?.Value ?? string.Empty;
