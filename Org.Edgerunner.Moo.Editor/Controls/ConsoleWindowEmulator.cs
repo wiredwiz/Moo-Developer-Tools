@@ -313,6 +313,86 @@ namespace Org.Edgerunner.Moo.Editor.Controls
          ScrollToEnd();
       }
 
+      /// <summary>
+      /// Appends a whole block of pre-colored lines in one batched operation: the entire block text
+      /// (every line's concatenated segment text, joined by line breaks plus a trailing line break) is
+      /// inserted once, then each segment's style is applied to its sub-range at the correct (line, col).
+      /// </summary>
+      /// <param name="lines">
+      /// The ordered lines; each line is an ordered list of (text, style) segments (no embedded line
+      /// breaks). The block is terminated with a single trailing newline.
+      /// </param>
+      /// <remarks>
+      /// This is the block-level analogue of <see cref="WriteStyledSegments"/>. For very large listings
+      /// (e.g. a long verb body) it pays the AppendText / <c>ClearUndo</c> / <c>ScrollToEnd</c> costs once
+      /// for the whole block instead of once per line, and triggers a single paint.
+      /// </remarks>
+      public void WriteStyledBlock(IReadOnlyList<IReadOnlyList<(string Text, Style Style)>> lines)
+      {
+         if (lines == null || lines.Count == 0)
+            return;
+
+         BeginUpdate();
+         try
+         {
+            var startLine = TextSource.Count - 1;
+            var startColumn = TextSource[^1].Count;
+            var (blockText, ranges) = BuildStyledBlock(lines, startLine, startColumn);
+
+            AppendText(blockText);
+
+            foreach (var (lineIndex, start, length, style) in ranges)
+               if (style != null)
+                  GetRange(new Place(start, lineIndex), new Place(start + length, lineIndex)).SetStyle(style);
+         }
+         finally
+         {
+            EndUpdate();
+         }
+
+         ClearUndo();
+         ScrollToEnd();
+      }
+
+      /// <summary>
+      /// Pure helper that computes the concatenated block text and the per-segment style ranges for
+      /// <see cref="WriteStyledBlock"/>. Extracted as a seam so the multi-line range math can be
+      /// unit-tested without a live control. The bell character is stripped (matching the other write
+      /// methods) and each line is terminated with a single <c>\n</c>.
+      /// </summary>
+      /// <param name="lines">The ordered lines of (text, style) segments.</param>
+      /// <param name="startLine">The text-source line index the first line is appended to.</param>
+      /// <param name="startColumn">The column the first line begins at (subsequent lines start at 0).</param>
+      /// <returns>The full block text and the ordered (line, start, length, style) ranges to style.</returns>
+      public static (string Text, IReadOnlyList<(int Line, int Start, int Length, Style Style)> Ranges) BuildStyledBlock(
+         IReadOnlyList<IReadOnlyList<(string Text, Style Style)>> lines,
+         int startLine,
+         int startColumn)
+      {
+         var builder = new StringBuilder();
+         var ranges = new List<(int Line, int Start, int Length, Style Style)>();
+
+         for (var i = 0; i < lines.Count; i++)
+         {
+            var lineIndex = startLine + i;
+            var column = i == 0 ? startColumn : 0;
+            var segments = lines[i];
+            if (segments != null)
+               foreach (var segment in segments)
+               {
+                  var clean = (segment.Text ?? string.Empty).Replace("", "");
+                  if (clean.Length > 0)
+                     ranges.Add((lineIndex, column, clean.Length, segment.Style));
+                  builder.Append(clean);
+                  column += clean.Length;
+               }
+
+            builder.Append('\n');
+         }
+
+         return (builder.ToString(), ranges);
+      }
+
       public void ScrollToEnd()
       {
          Selection.Start = new Place(TextSource[^1].Count, TextSource.Count - 1);
