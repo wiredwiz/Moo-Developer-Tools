@@ -82,7 +82,7 @@ namespace Org.Edgerunner.Moo.Editor.Controls
       /// flushed by the host's idle timer (so a listing that is the last output still renders). The host
       /// arms/resets a timer of this interval each time a line is captured.
       /// </summary>
-      public const int IdleFlushMilliseconds = 500;
+      public const int IdleFlushMilliseconds = 1000;
 
       /// <summary>
       /// Matches the standard verb-list header, e.g. <c>#106:"tell"  this none this Wizard (#2), rxd</c>.
