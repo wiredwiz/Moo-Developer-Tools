@@ -89,46 +89,6 @@ namespace Org.Edgerunner.Moo.Udditor.Dialogs
          }
       }
 
-      private bool _leftLayoutSuspended;
-
-      /// <summary>
-      /// Suspends layout of the left (controls) pane during a resize drag so its AutoScroll panel and
-      /// the nested AutoSize/percentage table panels do not re-measure and re-flow on every resize tick —
-      /// the cause of the swatch-region flicker that compositing alone cannot hide. The deferred layout
-      /// runs once on <see cref="ResumeLeftLayout"/>. Guarded so repeated events don't unbalance the
-      /// Suspend/Resume layout counter.
-      /// </summary>
-      private void SuspendLeftLayout()
-      {
-         if (_leftLayoutSuspended)
-            return;
-         _leftLayoutSuspended = true;
-         leftScrollPanel.SuspendLayout();
-      }
-
-      /// <summary>Resumes left-pane layout (performing it once) after a resize drag ends.</summary>
-      private void ResumeLeftLayout()
-      {
-         if (!_leftLayoutSuspended)
-            return;
-         _leftLayoutSuspended = false;
-         leftScrollPanel.ResumeLayout(true);
-      }
-
-      /// <inheritdoc/>
-      protected override void OnResizeBegin(EventArgs e)
-      {
-         base.OnResizeBegin(e);
-         SuspendLeftLayout();
-      }
-
-      /// <inheritdoc/>
-      protected override void OnResizeEnd(EventArgs e)
-      {
-         ResumeLeftLayout();
-         base.OnResizeEnd(e);
-      }
-
       /// <summary>
       /// Describes a single syntax-token row: its label and the property accessors it edits.
       /// </summary>
