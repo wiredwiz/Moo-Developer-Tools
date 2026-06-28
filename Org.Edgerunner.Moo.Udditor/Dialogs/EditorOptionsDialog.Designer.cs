@@ -58,6 +58,8 @@ namespace Org.Edgerunner.Moo.Udditor.Dialogs
          tabControl1.Pages.Add(tabPageCodeFeatures);
          tabControl1.Pages.Add(tabPageGrammar);
          tabControl1.NavigatorMode = Krypton.Navigator.NavigatorMode.BarTabGroup;
+         // The options tabs are fixed; users must not be able to close them. Hide the tab-bar close (X).
+         tabControl1.Button.CloseButtonDisplay = Krypton.Navigator.ButtonDisplay.Hide;
          tabControl1.Dock = DockStyle.Fill;
          tabControl1.Location = new Point(0, 0);
          tabControl1.Name = "tabControl1";
