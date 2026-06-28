@@ -73,6 +73,23 @@ namespace Org.Edgerunner.Moo.Udditor.Dialogs
       private readonly Dictionary<Control, Action> _refreshers = new();
 
       /// <summary>
+      /// Enables <c>WS_EX_COMPOSITED</c> so the whole window — including its many nested Krypton/table
+      /// panels, the AutoScroll color list, and the live code-preview control — paints to an off-screen
+      /// buffer. Without this the dialog flickers badly while resizing, because each child control
+      /// repaints independently; per-control double buffering does not cover child controls, so
+      /// compositing the window is the fix.
+      /// </summary>
+      protected override CreateParams CreateParams
+      {
+         get
+         {
+            var cp = base.CreateParams;
+            cp.ExStyle |= 0x02000000; // WS_EX_COMPOSITED
+            return cp;
+         }
+      }
+
+      /// <summary>
       /// Describes a single syntax-token row: its label and the property accessors it edits.
       /// </summary>
       private sealed class TokenRowDefinition
